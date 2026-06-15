@@ -285,6 +285,88 @@ function importFromText(string $text): array
     return $values;
 }
 
+function timezoneChoices(): array
+{
+    return [
+        'Europa' => [
+            'Europe/Zurich' => 'Zürich / Schweiz',
+            'Europe/Berlin' => 'Berlin / Deutschland',
+            'Europe/Vienna' => 'Wien / Österreich',
+            'Europe/Paris' => 'Paris / Frankreich',
+            'Europe/Rome' => 'Rom / Italien',
+            'Europe/Madrid' => 'Madrid / Spanien',
+            'Europe/Lisbon' => 'Lissabon / Portugal',
+            'Europe/London' => 'London / UK',
+        ],
+        'Amerika' => [
+            'America/New_York' => 'New York',
+            'America/Chicago' => 'Chicago',
+            'America/Denver' => 'Denver',
+            'America/Los_Angeles' => 'Los Angeles',
+            'America/Sao_Paulo' => 'São Paulo',
+        ],
+        'Afrika' => [
+            'Africa/Casablanca' => 'Casablanca',
+            'Africa/Johannesburg' => 'Johannesburg',
+        ],
+        'Asien' => [
+            'Asia/Dubai' => 'Dubai',
+            'Asia/Singapore' => 'Singapur',
+            'Asia/Tokyo' => 'Tokio',
+        ],
+        'Ozeanien' => [
+            'Australia/Sydney' => 'Sydney',
+        ],
+    ];
+}
+
+function countryChoices(): array
+{
+    return [
+        'CH' => 'Schweiz',
+        'LI' => 'Liechtenstein',
+        'DE' => 'Deutschland',
+        'AT' => 'Österreich',
+        'FR' => 'Frankreich',
+        'IT' => 'Italien',
+        'ES' => 'Spanien',
+        'PT' => 'Portugal',
+        'GB' => 'Vereinigtes Königreich',
+        'US' => 'USA',
+        'BR' => 'Brasilien',
+    ];
+}
+
+function regionChoices(): array
+{
+    return [
+        'CH' => [
+            'Seeland',
+            'Mittelland',
+            'Zürcher Oberland',
+            'Zürich Stadt',
+            'Ostschweiz',
+            'Rheintal',
+            'Nordwestschweiz',
+            'Zentralschweiz',
+            'Berner Oberland',
+            'Genferseeregion',
+            'Tessin',
+            'Graubünden',
+        ],
+        'LI' => ['Oberland', 'Unterland'],
+        'DE' => ['Baden-Württemberg', 'Bayern', 'Rhein-Main', 'Rheinland', 'Ruhrgebiet', 'Berlin/Brandenburg', 'Hamburg/Norddeutschland'],
+        'AT' => ['Vorarlberg', 'Tirol', 'Salzburg', 'Oberösterreich', 'Wien', 'Steiermark'],
+        'FR' => ['Grand Est', 'Auvergne-Rhône-Alpes', 'Île-de-France', 'Provence-Alpes-Côte d’Azur'],
+        'IT' => ['Lombardei', 'Piemont', 'Südtirol/Trentino', 'Venetien'],
+        'ES' => ['Katalonien', 'Madrid', 'Valencia', 'Andalusien'],
+        'PT' => ['Norte', 'Centro', 'Lissabon', 'Alentejo', 'Algarve'],
+        'GB' => ['Greater London', 'South East England', 'North West England', 'Scotland'],
+        'US' => ['Northeast', 'Midwest', 'South', 'West Coast'],
+        'BR' => ['Sudeste', 'Sul', 'Nordeste', 'Centro-Oeste', 'Norte'],
+    ];
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 
@@ -365,12 +447,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $first = trim((string) ($_POST['first_name'] ?? ''));
         $last = trim((string) ($_POST['last_name'] ?? ''));
         $language = in_array($_POST['preferred_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['preferred_language'] : 'de';
-        $timezone = trim((string) ($_POST['timezone'] ?? 'Europe/Zurich')) ?: 'Europe/Zurich';
+        $validTimezones = array_keys(array_merge(...array_values(timezoneChoices())));
+        $timezone = in_array($_POST['timezone'] ?? '', $validTimezones, true) ? (string) $_POST['timezone'] : 'Europe/Zurich';
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
         $mobile = trim((string) ($_POST['mobile'] ?? '')) ?: null;
         $city = trim((string) ($_POST['city'] ?? '')) ?: null;
-        $region = trim((string) ($_POST['region'] ?? '')) ?: null;
-        $country = strtoupper(substr(trim((string) ($_POST['country_code'] ?? '')), 0, 2)) ?: null;
+        $country = array_key_exists((string) ($_POST['country_code'] ?? ''), countryChoices()) ? (string) $_POST['country_code'] : null;
+        $allRegions = [];
+        foreach (regionChoices() as $regions) { $allRegions = array_merge($allRegions, $regions); }
+        $region = in_array($_POST['region'] ?? '', $allRegions, true) ? (string) $_POST['region'] : null;
         if ($first === '' || $last === '') {
             flash('Vorname und Nachname sind erforderlich.', 'danger');
             redirect('/?page=profile');
@@ -766,7 +851,14 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
     <?php elseif ($page === 'profile'): ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
-        <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div><label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Die Änderung der Login-E-Mail folgt mit Bestätigungsmail im nächsten Sicherheitsschritt.</small></label><div class="two"><label>Sprache<select name="preferred_language"><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>" <?= $currentUser['preferred_language']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Zeitzone<input name="timezone" value="<?= e($currentUser['timezone']) ?>"></label></div><div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div><div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<input name="region" value="<?= e($currentUser['region']) ?>"></label><label>Land<input name="country_code" maxlength="2" value="<?= e($currentUser['country_code']) ?>"></label></div><button class="primary" name="action" value="save_profile">Profil speichern</button></form></section>
+        <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
+            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Die Änderung der Login-E-Mail folgt mit Bestätigungsmail im nächsten Sicherheitsschritt.</small></label>
+            <div class="two"><label>Sprache<select name="preferred_language"><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>" <?= $currentUser['preferred_language']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label></div>
+            <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
+            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Land<select name="country_code"><option value="">Nicht gewählt</option><?php foreach(countryChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $currentUser['country_code']===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label>Region<select name="region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): ?><option value="<?= e($region) ?>" <?= $currentUser['region']===$region?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label></div>
+            <button class="primary" name="action" value="save_profile">Profil speichern</button>
+        </form></section>
     <?php elseif ($page === 'companies'): ?>
         <?php
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT * FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
