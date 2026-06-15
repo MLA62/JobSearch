@@ -505,6 +505,16 @@ function importFromText(string $text): array
     return $values;
 }
 
+function originalPdfStatusLabel(?string $status): string
+{
+    return match ($status) {
+        'rendered' => 'Original-PDF bereit',
+        'pending' => 'Original-PDF ausstehend',
+        'failed' => 'Original-PDF fehlgeschlagen',
+        default => 'Kein Original-PDF',
+    };
+}
+
 function timezoneChoices(): array
 {
     return [
@@ -835,8 +845,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
                     $description = trim((string) ($draft['description'] ?? $line));
                     $status = 'open'; $workplace = 'unknown'; $engagement = 'permanent'; $term = 'unknown';
-                    $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-                    $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description);
+                    $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
+                    $pdfRequestedAt = $sourceUrl !== '' ? date('Y-m-d H:i:s') : null;
+                    $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, original_pdf_status, original_pdf_requested_at, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                    $stmt->bind_param('iissssssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $pdfStatus, $pdfRequestedAt, $description);
                     $stmt->execute();
                     $jobId = (int) $stmt->insert_id;
                     audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
@@ -1184,20 +1196,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=jobs&duplicate=1');
         }
         if ($id > 0) {
-            $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url, SUBSTRING(description,1,65535) description FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
+            $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url, original_pdf_status, original_pdf_requested_at, original_pdf_rendered_at, original_pdf_error, SUBSTRING(description,1,65535) description FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
             if (!$old) { http_response_code(404); exit('Not found'); }
-            $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=?, status=?, workplace_type=?, engagement_type=?, contract_term=?, fixed_term_start=?, fixed_term_end=?, source_url=? WHERE id=? AND owner_user_id=?');
+            $pdfStatus = (string) ($old['original_pdf_status'] ?? 'none');
+            $pdfRequestedAt = $old['original_pdf_requested_at'] ?? null;
+            $pdfRenderedAt = $old['original_pdf_rendered_at'] ?? null;
+            $pdfError = $old['original_pdf_error'] ?? null;
+            if ($sourceUrl === '') {
+                $pdfStatus = 'none';
+                $pdfRequestedAt = null;
+                $pdfRenderedAt = null;
+                $pdfError = null;
+            } elseif ($sourceUrl !== (string) ($old['source_url'] ?? '')) {
+                $pdfStatus = 'pending';
+                $pdfRequestedAt = date('Y-m-d H:i:s');
+                $pdfRenderedAt = null;
+                $pdfError = null;
+            }
+            $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=?, status=?, workplace_type=?, engagement_type=?, contract_term=?, fixed_term_start=?, fixed_term_end=?, source_url=?, original_pdf_status=?, original_pdf_requested_at=?, original_pdf_rendered_at=?, original_pdf_error=? WHERE id=? AND owner_user_id=?');
             $uid = userId();
-            $stmt->bind_param('issssssssssii', $companyId, $title, $location, $description, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $sourceUrl, $id, $uid);
+            $stmt->bind_param('issssssssssssssii', $companyId, $title, $location, $description, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $sourceUrl, $pdfStatus, $pdfRequestedAt, $pdfRenderedAt, $pdfError, $id, $uid);
             $stmt->execute();
-            audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status]);
+            audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'original_pdf_status' => $pdfStatus]);
         } else {
-            $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, description, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
+            $pdfRequestedAt = $sourceUrl !== '' ? date('Y-m-d H:i:s') : null;
+            $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, description, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url, original_pdf_status, original_pdf_requested_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
             $uid = userId();
-            $stmt->bind_param('iissssssssss', $uid, $companyId, $title, $location, $description, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $sourceUrl);
+            $stmt->bind_param('iissssssssssss', $uid, $companyId, $title, $location, $description, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $sourceUrl, $pdfStatus, $pdfRequestedAt);
             $stmt->execute();
             $id = (int) $stmt->insert_id;
-            audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status]);
+            audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'original_pdf_status' => $pdfStatus]);
         }
         flash('Job gespeichert.');
         unset($_SESSION['import_draft']);
@@ -1602,13 +1631,13 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $q = trim((string)($_GET['q'] ?? '')); $status = (string)($_GET['status'] ?? ''); $blue = !empty($_GET['blue']); $companyFilter = (int)($_GET['company_id'] ?? 0);
-        $sql = 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.salary_min, SUBSTRING(j.description,1,65535) description, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
+        $sql = 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.original_pdf_status, j.original_pdf_requested_at, j.original_pdf_rendered_at, j.original_pdf_error, j.salary_min, SUBSTRING(j.description,1,65535) description, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
         if ($companyFilter > 0) { $sql .= ' AND j.company_id=?'; $types.='i'; $vals[]=$companyFilter; }
         if ($q !== '') { $sql .= ' AND (j.title LIKE ? OR c.name LIKE ? OR j.location_text LIKE ?)'; $like="%$q%"; $types.='sss'; array_push($vals,$like,$like,$like); }
         if ($status !== '') { $sql .= ' AND j.status=?'; $types.='s'; $vals[]=$status; }
         if ($blue) { $sql .= " AND (j.employment_type IN ('temporary','part_time') OR j.title REGEXP 'Lager|Reinigung|Produktion|Bau|Service|Zustell|Verkauf')"; }
         $sql .= ' ORDER BY j.updated_at DESC'; $jobs=dbAll($db,$sql,$types,$vals);
-        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url, SUBSTRING(description,1,65535) description FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, source_url, original_pdf_status, SUBSTRING(description,1,65535) description FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $draft = is_array($_SESSION['import_draft'] ?? null) ? $_SESSION['import_draft'] : [];
         $form = $edit ?: $draft;
         $draftCompany = trim((string) ($draft['company'] ?? ''));
@@ -1635,7 +1664,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <label>Quell-URL<input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"></label><label>Beschreibung<textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button>
         </form></section>
-        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung starten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php elseif(!empty($job['source_url'])): ?><span class="meta-line">Original-PDF ausstehend</span><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
+        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><p class="meta-line"><?= e(originalPdfStatusLabel((string)($job['original_pdf_status'] ?? 'none'))) ?><?php if(!empty($job['original_pdf_error'])): ?> · <?= e(mb_strimwidth((string)$job['original_pdf_error'],0,90,'…')) ?><?php endif; ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung starten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php elseif(!empty($job['source_url'])): ?><span class="meta-line">Original-PDF ausstehend</span><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']);
