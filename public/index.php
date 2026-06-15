@@ -919,13 +919,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $validLevels = ['A1','A2','B1','B2','C1','C2'];
         $languageChoices = europeanLanguageChoices();
         $languageSkillMap = [];
+        $languageErrors = [];
+        $seenLanguageCodes = [];
         foreach ($languageCodes as $index => $code) {
             $code = (string) $code;
             $level = (string) ($languageLevels[$index] ?? '');
-            if (!isset($languageChoices[$code]) || in_array((int)$index, $removeLanguageIndexes, true) || !in_array($level, $validLevels, true)) {
+            if (in_array((int)$index, $removeLanguageIndexes, true) || ($code === '' && $level === '')) {
                 continue;
             }
+            if (!isset($languageChoices[$code]) || !in_array($level, $validLevels, true)) {
+                $languageErrors[] = 'Bitte bei jedem Sprachrecord Sprache und Niveau auswählen.';
+                continue;
+            }
+            if (isset($seenLanguageCodes[$code])) {
+                $languageErrors[] = 'Sprache "' . $languageChoices[$code] . '" ist doppelt erfasst.';
+                continue;
+            }
+            $seenLanguageCodes[$code] = true;
             $languageSkillMap[$code] = $level;
+        }
+        if (!$languageSkillMap) {
+            $languageErrors[] = 'Bitte mindestens eine Sprache erfassen.';
+        }
+        if (!in_array('C2', $languageSkillMap, true)) {
+            $languageErrors[] = 'Bitte mindestens eine Muttersprache mit Niveau C2 erfassen.';
+        }
+        if ($languageErrors) {
+            flash(implode(' ', array_unique($languageErrors)), 'danger');
+            redirect('/?page=profile');
         }
         $db->query('DELETE FROM user_language_skills WHERE user_id=' . $uid);
         $skillStmt = $db->prepare('INSERT INTO user_language_skills (user_id, language_code, language_name, cefr_level) VALUES (?, ?, ?, ?)');
@@ -1509,7 +1530,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
             <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
-            <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Sprachrekords einzeln hinzufügen: Sprache wählen, Niveau wählen, Profil speichern.</p></div>
+            <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Sprachrekords einzeln hinzufügen. Jede Sprache darf nur einmal vorkommen; mindestens eine Sprache muss C2 Muttersprache sein.</p></div>
             <div class="language-records">
                 <?php $languageRecordIndex = 0; foreach($languageSkills as $code=>$level): ?>
                     <div class="language-record">
@@ -1523,9 +1544,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                 <div class="language-add">
                     <label>Sprache hinzufügen<select name="language_codes[]"><option value="">Sprache wählen</option><?php foreach($languageChoices as $code=>$label): ?><option value="<?= e($code) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
                     <label>Niveau<select name="language_levels[]"><option value="">Niveau wählen</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>"><?= e($levelLabel) ?></option><?php endforeach; ?></select></label>
-                    <button class="primary" name="action" value="save_profile">Hinzufügen</button>
+                    <button class="primary" name="action" value="save_profile">Hinzufügen / speichern</button>
                 </div>
-                <div class="language-actions"><button class="primary" name="action" value="save_profile">Sprachen speichern</button></div>
             </div>
             <div class="history"><h3>Job-Referenzen</h3><p class="meta-line">Diese Angaben steuern später Matching, Listen und Vorschläge.</p></div>
             <label>Gewünschte Tätigkeiten / Rollen<textarea name="desired_roles" rows="3" placeholder="z. B. Administration, Kundendienst, Lager, Verkauf"><?= e($preference['desired_roles'] ?? '') ?></textarea></label>
@@ -1533,7 +1553,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <div class="two"><label>Arbeitsmodell<select name="remote_preference"><?php foreach(['any'=>'Egal','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['remote_preference'] ?? 'any')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Level / Lage<input name="desired_level" value="<?= e($preference['desired_level'] ?? '') ?>" placeholder="z. B. Einstieg, Fachkraft, Teamleitung"></label></div>
             <fieldset class="check"><legend>Stellenarten</legend><?php foreach(['full_time'=>'Vollzeit','part_time'=>'Teilzeit','temporary'=>'Temporär','contract'=>'Befristet/Vertrag','internship'=>'Praktikum','freelance'=>'Freelance'] as $v=>$l): ?><label><input type="checkbox" name="employment_types[]" value="<?= $v ?>" <?= in_array($v, $selectedEmploymentTypes, true)?'checked':'' ?>> <?= $l ?></label><?php endforeach; ?></fieldset>
             <div class="two"><label>Pensum min. %<input type="number" min="0" max="100" name="workload_min" value="<?= e((string)($preference['workload_min'] ?? '')) ?>"></label><label>Pensum max. %<input type="number" min="0" max="100" name="workload_max" value="<?= e((string)($preference['workload_max'] ?? '')) ?>"></label></div>
-            <div class="three"><label>Lohn min. (<span class="salary-currency-display"><?= e($profileCurrency) ?></span>)<input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($preference['salary_min'] ?? '')) ?>"></label><label>Lohn max. (<span class="salary-currency-display"><?= e($profileCurrency) ?></span>)<input type="number" min="0" step="0.01" name="salary_max" value="<?= e((string)($preference['salary_max'] ?? '')) ?>"></label><label>Format<select name="salary_period"><?php foreach(['hour'=>'pro Stunde','month'=>'pro Monat','year'=>'pro Jahr'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= $l ?> · <?= e($profileCurrency) ?></option><?php endforeach; ?></select></label></div>
+            <div class="salary-row"><label>Lohn min. <span class="salary-currency-display"><?= e($profileCurrency) ?></span><input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($preference['salary_min'] ?? '')) ?>"></label><label>Lohn max. <span class="salary-currency-display"><?= e($profileCurrency) ?></span><input type="number" min="0" step="0.01" name="salary_max" value="<?= e((string)($preference['salary_max'] ?? '')) ?>"></label><label>Format<select name="salary_period"><?php foreach(['hour'=>'pro Stunde','month'=>'pro Monat','year'=>'pro Jahr'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= $l ?> · <?= e($profileCurrency) ?></option><?php endforeach; ?></select></label></div>
             <label>Verfügbar ab<input type="date" name="available_from" value="<?= e($preference['available_from'] ?? '') ?>"></label>
             <label>PK / Extras / Benefits<textarea name="desired_benefits" rows="2" placeholder="z. B. gute PK, ÖV-Beitrag, Schichtzulagen, Weiterbildung"><?= e($preference['desired_benefits'] ?? '') ?></textarea></label>
             <label>Ausschlüsse<textarea name="excluded_industries" rows="2" placeholder="Branchen, Tätigkeiten oder Bedingungen, die nicht passen"><?= e($preference['excluded_industries'] ?? '') ?></textarea></label>
