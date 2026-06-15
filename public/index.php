@@ -174,81 +174,6 @@ function uploadDocumentFile(array $file, int $userId): array
     ];
 }
 
-function pdfEscape(string $value): string
-{
-    return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
-}
-
-function createSimplePdf(string $title, array $lines): string
-{
-    $content = "BT\n/F1 12 Tf\n50 790 Td\n14 TL\n";
-    $allLines = array_merge([$title, ''], $lines);
-    foreach ($allLines as $line) {
-        $wrapped = preg_split('/\R/u', wordwrap(trim($line), 90, "\n", true)) ?: [];
-        foreach ($wrapped as $part) {
-            $content .= '(' . pdfEscape(mb_strimwidth($part, 0, 180, '...')) . ") Tj\nT*\n";
-        }
-    }
-    $content .= "ET\n";
-    $objects = [
-        "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
-        "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
-        "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n",
-        "4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
-        "5 0 obj\n<< /Length " . strlen($content) . " >>\nstream\n" . $content . "endstream\nendobj\n",
-    ];
-    $pdf = "%PDF-1.4\n";
-    $offsets = [0];
-    foreach ($objects as $object) {
-        $offsets[] = strlen($pdf);
-        $pdf .= $object;
-    }
-    $xref = strlen($pdf);
-    $pdf .= "xref\n0 " . (count($objects) + 1) . "\n0000000000 65535 f \n";
-    for ($i = 1; $i <= count($objects); $i++) {
-        $pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
-    }
-    return $pdf . "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\nstartxref\n$xref\n%%EOF\n";
-}
-
-function saveGeneratedPdfDocument(mysqli $db, int $userId, int $jobId, string $title, string $sourceUrl, string $description): ?int
-{
-    if ($sourceUrl === '' || !publicHttpUrl($sourceUrl)) {
-        return null;
-    }
-    $type = dbOne($db, "SELECT id FROM document_types WHERE code='other' LIMIT 1");
-    if (!$type) {
-        return null;
-    }
-    $dir = ensureDocumentStorage($userId);
-    $fileName = 'original-job-' . $jobId . '-' . date('Ymd-His') . '.pdf';
-    $relativePath = 'storage/documents/' . $userId . '/' . bin2hex(random_bytes(18)) . '.pdf';
-    $target = __DIR__ . '/' . $relativePath;
-    $pdf = createSimplePdf('Originale Stellenausschreibung', [
-        'Job: ' . $title,
-        'Quelle: ' . $sourceUrl,
-        'Gesichert am: ' . date('c'),
-        '',
-        mb_strimwidth($description, 0, 5000, '...'),
-    ]);
-    if (file_put_contents($target, $pdf) === false) {
-        return null;
-    }
-    $scope = 'application';
-    $applicationId = null;
-    $languageCode = null;
-    $documentTitle = 'Originale Stellenausschreibung';
-    $documentDescription = 'Automatisch aus der Webversion der Ausschreibung gesichert.';
-    $mime = 'application/pdf';
-    $size = filesize($target) ?: strlen($pdf);
-    $sha = hash_file('sha256', $target);
-    $version = 1;
-    $stmt = $db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, 1)');
-    $stmt->bind_param('iissiisssssisi', $userId, $type['id'], $languageCode, $scope, $applicationId, $jobId, $documentTitle, $documentDescription, $fileName, $relativePath, $mime, $size, $sha, $version);
-    $stmt->execute();
-    return (int) $stmt->insert_id;
-}
-
 function dbOne(mysqli $db, string $sql, string $types = '', array $values = []): ?array
 {
     $stmt = $db->prepare($sql);
@@ -552,10 +477,7 @@ function importFromUrl(string $url): array
         $node = $xpath->query('//meta[@name="description"]/@content')->item(0);
         $description = plainText((string) ($node?->nodeValue ?? ''));
     }
-    return compact('title', 'company', 'location', 'description') + [
-        'source_url' => $finalUrl ?: $url,
-        'original_web_available' => true,
-    ];
+    return compact('title', 'company', 'location', 'description') + ['source_url' => $finalUrl ?: $url];
 }
 
 function importFromText(string $text): array
@@ -918,12 +840,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                     $jobId = (int) $stmt->insert_id;
                     audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
-                    if (!empty($draft['original_web_available'])) {
-                        $documentId = saveGeneratedPdfDocument($db, $uid, $jobId, $title, $sourceUrl, $description);
-                        if ($documentId) {
-                            audit($db, $uid, 'create', 'user_document', $documentId, null, ['title' => 'Originale Stellenausschreibung', 'job_id' => $jobId, 'source_url' => $sourceUrl]);
-                        }
-                    }
                     $created++;
                 } catch (Throwable $exception) {
                     $failed++;
@@ -1282,12 +1198,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status]);
-            if (!empty($_POST['original_web_available'])) {
-                $documentId = saveGeneratedPdfDocument($db, userId(), $id, $title, $sourceUrl, $description);
-                if ($documentId) {
-                    audit($db, userId(), 'create', 'user_document', $documentId, null, ['title' => 'Originale Stellenausschreibung', 'job_id' => $id, 'source_url' => $sourceUrl]);
-                }
-            }
         }
         flash('Job gespeichert.');
         unset($_SESSION['import_draft']);
@@ -1711,10 +1621,10 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         }
         ?>
         <div class="page-head"><div><p class="eyebrow">Stellen-Pipeline</p><h1>Jobs</h1></div><span><?= count($jobs) ?> Treffer</span></div>
-        <section class="panel import-panel"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Web-Ausschreibungen werden beim Speichern zusätzlich als Original-PDF abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
+        <section class="panel import-panel"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
         <form class="filters" method="get"><input type="hidden" name="page" value="jobs"><input type="hidden" name="company_id" value="<?= $companyFilter ?: '' ?>"><input name="q" value="<?= e($q) ?>" placeholder="Titel, Firma oder Ort"><select name="status"><option value="">Alle Status</option><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= $status===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select><label class="check"><input type="checkbox" name="blue" value="1" <?= $blue?'checked':'' ?>> Blue-Collar/Ungelernt</label><button>Filtern</button></form>
         <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : ($draft ? 'Import prüfen' : 'Job erfassen') ?></h2><form method="post" class="stack">
-            <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><input type="hidden" name="original_web_available" value="<?= !empty($draft['original_web_available']) ? '1' : '' ?>">
+            <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
             <label>Firma<select name="company_id"><option value="0">Neue Firma aus Import</option><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($form['company_id']??$matchedCompanyId)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label>
             <label>Neue Firma<input name="new_company_name" value="<?= e($matchedCompanyId ? '' : $draftCompany) ?>" placeholder="Nur ausfüllen, wenn die Firma noch fehlt"></label>
             <label>Jobtitel<input name="title" value="<?= e($form['title'] ?? '') ?>" required></label>
@@ -1725,7 +1635,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <label>Quell-URL<input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"></label><label>Beschreibung<textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button>
         </form></section>
-        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung starten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
+        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung starten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php elseif(!empty($job['source_url'])): ?><span class="meta-line">Original-PDF ausstehend</span><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']);
