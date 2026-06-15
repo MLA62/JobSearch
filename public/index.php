@@ -80,6 +80,48 @@ function outboundEmailEnabled(): bool
     return false;
 }
 
+function localeForCountry(?string $countryCode): string
+{
+    return match (strtoupper((string) $countryCode)) {
+        'CH' => 'de_CH',
+        'DE' => 'de_DE',
+        'AT' => 'de_AT',
+        'FR' => 'fr_FR',
+        'IT' => 'it_IT',
+        'ES' => 'es_ES',
+        'PT' => 'pt_PT',
+        'GB' => 'en_GB',
+        default => 'de_CH',
+    };
+}
+
+function displayDateTime(?string $value, ?array $user = null, bool $withTime = true): string
+{
+    if (!$value) {
+        return '';
+    }
+    try {
+        $timezone = new DateTimeZone((string) ($user['timezone'] ?? 'Europe/Zurich'));
+        $date = new DateTimeImmutable($value, $timezone);
+        $locale = localeForCountry($user['country_code'] ?? 'CH');
+        if (class_exists(IntlDateFormatter::class)) {
+            $formatter = new IntlDateFormatter(
+                $locale,
+                IntlDateFormatter::MEDIUM,
+                $withTime ? IntlDateFormatter::SHORT : IntlDateFormatter::NONE,
+                $timezone->getName()
+            );
+            $formatted = $formatter->format($date);
+            if ($formatted !== false) {
+                return $formatted;
+            }
+        }
+        return $date->format($withTime ? 'd.m.Y H:i' : 'd.m.Y');
+    } catch (Throwable) {
+        return (string) $value;
+    }
+}
+
 function storageRoot(): string
 {
     return __DIR__ . '/storage/documents';
@@ -194,6 +236,127 @@ function audit(mysqli $db, int $userId, string $action, string $entityType, int 
     $agent = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500);
     $stmt->bind_param('ississss', $userId, $action, $entityType, $entityId, $oldJson, $newJson, $ip, $agent);
     $stmt->execute();
+}
+
+function applicationNextActionChoices(): array
+{
+    return [
+        'Unterlagen prüfen',
+        'Motivationsschreiben erstellen',
+        'E-Mail-Betreff und Begleittext erstellen',
+        'Bewerbung senden',
+        'Eingang bestätigen lassen',
+        'Nachfassen',
+        'Interview vorbereiten',
+        'Referenzen nachreichen',
+        'Angebot prüfen',
+        'Absage verarbeiten',
+        'Archivieren',
+    ];
+}
+
+function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string
+{
+    $application = dbOne($db, 'SELECT a.*, j.title job_title, j.location_text, j.status job_status, j.workplace_type, j.engagement_type, j.contract_term, j.source_url, SUBSTRING(j.description,1,65535) job_description, c.name company_name, c.website company_website, c.phone company_phone, c.address_line1, c.address_line2, c.postal_code, c.city company_city, c.region company_region, c.country_code company_country, i.name intermediary_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, $userId]);
+    if (!$application) {
+        return '';
+    }
+    $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [$userId]) ?: [];
+    $languages = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [$userId]);
+    $contacts = dbAll($db, 'SELECT co.name company_name, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.notes FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.application_id=? OR c.job_id=? OR c.company_id=? OR c.company_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [$userId, $applicationId, (int)$application['job_id'], (int)$application['company_id'], (int)($application['intermediary_company_id'] ?? 0)]);
+    $logs = dbAll($db, 'SELECT channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND application_id=? ORDER BY occurred_at DESC LIMIT 20', 'ii', [$userId, $applicationId]);
+    $documents = dbAll($db, "SELECT d.scope, d.title, d.version, d.original_filename, dt.code type_code FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY d.scope DESC, d.title", 'ii', [$applicationId, $userId]);
+    $history = dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [$applicationId]);
+
+    $lines = [
+        'Erstelle für diese Bewerbung drei Texte:',
+        '1. einen prägnanten E-Mail-Betreff',
+        '2. einen kurzen professionellen E-Mail-Begleittext',
+        '3. ein individuelles Motivationsschreiben',
+        '',
+        'Sprache/Ton: ' . (documentLanguageChoices()[$currentUser['preferred_language'] ?? 'de'] ?? 'Deutsch') . ', professionell, klar, natürlich, nicht übertrieben.',
+        'Bitte keine Fakten erfinden. Wenn eine Information fehlt, formuliere neutral oder markiere sie als Platzhalter.',
+        '',
+        '=== Bewerberprofil ===',
+        'Name: ' . trim((string)($currentUser['first_name'] ?? '') . ' ' . (string)($currentUser['last_name'] ?? '')),
+        'E-Mail: ' . (string)($currentUser['email'] ?? ''),
+        'Telefon: ' . trim((string)($currentUser['phone'] ?? '') . ' ' . (string)($currentUser['mobile'] ?? '')),
+        'Ort/Region/Land: ' . trim((string)($currentUser['city'] ?? '') . ' / ' . (string)($currentUser['region'] ?? '') . ' / ' . (string)($currentUser['country_code'] ?? '')),
+        'Sprachen: ' . ($languages ? implode(', ', array_map(static fn(array $row): string => $row['language_name'] . ' ' . $row['cefr_level'], $languages)) : 'keine erfasst'),
+        '',
+        '=== Job-Referenzen / Wünsche ===',
+        'Gewünschte Rollen: ' . (string)($preference['desired_roles'] ?? ''),
+        'Gewünschte Orte: ' . (string)($preference['desired_locations'] ?? ''),
+        'Arbeitsmodell: ' . (string)($preference['remote_preference'] ?? ''),
+        'Stellenarten: ' . (string)($preference['employment_types'] ?? ''),
+        'Pensum: ' . trim((string)($preference['workload_min'] ?? '') . ' - ' . (string)($preference['workload_max'] ?? '') . '%'),
+        'Lohnvorstellung: ' . trim((string)($preference['salary_min'] ?? '') . ' - ' . (string)($preference['salary_max'] ?? '') . ' ' . (string)($preference['salary_currency'] ?? '') . ' / ' . (string)($preference['salary_period'] ?? '')),
+        'Benefits/PK/Extras: ' . (string)($preference['desired_benefits'] ?? ''),
+        'Ausschlüsse: ' . (string)($preference['excluded_industries'] ?? ''),
+        'Notizen: ' . (string)($preference['notes'] ?? ''),
+        '',
+        '=== Stelle ===',
+        'Jobtitel: ' . (string)$application['job_title'],
+        'Firma: ' . (string)$application['company_name'],
+        'Vermittlerfirma: ' . (string)($application['intermediary_name'] ?? ''),
+        'Ort: ' . (string)$application['location_text'],
+        'Arbeitsort-Modell: ' . (string)$application['workplace_type'],
+        'Stellentyp: ' . (string)$application['engagement_type'] . ' / ' . (string)$application['contract_term'],
+        'Quelle: ' . (string)$application['source_url'],
+        'Beschreibung: ' . (string)$application['job_description'],
+        '',
+        '=== Firma ===',
+        'Website: ' . (string)$application['company_website'],
+        'Telefon: ' . (string)$application['company_phone'],
+        'Adresse: ' . trim((string)$application['address_line1'] . "\n" . (string)$application['address_line2'] . "\n" . (string)$application['postal_code'] . ' ' . (string)$application['company_city']),
+        'Region/Land: ' . (string)$application['company_region'] . ' / ' . (string)$application['company_country'],
+        '',
+        '=== Bewerbung ===',
+        'Status: ' . (string)$application['status'],
+        'Kanal: ' . (string)$application['channel'],
+        'Gesendet am: ' . displayDateTime($application['applied_at'] ?? null, $currentUser),
+        'Nächster Schritt: ' . (string)$application['next_action'],
+        'Fällig am: ' . displayDateTime($application['next_action_at'] ?? null, $currentUser),
+        'Bestehender Betreff: ' . (string)$application['email_subject'],
+        'Bestehender Begleittext: ' . (string)$application['email_body'],
+        'Interne Notizen: ' . (string)$application['notes'],
+        '',
+        '=== Kontakte ===',
+    ];
+    foreach ($contacts as $contact) {
+        $lines[] = trim($contact['company_name'] . ': ' . $contact['first_name'] . ' ' . $contact['last_name'] . ', ' . $contact['position'] . ' ' . $contact['department'] . ', ' . $contact['email'] . ', ' . $contact['phone'] . ' ' . $contact['mobile'] . ', Notizen: ' . $contact['notes']);
+    }
+    if (!$contacts) {
+        $lines[] = 'keine Kontakte erfasst';
+    }
+    $lines[] = '';
+    $lines[] = '=== Kontakt-Log ===';
+    foreach ($logs as $log) {
+        $lines[] = displayDateTime($log['occurred_at'] ?? null, $currentUser) . ' · ' . $log['channel'] . ' · ' . $log['direction'] . ' · ' . $log['status'] . ' · ' . $log['subject'] . ' · ' . $log['body'] . ' · Ergebnis: ' . $log['outcome'] . ' · Wiedervorlage: ' . displayDateTime($log['follow_up_at'] ?? null, $currentUser);
+    }
+    if (!$logs) {
+        $lines[] = 'keine Kontaktaktivitäten erfasst';
+    }
+    $lines[] = '';
+    $lines[] = '=== Zugeordnete Dokumente ===';
+    foreach ($documents as $document) {
+        $lines[] = ($document['scope'] === 'profile' ? 'Stammdaten' : 'Bewerbungsdaten') . ' · ' . documentTypeLabel((string)$document['type_code'], (string)($currentUser['preferred_language'] ?? 'de')) . ' · ' . $document['title'] . ' · v' . $document['version'] . ' · ' . $document['original_filename'];
+    }
+    if (!$documents) {
+        $lines[] = 'keine Dokumente zugeordnet';
+    }
+    $lines[] = '';
+    $lines[] = '=== Statusverlauf ===';
+    foreach ($history as $entry) {
+        $lines[] = displayDateTime($entry['changed_at'] ?? null, $currentUser) . ' · ' . $entry['old_status'] . ' -> ' . $entry['new_status'] . ' · ' . $entry['comment'];
+    }
+    if (!$history) {
+        $lines[] = 'kein Statusverlauf vorhanden';
+    }
+    $lines[] = '';
+    $lines[] = 'Ausgabe bitte mit Überschriften: E-Mail-Betreff, E-Mail-Begleittext, Motivationsschreiben.';
+
+    return trim(implode("\n", $lines));
 }
 
 function matchJob(array $job): array
@@ -492,6 +655,94 @@ function europeanLanguageChoices(): array
     ];
 }
 
+function documentTypeLabel(string $code, string $language = 'de'): string
+{
+    $labels = [
+        'de' => [
+            'cv' => 'Lebenslauf',
+            'certificate' => 'Zeugnis / Zertifikat',
+            'reference_letter' => 'Referenzschreiben',
+            'diploma' => 'Diplom / Abschluss',
+            'cover_letter' => 'Motivationsschreiben',
+            'portfolio' => 'Portfolio / Arbeitsprobe',
+            'other' => 'Sonstiges',
+        ],
+        'en' => [
+            'cv' => 'CV',
+            'certificate' => 'Certificate / testimonial',
+            'reference_letter' => 'Reference letter',
+            'diploma' => 'Diploma / degree',
+            'cover_letter' => 'Cover letter',
+            'portfolio' => 'Portfolio / work sample',
+            'other' => 'Other',
+        ],
+        'es' => [
+            'cv' => 'Currículum',
+            'certificate' => 'Certificado / referencia laboral',
+            'reference_letter' => 'Carta de referencia',
+            'diploma' => 'Diploma / título',
+            'cover_letter' => 'Carta de motivación',
+            'portfolio' => 'Portafolio / muestra de trabajo',
+            'other' => 'Otro',
+        ],
+        'pt' => [
+            'cv' => 'Currículo',
+            'certificate' => 'Certificado / declaração',
+            'reference_letter' => 'Carta de referência',
+            'diploma' => 'Diploma / formação',
+            'cover_letter' => 'Carta de apresentação',
+            'portfolio' => 'Portfólio / amostra de trabalho',
+            'other' => 'Outro',
+        ],
+    ];
+    $language = isset($labels[$language]) ? $language : 'de';
+    return $labels[$language][$code] ?? $labels[$language]['other'];
+}
+
+function documentPurposeForType(string $code): string
+{
+    return match ($code) {
+        'cv' => 'cv',
+        'cover_letter' => 'cover_letter',
+        'certificate', 'diploma' => 'certificate',
+        'reference_letter' => 'reference',
+        'portfolio' => 'portfolio',
+        default => 'other',
+    };
+}
+
+function documentPurposeLabel(string $purpose, string $language = 'de'): string
+{
+    $code = match ($purpose) {
+        'cv' => 'cv',
+        'cover_letter' => 'cover_letter',
+        'certificate' => 'certificate',
+        'reference' => 'reference_letter',
+        'portfolio' => 'portfolio',
+        default => 'other',
+    };
+    return documentTypeLabel($code, $language);
+}
+
+function documentLanguageChoices(): array
+{
+    return ['de' => 'Deutsch', 'es' => 'Español', 'pt' => 'Português', 'en' => 'English'];
+}
+
+function allowedDocumentTypeCodes(string $scope): array
+{
+    if ($scope === 'application') {
+        return ['cover_letter', 'other'];
+    }
+    return ['cv', 'certificate', 'reference_letter', 'diploma', 'portfolio', 'other'];
+}
+
+function documentTypesForScope(array $types, string $scope): array
+{
+    $allowed = allowedDocumentTypeCodes($scope);
+    return array_values(array_filter($types, static fn (array $type): bool => in_array((string) $type['code'], $allowed, true)));
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 
@@ -612,7 +863,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $storedUser = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,city,region,country_code FROM users WHERE id=?', 'i', [$uid]);
         $first = trim((string) ($_POST['first_name'] ?? ''));
         $last = trim((string) ($_POST['last_name'] ?? ''));
-        $language = (string) ($storedUser['preferred_language'] ?? 'de');
+        $language = array_key_exists((string) ($_POST['preferred_language'] ?? ''), documentLanguageChoices())
+            ? (string) $_POST['preferred_language']
+            : (string) ($storedUser['preferred_language'] ?? 'de');
         $validTimezones = array_keys(array_merge(...array_values(timezoneChoices())));
         $timezone = in_array($_POST['timezone'] ?? '', $validTimezones, true) ? (string) $_POST['timezone'] : 'Europe/Zurich';
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
@@ -660,16 +913,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prefStmt->bind_param('isssssiiddsssssiiss', $uid, $title, $desiredRoles, $desiredLocations, $remotePreference, $employmentTypeSet, $workloadMin, $workloadMax, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $desiredLevel, $desiredBenefits, $excludedIndustries, $willingToRelocate, $travelPercentage, $availableFrom, $preferenceNotes);
             $prefStmt->execute();
         }
+        $languageCodes = (array) ($_POST['language_codes'] ?? []);
         $languageLevels = (array) ($_POST['language_levels'] ?? []);
+        $removeLanguageCodes = array_map('strval', (array) ($_POST['remove_language_codes'] ?? []));
         $validLevels = ['A1','A2','B1','B2','C1','C2'];
+        $languageChoices = europeanLanguageChoices();
+        $languageSkillMap = [];
+        foreach ($languageCodes as $index => $code) {
+            $code = (string) $code;
+            $level = (string) ($languageLevels[$index] ?? '');
+            if (!isset($languageChoices[$code]) || in_array($code, $removeLanguageCodes, true) || !in_array($level, $validLevels, true)) {
+                continue;
+            }
+            $languageSkillMap[$code] = $level;
+        }
+        $newLanguageCode = (string) ($_POST['new_language_code'] ?? '');
+        $newLanguageLevel = (string) ($_POST['new_language_level'] ?? '');
+        if (isset($languageChoices[$newLanguageCode]) && in_array($newLanguageLevel, $validLevels, true)) {
+            $languageSkillMap[$newLanguageCode] = $newLanguageLevel;
+        }
         $db->query('DELETE FROM user_language_skills WHERE user_id=' . $uid);
         $skillStmt = $db->prepare('INSERT INTO user_language_skills (user_id, language_code, language_name, cefr_level) VALUES (?, ?, ?, ?)');
         $savedLanguageSkills = [];
-        foreach (europeanLanguageChoices() as $code => $name) {
-            $level = (string) ($languageLevels[$code] ?? '');
-            if (!in_array($level, $validLevels, true)) {
-                continue;
-            }
+        foreach ($languageSkillMap as $code => $level) {
+            $name = $languageChoices[$code];
             $skillStmt->bind_param('isss', $uid, $code, $name, $level);
             $skillStmt->execute();
             $savedLanguageSkills[$code] = $level;
@@ -684,7 +951,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $replaceId = (int) ($_POST['replace_document_id'] ?? 0);
         $documentTypeId = (int) ($_POST['document_type_id'] ?? 0);
-        $languageCode = in_array($_POST['document_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['document_language'] : null;
+        $languageCode = array_key_exists((string) ($_POST['document_language'] ?? ''), documentLanguageChoices()) ? (string) $_POST['document_language'] : null;
         $title = trim((string) ($_POST['document_title'] ?? ''));
         $description = trim((string) ($_POST['document_description'] ?? '')) ?: null;
         $validFrom = trim((string) ($_POST['valid_from'] ?? '')) ?: null;
@@ -702,8 +969,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $jobId = (int) $application['job_id'];
         }
-        $type = dbOne($db, 'SELECT id FROM document_types WHERE id=?', 'i', [$documentTypeId]);
-        if (!$type || $title === '') {
+        $type = dbOne($db, 'SELECT id, code FROM document_types WHERE id=?', 'i', [$documentTypeId]);
+        if (!$type || !in_array((string) $type['code'], allowedDocumentTypeCodes($scope), true) || $title === '') {
             flash('Dokumenttyp und Titel sind erforderlich.', 'danger');
             redirect($redirectTarget);
         }
@@ -744,7 +1011,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $newDocumentId = (int) $stmt->insert_id;
             if ($scope === 'application') {
-                $purpose = in_array($_POST['purpose'] ?? '', ['cv','cover_letter','certificate','reference','portfolio','other'], true) ? (string) $_POST['purpose'] : 'other';
+                $purpose = documentPurposeForType((string) $type['code']);
                 $linkStmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
                 $linkStmt->bind_param('iis', $applicationId, $newDocumentId, $purpose);
                 $linkStmt->execute();
@@ -782,8 +1049,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $documentId = (int) ($_POST['user_document_id'] ?? 0);
         $purpose = in_array($_POST['purpose'] ?? '', ['cv','cover_letter','certificate','reference','portfolio','other'], true) ? (string) $_POST['purpose'] : 'other';
         $application = dbOne($db, 'SELECT id FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$applicationId, userId()]);
-        $document = dbOne($db, 'SELECT id FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$documentId, userId()]);
+        $document = dbOne($db, "SELECT d.id, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.id=? AND d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL", 'ii', [$documentId, userId()]);
         if ($application && $document) {
+            $purpose = documentPurposeForType((string) $document['type_code']);
             $stmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
             $stmt->bind_param('iis', $applicationId, $documentId, $purpose);
             $stmt->execute();
@@ -818,6 +1086,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         [$countryCode, $region] = countryForRegion((string) ($_POST['company_region_key'] ?? ''));
         $countryCode = $countryCode ?? '';
         $region = $region ?? '';
+        $isIntermediary = !empty($_POST['is_intermediary']) ? 1 : 0;
         if ($name === '') {
             flash('Firmenname ist erforderlich.', 'danger');
             redirect('/?page=companies');
@@ -827,18 +1096,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$old) {
                 http_response_code(404); exit('Not found');
             }
-            $stmt = $db->prepare('UPDATE companies SET name = ?, city = ?, website = ?, phone = ?, address_line1 = ?, address_line2 = ?, postal_code = ?, region = ?, country_code = ? WHERE id = ? AND owner_user_id = ?');
+            $stmt = $db->prepare('UPDATE companies SET name = ?, city = ?, website = ?, phone = ?, address_line1 = ?, address_line2 = ?, postal_code = ?, region = ?, country_code = ?, is_intermediary = ? WHERE id = ? AND owner_user_id = ?');
             $uid = userId();
-            $stmt->bind_param('sssssssssii', $name, $city, $website, $phone, $addressLine1, $addressLine2, $postalCode, $region, $countryCode, $id, $uid);
+            $stmt->bind_param('sssssssssiii', $name, $city, $website, $phone, $addressLine1, $addressLine2, $postalCode, $region, $countryCode, $isIntermediary, $id, $uid);
             $stmt->execute();
-            audit($db, userId(), 'update', 'company', $id, $old, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1]);
+            audit($db, userId(), 'update', 'company', $id, $old, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1, 'is_intermediary' => $isIntermediary]);
         } else {
-            $stmt = $db->prepare('INSERT INTO companies (owner_user_id, name, city, website, phone, address_line1, address_line2, postal_code, region, country_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt = $db->prepare('INSERT INTO companies (owner_user_id, name, city, website, phone, address_line1, address_line2, postal_code, region, country_code, is_intermediary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
             $uid = userId();
-            $stmt->bind_param('isssssssss', $uid, $name, $city, $website, $phone, $addressLine1, $addressLine2, $postalCode, $region, $countryCode);
+            $stmt->bind_param('isssssssssi', $uid, $name, $city, $website, $phone, $addressLine1, $addressLine2, $postalCode, $region, $countryCode, $isIntermediary);
             $stmt->execute();
             $id = (int) $stmt->insert_id;
-            audit($db, userId(), 'create', 'company', $id, null, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1]);
+            audit($db, userId(), 'create', 'company', $id, null, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1, 'is_intermediary' => $isIntermediary]);
         }
         flash('Firma gespeichert.');
         redirect('/?page=companies');
@@ -960,7 +1229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $application = dbOne($db, 'SELECT a.id, a.primary_contact_id, j.company_id FROM applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, userId()]);
         if (!$application) { http_response_code(404); exit('Not found'); }
         if ($intermediaryCompanyId > 0) {
-            $intermediary = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$intermediaryCompanyId, userId()]);
+            $intermediary = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND is_intermediary=1 AND deleted_at IS NULL', 'ii', [$intermediaryCompanyId, userId()]);
             if (!$intermediary || $intermediaryCompanyId === (int)$application['company_id']) { $intermediaryCompanyId = 0; }
         }
         $uid=userId();
@@ -1062,7 +1331,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = in_array($_POST['status'] ?? '', $allowedStatuses, true) ? (string) $_POST['status'] : 'draft';
         $channel = in_array($_POST['channel'] ?? '', $allowedChannels, true) ? (string) $_POST['channel'] : null;
         $appliedAt = trim((string) ($_POST['applied_at'] ?? '')) ?: null;
-        $nextAction = trim((string) ($_POST['next_action'] ?? '')) ?: null;
+        $nextActionInput = trim((string) ($_POST['next_action'] ?? ''));
+        $nextAction = in_array($nextActionInput, applicationNextActionChoices(), true) ? $nextActionInput : null;
         $nextActionAt = trim((string) ($_POST['next_action_at'] ?? '')) ?: null;
         $emailSubject = trim((string) ($_POST['email_subject'] ?? '')) ?: null;
         $emailBody = trim((string) ($_POST['email_body'] ?? '')) ?: null;
@@ -1072,7 +1342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $intermediaryCompanyId = (int) ($_POST['intermediary_company_id'] ?? 0);
         if ($intermediaryCompanyId > 0) {
             $jobCompany = dbOne($db, 'SELECT company_id FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$old['job_id'], userId()]);
-            $intermediary = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$intermediaryCompanyId, userId()]);
+            $intermediary = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND is_intermediary=1 AND deleted_at IS NULL', 'ii', [$intermediaryCompanyId, userId()]);
             if (!$jobCompany || !$intermediary || $intermediaryCompanyId === (int)$jobCompany['company_id']) {
                 $intermediaryCompanyId = 0;
             } else {
@@ -1230,18 +1500,22 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             $languageSkills[$skill['language_code']] = $skill['cefr_level'];
         }
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
+        $profileDocumentTypes = documentTypesForScope($documentTypes, 'profile');
         $profileDocuments = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
         $profileCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
+        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $availableLanguageSkills = array_diff_key(europeanLanguageChoices(), $languageSkills);
         ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
             <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Prototyp-Regel: Es werden keine E-Mails verschickt. Änderungen der Login-E-Mail bleiben bis zur Versandfreigabe deaktiviert.</small></label>
+            <label>App- und Dokumentensprache<select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small>Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.</small></label>
             <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
             <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
-            <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">CEFR-Klassifizierung von A1 bis C2. Leere Zeilen werden nicht gespeichert.</p></div>
-            <div class="table-wrap compact-table"><table><thead><tr><th>Sprache</th><th>Niveau</th></tr></thead><tbody><?php foreach(europeanLanguageChoices() as $code=>$label): ?><tr><td><?= e($label) ?></td><td><select name="language_levels[<?= e($code) ?>]"><option value="">-</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>" <?= ($languageSkills[$code] ?? '')===$level?'selected':'' ?>><?= e($levelLabel) ?></option><?php endforeach; ?></select></td></tr><?php endforeach; ?></tbody></table></div>
+            <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Nur erfasste Sprachen werden angezeigt. Neue Sprache auswählen, Niveau ergänzen, speichern.</p></div>
+            <div class="table-wrap compact-table"><table><thead><tr><th>Sprache</th><th>Niveau</th><th></th></tr></thead><tbody><?php foreach($languageSkills as $code=>$level): ?><tr><td><input type="hidden" name="language_codes[]" value="<?= e($code) ?>"><?= e(europeanLanguageChoices()[$code] ?? $code) ?></td><td><select name="language_levels[]"><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $levelValue=>$levelLabel): ?><option value="<?= e($levelValue) ?>" <?= $level===$levelValue?'selected':'' ?>><?= e($levelLabel) ?></option><?php endforeach; ?></select></td><td><label class="check"><input type="checkbox" name="remove_language_codes[]" value="<?= e($code) ?>"> Entfernen</label></td></tr><?php endforeach; ?><?php if(!$languageSkills): ?><tr><td colspan="3" class="empty">Noch keine Sprachkenntnisse erfasst.</td></tr><?php endif; ?><tr><td><select name="new_language_code"><option value="">Sprache hinzufügen</option><?php foreach($availableLanguageSkills as $code=>$label): ?><option value="<?= e($code) ?>"><?= e($label) ?></option><?php endforeach; ?></select></td><td><select name="new_language_level"><option value="">Niveau wählen</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>"><?= e($levelLabel) ?></option><?php endforeach; ?></select></td><td><small>Wird beim Speichern ergänzt.</small></td></tr></tbody></table></div>
             <div class="history"><h3>Job-Referenzen</h3><p class="meta-line">Diese Angaben steuern später Matching, Listen und Vorschläge.</p></div>
             <label>Gewünschte Tätigkeiten / Rollen<textarea name="desired_roles" rows="3" placeholder="z. B. Administration, Kundendienst, Lager, Verkauf"><?= e($preference['desired_roles'] ?? '') ?></textarea></label>
             <label>Gewünschte Orte / Lage<textarea name="desired_locations" rows="2" placeholder="z. B. Biel/Bienne, Seeland, ÖV gut erreichbar"><?= e($preference['desired_locations'] ?? '') ?></textarea></label>
@@ -1256,7 +1530,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <label>Notizen zu Job-Referenzen<textarea name="preference_notes" rows="3"><?= e($preference['notes'] ?? '') ?></textarea></label>
             <button class="primary" name="action" value="save_profile">Profil speichern</button>
         </form></section>
-        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow">Stammdaten</p><h2>Dokumenten-Management</h2></div><span><?= count($profileDocuments) ?> Versionen</span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Stammdaten-Dokument</option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf Deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Stammdaten-Dokument speichern</button></form><div class="table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Aktionen</th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(str_replace('document.', '', $doc['type_name'])) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty">Noch keine Stammdaten-Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></div></div></section>
+        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow">Stammdaten</p><h2>Dokumenten-Management</h2></div><span><?= count($profileDocuments) ?> Versionen</span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Stammdaten-Dokument</option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf Deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Stammdaten-Dokument speichern</button></form><div class="table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Aktionen</th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty">Noch keine Stammdaten-Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></div></div></section>
         <script>
         (() => {
             const region = document.getElementById('profile-region');
@@ -1278,8 +1552,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $companyRows = dbAll($db, 'SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND (j2.company_id=c.id OR a.intermediary_company_id=c.id)) application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL ORDER BY c.name', 'i', [userId()]);
         ?>
         <div class="page-head"><div><p class="eyebrow">CRM</p><h1>Firmen</h1></div><span><?= count($companies) ?> Einträge</span></div>
-        <div class="split"><section class="panel"><h2><?= $edit ? 'Firma bearbeiten' : 'Neue Firma' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Name<input name="name" value="<?= e($edit['name'] ?? '') ?>" required></label><label>Haupttelefon<input name="company_phone" value="<?= e($edit['phone'] ?? '') ?>"></label><label>Adresse<textarea name="address" rows="3" placeholder="Strasse und Nummer&#10;Adresszusatz"><?= e(trim((string)($edit['address_line1'] ?? '') . "\n" . (string)($edit['address_line2'] ?? ''))) ?></textarea></label><div class="two"><label>PLZ<input name="postal_code" value="<?= e($edit['postal_code'] ?? '') ?>"></label><label>Ort<input name="city" value="<?= e($edit['city'] ?? '') ?>"></label></div><div class="two"><label>Region<select name="company_region_key" id="company-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = ($edit['region'] ?? '')===$region && ($edit['country_code'] ?? '')===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="company-country-display" class="readonly-value"><?= e(countryChoices()[$edit['country_code'] ?? ''] ?? 'Ergibt sich aus Region') ?></output></label></div><label>Website<input type="url" name="website" value="<?= e($edit['website'] ?? '') ?>"></label><button class="primary" name="action" value="save_company">Speichern</button></form></section>
-        <section class="panel table-wrap"><table><thead><tr><th>Firma</th><th>Adresse / Telefon</th><th>Rolle / Vermittlung</th><th>Verknüpfungen</th><th>Aktionen</th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr class="<?= $edit && (int)$edit['id']===(int)$company['id']?'is-selected':'' ?>"><td><strong><a class="record-link" href="/?page=companies&edit=<?= (int)$company['id'] ?>"><?= e($company['name']) ?></a></strong><small><?= e($company['website']) ?></small></td><td><?php if($company['address_line1']): ?><small><?= nl2br(e(trim((string)$company['address_line1'] . "\n" . (string)$company['address_line2']))) ?></small><?php endif; ?><?php if($company['city']): ?><small><?= e($company['city']) ?></small><?php endif; ?><?php if($company['phone']): ?><small><?= e($company['phone']) ?></small><?php endif; ?></td><td class="relationship-cell"><?php if($company['mediated_clients']): ?><span class="badge role-badge">Vermittler</span><small>Vermittelt: <?php foreach(explode('||', $company['mediated_clients']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge">Vermittelt</span><small>durch: <?php foreach(explode('||', $company['mediated_by']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if(!$company['mediated_clients'] && !$company['mediated_by']): ?><small>Direkte Firma / keine Vermittlung erfasst</small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> Jobs</a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> Bewerbungen</a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> Kontakte</a></td><td class="actions"><form method="post" onsubmit="return confirm('Firma löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company">Löschen</button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
+        <div class="split"><section class="panel"><h2><?= $edit ? 'Firma bearbeiten' : 'Neue Firma' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Name<input name="name" value="<?= e($edit['name'] ?? '') ?>" required></label><label class="check"><input type="checkbox" name="is_intermediary" value="1" <?= !empty($edit['is_intermediary'])?'checked':'' ?>> Möglicher Vermittler / Personalvermittler</label><label>Haupttelefon<input name="company_phone" value="<?= e($edit['phone'] ?? '') ?>"></label><label>Adresse<textarea name="address" rows="3" placeholder="Strasse und Nummer&#10;Adresszusatz"><?= e(trim((string)($edit['address_line1'] ?? '') . "\n" . (string)($edit['address_line2'] ?? ''))) ?></textarea></label><div class="two"><label>PLZ<input name="postal_code" value="<?= e($edit['postal_code'] ?? '') ?>"></label><label>Ort<input name="city" value="<?= e($edit['city'] ?? '') ?>"></label></div><div class="two"><label>Region<select name="company_region_key" id="company-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = ($edit['region'] ?? '')===$region && ($edit['country_code'] ?? '')===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="company-country-display" class="readonly-value"><?= e(countryChoices()[$edit['country_code'] ?? ''] ?? 'Ergibt sich aus Region') ?></output></label></div><label>Website<input type="url" name="website" value="<?= e($edit['website'] ?? '') ?>"></label><button class="primary" name="action" value="save_company">Speichern</button></form></section>
+        <section class="panel table-wrap"><table><thead><tr><th>Firma</th><th>Adresse / Telefon</th><th>Rolle / Vermittlung</th><th>Verknüpfungen</th><th>Aktionen</th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr class="<?= $edit && (int)$edit['id']===(int)$company['id']?'is-selected':'' ?>"><td><strong><a class="record-link" href="/?page=companies&edit=<?= (int)$company['id'] ?>"><?= e($company['name']) ?></a></strong><small><?= e($company['website']) ?></small></td><td><?php if($company['address_line1']): ?><small><?= nl2br(e(trim((string)$company['address_line1'] . "\n" . (string)$company['address_line2']))) ?></small><?php endif; ?><?php if($company['city']): ?><small><?= e($company['city']) ?></small><?php endif; ?><?php if($company['phone']): ?><small><?= e($company['phone']) ?></small><?php endif; ?></td><td class="relationship-cell"><?php if(!empty($company['is_intermediary']) || $company['mediated_clients']): ?><span class="badge role-badge">Vermittler</span><?php endif; ?><?php if($company['mediated_clients']): ?><small>Vermittelt: <?php foreach(explode('||', $company['mediated_clients']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge">Vermittelt</span><small>durch: <?php foreach(explode('||', $company['mediated_by']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if(empty($company['is_intermediary']) && !$company['mediated_clients'] && !$company['mediated_by']): ?><small>Direkte Firma / keine Vermittlung erfasst</small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> Jobs</a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> Bewerbungen</a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> Kontakte</a></td><td class="actions"><form method="post" onsubmit="return confirm('Firma löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company">Löschen</button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
         <script>
         (() => {
             const region = document.getElementById('company-region');
@@ -1346,16 +1620,84 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $contactEdit = $selectedContactId > 0 && $applicationEdit ? dbOne($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND (company_id=? OR company_id=? OR application_id=? OR job_id=?) AND deleted_at IS NULL', 'iiiiii', [$selectedContactId, userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : null;
         $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
         $documentTypes = $applicationEdit ? dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id') : [];
-        $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.scope='application' AND d.application_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
+        $applicationDocumentTypes = $applicationEdit ? documentTypesForScope($documentTypes, 'application') : [];
+        $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND ((d.scope='application' AND d.application_id=?) OR d.scope='profile') AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
+        $applicationProfileDocuments = $applicationEdit ? dbAll($db, "SELECT d.id, d.title, d.version, d.original_filename, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL ORDER BY d.title, d.version DESC", 'i', [userId()]) : [];
+        $intermediaryCompanies = $applicationEdit ? array_values(array_filter($companies, static fn (array $company): bool => !empty($company['is_intermediary']) && (int)$company['id'] !== (int)$applicationEdit['company_id'])) : [];
+        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $nextActionChoices = applicationNextActionChoices();
+        $coverLetterPrompt = $applicationEdit && trim((string)($applicationEdit['cover_letter_text'] ?? '')) === ''
+            ? applicationPrompt($db, userId(), (int)$applicationEdit['id'], $currentUser)
+            : '';
         $applicationStatuses=['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'];
         $contactLogStatuses=['planned'=>'Geplant','open'=>'Offen','done'=>'Erledigt','cancelled'=>'Abgebrochen'];
         $channels=['email'=>'E-Mail','portal'=>'Jobportal','website'=>'Karriereseite','mail'=>'Post','referral'=>'Empfehlung','other'=>'Andere'];
         ?>
         <div class="page-head"><div><p class="eyebrow">Pipeline</p><h1>Bewerbungen</h1></div><span><?= count($apps) ?> Einträge</span></div>
         <?php if($appCompanyFilter || $appJobFilter || $todoOnly): ?><p class="filter-note">Gefilterte Ansicht · <a href="/?page=applications">Alle Bewerbungen anzeigen</a></p><?php endif; ?>
-        <?php if ($applicationEdit): ?><section class="panel company-path" id="companies"><div><p class="eyebrow">Firmenbeziehung</p><h2><?= e($applicationEdit['company_name']) ?><?php if($applicationEdit['intermediary_company_name']): ?> <span>über <?= e($applicationEdit['intermediary_company_name']) ?></span><?php endif; ?></h2><p>Die Stelle gehört zur Kunden-/Arbeitgeberfirma. Optional kann eine Vermittler- oder Temporärfirma dazwischengeschaltet sein.</p></div><form method="post" class="company-path-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Vermittlerfirma<select name="intermediary_company_id"><option value="0">Direktbewerbung ohne Vermittler</option><?php foreach($companies as $company): if((int)$company['id']===(int)$applicationEdit['company_id']) continue; ?><option value="<?= (int)$company['id'] ?>" <?= (int)$applicationEdit['intermediary_company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><button class="primary" name="action" value="set_intermediary">Zuordnung speichern</button></form></section><?php endif; ?>
-        <?php if ($applicationEdit): ?><section class="panel application-editor" id="application-form"><div class="section-head"><div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div><a href="/?page=applications">Schließen</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><div class="three"><label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label></div><label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label><div class="two"><label>Nächster Schritt<input name="next_action" value="<?= e($applicationEdit['next_action'] ?? '') ?>" placeholder="z. B. telefonisch nachfragen"></label><label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label></div><label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label><?php if(!outboundEmailEnabled()): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?><label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label><label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label><label>Motivationsschreiben<textarea name="cover_letter_text" rows="7"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label><label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_application">Bewerbung speichern</button></form><?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e($entry['changed_at']) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section>
-        <section class="panel contact-log" id="documents"><div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><a href="/?page=profile#documents">Stammdaten im Profil</a></div><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="application"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Bewerbungsdokument</option><?php foreach($applicationDocuments as $doc): ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><div class="two"><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Zweck<select name="purpose"><option value="cv">Lebenslauf</option><option value="cover_letter">Motivationsschreiben</option><option value="certificate">Zeugnis/Zertifikat</option><option value="reference">Referenzschreiben</option><option value="portfolio">Portfolio</option><option value="other">Anderes</option></select></label></div><label>Titel<input name="document_title" required placeholder="z. B. Motivationsschreiben <?= e($applicationEdit['company_name']) ?>"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Bewerbungsdokument speichern</button></form><div class="log-timeline"><?php foreach($applicationDocuments as $doc): ?><article><div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e($doc['purpose']) ?> · <?= e($doc['created_at']) ?> · <?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</span></div><small><?= e($doc['original_filename']) ?></small><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></article><?php endforeach; ?><?php if(!$applicationDocuments): ?><p class="empty">Noch keine Bewerbungsdokumente vorhanden.</p><?php endif; ?></div></section>
+        <?php if ($applicationEdit): ?><section class="panel company-path" id="companies"><div><p class="eyebrow">Firmenbeziehung</p><h2><?= e($applicationEdit['company_name']) ?><?php if($applicationEdit['intermediary_company_name']): ?> <span>über <?= e($applicationEdit['intermediary_company_name']) ?></span><?php endif; ?></h2><p>Die Stelle gehört zur Kunden-/Arbeitgeberfirma. Optional kann eine Vermittler- oder Temporärfirma dazwischengeschaltet sein.</p></div><form method="post" class="company-path-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Vermittlerfirma<select name="intermediary_company_id"><option value="0">Direktbewerbung ohne Vermittler</option><?php foreach($intermediaryCompanies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$applicationEdit['intermediary_company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select><small>Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.</small></label><button class="primary" name="action" value="set_intermediary">Zuordnung speichern</button></form></section><?php endif; ?>
+        <?php if ($applicationEdit): ?>
+        <section class="panel application-editor" id="application-form">
+            <div class="section-head">
+                <div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div>
+                <a href="/?page=applications">Schließen</a>
+            </div>
+            <form method="post" class="stack">
+                <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                <input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>">
+                <div class="three">
+                    <label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+                    <label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+                    <label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
+                </div>
+                <label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label>
+                <div class="two">
+                    <label>Nächster Schritt<select name="next_action"><option value="">Kein nächster Schritt</option><?php foreach($nextActionChoices as $choice): ?><option value="<?= e($choice) ?>" <?= ($applicationEdit['next_action'] ?? '')===$choice?'selected':'' ?>><?= e($choice) ?></option><?php endforeach; ?></select><?php if(($applicationEdit['next_action'] ?? '') && !in_array((string)$applicationEdit['next_action'], $nextActionChoices, true)): ?><small>Bisheriger Freitext: <?= e($applicationEdit['next_action']) ?></small><?php endif; ?></label>
+                    <label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label>
+                </div>
+                <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
+                <?php if(!outboundEmailEnabled()): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?>
+                <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
+                <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
+                <label>Motivationsschreiben<textarea name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small>Das Feld enthält einen ChatGPT-Prompt, weil noch kein Motivationsschreiben gespeichert ist. Kopieren, in ChatGPT verwenden, Ergebnis hier einfügen und speichern.</small><?php endif; ?></label>
+                <label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
+                <button class="primary" name="action" value="save_application">Bewerbung speichern</button>
+            </form>
+            <?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
+        </section>
+        <section class="panel contact-log" id="documents">
+            <div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><a href="/?page=profile#documents">Stammdaten im Profil</a></div>
+            <div class="split inner-split">
+                <form method="post" class="stack">
+                    <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                    <input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>">
+                    <label>Stammdaten übernehmen<select name="user_document_id"><?php foreach($applicationProfileDocuments as $doc): ?><option value="<?= (int)$doc['id'] ?>"><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?> · <?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label>
+                    <button class="primary" name="action" value="attach_application_document" <?= !$applicationProfileDocuments ? 'disabled' : '' ?>>Stammdaten der Bewerbung zuordnen</button>
+                    <?php if(!$applicationProfileDocuments): ?><p class="empty">Noch keine aktuellen Stammdaten im Profil vorhanden.</p><?php endif; ?>
+                </form>
+                <form method="post" enctype="multipart/form-data" class="stack">
+                    <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                    <input type="hidden" name="document_scope" value="application">
+                    <input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>">
+                    <label>Neue Version von<select name="replace_document_id"><option value="0">Neues Bewerbungsdokument</option><?php foreach($applicationDocuments as $doc): if($doc['scope'] !== 'application') continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label>
+                    <label>Dokumenttyp<select name="document_type_id"><?php foreach($applicationDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label>
+                    <input type="hidden" name="purpose" value="cover_letter">
+                    <label>Titel<input name="document_title" required placeholder="z. B. Motivationsschreiben <?= e($applicationEdit['company_name']) ?>"></label>
+                    <label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+                    <label>Beschreibung<textarea name="document_description" rows="3"></textarea></label>
+                    <label>Datei<input type="file" name="user_document" required></label>
+                    <button class="primary" name="action" value="upload_document">Bewerbungsdokument speichern</button>
+                </form>
+            </div>
+            <div class="log-timeline">
+                <?php foreach($applicationDocuments as $doc): ?><article>
+                    <div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], $userLanguage)) ?> · <?= e(displayDateTime($doc['created_at'], $currentUser)) ?> · <?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</span></div>
+                    <small><?= e($doc['scope'] === 'profile' ? 'Stammdaten · ' . $doc['original_filename'] : $doc['original_filename']) ?></small>
+                    <?php if($doc['scope'] === 'profile'): ?><form method="post" class="actions" onsubmit="return confirm('Dokument-Zuordnung entfernen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="user_document_id" value="<?= (int)$doc['id'] ?>"><button name="action" value="detach_application_document">Entfernen</button></form><?php else: ?><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form><?php endif; ?>
+                </article><?php endforeach; ?>
+                <?php if(!$applicationDocuments): ?><p class="empty">Noch keine Bewerbungsdokumente vorhanden.</p><?php endif; ?>
+            </div>
+        </section>
         <section class="contact-workspace" id="contacts">
             <section class="panel">
                 <div class="section-head"><div><p class="eyebrow">Firma → Job → Kontakt</p><h2><?= $contactEdit ? 'Kontakt bearbeiten' : 'Kontakt erfassen' ?></h2></div><?php if($contactEdit): ?><a href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>#contacts">Neu</a><?php endif; ?></div>
@@ -1377,9 +1719,9 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             </section>
             <section class="panel"><h2>Zugeordnete Kontakte</h2><div class="contact-list"><?php foreach($contacts as $contact): ?><article class="<?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'is-primary':'' ?> <?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><small><?= e($contact['contact_company_name']) ?> · Firma<?php if((int)$contact['job_id']===(int)$applicationEdit['job_id']): ?> · Job<?php endif; ?><?php if((int)($contact['application_id'] ?? 0)===(int)$applicationEdit['id']): ?> · Bewerbung<?php endif; ?></small><strong><a class="record-link" href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>&contact=<?= (int)$contact['id'] ?>#contacts"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?></article><?php endforeach; ?><?php if(!$contacts): ?><p class="empty">Noch keine Kontakte für Arbeitgeber, Job oder Bewerbung.</p><?php endif; ?></div></section>
         </section>
-        <?php if($contactEdit): ?><section class="panel contact-log" id="contact-log"><div class="section-head"><div><p class="eyebrow">Kontakt-Log</p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><div class="three"><label>Kanal<select name="log_channel"><?php foreach(['email'=>'E-Mail','phone'=>'Telefon','meeting'=>'Treffen','video'=>'Video','message'=>'Nachricht','letter'=>'Brief','note'=>'Notiz','other'=>'Andere'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Richtung<select name="direction"><option value="outgoing">Ausgehend</option><option value="incoming">Eingehend</option><option value="internal">Intern</option></select></label><label>Status<select name="log_status"><option value="planned">Geplant</option><option value="open" selected>Offen</option><option value="done">Erledigt</option><option value="cancelled">Abgebrochen</option></select></label></div><div class="two"><label>Aktionszeitpunkt<input type="datetime-local" name="occurred_at" value="<?= date('Y-m-d\TH:i') ?>" required></label><label>Wiedervorlage / nächster Termin<input type="datetime-local" name="follow_up_at"></label></div><label>Betreff<input name="subject"></label><label>Inhalt<textarea name="log_body" rows="4"></textarea></label><label>Ergebnis / nächster Schritt<input name="outcome"></label><button class="primary" name="action" value="save_contact_log">Aktivität speichern</button></form><div class="log-timeline"><?php foreach($contactLogs as $entry): ?><article class="log-status-<?= e($entry['status']) ?>"><div><strong><?= e($entry['subject'] ?: ucfirst($entry['channel'])) ?></strong><span><?= e(($contactLogStatuses[$entry['status']] ?? $entry['status']).' · '.$entry['direction'].' · '.$entry['occurred_at']) ?></span></div><?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?><?php if($entry['outcome']): ?><small>Ergebnis / nächster Schritt: <?= e($entry['outcome']) ?></small><?php endif; ?><?php if($entry['follow_up_at']): ?><small>Wiedervorlage: <?= e($entry['follow_up_at']) ?></small><?php endif; ?></article><?php endforeach; ?><?php if(!$contactLogs): ?><p class="empty">Noch keine Kontaktaktivitäten.</p><?php endif; ?></div></section><?php endif; ?>
+        <?php if($contactEdit): ?><section class="panel contact-log" id="contact-log"><div class="section-head"><div><p class="eyebrow">Kontakt-Log</p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><div class="three"><label>Kanal<select name="log_channel"><?php foreach(['email'=>'E-Mail','phone'=>'Telefon','meeting'=>'Treffen','video'=>'Video','message'=>'Nachricht','letter'=>'Brief','note'=>'Notiz','other'=>'Andere'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Richtung<select name="direction"><option value="outgoing">Ausgehend</option><option value="incoming">Eingehend</option><option value="internal">Intern</option></select></label><label>Status<select name="log_status"><option value="planned">Geplant</option><option value="open" selected>Offen</option><option value="done">Erledigt</option><option value="cancelled">Abgebrochen</option></select></label></div><div class="two"><label>Aktionszeitpunkt<input type="datetime-local" name="occurred_at" value="<?= date('Y-m-d\TH:i') ?>" required></label><label>Wiedervorlage / nächster Termin<input type="datetime-local" name="follow_up_at"></label></div><label>Betreff<input name="subject"></label><label>Inhalt<textarea name="log_body" rows="4"></textarea></label><label>Ergebnis / nächster Schritt<input name="outcome"></label><button class="primary" name="action" value="save_contact_log">Aktivität speichern</button></form><div class="log-timeline"><?php foreach($contactLogs as $entry): ?><article class="log-status-<?= e($entry['status']) ?>"><div><strong><?= e($entry['subject'] ?: ucfirst($entry['channel'])) ?></strong><span><?= e(($contactLogStatuses[$entry['status']] ?? $entry['status']).' · '.$entry['direction'].' · '.displayDateTime($entry['occurred_at'], $currentUser)) ?></span></div><?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?><?php if($entry['outcome']): ?><small>Ergebnis / nächster Schritt: <?= e($entry['outcome']) ?></small><?php endif; ?><?php if($entry['follow_up_at']): ?><small>Wiedervorlage: <?= e(displayDateTime($entry['follow_up_at'], $currentUser)) ?></small><?php endif; ?></article><?php endforeach; ?><?php if(!$contactLogs): ?><p class="empty">Noch keine Kontaktaktivitäten.</p><?php endif; ?></div></section><?php endif; ?>
         <?php endif; ?>
-        <section class="application-list"><?php foreach($apps as $app): ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(date('d.m.Y H:i', strtotime($app['next_action_at']))) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · über <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung starten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section>
+        <section class="application-list"><?php foreach($apps as $app): ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · über <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung starten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section>
     <?php elseif ($page === 'contacts'): ?>
         <?php
         $contactCompanyFilter=(int)($_GET['company_id'] ?? 0);
@@ -1395,14 +1737,16 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
+        $profileDocumentTypes = documentTypesForScope($documentTypes, 'profile');
         $documents = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
+        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
         ?>
         <div class="page-head"><div><p class="eyebrow">Stammdaten</p><h1>Dokumente</h1></div><span><?= count($documents) ?> Versionen</span></div>
-        <div class="split"><section class="panel"><h2>Dokument hochladen</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button></form></section>
-        <section class="panel table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Datum</th><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(str_replace('document.', '', $doc['type_name'])) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e($doc['created_at']) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="split"><section class="panel"><h2>Dokument hochladen</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button></form></section>
+        <section class="panel table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Datum</th><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'audit'): ?>
         <?php $logs=dbAll($db,'SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 100','i',[userId()]); ?>
-        <div class="page-head"><div><p class="eyebrow">Unveränderbar</p><h1>Änderungsprotokoll</h1></div><span>Letzte 100</span></div><section class="panel table-wrap"><table><thead><tr><th>Zeit</th><th>Aktion</th><th>Bereich</th><th>ID</th></tr></thead><tbody><?php foreach($logs as $log): ?><tr><td><?= e($log['created_at']) ?></td><td><?= e($log['action']) ?></td><td><?= e($log['entity_type']) ?></td><td><?= (int)$log['entity_id'] ?></td></tr><?php endforeach; ?></tbody></table></section>
+        <div class="page-head"><div><p class="eyebrow">Unveränderbar</p><h1>Änderungsprotokoll</h1></div><span>Letzte 100</span></div><section class="panel table-wrap"><table><thead><tr><th>Zeit</th><th>Aktion</th><th>Bereich</th><th>ID</th></tr></thead><tbody><?php foreach($logs as $log): ?><tr><td><?= e(displayDateTime($log['created_at'], $currentUser)) ?></td><td><?= e($log['action']) ?></td><td><?= e($log['entity_type']) ?></td><td><?= (int)$log['entity_id'] ?></td></tr><?php endforeach; ?></tbody></table></section>
     <?php endif; ?>
 <?php endif; ?>
 </main>

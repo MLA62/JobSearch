@@ -195,6 +195,7 @@ CREATE TABLE companies (
     phone VARCHAR(50) NULL,
     industry VARCHAR(150) NULL,
     employee_count VARCHAR(50) NULL,
+    is_intermediary TINYINT(1) NOT NULL DEFAULT 0,
     address_line1 VARCHAR(190) NULL,
     address_line2 VARCHAR(190) NULL,
     postal_code VARCHAR(30) NULL,
