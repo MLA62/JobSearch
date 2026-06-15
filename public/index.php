@@ -162,6 +162,129 @@ function matchJob(array $job): array
     return [min(100, $score), $reasons ?: ['Noch nicht genügend Daten für eine Detailbewertung']];
 }
 
+function plainText(string $value): string
+{
+    $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim((string) preg_replace('/\s+/u', ' ', $value));
+}
+
+function publicHttpUrl(string $url): bool
+{
+    $parts = parse_url($url);
+    if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['http', 'https'], true) || empty($parts['host'])) {
+        return false;
+    }
+    $records = dns_get_record($parts['host'], DNS_A | DNS_AAAA);
+    if (!$records) {
+        return false;
+    }
+    foreach ($records as $record) {
+        $ip = $record['ip'] ?? $record['ipv6'] ?? '';
+        if ($ip === '' || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function findJobPosting(mixed $value): ?array
+{
+    if (!is_array($value)) {
+        return null;
+    }
+    $type = $value['@type'] ?? null;
+    if ($type === 'JobPosting' || (is_array($type) && in_array('JobPosting', $type, true))) {
+        return $value;
+    }
+    foreach ($value as $child) {
+        $found = findJobPosting($child);
+        if ($found) {
+            return $found;
+        }
+    }
+    return null;
+}
+
+function importFromUrl(string $url): array
+{
+    if (!publicHttpUrl($url) || !function_exists('curl_init')) {
+        throw new RuntimeException('Die URL ist nicht erreichbar oder aus Sicherheitsgründen nicht erlaubt.');
+    }
+    $curl = curl_init($url);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_USERAGENT => 'JeMaJobs/0.1 (+https://jobs.jema.business)',
+        CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+    ]);
+    $html = curl_exec($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $finalUrl = (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
+    $error = curl_error($curl);
+    curl_close($curl);
+    if (!is_string($html) || $status >= 400 || strlen($html) > 5_000_000) {
+        throw new RuntimeException($error ?: 'Die Stellenanzeige konnte nicht gelesen werden.');
+    }
+
+    $document = new DOMDocument();
+    @$document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
+    $xpath = new DOMXPath($document);
+    $job = null;
+    foreach ($xpath->query('//script[@type="application/ld+json"]') ?: [] as $script) {
+        try {
+            $json = json_decode((string) $script->textContent, true, 64, JSON_THROW_ON_ERROR);
+            $job = findJobPosting($json);
+            if ($job) {
+                break;
+            }
+        } catch (Throwable) {
+        }
+    }
+
+    $title = plainText((string) ($job['title'] ?? ''));
+    $company = plainText((string) ($job['hiringOrganization']['name'] ?? ''));
+    $description = plainText((string) ($job['description'] ?? ''));
+    $location = plainText((string) ($job['jobLocation']['address']['addressLocality'] ?? ''));
+
+    if ($title === '') {
+        $node = $xpath->query('//meta[@property="og:title"]/@content')->item(0) ?: $xpath->query('//title')->item(0);
+        $title = plainText((string) ($node?->nodeValue ?? ''));
+    }
+    if ($description === '') {
+        $node = $xpath->query('//meta[@name="description"]/@content')->item(0);
+        $description = plainText((string) ($node?->nodeValue ?? ''));
+    }
+    return compact('title', 'company', 'location', 'description') + ['source_url' => $finalUrl ?: $url];
+}
+
+function importFromText(string $text): array
+{
+    $text = trim($text);
+    $lines = preg_split('/\R/u', $text) ?: [];
+    $values = ['title' => '', 'company' => '', 'location' => '', 'description' => $text, 'source_url' => ''];
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '') {
+            continue;
+        }
+        if ($values['title'] === '') {
+            $values['title'] = $line;
+        }
+        foreach (['title' => 'Titel|Position|Stelle', 'company' => 'Firma|Unternehmen|Arbeitgeber', 'location' => 'Ort|Standort|Arbeitsort'] as $field => $labels) {
+            if (preg_match('/^(?:' . $labels . ')\s*:\s*(.+)$/iu', $line, $match)) {
+                $values[$field] = trim($match[1]);
+            }
+        }
+        if ($values['source_url'] === '' && preg_match('~https?://\S+~i', $line, $match)) {
+            $values['source_url'] = rtrim($match[0], '.,;)');
+        }
+    }
+    return $values;
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 
@@ -221,6 +344,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     requireLogin();
 
+    if ($action === 'preview_import') {
+        $payload = trim((string) ($_POST['import_payload'] ?? ''));
+        if ($payload === '') {
+            flash('Bitte eine Stellen-URL oder den Ausschreibungstext einfügen.', 'danger');
+            redirect('/?page=jobs');
+        }
+        try {
+            $_SESSION['import_draft'] = filter_var($payload, FILTER_VALIDATE_URL)
+                ? importFromUrl($payload)
+                : importFromText($payload);
+            flash('Import gelesen. Bitte Vorschlag prüfen und speichern.');
+        } catch (Throwable $exception) {
+            flash('Import nicht möglich: ' . $exception->getMessage(), 'danger');
+        }
+        redirect('/?page=jobs#new');
+    }
+
     if ($action === 'save_company') {
         $id = (int) ($_POST['id'] ?? 0);
         $name = trim((string) $_POST['name']);
@@ -267,12 +407,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save_job') {
         $id = (int) ($_POST['id'] ?? 0);
         $companyId = (int) $_POST['company_id'];
+        $newCompanyName = trim((string) ($_POST['new_company_name'] ?? ''));
         $title = trim((string) $_POST['title']);
         $location = trim((string) $_POST['location_text']);
         $description = trim((string) $_POST['description']);
         $status = (string) $_POST['status'];
         $workplace = (string) $_POST['workplace_type'];
         $sourceUrl = trim((string) $_POST['source_url']);
+        if ($companyId < 1 && $newCompanyName !== '') {
+            $existingCompany = dbOne($db, 'SELECT id FROM companies WHERE owner_user_id = ? AND name = ? AND deleted_at IS NULL', 'is', [userId(), $newCompanyName]);
+            if ($existingCompany) {
+                $companyId = (int) $existingCompany['id'];
+            } else {
+                $companyStmt = $db->prepare('INSERT INTO companies (owner_user_id, name) VALUES (?, ?)');
+                $uid = userId();
+                $companyStmt->bind_param('is', $uid, $newCompanyName);
+                $companyStmt->execute();
+                $companyId = (int) $companyStmt->insert_id;
+                audit($db, userId(), 'create', 'company', $companyId, null, ['name' => $newCompanyName, 'source' => 'job_import']);
+            }
+        }
         $company = dbOne($db, 'SELECT id FROM companies WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$companyId, userId()]);
         if (!$company || $title === '') {
             flash('Firma und Jobtitel sind erforderlich.', 'danger'); redirect('/?page=jobs');
@@ -303,6 +457,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status]);
         }
         flash('Job gespeichert.');
+        unset($_SESSION['import_draft']);
         redirect('/?page=jobs');
     }
 
@@ -401,10 +556,21 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         if ($blue) { $sql .= " AND (j.employment_type IN ('temporary','part_time') OR j.title REGEXP 'Lager|Reinigung|Produktion|Bau|Service|Zustell|Verkauf')"; }
         $sql .= ' ORDER BY j.updated_at DESC'; $jobs=dbAll($db,$sql,$types,$vals);
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, source_url, SUBSTRING(description,1,65535) description FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $draft = is_array($_SESSION['import_draft'] ?? null) ? $_SESSION['import_draft'] : [];
+        $form = $edit ?: $draft;
+        $draftCompany = trim((string) ($draft['company'] ?? ''));
+        $matchedCompanyId = 0;
+        foreach ($companies as $candidate) {
+            if ($draftCompany !== '' && mb_strtolower($candidate['name']) === mb_strtolower($draftCompany)) {
+                $matchedCompanyId = (int) $candidate['id'];
+                break;
+            }
+        }
         ?>
         <div class="page-head"><div><p class="eyebrow">Stellen-Pipeline</p><h1>Jobs</h1></div><span><?= count($jobs) ?> Treffer</span></div>
+        <section class="panel import-panel"><h2>Schnellimport</h2><p>Stellen-URL oder kopierten E-Mail-/Ausschreibungstext einfügen. Vor dem Speichern bleibt alles bearbeitbar.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="3" placeholder="https://… oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
         <form class="filters" method="get"><input type="hidden" name="page" value="jobs"><input name="q" value="<?= e($q) ?>" placeholder="Titel, Firma oder Ort"><select name="status"><option value="">Alle Status</option><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= $status===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select><label class="check"><input type="checkbox" name="blue" value="1" <?= $blue?'checked':'' ?>> Blue-Collar/Ungelernt</label><button>Filtern</button></form>
-        <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : 'Job erfassen' ?></h2><?php if(!$companies): ?><p>Bitte zuerst eine <a href="/?page=companies">Firma erfassen</a>.</p><?php else: ?><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Firma<select name="company_id" required><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($edit['company_id']??0)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label><label>Jobtitel<input name="title" value="<?= e($edit['title'] ?? '') ?>" required></label><div class="two"><label>Ort<input name="location_text" value="<?= e($edit['location_text'] ?? '') ?>"></label><label>Arbeitsmodell<select name="workplace_type"><?php foreach(['unknown'=>'Unbekannt','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($edit['workplace_type']??'unknown')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label></div><label>Status<select name="status"><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($edit['status']??'open')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Quell-URL<input type="url" name="source_url" value="<?= e($edit['source_url'] ?? '') ?>"></label><label>Beschreibung<textarea name="description" rows="6"><?= e($edit['description'] ?? '') ?></textarea></label><?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button></form><?php endif; ?></section>
+        <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : ($draft ? 'Import prüfen' : 'Job erfassen') ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Firma<select name="company_id"><option value="0">Neue Firma aus Import</option><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($form['company_id']??$matchedCompanyId)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label><label>Neue Firma<input name="new_company_name" value="<?= e($matchedCompanyId ? '' : $draftCompany) ?>" placeholder="Nur ausfüllen, wenn die Firma noch fehlt"></label><label>Jobtitel<input name="title" value="<?= e($form['title'] ?? '') ?>" required></label><div class="two"><label>Ort<input name="location_text" value="<?= e($form['location_text'] ?? $form['location'] ?? '') ?>"></label><label>Arbeitsmodell<select name="workplace_type"><?php foreach(['unknown'=>'Unbekannt','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($form['workplace_type']??'unknown')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label></div><label>Status<select name="status"><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($form['status']??'open')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Quell-URL<input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"></label><label>Beschreibung<textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button></form></section>
         <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><?= e($job['title']) ?></h3><p class="company"><?= e($job['company_name']) ?> · <?= e($job['location_text']) ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new">Bearbeiten</a><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
     <?php elseif ($page === 'applications'): ?>
         <?php $apps=dbAll($db,'SELECT a.id, a.status, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC','i',[userId()]); ?>

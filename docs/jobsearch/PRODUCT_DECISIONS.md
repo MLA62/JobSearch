@@ -93,7 +93,8 @@ Status: 2026-06-15
 ## Prototype scope
 
 The first deployed prototype includes responsive login/registration, strict private
-ownership checks, dashboard, company and job CRUD, search/status/blue-collar filters,
-duplicate warnings, a transparent starter match score, application overview and
-immutable audit-log display. Email verification, approval UI, 2FA, guest sharing,
-document processing and automated imports are the next implementation phases.
+ownership checks, dashboard, company and job CRUD, assisted import from job URLs or
+pasted email/job-ad text, search/status/blue-collar filters, duplicate warnings, a
+transparent starter match score, application overview and immutable audit-log display.
+Email verification, approval UI, 2FA, guest sharing, document processing and scheduled
+portal imports are the next implementation phases.

@@ -4,7 +4,7 @@ Responsive, multilingual job-search CRM for `jobs.jema.business`.
 
 ## Target platform
 
-- PHP 8.4
+- PHP 8.1+ (production currently runs PHP 8.1)
 - MariaDB 10.6
 - Desktop, mobile portrait and mobile landscape
 - Languages: German, English, Spanish and Portuguese
@@ -43,8 +43,9 @@ prerequisites.
 ## Prototype
 
 The `public/` directory contains a responsive PHP prototype with registration,
-login, private company/job CRUD, filters, duplicate warnings, a transparent
-starter match score, application overview and immutable audit-log display.
+login, private company/job CRUD, assisted import from job URLs or pasted
+email/job-ad text, filters, duplicate warnings, a transparent starter match
+score, application overview and immutable audit-log display.
 Copy `public/config.example.php` to `public/config.php` only on the target
 server and fill in secrets there.
 
