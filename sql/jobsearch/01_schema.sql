@@ -50,6 +50,18 @@ CREATE TABLE users (
     CONSTRAINT fk_users_language FOREIGN KEY (preferred_language) REFERENCES languages(code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE user_language_skills (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    language_code CHAR(5) NOT NULL,
+    language_name VARCHAR(80) NOT NULL,
+    cefr_level ENUM('A1','A2','B1','B2','C1','C2') NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_language_skill (user_id, language_code),
+    CONSTRAINT fk_user_language_skills_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE roles (
     id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
@@ -148,6 +160,9 @@ CREATE TABLE user_documents (
     user_id BIGINT UNSIGNED NOT NULL,
     document_type_id SMALLINT UNSIGNED NOT NULL,
     language_code CHAR(5) NULL,
+    scope ENUM('profile','application') NOT NULL DEFAULT 'profile',
+    application_id BIGINT UNSIGNED NULL,
+    job_id BIGINT UNSIGNED NULL,
     title VARCHAR(190) NOT NULL,
     description TEXT NULL,
     original_filename VARCHAR(255) NOT NULL,
@@ -163,6 +178,8 @@ CREATE TABLE user_documents (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
     KEY idx_user_documents_user_type (user_id, document_type_id, is_current),
+    KEY idx_user_documents_scope (user_id, scope, is_current),
+    KEY idx_user_documents_application (application_id, job_id),
     CONSTRAINT fk_user_documents_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_user_documents_type FOREIGN KEY (document_type_id) REFERENCES document_types(id),
     CONSTRAINT fk_user_documents_language FOREIGN KEY (language_code) REFERENCES languages(code)

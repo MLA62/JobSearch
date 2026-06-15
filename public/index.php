@@ -437,6 +437,61 @@ function countryForRegion(string $regionKey): array
     return [$country, $region];
 }
 
+function currencyForCountry(?string $countryCode): string
+{
+    return match ($countryCode) {
+        'CH', 'LI' => 'CHF',
+        'GB' => 'GBP',
+        'US' => 'USD',
+        'BR' => 'BRL',
+        default => 'EUR',
+    };
+}
+
+function europeanLanguageChoices(): array
+{
+    return [
+        'de' => 'Deutsch',
+        'en' => 'Englisch',
+        'fr' => 'Französisch',
+        'it' => 'Italienisch',
+        'es' => 'Spanisch',
+        'pt' => 'Portugiesisch',
+        'nl' => 'Niederländisch',
+        'da' => 'Dänisch',
+        'sv' => 'Schwedisch',
+        'no' => 'Norwegisch',
+        'fi' => 'Finnisch',
+        'is' => 'Isländisch',
+        'ga' => 'Irisch',
+        'cy' => 'Walisisch',
+        'pl' => 'Polnisch',
+        'cs' => 'Tschechisch',
+        'sk' => 'Slowakisch',
+        'sl' => 'Slowenisch',
+        'hr' => 'Kroatisch',
+        'bs' => 'Bosnisch',
+        'sr' => 'Serbisch',
+        'bg' => 'Bulgarisch',
+        'ro' => 'Rumänisch',
+        'hu' => 'Ungarisch',
+        'el' => 'Griechisch',
+        'tr' => 'Türkisch',
+        'uk' => 'Ukrainisch',
+        'ru' => 'Russisch',
+        'et' => 'Estnisch',
+        'lv' => 'Lettisch',
+        'lt' => 'Litauisch',
+        'mt' => 'Maltesisch',
+        'sq' => 'Albanisch',
+        'ca' => 'Katalanisch',
+        'eu' => 'Baskisch',
+        'gl' => 'Galicisch',
+        'lb' => 'Luxemburgisch',
+        'rm' => 'Rätoromanisch',
+    ];
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 
@@ -553,9 +608,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'save_profile') {
+        $uid = userId();
+        $storedUser = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,city,region,country_code FROM users WHERE id=?', 'i', [$uid]);
         $first = trim((string) ($_POST['first_name'] ?? ''));
         $last = trim((string) ($_POST['last_name'] ?? ''));
-        $language = in_array($_POST['preferred_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['preferred_language'] : 'de';
+        $language = (string) ($storedUser['preferred_language'] ?? 'de');
         $validTimezones = array_keys(array_merge(...array_values(timezoneChoices())));
         $timezone = in_array($_POST['timezone'] ?? '', $validTimezones, true) ? (string) $_POST['timezone'] : 'Europe/Zurich';
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
@@ -566,9 +623,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Vorname und Nachname sind erforderlich.', 'danger');
             redirect('/?page=profile');
         }
-        $old = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,city,region,country_code FROM users WHERE id=?', 'i', [userId()]);
+        $old = $storedUser;
         $stmt = $db->prepare('UPDATE users SET first_name=?, last_name=?, preferred_language=?, timezone=?, phone=?, mobile=?, city=?, region=?, country_code=? WHERE id=?');
-        $uid = userId();
         $stmt->bind_param('sssssssssi', $first, $last, $language, $timezone, $phone, $mobile, $city, $region, $country, $uid);
         $stmt->execute();
         $allowedRemote = ['onsite','hybrid','remote','any'];
@@ -583,7 +639,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $workloadMax = $_POST['workload_max'] !== '' ? min(100, max(0, (int) $_POST['workload_max'])) : null;
         $salaryMin = $_POST['salary_min'] !== '' ? (float) $_POST['salary_min'] : null;
         $salaryMax = $_POST['salary_max'] !== '' ? (float) $_POST['salary_max'] : null;
-        $salaryCurrency = strtoupper(substr(trim((string) ($_POST['salary_currency'] ?? 'CHF')), 0, 3)) ?: 'CHF';
+        $salaryCurrency = currencyForCountry($country ?: ($storedUser['country_code'] ?? 'CH'));
         $salaryPeriod = in_array($_POST['salary_period'] ?? '', $allowedSalaryPeriods, true) ? (string) $_POST['salary_period'] : 'year';
         $desiredLevel = trim((string) ($_POST['desired_level'] ?? '')) ?: null;
         $desiredBenefits = trim((string) ($_POST['desired_benefits'] ?? '')) ?: null;
@@ -604,8 +660,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prefStmt->bind_param('isssssiiddsssssiiss', $uid, $title, $desiredRoles, $desiredLocations, $remotePreference, $employmentTypeSet, $workloadMin, $workloadMax, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $desiredLevel, $desiredBenefits, $excludedIndustries, $willingToRelocate, $travelPercentage, $availableFrom, $preferenceNotes);
             $prefStmt->execute();
         }
+        $languageLevels = (array) ($_POST['language_levels'] ?? []);
+        $validLevels = ['A1','A2','B1','B2','C1','C2'];
+        $db->query('DELETE FROM user_language_skills WHERE user_id=' . $uid);
+        $skillStmt = $db->prepare('INSERT INTO user_language_skills (user_id, language_code, language_name, cefr_level) VALUES (?, ?, ?, ?)');
+        $savedLanguageSkills = [];
+        foreach (europeanLanguageChoices() as $code => $name) {
+            $level = (string) ($languageLevels[$code] ?? '');
+            if (!in_array($level, $validLevels, true)) {
+                continue;
+            }
+            $skillStmt->bind_param('isss', $uid, $code, $name, $level);
+            $skillStmt->execute();
+            $savedLanguageSkills[$code] = $level;
+        }
         $_SESSION['user_name'] = $first . ' ' . $last;
-        audit($db, $uid, 'update', 'profile', $uid, $old, ['first_name'=>$first,'last_name'=>$last,'preferred_language'=>$language,'timezone'=>$timezone]);
+        audit($db, $uid, 'update', 'profile', $uid, $old, ['first_name'=>$first,'last_name'=>$last,'preferred_language'=>$language,'timezone'=>$timezone,'language_skills'=>$savedLanguageSkills]);
         flash('Profil gespeichert.');
         redirect('/?page=profile');
     }
@@ -619,52 +689,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim((string) ($_POST['document_description'] ?? '')) ?: null;
         $validFrom = trim((string) ($_POST['valid_from'] ?? '')) ?: null;
         $validUntil = trim((string) ($_POST['valid_until'] ?? '')) ?: null;
+        $scope = ($_POST['document_scope'] ?? '') === 'application' ? 'application' : 'profile';
+        $applicationId = $scope === 'application' ? (int) ($_POST['application_id'] ?? 0) : null;
+        $application = null;
+        $jobId = null;
+        $redirectTarget = $scope === 'application' && $applicationId ? '/?page=applications&edit=' . $applicationId . '#documents' : '/?page=profile#documents';
+        if ($scope === 'application') {
+            $application = dbOne($db, 'SELECT a.id, a.job_id FROM applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL AND j.deleted_at IS NULL', 'ii', [$applicationId, $uid]);
+            if (!$application) {
+                flash('Bewerbung nicht gefunden oder der Job ist nicht mehr verfügbar.', 'danger');
+                redirect('/?page=applications');
+            }
+            $jobId = (int) $application['job_id'];
+        }
         $type = dbOne($db, 'SELECT id FROM document_types WHERE id=?', 'i', [$documentTypeId]);
         if (!$type || $title === '') {
             flash('Dokumenttyp und Titel sind erforderlich.', 'danger');
-            redirect('/?page=documents');
+            redirect($redirectTarget);
         }
         try {
             $uploaded = uploadDocumentFile($_FILES['user_document'] ?? [], $uid);
             $version = 1;
             if ($replaceId > 0) {
-                $oldDoc = dbOne($db, 'SELECT id, title, document_type_id, version FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$replaceId, $uid]);
+                $oldDoc = dbOne($db, 'SELECT id, title, document_type_id, version, scope, application_id FROM user_documents WHERE id=? AND user_id=? AND scope=? AND deleted_at IS NULL', 'iis', [$replaceId, $uid, $scope]);
                 if ($oldDoc) {
+                    if ($scope === 'application' && (int) ($oldDoc['application_id'] ?? 0) !== $applicationId) {
+                        flash('Diese Version gehört zu einer anderen Bewerbung.', 'danger');
+                        redirect($redirectTarget);
+                    }
                     $documentTypeId = (int) $oldDoc['document_type_id'];
                     $title = (string) $oldDoc['title'];
                     $version = (int) $oldDoc['version'] + 1;
-                    $db->query('UPDATE user_documents SET is_current=0 WHERE id=' . (int) $oldDoc['id'] . ' AND user_id=' . $uid);
+                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE id=? AND user_id=? AND scope=?');
+                    $stmt->bind_param('iis', $oldDoc['id'], $uid, $scope);
+                    $stmt->execute();
                 }
             } else {
-                $existing = dbOne($db, 'SELECT MAX(version) max_version FROM user_documents WHERE user_id=? AND document_type_id=? AND title=?', 'iis', [$uid, $documentTypeId, $title]);
+                $existing = $scope === 'application'
+                    ? dbOne($db, 'SELECT MAX(version) max_version FROM user_documents WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=?', 'isiis', [$uid, $scope, $applicationId, $documentTypeId, $title])
+                    : dbOne($db, 'SELECT MAX(version) max_version FROM user_documents WHERE user_id=? AND scope=? AND document_type_id=? AND title=?', 'isis', [$uid, $scope, $documentTypeId, $title]);
                 $version = ((int) ($existing['max_version'] ?? 0)) + 1;
-                $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
-                $stmt->bind_param('iis', $uid, $documentTypeId, $title);
-                $stmt->execute();
+                if ($scope === 'application') {
+                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
+                    $stmt->bind_param('isiis', $uid, $scope, $applicationId, $documentTypeId, $title);
+                    $stmt->execute();
+                } else {
+                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
+                    $stmt->bind_param('isis', $uid, $scope, $documentTypeId, $title);
+                    $stmt->execute();
+                }
             }
-            $stmt = $db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
-            $stmt->bind_param('iissssssisssi', $uid, $documentTypeId, $languageCode, $title, $description, $uploaded['original'], $uploaded['path'], $uploaded['mime'], $uploaded['size'], $uploaded['sha256'], $validFrom, $validUntil, $version);
+            $stmt = $db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+            $stmt->bind_param('iissiisssssisssi', $uid, $documentTypeId, $languageCode, $scope, $applicationId, $jobId, $title, $description, $uploaded['original'], $uploaded['path'], $uploaded['mime'], $uploaded['size'], $uploaded['sha256'], $validFrom, $validUntil, $version);
             $stmt->execute();
-            audit($db, $uid, 'create', 'user_document', (int) $stmt->insert_id, null, ['title'=>$title,'version'=>$version]);
+            $newDocumentId = (int) $stmt->insert_id;
+            if ($scope === 'application') {
+                $purpose = in_array($_POST['purpose'] ?? '', ['cv','cover_letter','certificate','reference','portfolio','other'], true) ? (string) $_POST['purpose'] : 'other';
+                $linkStmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
+                $linkStmt->bind_param('iis', $applicationId, $newDocumentId, $purpose);
+                $linkStmt->execute();
+            }
+            audit($db, $uid, 'create', 'user_document', $newDocumentId, null, ['title'=>$title,'version'=>$version,'scope'=>$scope,'application_id'=>$applicationId]);
             flash('Dokument gespeichert.');
         } catch (Throwable $exception) {
             flash('Dokument konnte nicht gespeichert werden: ' . $exception->getMessage(), 'danger');
         }
-        redirect('/?page=documents');
+        redirect($redirectTarget);
     }
 
     if ($action === 'delete_document') {
         $id = (int) ($_POST['id'] ?? 0);
         $uid = userId();
-        $old = dbOne($db, 'SELECT id,title,version FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+        $old = dbOne($db, 'SELECT id,title,version,scope,application_id FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
         if ($old) {
             $stmt = $db->prepare('UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE id=? AND user_id=?');
             $stmt->bind_param('ii', $id, $uid);
             $stmt->execute();
+            $stmt = $db->prepare('DELETE FROM application_documents WHERE user_document_id=?');
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
             audit($db, $uid, 'delete', 'user_document', $id, $old, null);
             flash('Dokument gelöscht.');
         }
-        redirect('/?page=documents');
+        $target = $old && ($old['scope'] ?? '') === 'application' && !empty($old['application_id'])
+            ? '/?page=applications&edit=' . (int) $old['application_id'] . '#documents'
+            : '/?page=profile#documents';
+        redirect($target);
     }
 
     if ($action === 'attach_application_document') {
@@ -814,6 +924,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($old) {
             $stmt = $db->prepare('UPDATE jobs SET deleted_at = NOW() WHERE id = ? AND owner_user_id = ?');
             $uid = userId(); $stmt->bind_param('ii', $id, $uid); $stmt->execute();
+            $stmt = $db->prepare("UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE user_id=? AND scope='application' AND job_id=? AND deleted_at IS NULL");
+            $stmt->bind_param('ii', $uid, $id);
+            $stmt->execute();
             audit($db, userId(), 'delete', 'job', $id, $old, null);
         }
         flash('Job gelöscht.');
@@ -1006,6 +1119,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uid = userId();
             $stmt->bind_param('ii', $id, $uid);
             $stmt->execute();
+            $stmt = $db->prepare("UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE user_id=? AND scope='application' AND application_id=? AND deleted_at IS NULL");
+            $stmt->bind_param('ii', $uid, $id);
+            $stmt->execute();
             audit($db, $uid, 'delete', 'application', $id, $old, null);
         }
         flash('Bewerbung gelöscht.');
@@ -1060,7 +1176,6 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <a href="/?page=jobs">Jobs</a>
             <a href="/?page=companies">Firmen</a>
             <a href="/?page=contacts">Kontakte</a>
-            <a href="/?page=documents">Dokumente</a>
             <a href="/?page=applications">Bewerbungen</a>
             <a href="/?page=applications&todo=1">Offene Schritte</a>
             <a href="/?page=profile">Profil</a>
@@ -1107,36 +1222,51 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
         <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
     <?php elseif ($page === 'profile'): ?>
-        <?php $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: []; $selectedEmploymentTypes = array_filter(explode(',', (string)($preference['employment_types'] ?? ''))); ?>
+        <?php
+        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+        $selectedEmploymentTypes = array_filter(explode(',', (string)($preference['employment_types'] ?? '')));
+        $languageSkills = [];
+        foreach (dbAll($db, 'SELECT language_code, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [userId()]) as $skill) {
+            $languageSkills[$skill['language_code']] = $skill['cefr_level'];
+        }
+        $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
+        $profileDocuments = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
+        $profileCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
+        ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
             <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Prototyp-Regel: Es werden keine E-Mails verschickt. Änderungen der Login-E-Mail bleiben bis zur Versandfreigabe deaktiviert.</small></label>
-            <div class="two"><label>Sprache<select name="preferred_language"><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>" <?= $currentUser['preferred_language']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label></div>
+            <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
-            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? 'Ergibt sich aus Region') ?></output></label></div>
+            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
+            <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">CEFR-Klassifizierung von A1 bis C2. Leere Zeilen werden nicht gespeichert.</p></div>
+            <div class="table-wrap compact-table"><table><thead><tr><th>Sprache</th><th>Niveau</th></tr></thead><tbody><?php foreach(europeanLanguageChoices() as $code=>$label): ?><tr><td><?= e($label) ?></td><td><select name="language_levels[<?= e($code) ?>]"><option value="">-</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>" <?= ($languageSkills[$code] ?? '')===$level?'selected':'' ?>><?= e($levelLabel) ?></option><?php endforeach; ?></select></td></tr><?php endforeach; ?></tbody></table></div>
             <div class="history"><h3>Job-Referenzen</h3><p class="meta-line">Diese Angaben steuern später Matching, Listen und Vorschläge.</p></div>
             <label>Gewünschte Tätigkeiten / Rollen<textarea name="desired_roles" rows="3" placeholder="z. B. Administration, Kundendienst, Lager, Verkauf"><?= e($preference['desired_roles'] ?? '') ?></textarea></label>
             <label>Gewünschte Orte / Lage<textarea name="desired_locations" rows="2" placeholder="z. B. Biel/Bienne, Seeland, ÖV gut erreichbar"><?= e($preference['desired_locations'] ?? '') ?></textarea></label>
             <div class="two"><label>Arbeitsmodell<select name="remote_preference"><?php foreach(['any'=>'Egal','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['remote_preference'] ?? 'any')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Level / Lage<input name="desired_level" value="<?= e($preference['desired_level'] ?? '') ?>" placeholder="z. B. Einstieg, Fachkraft, Teamleitung"></label></div>
             <fieldset class="check"><legend>Stellenarten</legend><?php foreach(['full_time'=>'Vollzeit','part_time'=>'Teilzeit','temporary'=>'Temporär','contract'=>'Befristet/Vertrag','internship'=>'Praktikum','freelance'=>'Freelance'] as $v=>$l): ?><label><input type="checkbox" name="employment_types[]" value="<?= $v ?>" <?= in_array($v, $selectedEmploymentTypes, true)?'checked':'' ?>> <?= $l ?></label><?php endforeach; ?></fieldset>
             <div class="two"><label>Pensum min. %<input type="number" min="0" max="100" name="workload_min" value="<?= e((string)($preference['workload_min'] ?? '')) ?>"></label><label>Pensum max. %<input type="number" min="0" max="100" name="workload_max" value="<?= e((string)($preference['workload_max'] ?? '')) ?>"></label></div>
-            <div class="three"><label>Lohn min.<input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($preference['salary_min'] ?? '')) ?>"></label><label>Lohn max.<input type="number" min="0" step="0.01" name="salary_max" value="<?= e((string)($preference['salary_max'] ?? '')) ?>"></label><label>Periode<select name="salary_period"><?php foreach(['hour'=>'Stunde','month'=>'Monat','year'=>'Jahr'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label></div>
-            <div class="two"><label>Währung<input name="salary_currency" maxlength="3" value="<?= e($preference['salary_currency'] ?? 'CHF') ?>"></label><label>Verfügbar ab<input type="date" name="available_from" value="<?= e($preference['available_from'] ?? '') ?>"></label></div>
+            <div class="three"><label>Lohn min. (<span class="salary-currency-display"><?= e($profileCurrency) ?></span>)<input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($preference['salary_min'] ?? '')) ?>"></label><label>Lohn max. (<span class="salary-currency-display"><?= e($profileCurrency) ?></span>)<input type="number" min="0" step="0.01" name="salary_max" value="<?= e((string)($preference['salary_max'] ?? '')) ?>"></label><label>Format<select name="salary_period"><?php foreach(['hour'=>'pro Stunde','month'=>'pro Monat','year'=>'pro Jahr'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($preference['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= $l ?> · <?= e($profileCurrency) ?></option><?php endforeach; ?></select></label></div>
+            <label>Verfügbar ab<input type="date" name="available_from" value="<?= e($preference['available_from'] ?? '') ?>"></label>
             <label>PK / Extras / Benefits<textarea name="desired_benefits" rows="2" placeholder="z. B. gute PK, ÖV-Beitrag, Schichtzulagen, Weiterbildung"><?= e($preference['desired_benefits'] ?? '') ?></textarea></label>
             <label>Ausschlüsse<textarea name="excluded_industries" rows="2" placeholder="Branchen, Tätigkeiten oder Bedingungen, die nicht passen"><?= e($preference['excluded_industries'] ?? '') ?></textarea></label>
             <div class="two"><label class="check"><input type="checkbox" name="willing_to_relocate" value="1" <?= !empty($preference['willing_to_relocate'])?'checked':'' ?>> Umzug möglich</label><label>Reiseanteil max. %<input type="number" min="0" max="100" name="travel_percentage" value="<?= e((string)($preference['travel_percentage'] ?? '')) ?>"></label></div>
             <label>Notizen zu Job-Referenzen<textarea name="preference_notes" rows="3"><?= e($preference['notes'] ?? '') ?></textarea></label>
             <button class="primary" name="action" value="save_profile">Profil speichern</button>
         </form></section>
+        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow">Stammdaten</p><h2>Dokumenten-Management</h2></div><span><?= count($profileDocuments) ?> Versionen</span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Stammdaten-Dokument</option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf Deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Stammdaten-Dokument speichern</button></form><div class="table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Aktionen</th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(str_replace('document.', '', $doc['type_name'])) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty">Noch keine Stammdaten-Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></div></div></section>
         <script>
         (() => {
             const region = document.getElementById('profile-region');
             const country = document.getElementById('profile-country-display');
+            const currencies = document.querySelectorAll('.salary-currency-display');
             if (!region || !country) return;
             const syncCountry = () => {
                 const selected = region.options[region.selectedIndex];
-                country.textContent = selected ? (selected.dataset.countryName || 'Ergibt sich aus Region') : 'Ergibt sich aus Region';
+                country.textContent = selected ? (selected.dataset.countryName || '') : '';
+                currencies.forEach((item) => { item.textContent = selected ? (selected.dataset.currency || 'EUR') : 'CHF'; });
             };
             region.addEventListener('change', syncCountry);
             syncCountry();
@@ -1215,8 +1345,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $selectedContactId = (int) ($_GET['contact'] ?? ($applicationEdit['primary_contact_id'] ?? 0));
         $contactEdit = $selectedContactId > 0 && $applicationEdit ? dbOne($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND (company_id=? OR company_id=? OR application_id=? OR job_id=?) AND deleted_at IS NULL', 'iiiiii', [$selectedContactId, userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : null;
         $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
-        $userDocuments = $applicationEdit ? dbAll($db, 'SELECT d.id, d.title, d.version, d.is_current, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC', 'i', [userId()]) : [];
-        $applicationDocuments = $applicationEdit ? dbAll($db, 'SELECT ad.purpose, d.id, d.title, d.version, d.original_filename, d.created_at, dt.code type_code FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.title', 'ii', [(int)$applicationEdit['id'], userId()]) : [];
+        $documentTypes = $applicationEdit ? dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id') : [];
+        $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.scope='application' AND d.application_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
         $applicationStatuses=['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'];
         $contactLogStatuses=['planned'=>'Geplant','open'=>'Offen','done'=>'Erledigt','cancelled'=>'Abgebrochen'];
         $channels=['email'=>'E-Mail','portal'=>'Jobportal','website'=>'Karriereseite','mail'=>'Post','referral'=>'Empfehlung','other'=>'Andere'];
@@ -1225,7 +1355,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <?php if($appCompanyFilter || $appJobFilter || $todoOnly): ?><p class="filter-note">Gefilterte Ansicht · <a href="/?page=applications">Alle Bewerbungen anzeigen</a></p><?php endif; ?>
         <?php if ($applicationEdit): ?><section class="panel company-path" id="companies"><div><p class="eyebrow">Firmenbeziehung</p><h2><?= e($applicationEdit['company_name']) ?><?php if($applicationEdit['intermediary_company_name']): ?> <span>über <?= e($applicationEdit['intermediary_company_name']) ?></span><?php endif; ?></h2><p>Die Stelle gehört zur Kunden-/Arbeitgeberfirma. Optional kann eine Vermittler- oder Temporärfirma dazwischengeschaltet sein.</p></div><form method="post" class="company-path-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Vermittlerfirma<select name="intermediary_company_id"><option value="0">Direktbewerbung ohne Vermittler</option><?php foreach($companies as $company): if((int)$company['id']===(int)$applicationEdit['company_id']) continue; ?><option value="<?= (int)$company['id'] ?>" <?= (int)$applicationEdit['intermediary_company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><button class="primary" name="action" value="set_intermediary">Zuordnung speichern</button></form></section><?php endif; ?>
         <?php if ($applicationEdit): ?><section class="panel application-editor" id="application-form"><div class="section-head"><div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div><a href="/?page=applications">Schließen</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><div class="three"><label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label></div><label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label><div class="two"><label>Nächster Schritt<input name="next_action" value="<?= e($applicationEdit['next_action'] ?? '') ?>" placeholder="z. B. telefonisch nachfragen"></label><label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label></div><label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label><?php if(!outboundEmailEnabled()): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?><label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label><label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label><label>Motivationsschreiben<textarea name="cover_letter_text" rows="7"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label><label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_application">Bewerbung speichern</button></form><?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e($entry['changed_at']) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section>
-        <section class="panel contact-log" id="documents"><div class="section-head"><div><p class="eyebrow">Bewerbungsunterlagen</p><h2>Dokumente dieser Bewerbung</h2></div><a href="/?page=documents">Stammdaten-Dokumente</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><div class="two"><label>Dokument<select name="user_document_id"><?php foreach($userDocuments as $doc): ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></option><?php endforeach; ?></select></label><label>Zweck<select name="purpose"><option value="cv">Lebenslauf</option><option value="cover_letter">Motivationsschreiben</option><option value="certificate">Zeugnis/Zertifikat</option><option value="reference">Referenzschreiben</option><option value="portfolio">Portfolio</option><option value="other">Anderes</option></select></label></div><button class="primary" name="action" value="attach_application_document" <?= !$userDocuments ? 'disabled' : '' ?>>Zu Bewerbung hinzufügen</button></form><div class="log-timeline"><?php foreach($applicationDocuments as $doc): ?><article><div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e($doc['purpose']) ?> · <?= e($doc['created_at']) ?></span></div><small><?= e($doc['original_filename']) ?></small><form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="user_document_id" value="<?= (int)$doc['id'] ?>"><button name="action" value="detach_application_document">Entfernen</button></form></article><?php endforeach; ?><?php if(!$applicationDocuments): ?><p class="empty">Noch keine Dokumente dieser Bewerbung zugeordnet.</p><?php endif; ?></div></section>
+        <section class="panel contact-log" id="documents"><div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><a href="/?page=profile#documents">Stammdaten im Profil</a></div><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="application"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Bewerbungsdokument</option><?php foreach($applicationDocuments as $doc): ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><div class="two"><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Zweck<select name="purpose"><option value="cv">Lebenslauf</option><option value="cover_letter">Motivationsschreiben</option><option value="certificate">Zeugnis/Zertifikat</option><option value="reference">Referenzschreiben</option><option value="portfolio">Portfolio</option><option value="other">Anderes</option></select></label></div><label>Titel<input name="document_title" required placeholder="z. B. Motivationsschreiben <?= e($applicationEdit['company_name']) ?>"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Bewerbungsdokument speichern</button></form><div class="log-timeline"><?php foreach($applicationDocuments as $doc): ?><article><div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e($doc['purpose']) ?> · <?= e($doc['created_at']) ?> · <?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</span></div><small><?= e($doc['original_filename']) ?></small><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></article><?php endforeach; ?><?php if(!$applicationDocuments): ?><p class="empty">Noch keine Bewerbungsdokumente vorhanden.</p><?php endif; ?></div></section>
         <section class="contact-workspace" id="contacts">
             <section class="panel">
                 <div class="section-head"><div><p class="eyebrow">Firma → Job → Kontakt</p><h2><?= $contactEdit ? 'Kontakt bearbeiten' : 'Kontakt erfassen' ?></h2></div><?php if($contactEdit): ?><a href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>#contacts">Neu</a><?php endif; ?></div>
@@ -1265,7 +1395,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
-        $documents = dbAll($db, 'SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC', 'i', [userId()]);
+        $documents = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
         ?>
         <div class="page-head"><div><p class="eyebrow">Stammdaten</p><h1>Dokumente</h1></div><span><?= count($documents) ?> Versionen</span></div>
         <div class="split"><section class="panel"><h2>Dokument hochladen</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($documentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(str_replace('document.', '', $type['name_key'])) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button></form></section>
