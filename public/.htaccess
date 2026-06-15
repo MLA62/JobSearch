@@ -1,0 +1,11 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<FilesMatch "^(\.env|config\.php|error_log|.*\.log|.*\.sql|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
+
+# cPanel-generated handler currently configured for this domain.
+<IfModule mime_module>
+    AddHandler application/x-httpd-ea-php72 .php .php7 .phtml
+</IfModule>

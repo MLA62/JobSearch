@@ -40,9 +40,16 @@ See `docs/jobsearch/REQUIREMENTS.md` and
 `docs/jobsearch/DEPLOYMENT.md` for the captured requirements and deployment
 prerequisites.
 
+## Prototype
+
+The `public/` directory contains a responsive PHP prototype with registration,
+login, private company/job CRUD, filters, duplicate warnings, a transparent
+starter match score, application overview and immutable audit-log display.
+Copy `public/config.example.php` to `public/config.php` only on the target
+server and fill in secrets there.
+
 ## Security
 
 Do not commit credentials. Production secrets belong in a server-side `.env`
 file outside the public document root. Any password disclosed in chat or another
 shared channel must be rotated before deployment.
-

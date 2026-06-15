@@ -5,6 +5,7 @@
 config/local.php
 deploy/installer/install-config.php
 deploy/installer/.installed
+public/config.php
 
 # Runtime and user uploads
 storage/
