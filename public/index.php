@@ -915,22 +915,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $languageCodes = (array) ($_POST['language_codes'] ?? []);
         $languageLevels = (array) ($_POST['language_levels'] ?? []);
-        $removeLanguageCodes = array_map('strval', (array) ($_POST['remove_language_codes'] ?? []));
+        $removeLanguageIndexes = array_map('intval', (array) ($_POST['remove_language_indexes'] ?? []));
         $validLevels = ['A1','A2','B1','B2','C1','C2'];
         $languageChoices = europeanLanguageChoices();
         $languageSkillMap = [];
         foreach ($languageCodes as $index => $code) {
             $code = (string) $code;
             $level = (string) ($languageLevels[$index] ?? '');
-            if (!isset($languageChoices[$code]) || in_array($code, $removeLanguageCodes, true) || !in_array($level, $validLevels, true)) {
+            if (!isset($languageChoices[$code]) || in_array((int)$index, $removeLanguageIndexes, true) || !in_array($level, $validLevels, true)) {
                 continue;
             }
             $languageSkillMap[$code] = $level;
-        }
-        $newLanguageCode = (string) ($_POST['new_language_code'] ?? '');
-        $newLanguageLevel = (string) ($_POST['new_language_level'] ?? '');
-        if (isset($languageChoices[$newLanguageCode]) && in_array($newLanguageLevel, $validLevels, true)) {
-            $languageSkillMap[$newLanguageCode] = $newLanguageLevel;
         }
         $db->query('DELETE FROM user_language_skills WHERE user_id=' . $uid);
         $skillStmt = $db->prepare('INSERT INTO user_language_skills (user_id, language_code, language_name, cefr_level) VALUES (?, ?, ?, ?)');
@@ -1504,7 +1499,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $profileDocuments = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
         $profileCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
         $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
-        $availableLanguageSkills = array_diff_key(europeanLanguageChoices(), $languageSkills);
+        $languageChoices = europeanLanguageChoices();
         ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
@@ -1516,18 +1511,18 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
             <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Sprachrekords einzeln hinzufügen: Sprache wählen, Niveau wählen, Profil speichern.</p></div>
             <div class="language-records">
-                <?php foreach($languageSkills as $code=>$level): ?>
+                <?php $languageRecordIndex = 0; foreach($languageSkills as $code=>$level): ?>
                     <div class="language-record">
-                        <input type="hidden" name="language_codes[]" value="<?= e($code) ?>">
-                        <strong><?= e(europeanLanguageChoices()[$code] ?? $code) ?></strong>
+                        <label>Sprache<select name="language_codes[]"><option value="">Sprache wählen</option><?php foreach($languageChoices as $choiceCode=>$label): ?><option value="<?= e($choiceCode) ?>" <?= $code===$choiceCode?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
                         <label>Niveau<select name="language_levels[]"><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $levelValue=>$levelLabel): ?><option value="<?= e($levelValue) ?>" <?= $level===$levelValue?'selected':'' ?>><?= e($levelLabel) ?></option><?php endforeach; ?></select></label>
-                        <label class="check"><input type="checkbox" name="remove_language_codes[]" value="<?= e($code) ?>"> Entfernen</label>
+                        <label class="check"><input type="checkbox" name="remove_language_indexes[]" value="<?= $languageRecordIndex ?>"> Entfernen</label>
                     </div>
+                <?php $languageRecordIndex++; ?>
                 <?php endforeach; ?>
                 <?php if(!$languageSkills): ?><p class="empty compact-empty">Noch keine Sprachkenntnisse erfasst.</p><?php endif; ?>
                 <div class="language-add">
-                    <label>Sprache hinzufügen<select name="new_language_code"><option value="">Sprache wählen</option><?php foreach($availableLanguageSkills as $code=>$label): ?><option value="<?= e($code) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
-                    <label>Niveau<select name="new_language_level"><option value="">Niveau wählen</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>"><?= e($levelLabel) ?></option><?php endforeach; ?></select></label>
+                    <label>Sprache hinzufügen<select name="language_codes[]"><option value="">Sprache wählen</option><?php foreach($languageChoices as $code=>$label): ?><option value="<?= e($code) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
+                    <label>Niveau<select name="language_levels[]"><option value="">Niveau wählen</option><?php foreach(['A1'=>'A1 Anfänger','A2'=>'A2 Grundlagen','B1'=>'B1 Mittelstufe','B2'=>'B2 Selbständig','C1'=>'C1 Fachkundig','C2'=>'C2 Muttersprache'] as $level=>$levelLabel): ?><option value="<?= e($level) ?>"><?= e($levelLabel) ?></option><?php endforeach; ?></select></label>
                 </div>
             </div>
             <div class="history"><h3>Job-Referenzen</h3><p class="meta-line">Diese Angaben steuern später Matching, Listen und Vorschläge.</p></div>
