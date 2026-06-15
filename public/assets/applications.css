@@ -21,7 +21,11 @@
 .link-list a { color: var(--brand-dark); text-decoration: none; font-weight: 700; }
 .filter-note { margin: -10px 0 16px; color: var(--muted); }
 .filter-note a { color: var(--brand-dark); text-decoration: none; font-weight: 700; }
+.prototype-note { margin: 0; padding: 12px 14px; border-radius: 12px; background: #fff0c9; color: #755500; font-weight: 700; }
 .meta-line { color: var(--muted); font-size: .9rem; margin-top: -4px; }
+.relationship-cell { display: grid; gap: 5px; min-width: 180px; }
+.relationship-cell small { color: var(--muted); }
+.role-badge { background: #e7f4ef; color: var(--green); }
 .company-path { display: grid; grid-template-columns: 1fr minmax(260px, 420px); gap: 20px; align-items: end; margin-bottom: 20px; }
 .company-path h2 span { color: var(--muted); font-weight: 600; }
 .company-path-form { display: grid; gap: 12px; }

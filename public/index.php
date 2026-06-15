@@ -75,6 +75,11 @@ function flash(string $message, string $type = 'success'): void
     $_SESSION['flash'] = ['message' => $message, 'type' => $type];
 }
 
+function outboundEmailEnabled(): bool
+{
+    return false;
+}
+
 function dbOne(mysqli $db, string $sql, string $types = '', array $values = []): ?array
 {
     $stmt = $db->prepare($sql);
@@ -367,6 +372,19 @@ function regionChoices(): array
     ];
 }
 
+function countryForRegion(string $regionKey): array
+{
+    if (!str_contains($regionKey, '|')) {
+        return [null, null];
+    }
+    [$country, $region] = explode('|', $regionKey, 2);
+    $choices = regionChoices();
+    if (!isset($choices[$country]) || !in_array($region, $choices[$country], true)) {
+        return [null, null];
+    }
+    return [$country, $region];
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 
@@ -391,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssss', $email, $hash, $first, $last);
             $stmt->execute();
             audit($db, (int) $stmt->insert_id, 'create', 'user', (int) $stmt->insert_id, null, ['email' => $email]);
-            flash('Registrierung gespeichert. E-Mail-Bestätigung und Admin-Freigabe folgen im nächsten Ausbau.');
+            flash('Registrierung gespeichert. In der Prototypphase wird keine E-Mail verschickt; Freigabe und Bestätigung bleiben intern.');
             redirect('/?page=login');
         } catch (mysqli_sql_exception $exception) {
             flash('Diese E-Mail-Adresse ist bereits registriert.', 'danger');
@@ -452,10 +470,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
         $mobile = trim((string) ($_POST['mobile'] ?? '')) ?: null;
         $city = trim((string) ($_POST['city'] ?? '')) ?: null;
-        $country = array_key_exists((string) ($_POST['country_code'] ?? ''), countryChoices()) ? (string) $_POST['country_code'] : null;
-        $allRegions = [];
-        foreach (regionChoices() as $regions) { $allRegions = array_merge($allRegions, $regions); }
-        $region = in_array($_POST['region'] ?? '', $allRegions, true) ? (string) $_POST['region'] : null;
+        [$country, $region] = countryForRegion((string) ($_POST['region_key'] ?? ''));
         if ($first === '' || $last === '') {
             flash('Vorname und Nachname sind erforderlich.', 'danger');
             redirect('/?page=profile');
@@ -780,6 +795,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
+if ($currentUser && in_array($currentUser['timezone'], timezone_identifiers_list(), true)) {
+    date_default_timezone_set($currentUser['timezone']);
+}
 if ($currentUser && in_array($page, ['login', 'register'], true)) {
     redirect('/?page=dashboard');
 }
@@ -853,20 +871,33 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
-            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Die Änderung der Login-E-Mail folgt mit Bestätigungsmail im nächsten Sicherheitsschritt.</small></label>
+            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Prototyp-Regel: Es werden keine E-Mails verschickt. Änderungen der Login-E-Mail bleiben bis zur Versandfreigabe deaktiviert.</small></label>
             <div class="two"><label>Sprache<select name="preferred_language"><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>" <?= $currentUser['preferred_language']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label></div>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
-            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Land<select name="country_code"><option value="">Nicht gewählt</option><?php foreach(countryChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $currentUser['country_code']===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label>Region<select name="region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): ?><option value="<?= e($region) ?>" <?= $currentUser['region']===$region?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label></div>
+            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<select id="profile-country" disabled><option value="">Ergibt sich aus Region</option><?php foreach(countryChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $currentUser['country_code']===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small>Wird automatisch durch die Region gesetzt.</small></label></div>
             <button class="primary" name="action" value="save_profile">Profil speichern</button>
         </form></section>
+        <script>
+        (() => {
+            const region = document.getElementById('profile-region');
+            const country = document.getElementById('profile-country');
+            if (!region || !country) return;
+            const syncCountry = () => {
+                const selected = region.options[region.selectedIndex];
+                country.value = selected ? (selected.dataset.country || '') : '';
+            };
+            region.addEventListener('change', syncCountry);
+            syncCountry();
+        })();
+        </script>
     <?php elseif ($page === 'companies'): ?>
         <?php
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT * FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
-        $companyRows = dbAll($db, 'SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND (j2.company_id=c.id OR a.intermediary_company_id=c.id)) application_count FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL ORDER BY c.name', 'i', [userId()]);
+        $companyRows = dbAll($db, 'SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND (j2.company_id=c.id OR a.intermediary_company_id=c.id)) application_count, (SELECT GROUP_CONCAT(DISTINCT client.name ORDER BY client.name SEPARATOR ", ") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT intermediary.name ORDER BY intermediary.name SEPARATOR ", ") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL ORDER BY c.name', 'i', [userId()]);
         ?>
         <div class="page-head"><div><p class="eyebrow">CRM</p><h1>Firmen</h1></div><span><?= count($companies) ?> Einträge</span></div>
         <div class="split"><section class="panel"><h2><?= $edit ? 'Firma bearbeiten' : 'Neue Firma' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Name<input name="name" value="<?= e($edit['name'] ?? '') ?>" required></label><label>Ort<input name="city" value="<?= e($edit['city'] ?? '') ?>"></label><label>Website<input type="url" name="website" value="<?= e($edit['website'] ?? '') ?>"></label><button class="primary" name="action" value="save_company">Speichern</button></form></section>
-        <section class="panel table-wrap"><table><thead><tr><th>Firma</th><th>Ort</th><th>Verknüpfungen</th><th>Aktionen</th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr><td><strong><?= e($company['name']) ?></strong><small><?= e($company['website']) ?></small></td><td><?= e($company['city']) ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> Jobs</a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> Bewerbungen</a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> Kontakte</a></td><td class="actions"><a href="/?page=companies&edit=<?= (int)$company['id'] ?>">Bearbeiten</a><form method="post" onsubmit="return confirm('Firma löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company">Löschen</button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
+        <section class="panel table-wrap"><table><thead><tr><th>Firma</th><th>Ort</th><th>Rolle / Vermittlung</th><th>Verknüpfungen</th><th>Aktionen</th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr><td><strong><?= e($company['name']) ?></strong><small><?= e($company['website']) ?></small></td><td><?= e($company['city']) ?></td><td class="relationship-cell"><?php if($company['mediated_clients']): ?><span class="badge role-badge">Vermittler</span><small>Vermittelt: <?= e($company['mediated_clients']) ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge">Vermittelt</span><small>durch: <?= e($company['mediated_by']) ?></small><?php endif; ?><?php if(!$company['mediated_clients'] && !$company['mediated_by']): ?><small>Direkte Firma / keine Vermittlung erfasst</small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> Jobs</a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> Bewerbungen</a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> Kontakte</a></td><td class="actions"><a href="/?page=companies&edit=<?= (int)$company['id'] ?>">Bearbeiten</a><form method="post" onsubmit="return confirm('Firma löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company">Löschen</button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $q = trim((string)($_GET['q'] ?? '')); $status = (string)($_GET['status'] ?? ''); $blue = !empty($_GET['blue']); $companyFilter = (int)($_GET['company_id'] ?? 0);
@@ -925,7 +956,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="page-head"><div><p class="eyebrow">Pipeline</p><h1>Bewerbungen</h1></div><span><?= count($apps) ?> Einträge</span></div>
         <?php if($appCompanyFilter || $appJobFilter || $todoOnly): ?><p class="filter-note">Gefilterte Ansicht · <a href="/?page=applications">Alle Bewerbungen anzeigen</a></p><?php endif; ?>
         <?php if ($applicationEdit): ?><section class="panel company-path" id="companies"><div><p class="eyebrow">Firmenbeziehung</p><h2><?= e($applicationEdit['company_name']) ?><?php if($applicationEdit['intermediary_company_name']): ?> <span>über <?= e($applicationEdit['intermediary_company_name']) ?></span><?php endif; ?></h2><p>Die Stelle gehört zur Kunden-/Arbeitgeberfirma. Optional kann eine Vermittler- oder Temporärfirma dazwischengeschaltet sein.</p></div><form method="post" class="company-path-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Vermittlerfirma<select name="intermediary_company_id"><option value="0">Direktbewerbung ohne Vermittler</option><?php foreach($companies as $company): if((int)$company['id']===(int)$applicationEdit['company_id']) continue; ?><option value="<?= (int)$company['id'] ?>" <?= (int)$applicationEdit['intermediary_company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><button class="primary" name="action" value="set_intermediary">Zuordnung speichern</button></form></section><?php endif; ?>
-        <?php if ($applicationEdit): ?><section class="panel application-editor" id="application-form"><div class="section-head"><div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div><a href="/?page=applications">Schließen</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><div class="three"><label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label></div><label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label><div class="two"><label>Nächster Schritt<input name="next_action" value="<?= e($applicationEdit['next_action'] ?? '') ?>" placeholder="z. B. telefonisch nachfragen"></label><label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label></div><label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label><label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label><label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label><label>Motivationsschreiben<textarea name="cover_letter_text" rows="7"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label><label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_application">Bewerbung speichern</button></form><?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e($entry['changed_at']) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section>
+        <?php if ($applicationEdit): ?><section class="panel application-editor" id="application-form"><div class="section-head"><div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div><a href="/?page=applications">Schließen</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><div class="three"><label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label></div><label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label><div class="two"><label>Nächster Schritt<input name="next_action" value="<?= e($applicationEdit['next_action'] ?? '') ?>" placeholder="z. B. telefonisch nachfragen"></label><label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label></div><label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label><?php if(!outboundEmailEnabled()): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?><label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label><label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label><label>Motivationsschreiben<textarea name="cover_letter_text" rows="7"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label><label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_application">Bewerbung speichern</button></form><?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e($entry['changed_at']) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section>
         <section class="contact-workspace" id="contacts">
             <section class="panel">
                 <div class="section-head"><div><p class="eyebrow">Firma → Job → Kontakt</p><h2><?= $contactEdit ? 'Kontakt bearbeiten' : 'Kontakt erfassen' ?></h2></div><?php if($contactEdit): ?><a href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>#contacts">Neu</a><?php endif; ?></div>

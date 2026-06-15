@@ -11,6 +11,8 @@ Status: 2026-06-15
 - Email codes are recovery-only and expire after 10 minutes for guest access.
 - Initial administrator: Markus Lauber, German UI, `admin@jema.business`.
 - Central outbound SMTP account: `admin@jobs.jema.business`.
+- During the prototype phase no outbound email is sent; email contents are stored
+  only as drafts for manual copy/paste.
 
 ## Privacy and sharing
 

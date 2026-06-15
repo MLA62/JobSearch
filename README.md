@@ -48,6 +48,9 @@ email/job-ad text, filters, duplicate warnings, a transparent starter match
 score, application workflow with status history, follow-up dates, contacts,
 contact logs, intermediary-company relationships, profile editing and an
 immutable audit-log display.
+
+During the entire prototype phase, outbound email is disabled. Stored email
+subjects and bodies are drafts for manual copy/paste only.
 Copy `public/config.example.php` to `public/config.php` only on the target
 server and fill in secrets there.
 
