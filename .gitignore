@@ -1,0 +1,23 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+config/local.php
+
+# Runtime and user uploads
+storage/
+uploads/
+logs/
+cache/
+tmp/
+
+# Python/local artifacts from the existing workspace
+__pycache__/
+*.py[cod]
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
