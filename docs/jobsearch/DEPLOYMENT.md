@@ -33,3 +33,21 @@ Never commit FTP, database, SMTP, API or application secrets to Git.
 The FTP password supplied during initial planning was exposed in conversation
 and must be replaced before it is used for deployment. Prefer SFTP/SSH with a
 restricted key; otherwise use explicit FTPS with a newly generated password.
+
+## One-time web installer
+
+When SSH is unavailable, `deploy/installer/install.php` can apply the schema
+through a short-lived FTPS deployment. It accepts POST requests only, requires
+a random installation token, blocks direct access to SQL/config files, removes
+its runtime configuration after success and writes a lock file. Delete the
+entire installer directory from the server immediately after verification.
+
+### Installation record
+
+- Installed on: 2026-06-15
+- Database: `kerubina_JeMaJobs`
+- Result: 31 base tables and 4 reporting views
+- Installer runtime configuration removed automatically after success
+- Temporary installer directory removed after verification
+- PHP observed through the domain: 8.1.34 (different from the 8.4.21 value
+  previously shown in the hosting control panel)

@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 config/local.php
+deploy/installer/install-config.php
+deploy/installer/.installed
 
 # Runtime and user uploads
 storage/
@@ -20,4 +22,3 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
-
