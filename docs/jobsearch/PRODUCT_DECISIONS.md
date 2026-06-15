@@ -96,7 +96,8 @@ The first deployed prototype includes responsive login/registration, strict priv
 ownership checks, dashboard, company and job CRUD, assisted import from job URLs or
 pasted email/job-ad text, search/status/blue-collar filters, duplicate warnings, a
 transparent starter match score, application creation from jobs, editable application
-status, channel, email and cover-letter text, follow-up dates, immutable status history
-and immutable audit-log display.
+status, channel, email and cover-letter text, follow-up dates, employer/intermediary
+company relationships, primary contacts, contact logs, immutable status history and
+immutable audit-log display.
 Email verification, approval UI, 2FA, guest sharing, document processing and scheduled
 portal imports are the next implementation phases.

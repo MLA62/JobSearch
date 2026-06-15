@@ -45,7 +45,8 @@ prerequisites.
 The `public/` directory contains a responsive PHP prototype with registration,
 login, private company/job CRUD, assisted import from job URLs or pasted
 email/job-ad text, filters, duplicate warnings, a transparent starter match
-score, application workflow with status history and follow-up dates, and an
+score, application workflow with status history, follow-up dates, contacts,
+contact logs, intermediary-company relationships, profile editing and an
 immutable audit-log display.
 Copy `public/config.example.php` to `public/config.php` only on the target
 server and fill in secrets there.

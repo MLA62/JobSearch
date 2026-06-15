@@ -206,6 +206,23 @@ CREATE TABLE company_members (
     CONSTRAINT fk_company_members_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE company_relationships (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id BIGINT UNSIGNED NOT NULL,
+    intermediary_company_id BIGINT UNSIGNED NOT NULL,
+    client_company_id BIGINT UNSIGNED NOT NULL,
+    relationship_type ENUM('recruitment_agency','staffing_agency','payroll_provider','other') NOT NULL DEFAULT 'recruitment_agency',
+    notes TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type),
+    KEY idx_company_relationship_client (client_company_id),
+    CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
+    CONSTRAINT fk_company_relationship_client FOREIGN KEY (client_company_id) REFERENCES companies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE job_sources (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     owner_user_id BIGINT UNSIGNED NOT NULL,
@@ -230,6 +247,10 @@ CREATE TABLE jobs (
     requirements LONGTEXT NULL,
     benefits LONGTEXT NULL,
     employment_type ENUM('full_time','part_time','temporary','contract','internship','freelance','other') NULL,
+    engagement_type ENUM('permanent','temporary') NOT NULL DEFAULT 'permanent',
+    contract_term ENUM('open_ended','fixed_term','unknown') NOT NULL DEFAULT 'unknown',
+    fixed_term_start DATE NULL,
+    fixed_term_end DATE NULL,
     workplace_type ENUM('onsite','hybrid','remote','unknown') NOT NULL DEFAULT 'unknown',
     workload_min TINYINT UNSIGNED NULL,
     workload_max TINYINT UNSIGNED NULL,
@@ -312,6 +333,7 @@ CREATE TABLE applications (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
     job_id BIGINT UNSIGNED NOT NULL,
+    intermediary_company_id BIGINT UNSIGNED NULL,
     primary_contact_id BIGINT UNSIGNED NULL,
     status ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft',
     applied_at DATETIME NULL,
@@ -331,8 +353,10 @@ CREATE TABLE applications (
     UNIQUE KEY uq_application_user_job (user_id, job_id),
     KEY idx_applications_status_date (user_id, status, applied_at),
     KEY idx_applications_next_action (user_id, next_action_at),
+    KEY idx_applications_intermediary (intermediary_company_id),
     CONSTRAINT fk_applications_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_applications_job FOREIGN KEY (job_id) REFERENCES jobs(id),
+    CONSTRAINT fk_applications_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id) ON DELETE SET NULL,
     CONSTRAINT fk_applications_contact FOREIGN KEY (primary_contact_id) REFERENCES contacts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -549,4 +573,3 @@ CREATE TABLE audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
