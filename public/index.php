@@ -472,6 +472,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Job gelöscht.');
         redirect('/?page=jobs');
     }
+
+    if ($action === 'start_application') {
+        $jobId = (int) ($_POST['job_id'] ?? 0);
+        $job = dbOne($db, 'SELECT id, title FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
+        if (!$job) { http_response_code(404); exit('Not found'); }
+        $existing = dbOne($db, 'SELECT id FROM applications WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [userId(), $jobId]);
+        if ($existing) {
+            redirect('/?page=applications&edit=' . (int) $existing['id'] . '#application-form');
+        }
+        $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, next_action) VALUES (?, ?, 'draft', 'Unterlagen vorbereiten')");
+        $uid = userId();
+        $stmt->bind_param('ii', $uid, $jobId);
+        $stmt->execute();
+        $applicationId = (int) $stmt->insert_id;
+        $history = $db->prepare("INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, NULL, 'draft', 'Bewerbung angelegt')");
+        $history->bind_param('ii', $applicationId, $uid);
+        $history->execute();
+        audit($db, $uid, 'create', 'application', $applicationId, null, ['job_id' => $jobId, 'status' => 'draft']);
+        flash('Bewerbung angelegt. Ergänze jetzt Unterlagen und nächsten Schritt.');
+        redirect('/?page=applications&edit=' . $applicationId . '#application-form');
+    }
+
+    if ($action === 'save_application') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $old = dbOne($db, 'SELECT id, job_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
+        if (!$old) { http_response_code(404); exit('Not found'); }
+        $allowedStatuses = ['draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed'];
+        $allowedChannels = ['email','portal','website','mail','referral','other'];
+        $status = in_array($_POST['status'] ?? '', $allowedStatuses, true) ? (string) $_POST['status'] : 'draft';
+        $channel = in_array($_POST['channel'] ?? '', $allowedChannels, true) ? (string) $_POST['channel'] : null;
+        $appliedAt = trim((string) ($_POST['applied_at'] ?? '')) ?: null;
+        $nextAction = trim((string) ($_POST['next_action'] ?? '')) ?: null;
+        $nextActionAt = trim((string) ($_POST['next_action_at'] ?? '')) ?: null;
+        $emailSubject = trim((string) ($_POST['email_subject'] ?? '')) ?: null;
+        $emailBody = trim((string) ($_POST['email_body'] ?? '')) ?: null;
+        $coverLetter = trim((string) ($_POST['cover_letter_text'] ?? '')) ?: null;
+        $notes = trim((string) ($_POST['notes'] ?? '')) ?: null;
+        if ($appliedAt) { $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : ''); }
+        if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
+        if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
+        $stmt = $db->prepare('UPDATE applications SET status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
+        $uid = userId();
+        $stmt->bind_param('sssssssssii', $status, $channel, $appliedAt, $nextAction, $nextActionAt, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
+        $stmt->execute();
+        if ($old['status'] !== $status) {
+            $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: null;
+            $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
+            $history->bind_param('iisss', $id, $uid, $old['status'], $status, $comment);
+            $history->execute();
+            $jobStatus = ['sent'=>'applied','confirmed'=>'applied','interview'=>'interview','assessment'=>'interview','offer'=>'offer','accepted'=>'offer','rejected'=>'rejected','withdrawn'=>'closed','closed'=>'closed'][$status] ?? null;
+            if ($jobStatus) {
+                $jobStmt = $db->prepare('UPDATE jobs SET status=? WHERE id=? AND owner_user_id=?');
+                $jobId = (int) $old['job_id'];
+                $jobStmt->bind_param('sii', $jobStatus, $jobId, $uid);
+                $jobStmt->execute();
+            }
+        }
+        audit($db, $uid, 'update', 'application', $id, ['status' => $old['status']], ['status' => $status, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt]);
+        flash('Bewerbung gespeichert.');
+        redirect('/?page=applications&edit=' . $id . '#application-form');
+    }
+
+    if ($action === 'delete_application') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $old = dbOne($db, 'SELECT id, job_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
+        if ($old) {
+            $stmt = $db->prepare('UPDATE applications SET deleted_at=NOW() WHERE id=? AND user_id=?');
+            $uid = userId();
+            $stmt->bind_param('ii', $id, $uid);
+            $stmt->execute();
+            audit($db, $uid, 'delete', 'application', $id, $old, null);
+        }
+        flash('Bewerbung gelöscht.');
+        redirect('/?page=applications');
+    }
 }
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
@@ -488,7 +563,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
-    <link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/app.css">
+<link rel="stylesheet" href="/assets/applications.css">
 </head>
 <body>
 <header class="topbar">
@@ -571,25 +647,18 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <section class="panel import-panel"><h2>Schnellimport</h2><p>Stellen-URL oder kopierten E-Mail-/Ausschreibungstext einfügen. Vor dem Speichern bleibt alles bearbeitbar.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="3" placeholder="https://… oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
         <form class="filters" method="get"><input type="hidden" name="page" value="jobs"><input name="q" value="<?= e($q) ?>" placeholder="Titel, Firma oder Ort"><select name="status"><option value="">Alle Status</option><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= $status===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select><label class="check"><input type="checkbox" name="blue" value="1" <?= $blue?'checked':'' ?>> Blue-Collar/Ungelernt</label><button>Filtern</button></form>
         <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : ($draft ? 'Import prüfen' : 'Job erfassen') ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label>Firma<select name="company_id"><option value="0">Neue Firma aus Import</option><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($form['company_id']??$matchedCompanyId)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label><label>Neue Firma<input name="new_company_name" value="<?= e($matchedCompanyId ? '' : $draftCompany) ?>" placeholder="Nur ausfüllen, wenn die Firma noch fehlt"></label><label>Jobtitel<input name="title" value="<?= e($form['title'] ?? '') ?>" required></label><div class="two"><label>Ort<input name="location_text" value="<?= e($form['location_text'] ?? $form['location'] ?? '') ?>"></label><label>Arbeitsmodell<select name="workplace_type"><?php foreach(['unknown'=>'Unbekannt','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($form['workplace_type']??'unknown')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label></div><label>Status<select name="status"><?php foreach(['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($form['status']??'open')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Quell-URL<input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"></label><label>Beschreibung<textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button></form></section>
-        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><?= e($job['title']) ?></h3><p class="company"><?= e($job['company_name']) ?> · <?= e($job['location_text']) ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new">Bearbeiten</a><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
+        <section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); ?><article class="job-card"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><?= e($job['title']) ?></h3><p class="company"><?= e($job['company_name']) ?> · <?= e($job['location_text']) ?></p><p><?= e(mb_strimwidth((string)$job['description'],0,180,'…')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung starten</button></form><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new">Bearbeiten</a><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section></div>
     <?php elseif ($page === 'applications'): ?>
-        <?php $apps=dbAll($db,'SELECT a.id, a.status, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC','i',[userId()]); ?>
+        <?php
+        $apps=dbAll($db,'SELECT a.id, a.job_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.updated_at, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC','i',[userId()]);
+        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
+        $applicationStatuses=['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'];
+        $channels=['email'=>'E-Mail','portal'=>'Jobportal','website'=>'Karriereseite','mail'=>'Post','referral'=>'Empfehlung','other'=>'Andere'];
+        ?>
         <div class="page-head"><div><p class="eyebrow">Pipeline</p><h1>Bewerbungen</h1></div><span><?= count($apps) ?> Einträge</span></div>
-        <section class="panel">
-            <p>Im Prototyp werden Bewerbungen angezeigt, sobald sie über die Datenbank oder den nächsten Ausbau angelegt wurden.</p>
-            <div class="kanban">
-                <?php foreach (['draft'=>'Entwurf','sent'=>'Gesendet','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage'] as $s => $label): ?>
-                    <div>
-                        <h3><?= $label ?></h3>
-                        <?php foreach ($apps as $app): ?>
-                            <?php if ($app['status'] === $s): ?>
-                                <article><strong><?= e($app['title']) ?></strong><small><?= e($app['company_name']) ?></small></article>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
+        <?php if ($applicationEdit): ?><section class="panel application-editor" id="application-form"><div class="section-head"><div><p class="eyebrow"><?= e($applicationEdit['company_name']) ?></p><h2><?= e($applicationEdit['title']) ?></h2></div><a href="/?page=applications">Schließen</a></div><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><div class="three"><label>Status<select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label></div><div class="two"><label>Nächster Schritt<input name="next_action" value="<?= e($applicationEdit['next_action'] ?? '') ?>" placeholder="z. B. telefonisch nachfragen"></label><label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label></div><label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label><label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label><label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label><label>Motivationsschreiben<textarea name="cover_letter_text" rows="7"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label><label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_application">Bewerbung speichern</button></form><?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e($entry['changed_at']) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?></section><?php endif; ?>
+        <section class="application-list"><?php foreach($apps as $app): ?><article class="application-card"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(date('d.m.Y H:i', strtotime($app['next_action_at']))) ?></span><?php endif; ?></div><h3><?= e($app['title']) ?></h3><p class="company"><?= e($app['company_name']) ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung starten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section>
     <?php elseif ($page === 'audit'): ?>
         <?php $logs=dbAll($db,'SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 100','i',[userId()]); ?>
         <div class="page-head"><div><p class="eyebrow">Unveränderbar</p><h1>Änderungsprotokoll</h1></div><span>Letzte 100</span></div><section class="panel table-wrap"><table><thead><tr><th>Zeit</th><th>Aktion</th><th>Bereich</th><th>ID</th></tr></thead><tbody><?php foreach($logs as $log): ?><tr><td><?= e($log['created_at']) ?></td><td><?= e($log['action']) ?></td><td><?= e($log['entity_type']) ?></td><td><?= (int)$log['entity_id'] ?></td></tr><?php endforeach; ?></tbody></table></section>
