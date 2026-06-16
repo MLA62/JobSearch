@@ -52,8 +52,16 @@ $stmt = $db->prepare(
 );
 $stmt->bind_param('i', $limit);
 $stmt->execute();
-$result = $stmt->get_result();
-$rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+$stmt->bind_result($documentId, $storagePath, $mimeType);
+$rows = [];
+while ($stmt->fetch()) {
+    $rows[] = [
+        'user_document_id' => $documentId,
+        'storage_path' => $storagePath,
+        'mime_type' => $mimeType,
+    ];
+}
+$stmt->close();
 
 function commandExists(string $command): bool
 {
