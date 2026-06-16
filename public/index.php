@@ -87,6 +87,11 @@ function appUrl(array $config): string
     return rtrim((string) ($config['app_url'] ?? ''), '/');
 }
 
+function absoluteUrl(array $config, string $path): string
+{
+    return (appUrl($config) ?: '') . $path;
+}
+
 function mailFromName(array $config): string
 {
     return trim((string) ($config['mail_from_name'] ?? $config['app_name'] ?? 'JeMa Jobs'));
@@ -206,6 +211,102 @@ function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $su
     } catch (Throwable) {
         // Mail logging must never block account recovery.
     }
+}
+
+function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string $to, string $subject, string $body): bool
+{
+    if (!outboundEmailEnabled($config)) {
+        logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'draft');
+        return false;
+    }
+    try {
+        sendSmtpMail($config, $to, $subject, $body);
+        logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'sent');
+        return true;
+    } catch (Throwable $exception) {
+        logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'failed', $exception->getMessage());
+        throw $exception;
+    }
+}
+
+function base32Encode(string $bytes): string
+{
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $bits = '';
+    foreach (unpack('C*', $bytes) as $byte) {
+        $bits .= str_pad(decbin((int) $byte), 8, '0', STR_PAD_LEFT);
+    }
+    $encoded = '';
+    foreach (str_split($bits, 5) as $chunk) {
+        $encoded .= $alphabet[bindec(str_pad($chunk, 5, '0', STR_PAD_RIGHT))];
+    }
+    return $encoded;
+}
+
+function base32Decode(string $value): string
+{
+    $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $clean = strtoupper(preg_replace('/[^A-Z2-7]/', '', $value) ?? '');
+    $bits = '';
+    foreach (str_split($clean) as $char) {
+        $pos = strpos($alphabet, $char);
+        if ($pos === false) {
+            continue;
+        }
+        $bits .= str_pad(decbin($pos), 5, '0', STR_PAD_LEFT);
+    }
+    $bytes = '';
+    foreach (str_split($bits, 8) as $chunk) {
+        if (strlen($chunk) === 8) {
+            $bytes .= chr(bindec($chunk));
+        }
+    }
+    return $bytes;
+}
+
+function generateTotpSecret(): string
+{
+    return base32Encode(random_bytes(20));
+}
+
+function totpCode(string $secret, ?int $time = null): string
+{
+    $counter = intdiv($time ?? time(), 30);
+    $binaryCounter = pack('N2', intdiv($counter, 0x100000000), $counter % 0x100000000);
+    $hash = hash_hmac('sha1', $binaryCounter, base32Decode($secret), true);
+    $offset = ord($hash[19]) & 0x0f;
+    $value = ((ord($hash[$offset]) & 0x7f) << 24)
+        | ((ord($hash[$offset + 1]) & 0xff) << 16)
+        | ((ord($hash[$offset + 2]) & 0xff) << 8)
+        | (ord($hash[$offset + 3]) & 0xff);
+    return str_pad((string) ($value % 1000000), 6, '0', STR_PAD_LEFT);
+}
+
+function verifyTotpCode(string $secret, string $code): bool
+{
+    $code = preg_replace('/\D/', '', $code) ?? '';
+    if (strlen($code) !== 6) {
+        return false;
+    }
+    $now = time();
+    foreach ([-30, 0, 30] as $offset) {
+        if (hash_equals(totpCode($secret, $now + $offset), $code)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function totpUri(array $config, array $user, string $secret): string
+{
+    $issuer = rawurlencode((string) ($config['app_name'] ?? 'JeMa Jobs'));
+    $label = rawurlencode(($config['app_name'] ?? 'JeMa Jobs') . ':' . (string) $user['email']);
+    return 'otpauth://totp/' . $label . '?secret=' . rawurlencode($secret) . '&issuer=' . $issuer . '&algorithm=SHA1&digits=6&period=30';
+}
+
+function activeTotpMethod(mysqli $db, int $userId): ?array
+{
+    return dbOne($db, "SELECT * FROM two_factor_methods WHERE user_id=? AND method='totp' AND verified_at IS NOT NULL ORDER BY is_primary DESC, id DESC LIMIT 1", 'i', [$userId]);
 }
 
 function localeForCountry(?string $countryCode): string
@@ -916,15 +1017,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=register');
         }
         try {
+            $emailNeedsVerification = outboundEmailEnabled($config);
             $stmt = $db->prepare(
                 "INSERT INTO users (email, password_hash, status, preferred_language, first_name, last_name, email_verified_at) "
-                . "VALUES (?, ?, 'active', 'de', ?, ?, NOW())"
+                . "VALUES (?, ?, 'active', 'de', ?, ?, " . ($emailNeedsVerification ? 'NULL' : 'NOW()') . ")"
             );
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt->bind_param('ssss', $email, $hash, $first, $last);
             $stmt->execute();
-            audit($db, (int) $stmt->insert_id, 'create', 'user', (int) $stmt->insert_id, null, ['email' => $email]);
-            flash('Registrierung gespeichert. Du kannst dich jetzt direkt anmelden.');
+            $newUserId = (int) $stmt->insert_id;
+            audit($db, $newUserId, 'create', 'user', $newUserId, null, ['email' => $email]);
+            unset($_SESSION['email_verify_link'], $_SESSION['email_verify_notice']);
+            if ($emailNeedsVerification) {
+                $token = bin2hex(random_bytes(32));
+                $expiresAt = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+                $tokenType = 'email_verify';
+                $tokenHash = hash('sha256', $token);
+                $tokenStmt = $db->prepare('INSERT INTO auth_tokens (user_id, token_type, token_hash, expires_at) VALUES (?, ?, ?, ?)');
+                $tokenStmt->bind_param('isss', $newUserId, $tokenType, $tokenHash, $expiresAt);
+                $tokenStmt->execute();
+                $verifyLink = absoluteUrl($config, '/?page=verify_email&token=' . urlencode($token));
+                $subject = 'E-Mail fur JeMa Jobs bestaetigen';
+                $body = "Hallo {$first}\n\nbitte bestaetige deine E-Mail-Adresse fur JeMa Jobs innerhalb von 24 Stunden:\n" . $verifyLink . "\n\nWenn du dich nicht registriert hast, kannst du diese Nachricht ignorieren.\n";
+                try {
+                    sendConfiguredMail($db, $config, $newUserId, $email, $subject, $body);
+                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach.';
+                } catch (Throwable) {
+                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.';
+                }
+            } else {
+                $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. E-Mail-Versand ist deaktiviert; das Konto wurde für die Testphase direkt bestätigt.';
+            }
+            flash($emailNeedsVerification ? 'Registrierung gespeichert. Bitte E-Mail bestätigen.' : 'Registrierung gespeichert. Du kannst dich jetzt direkt anmelden.');
             redirect('/?page=login');
         } catch (mysqli_sql_exception $exception) {
             flash('Diese E-Mail-Adresse ist bereits registriert.', 'danger');
@@ -944,11 +1068,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Dieses Konto ist gesperrt oder deaktiviert.', 'warning');
             redirect('/?page=login');
         }
+        if (empty($user['email_verified_at'])) {
+            flash('Bitte bestätige zuerst deine E-Mail-Adresse.', 'warning');
+            redirect('/?page=login');
+        }
+        $totp = activeTotpMethod($db, (int) $user['id']);
+        if ($totp) {
+            session_regenerate_id(true);
+            $_SESSION['pending_2fa_user_id'] = (int) $user['id'];
+            $_SESSION['pending_2fa_user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+            redirect('/?page=two_factor');
+        }
         session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
         $db->query('UPDATE users SET last_login_at = NOW() WHERE id = ' . (int) $user['id']);
         audit($db, (int) $user['id'], 'login', 'user', (int) $user['id'], null, null);
+        redirect('/');
+    }
+
+    if ($action === 'verify_two_factor') {
+        $pendingUserId = (int) ($_SESSION['pending_2fa_user_id'] ?? 0);
+        $user = $pendingUserId ? dbOne($db, 'SELECT * FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$pendingUserId]) : null;
+        $totp = $user ? activeTotpMethod($db, $pendingUserId) : null;
+        if (!$user || !$totp || !verifyTotpCode((string) $totp['secret_encrypted'], (string) ($_POST['totp_code'] ?? ''))) {
+            flash('2FA-Code ist ungültig.', 'danger');
+            redirect('/?page=two_factor');
+        }
+        unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $pendingUserId;
+        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+        $db->query('UPDATE users SET last_login_at = NOW() WHERE id = ' . $pendingUserId);
+        $stmt = $db->prepare('UPDATE two_factor_methods SET last_used_at=NOW() WHERE id=?');
+        $methodId = (int) $totp['id'];
+        $stmt->bind_param('i', $methodId);
+        $stmt->execute();
+        audit($db, $pendingUserId, 'login', 'user', $pendingUserId, null, ['two_factor' => 'totp']);
         redirect('/');
     }
 
@@ -1152,6 +1308,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, userId(), 'delete', 'user', $targetUserId, $target, ['soft_delete' => true]);
         flash('Benutzer wurde gelöscht.');
         redirect('/?page=admin_users');
+    }
+
+    if ($action === 'admin_reset_user_2fa') {
+        if (!isAdmin($db, userId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $targetUserId = (int) ($_POST['user_id'] ?? 0);
+        if ($targetUserId === userId()) {
+            flash('Die eigene 2FA bitte im Profil verwalten.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $target = dbOne($db, 'SELECT id, email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
+        if (!$target) {
+            flash('Benutzer nicht gefunden.', 'danger');
+            redirect('/?page=admin_users');
+        }
+        $stmt = $db->prepare('DELETE FROM two_factor_methods WHERE user_id=?');
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
+        $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='two_factor' AND consumed_at IS NULL");
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
+        audit($db, userId(), 'delete', 'user', $targetUserId, ['two_factor_reset' => true], ['target_email' => $target['email']]);
+        flash('2FA wurde für den Benutzer zurückgesetzt.');
+        redirect('/?page=admin_users');
+    }
+
+    if ($action === 'enable_totp') {
+        $code = (string) ($_POST['totp_code'] ?? '');
+        $secret = (string) ($_SESSION['totp_setup_secret'] ?? '');
+        if ($secret === '' || !verifyTotpCode($secret, $code)) {
+            flash('Der 2FA-Code passt nicht. Bitte erneut versuchen.', 'danger');
+            redirect('/?page=profile#security');
+        }
+        $uid = userId();
+        $stmt = $db->prepare("DELETE FROM two_factor_methods WHERE user_id=? AND method='totp'");
+        $stmt->bind_param('i', $uid);
+        $stmt->execute();
+        $label = 'Authenticator-App';
+        $stmt = $db->prepare("INSERT INTO two_factor_methods (user_id, method, label, secret_encrypted, is_primary, verified_at) VALUES (?, 'totp', ?, ?, 1, NOW())");
+        $stmt->bind_param('iss', $uid, $label, $secret);
+        $stmt->execute();
+        unset($_SESSION['totp_setup_secret']);
+        audit($db, $uid, 'create', 'user', $uid, null, ['two_factor' => 'totp']);
+        flash('2FA per Authenticator-App ist aktiviert.');
+        redirect('/?page=profile#security');
+    }
+
+    if ($action === 'disable_totp') {
+        $uid = userId();
+        $stmt = $db->prepare("DELETE FROM two_factor_methods WHERE user_id=? AND method='totp'");
+        $stmt->bind_param('i', $uid);
+        $stmt->execute();
+        unset($_SESSION['totp_setup_secret']);
+        audit($db, $uid, 'delete', 'user', $uid, ['two_factor' => 'totp'], null);
+        flash('2FA wurde deaktiviert.');
+        redirect('/?page=profile#security');
     }
 
     if ($action === 'preview_import') {
@@ -1769,6 +1983,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
 
+    if ($action === 'send_application_email') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $application = dbOne(
+            $db,
+            'SELECT a.id, a.primary_contact_id, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, a.status, j.title, c.name company_name, ct.email contact_email, ct.first_name contact_first_name, ct.last_name contact_last_name
+               FROM applications a
+               JOIN jobs j ON j.id=a.job_id
+               JOIN companies c ON c.id=j.company_id
+               LEFT JOIN contacts ct ON ct.id=a.primary_contact_id AND ct.owner_user_id=a.user_id AND ct.deleted_at IS NULL
+              WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL
+              LIMIT 1',
+            'ii',
+            [$id, userId()]
+        );
+        $recipient = strtolower(trim((string) ($_POST['recipient_email'] ?? ($application['contact_email'] ?? ''))));
+        $subject = trim((string) ($_POST['email_subject'] ?? ($application['email_subject'] ?? '')));
+        $body = trim((string) ($_POST['email_body'] ?? ($application['email_body'] ?? '')));
+        if (!$application || !filter_var($recipient, FILTER_VALIDATE_EMAIL) || $subject === '' || $body === '') {
+            flash('Empfänger, Betreff und Begleittext sind erforderlich.', 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
+        $uid = userId();
+        $sent = false;
+        try {
+            $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body);
+        } catch (Throwable) {
+            flash('E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.', 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
+        if ($sent) {
+            $now = date('Y-m-d H:i:s');
+            $sentStatus = 'sent';
+            $nextAction = 'Eingang bestätigen lassen';
+            $stmt = $db->prepare('UPDATE applications SET status=?, channel="email", applied_at=COALESCE(applied_at, ?), next_action=?, email_subject=?, email_body=? WHERE id=? AND user_id=?');
+            $stmt->bind_param('sssssii', $sentStatus, $now, $nextAction, $subject, $body, $id, $uid);
+            $stmt->execute();
+            $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
+            $comment = 'Bewerbungs-E-Mail versendet an ' . $recipient;
+            $oldStatus = (string) $application['status'];
+            $history->bind_param('iisss', $id, $uid, $oldStatus, $sentStatus, $comment);
+            $history->execute();
+            audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id]);
+            flash('Bewerbungs-E-Mail wurde versendet.');
+        } else {
+            flash('SMTP ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
+        }
+        redirect('/?page=applications&edit=' . $id . '#application-form');
+    }
+
     if ($action === 'delete_application') {
         $id = (int) ($_POST['id'] ?? 0);
         $old = dbOne($db, 'SELECT id, job_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
@@ -1792,6 +2055,40 @@ $currentUserIsAdmin = $currentUser ? isAdmin($db, userId(), $config) : false;
 if ($currentUser && in_array($currentUser['timezone'], timezone_identifiers_list(), true)) {
     date_default_timezone_set($currentUser['timezone']);
 }
+if ($page === 'verify_email') {
+    $token = trim((string) ($_GET['token'] ?? ''));
+    $reset = null;
+    if ($token !== '') {
+        $tokenHash = hash('sha256', $token);
+        $reset = dbOne(
+            $db,
+            "SELECT t.id token_id, t.user_id
+               FROM auth_tokens t
+               JOIN users u ON u.id=t.user_id
+              WHERE t.token_type='email_verify'
+                AND t.token_hash=?
+                AND t.consumed_at IS NULL
+                AND t.expires_at > NOW()
+                AND u.deleted_at IS NULL
+              LIMIT 1",
+            's',
+            [$tokenHash]
+        );
+    }
+    if ($reset) {
+        $stmt = $db->prepare('UPDATE users SET email_verified_at=COALESCE(email_verified_at, NOW()), status="active" WHERE id=?');
+        $stmt->bind_param('i', $reset['user_id']);
+        $stmt->execute();
+        $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE id=?');
+        $stmt->bind_param('i', $reset['token_id']);
+        $stmt->execute();
+        audit($db, (int) $reset['user_id'], 'update', 'user', (int) $reset['user_id'], null, ['email_verified' => true]);
+        flash('E-Mail-Adresse bestätigt. Du kannst dich jetzt anmelden.');
+    } else {
+        flash('Dieser Bestätigungslink ist ungültig oder abgelaufen.', 'danger');
+    }
+    redirect('/?page=login');
+}
 if ($page === 'document_download') {
     requireLogin();
     $documentId = (int) ($_GET['id'] ?? 0);
@@ -1808,7 +2105,7 @@ if ($page === 'document_download') {
     readfile($path);
     exit;
 }
-if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 'reset_password'], true)) {
+if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor'], true)) {
     redirect('/?page=dashboard');
 }
 $flash = $_SESSION['flash'] ?? null;
@@ -1850,6 +2147,10 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
 <?php if ($page === 'login' && !$currentUser): ?>
     <section class="auth-card">
         <p class="eyebrow">Willkommen zurück</p><h1>Anmelden</h1>
+        <?php if(!empty($_SESSION['email_verify_notice'])): ?>
+            <div class="alert warning"><?= e($_SESSION['email_verify_notice']) ?></div>
+            <?php unset($_SESSION['email_verify_notice'], $_SESSION['email_verify_link']); ?>
+        <?php endif; ?>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <label>E-Mail<input type="email" name="email" required></label>
@@ -1858,6 +2159,18 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         </form>
         <p>Noch kein Konto? <a href="/?page=register">Registrieren</a></p>
         <p><a href="/?page=forgot_password">Passwort vergessen?</a></p>
+    </section>
+<?php elseif ($page === 'two_factor' && !$currentUser): ?>
+    <?php if (empty($_SESSION['pending_2fa_user_id'])) { redirect('/?page=login'); } ?>
+    <section class="auth-card">
+        <p class="eyebrow">Sicherheit</p><h1>2FA-Code</h1>
+        <p class="meta-line">Gib den 6-stelligen Code aus deiner Authenticator-App ein.</p>
+        <form method="post" class="stack">
+            <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <label>Authenticator-Code<input name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
+            <button class="primary" name="action" value="verify_two_factor">Bestätigen</button>
+        </form>
+        <p><a href="/?page=login">Zur Anmeldung</a></p>
     </section>
 <?php elseif ($page === 'forgot_password' && !$currentUser): ?>
     <section class="auth-card">
@@ -1926,7 +2239,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                       WHERE ur.user_id=u.id) role_codes,
                     (SELECT COUNT(*) FROM jobs j WHERE j.owner_user_id=u.id AND j.deleted_at IS NULL) job_count,
                     (SELECT COUNT(*) FROM applications a WHERE a.user_id=u.id AND a.deleted_at IS NULL) application_count,
-                    (SELECT COUNT(*) FROM user_documents d WHERE d.user_id=u.id AND d.deleted_at IS NULL) document_count
+                    (SELECT COUNT(*) FROM user_documents d WHERE d.user_id=u.id AND d.deleted_at IS NULL) document_count,
+                    (SELECT COUNT(*) FROM two_factor_methods tf WHERE tf.user_id=u.id AND tf.verified_at IS NOT NULL) two_factor_count
                FROM users u
               WHERE u.deleted_at IS NULL
            ORDER BY FIELD(u.status, 'active', 'invited', 'locked', 'disabled'), u.created_at DESC"
@@ -1960,6 +2274,9 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                         <div class="two"><label>Neues Passwort<input type="password" name="new_password" minlength="10" required></label><label>Passwort wiederholen<input type="password" name="new_password_confirm" minlength="10" required></label></div>
                         <button name="action" value="admin_reset_user_password">Passwort setzen</button>
                     </form>
+                    <?php if((int)($managedUser['two_factor_count'] ?? 0) > 0): ?>
+                        <form method="post" onsubmit="return confirm('2FA für diesen Benutzer zurücksetzen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>"><button name="action" value="admin_reset_user_2fa">2FA zurücksetzen</button></form>
+                    <?php endif; ?>
                     <?php if(!$managedIsConfigAdmin): ?>
                         <form method="post" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>"><button name="action" value="admin_delete_user">Benutzer löschen</button></form>
                     <?php endif; ?>
@@ -1970,7 +2287,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === userId(); ?>
                 <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
                     <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
-                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
+                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
                     <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?></td>
                     <td>
@@ -1991,6 +2308,9 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                                 <input type="password" name="new_password_confirm" minlength="10" placeholder="Wiederholen" required>
                                 <button name="action" value="admin_reset_user_password">Passwort setzen</button>
                             </form>
+                            <?php if((int)$user['two_factor_count'] > 0): ?>
+                                <form method="post" class="actions" onsubmit="return confirm('2FA für diesen Benutzer zurücksetzen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button name="action" value="admin_reset_user_2fa">2FA zurücksetzen</button></form>
+                            <?php endif; ?>
                             <?php if(!$isConfigAdmin): ?>
                                 <form method="post" class="actions" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button name="action" value="admin_delete_user">Löschen</button></form>
                             <?php endif; ?>
@@ -2013,8 +2333,32 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $profileCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
         $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
         $languageChoices = europeanLanguageChoices();
+        $totpMethod = activeTotpMethod($db, userId());
+        if (!$totpMethod && empty($_SESSION['totp_setup_secret'])) {
+            $_SESSION['totp_setup_secret'] = generateTotpSecret();
+        }
+        $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
+        $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
         ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
+        <section class="panel" id="security">
+            <div class="section-head"><div><p class="eyebrow">Sicherheit</p><h2>2FA / Authenticator</h2></div><span><?= $totpMethod ? 'Aktiv' : 'Noch nicht aktiv' ?></span></div>
+            <?php if($totpMethod): ?>
+                <p class="meta-line">2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.</p>
+                <form method="post" onsubmit="return confirm('2FA wirklich deaktivieren?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="disable_totp">2FA deaktivieren</button></form>
+            <?php else: ?>
+                <p class="meta-line">Füge diesen Schlüssel in einer Authenticator-App hinzu und bestätige danach den 6-stelligen Code.</p>
+                <div class="stack">
+                    <label>Setup-Schlüssel<input value="<?= e($totpSetupSecret) ?>" readonly onclick="this.select()"></label>
+                    <label>otpauth URI<input value="<?= e($totpSetupUri) ?>" readonly onclick="this.select()"></label>
+                </div>
+                <form method="post" class="stack">
+                    <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                    <label>6-stelliger Code<input name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
+                    <button class="primary" name="action" value="enable_totp">2FA aktivieren</button>
+                </form>
+            <?php endif; ?>
+        </section>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
             <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Prototyp-Regel: Es werden keine E-Mails verschickt. Änderungen der Login-E-Mail bleiben bis zur Versandfreigabe deaktiviert.</small></label>
@@ -2180,11 +2524,13 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                 </div>
                 <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
                 <?php if(!outboundEmailEnabled($config)): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?>
+                <label>E-Mail-Empfänger<input type="email" name="recipient_email" value="<?= e($contactEdit['email'] ?? '') ?>" placeholder="Kontakt auswählen oder Adresse eintragen"></label>
                 <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
                 <label>Motivationsschreiben<textarea name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small>Das Feld enthält einen ChatGPT-Prompt, weil noch kein Motivationsschreiben gespeichert ist. Kopieren, in ChatGPT verwenden, Ergebnis hier einfügen und speichern.</small><?php endif; ?></label>
                 <label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
                 <button class="primary" name="action" value="save_application">Bewerbung speichern</button>
+                <button name="action" value="send_application_email">E-Mail senden</button>
             </form>
             <?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
         </section>

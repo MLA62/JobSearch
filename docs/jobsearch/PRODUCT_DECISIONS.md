@@ -20,6 +20,10 @@ Status: 2026-06-15
 - Password reset tokens are stored hashed and expire after one hour. With SMTP
   enabled the reset link is sent by email; otherwise it is shown directly after
   request for prototype testing.
+- TOTP 2FA can be activated in the profile. Activated accounts must enter the
+  authenticator code during login; administrators can reset a user's 2FA setup.
+- Registration creates a verification token when SMTP is active. Without SMTP
+  configuration the open test phase keeps new accounts directly verified.
 
 ## Privacy and sharing
 
@@ -108,5 +112,5 @@ transparent starter match score, application creation from jobs, editable applic
 status, channel, email and cover-letter text, follow-up dates, employer/intermediary
 company relationships, primary contacts, contact logs, immutable status history and
 immutable audit-log display.
-Email verification, approval UI, 2FA, guest sharing, document processing and scheduled
-portal imports are the next implementation phases.
+Guest sharing, deeper document processing and scheduled portal imports are the
+next implementation phases.
