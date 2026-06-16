@@ -835,6 +835,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? dbOne($db, "SELECT id, status FROM users WHERE email=? AND deleted_at IS NULL AND status NOT IN ('locked','disabled')", 's', [$email])
             : null;
         unset($_SESSION['password_reset_link']);
+        unset($_SESSION['password_reset_notice']);
         if ($user) {
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $token);
@@ -848,7 +849,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $resetPath = '/?page=reset_password&token=' . urlencode($token);
             $_SESSION['password_reset_link'] = (appUrl($config) ?: '') . $resetPath;
+            $_SESSION['password_reset_notice'] = 'Reset-Link wurde erstellt.';
             audit($db, (int) $user['id'], 'other', 'auth_token', (int) $stmt->insert_id, null, ['token_type' => 'password_reset']);
+        } else {
+            $_SESSION['password_reset_notice'] = 'Testphase: Für diese E-Mail wurde kein aktives Konto gefunden.';
         }
         flash('Falls das Konto existiert, wurde ein Zurücksetzen vorbereitet.', 'success');
         redirect('/?page=forgot_password&sent=1');
@@ -1649,14 +1653,16 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
 <?php elseif ($page === 'forgot_password' && !$currentUser): ?>
     <section class="auth-card">
         <p class="eyebrow">Konto</p><h1>Passwort vergessen</h1>
+        <?php if(!empty($_SESSION['password_reset_link'])): ?>
+            <div class="alert warning"><strong>Testphase:</strong> E-Mail-Versand ist deaktiviert. Nutze diesen Link einmalig: <a href="<?= e($_SESSION['password_reset_link']) ?>">Passwort zurücksetzen</a><input value="<?= e($_SESSION['password_reset_link']) ?>" readonly onclick="this.select()"></div>
+        <?php elseif(!empty($_SESSION['password_reset_notice'])): ?>
+            <div class="alert warning"><?= e($_SESSION['password_reset_notice']) ?></div>
+        <?php endif; ?>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <label>E-Mail<input type="email" name="email" required></label>
             <button class="primary" name="action" value="request_password_reset">Link erstellen</button>
         </form>
-        <?php if(!empty($_SESSION['password_reset_link'])): ?>
-            <div class="alert warning"><strong>Testphase:</strong> E-Mail-Versand ist deaktiviert. Nutze diesen Link einmalig: <a href="<?= e($_SESSION['password_reset_link']) ?>">Passwort zurücksetzen</a></div>
-        <?php endif; ?>
         <p><a href="/?page=login">Zur Anmeldung</a></p>
     </section>
 <?php elseif ($page === 'reset_password' && !$currentUser): ?>
