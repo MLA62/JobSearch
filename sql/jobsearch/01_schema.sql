@@ -338,7 +338,7 @@ CREATE TABLE contact_logs (
     company_id BIGINT UNSIGNED NOT NULL,
     application_id BIGINT UNSIGNED NULL,
     job_id BIGINT UNSIGNED NULL,
-    channel ENUM('email','phone','meeting','video','message','letter','note','other') NOT NULL,
+    channel ENUM('email','external_email','onsite','phone','meeting','video','whatsapp','sms','message','letter','note','other') NOT NULL,
     direction ENUM('incoming','outgoing','internal') NOT NULL DEFAULT 'internal',
     status ENUM('planned','open','done','cancelled') NOT NULL DEFAULT 'done',
     subject VARCHAR(255) NULL,
