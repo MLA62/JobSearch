@@ -945,6 +945,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=admin_users');
     }
 
+    if ($action === 'admin_reset_user_password') {
+        if (!isAdmin($db, userId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $targetUserId = (int) ($_POST['user_id'] ?? 0);
+        if ($targetUserId === userId()) {
+            flash('Das eigene Admin-Passwort bitte über Passwort vergessen oder Profil-Sicherheit ändern.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
+        $password = (string) ($_POST['new_password'] ?? '');
+        $confirm = (string) ($_POST['new_password_confirm'] ?? '');
+        if (!$target || strlen($password) < 10 || $password !== $confirm) {
+            flash('Benutzer nicht gefunden oder Passwort ungültig. Mindestens 10 Zeichen und beide Felder gleich.', 'danger');
+            redirect('/?page=admin_users');
+        }
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL WHERE id=?');
+        $stmt->bind_param('si', $hash, $targetUserId);
+        $stmt->execute();
+        $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='password_reset' AND consumed_at IS NULL");
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
+        audit($db, userId(), 'update', 'user', $targetUserId, ['admin_password_reset' => true], ['target_email' => $target['email']]);
+        flash('Passwort wurde zurückgesetzt.');
+        redirect('/?page=admin_users');
+    }
+
+    if ($action === 'admin_delete_user') {
+        if (!isAdmin($db, userId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $targetUserId = (int) ($_POST['user_id'] ?? 0);
+        if ($targetUserId === userId()) {
+            flash('Das eigene Admin-Konto kann hier nicht gelöscht werden.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
+        if (!$target) {
+            flash('Benutzer nicht gefunden.', 'danger');
+            redirect('/?page=admin_users');
+        }
+        $adminEmails = array_map('strtolower', (array) ($config['admin_emails'] ?? ['admin@jema.business']));
+        if (in_array(strtolower((string) $target['email']), $adminEmails, true)) {
+            flash('Ein Config-Admin kann hier nicht gelöscht werden.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $stmt = $db->prepare('UPDATE users SET deleted_at=NOW(), status="disabled" WHERE id=?');
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
+        $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND consumed_at IS NULL');
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
+        audit($db, userId(), 'delete', 'user', $targetUserId, $target, ['soft_delete' => true]);
+        flash('Benutzer wurde gelöscht.');
+        redirect('/?page=admin_users');
+    }
+
     if ($action === 'preview_import') {
         $payload = trim((string) ($_POST['import_payload'] ?? ''));
         if ($payload === '') {
@@ -1741,6 +1801,14 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                                 <?php if($isConfigAdmin): ?><input type="hidden" name="is_admin" value="1"><?php endif; ?>
                                 <button class="primary" name="action" value="admin_update_user">Speichern</button>
                             </form>
+                            <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                                <input type="password" name="new_password" minlength="10" placeholder="Neues Passwort" required>
+                                <input type="password" name="new_password_confirm" minlength="10" placeholder="Wiederholen" required>
+                                <button name="action" value="admin_reset_user_password">Passwort setzen</button>
+                            </form>
+                            <?php if(!$isConfigAdmin): ?>
+                                <form method="post" class="actions" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button name="action" value="admin_delete_user">Löschen</button></form>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </td>
                 </tr>
