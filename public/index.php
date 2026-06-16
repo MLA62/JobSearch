@@ -915,15 +915,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Das eigene Admin-Konto kann hier nicht geändert werden.', 'warning');
             redirect('/?page=admin_users');
         }
-        $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
+        $target = dbOne($db, 'SELECT id, email, first_name, last_name, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
         if (!$target) {
             flash('Benutzer nicht gefunden.', 'danger');
             redirect('/?page=admin_users');
         }
+        $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+        $firstName = trim((string) ($_POST['first_name'] ?? ''));
+        $lastName = trim((string) ($_POST['last_name'] ?? ''));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $firstName === '' || $lastName === '') {
+            flash('Name und gültige E-Mail sind erforderlich.', 'danger');
+            redirect('/?page=admin_users');
+        }
         $status = in_array($_POST['status'] ?? '', ['invited','active','locked','disabled'], true) ? (string) $_POST['status'] : (string) $target['status'];
-        $stmt = $db->prepare('UPDATE users SET status=?, email_verified_at=CASE WHEN ?="active" THEN COALESCE(email_verified_at, NOW()) ELSE email_verified_at END WHERE id=?');
-        $stmt->bind_param('ssi', $status, $status, $targetUserId);
-        $stmt->execute();
+        try {
+            $stmt = $db->prepare('UPDATE users SET email=?, first_name=?, last_name=?, status=?, email_verified_at=CASE WHEN ?="active" THEN COALESCE(email_verified_at, NOW()) ELSE email_verified_at END WHERE id=?');
+            $stmt->bind_param('sssssi', $email, $firstName, $lastName, $status, $status, $targetUserId);
+            $stmt->execute();
+        } catch (mysqli_sql_exception) {
+            flash('Diese E-Mail-Adresse ist bereits vergeben.', 'danger');
+            redirect('/?page=admin_users');
+        }
 
         $adminRole = dbOne($db, "SELECT id FROM roles WHERE code='admin' LIMIT 1");
         $isAdminTarget = !empty($_POST['is_admin']);
@@ -940,7 +952,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
             }
         }
-        audit($db, userId(), 'update', 'user', $targetUserId, $target, ['status' => $status, 'is_admin' => $isAdminTarget]);
+        audit($db, userId(), 'update', 'user', $targetUserId, $target, ['email' => $email, 'first_name' => $firstName, 'last_name' => $lastName, 'status' => $status, 'is_admin' => $isAdminTarget]);
         flash('Benutzer aktualisiert.');
         redirect('/?page=admin_users');
     }
@@ -1796,6 +1808,9 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                             <span class="meta-line">Eigenes Konto geschützt</span>
                         <?php else: ?>
                             <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                                <input name="first_name" value="<?= e($user['first_name']) ?>" placeholder="Vorname" required>
+                                <input name="last_name" value="<?= e($user['last_name']) ?>" placeholder="Nachname" required>
+                                <input type="email" name="email" value="<?= e($user['email']) ?>" placeholder="E-Mail" required>
                                 <select name="status"><?php foreach(['active'=>'Aktiv','invited'=>'Eingeladen/Test offen','locked'=>'Gesperrt','disabled'=>'Deaktiviert'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $user['status']===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select>
                                 <label class="check"><input type="checkbox" name="is_admin" value="1" <?= $isUserAdmin?'checked':'' ?> <?= $isConfigAdmin?'disabled':'' ?>> Admin</label>
                                 <?php if($isConfigAdmin): ?><input type="hidden" name="is_admin" value="1"><?php endif; ?>
