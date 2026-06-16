@@ -452,6 +452,34 @@ function sortDirection(): string
     return strtolower((string) ($_GET['dir'] ?? 'desc')) === 'asc' ? 'asc' : 'desc';
 }
 
+function reportBaseOptions(): array
+{
+    return ['jobs'=>'Jobs','applications'=>'Bewerbungen','companies'=>'Firmen','contacts'=>'Kontakte','documents'=>'Dokumente','calendar'=>'Kalender'];
+}
+
+function reportDisplayOptions(): array
+{
+    return ['table'=>'Tabelle','list'=>'Liste','cards'=>'Karten','preview'=>'Vorschau','calendar_day'=>'Kalendertag','calendar_week'=>'Kalenderwoche','calendar_month'=>'Kalendermonat'];
+}
+
+function reportOpenUrl(array $report): string
+{
+    $base = (string) ($report['base_entity'] ?? 'jobs');
+    $display = (string) ($report['display_type'] ?? 'table');
+    $page = ['jobs'=>'jobs','applications'=>'applications','companies'=>'companies','contacts'=>'contacts','documents'=>'documents','calendar'=>'calendar'][$base] ?? 'jobs';
+    $params = ['page' => $page];
+    if (in_array($page, ['jobs', 'applications'], true) && in_array($display, ['cards', 'table'], true)) {
+        $params['view'] = $display;
+    }
+    return '/?' . http_build_query($params);
+}
+
+function reportExportType(array $report): ?string
+{
+    $base = (string) ($report['base_entity'] ?? '');
+    return in_array($base, ['jobs', 'applications', 'companies', 'contacts', 'documents'], true) ? $base : null;
+}
+
 function localeForCountry(?string $countryCode): string
 {
     return match (strtoupper((string) $countryCode)) {
@@ -1608,18 +1636,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save_report') {
         $name = trim((string) ($_POST['report_name'] ?? ''));
-        $baseEntity = in_array($_POST['base_entity'] ?? '', ['companies','jobs','contacts','contact_logs','applications','documents','calendar'], true) ? (string) $_POST['base_entity'] : 'jobs';
-        $displayType = in_array($_POST['display_type'] ?? '', ['table','list','cards','preview','calendar_day','calendar_week','calendar_month'], true) ? (string) $_POST['display_type'] : 'table';
+        $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
+        $baseEntity = array_key_exists((string) ($_POST['base_entity'] ?? ''), reportBaseOptions()) ? (string) $_POST['base_entity'] : 'jobs';
+        $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
         if ($name === '') {
             flash('Report-Name ist erforderlich.', 'danger');
             redirect('/?page=reports');
         }
         $uid = userId();
-        $stmt = $db->prepare('INSERT INTO saved_reports (owner_user_id, name, base_entity, display_type, is_shared) VALUES (?, ?, ?, ?, 0)');
-        $stmt->bind_param('isss', $uid, $name, $baseEntity, $displayType);
+        $stmt = $db->prepare('INSERT INTO saved_reports (owner_user_id, name, description, base_entity, display_type, is_shared) VALUES (?, ?, ?, ?, ?, 0)');
+        $stmt->bind_param('issss', $uid, $name, $description, $baseEntity, $displayType);
         $stmt->execute();
-        audit($db, $uid, 'create', 'saved_report', (int) $stmt->insert_id, null, ['base_entity' => $baseEntity, 'display_type' => $displayType]);
+        audit($db, $uid, 'create', 'saved_report', (int) $stmt->insert_id, null, ['name' => $name, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
         flash('Report gespeichert.');
+        redirect('/?page=reports');
+    }
+
+    if ($action === 'update_report') {
+        $id = (int) ($_POST['report_id'] ?? 0);
+        $name = trim((string) ($_POST['report_name'] ?? ''));
+        $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
+        $baseEntity = array_key_exists((string) ($_POST['base_entity'] ?? ''), reportBaseOptions()) ? (string) $_POST['base_entity'] : 'jobs';
+        $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
+        $old = dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$id, userId()]);
+        if (!$old || $name === '') {
+            flash('Report konnte nicht aktualisiert werden.', 'danger');
+            redirect('/?page=reports');
+        }
+        $uid = userId();
+        $stmt = $db->prepare('UPDATE saved_reports SET name=?, description=?, base_entity=?, display_type=? WHERE id=? AND owner_user_id=?');
+        $stmt->bind_param('ssssii', $name, $description, $baseEntity, $displayType, $id, $uid);
+        $stmt->execute();
+        audit($db, $uid, 'update', 'saved_report', $id, $old, ['name' => $name, 'description' => $description, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
+        flash('Report aktualisiert.');
+        redirect('/?page=reports&edit_report=' . $id);
+    }
+
+    if ($action === 'delete_report') {
+        $id = (int) ($_POST['report_id'] ?? 0);
+        $old = dbOne($db, 'SELECT id, name, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$id, userId()]);
+        if ($old) {
+            $uid = userId();
+            $stmt = $db->prepare('DELETE FROM saved_reports WHERE id=? AND owner_user_id=?');
+            $stmt->bind_param('ii', $id, $uid);
+            $stmt->execute();
+            audit($db, $uid, 'delete', 'saved_report', $id, $old, null);
+        }
+        flash('Report gelöscht.');
         redirect('/?page=reports');
     }
 
@@ -2647,9 +2710,15 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         </form></section>
         <section class="panel table-wrap"><h2>Aktive und frühere Links</h2><table><thead><tr><th>Titel</th><th>Ziel</th><th>Empfänger</th><th>Status</th><th>Aktionen</th></tr></thead><tbody><?php foreach($shares as $share): ?><tr><td><strong><?= e($share['title']) ?></strong><small><?= e($share['permission']) ?> · Download <?= e($share['download_policy']) ?></small></td><td><?= e($share['target_type']) ?> #<?= e((string)$share['target_id']) ?></td><td><?= e($share['recipient_email']) ?></td><td><?php if($share['revoked_at']): ?>widerrufen<?php elseif($share['expires_at'] && strtotime((string)$share['expires_at']) < time()): ?>abgelaufen<?php else: ?>aktiv<?php endif; ?><small><?= e($share['last_accessed_at'] ? 'letzter Zugriff '.displayDateTime($share['last_accessed_at'], $currentUser) : 'noch kein Zugriff') ?></small></td><td><?php if(!$share['revoked_at']): ?><form method="post" onsubmit="return confirm('Freigabe widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="share_id" value="<?= (int)$share['id'] ?>"><button name="action" value="revoke_share">Widerrufen</button></form><?php endif; ?></td></tr><?php endforeach; ?><?php if(!$shares): ?><tr><td colspan="5" class="empty">Noch keine Freigaben.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'reports'): ?>
-        <?php $reports = dbAll($db, 'SELECT * FROM saved_reports WHERE owner_user_id=? ORDER BY updated_at DESC', 'i', [userId()]); ?>
+        <?php
+        $reports = dbAll($db, 'SELECT id, name, description, base_entity, display_type, updated_at FROM saved_reports WHERE owner_user_id=? ORDER BY updated_at DESC', 'i', [userId()]);
+        $editReportId = (int) ($_GET['edit_report'] ?? 0);
+        $editReport = $editReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$editReportId, userId()]) : null;
+        $reportBaseOptions = reportBaseOptions();
+        $reportDisplayOptions = reportDisplayOptions();
+        ?>
         <div class="page-head"><div><p class="eyebrow">Auswertung</p><h1>Reports & Exporte</h1></div><span><?= count($reports) ?> Reports</span></div>
-        <div class="split"><section class="panel"><h2>Report speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Name<input name="report_name" required></label><label>Basis<select name="base_entity"><?php foreach(['jobs'=>'Jobs','applications'=>'Bewerbungen','companies'=>'Firmen','contacts'=>'Kontakte','documents'=>'Dokumente','calendar'=>'Kalender'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Ansicht<select name="display_type"><option value="table">Tabelle</option><option value="list">Liste</option><option value="cards">Karten</option><option value="preview">Vorschau</option><option value="calendar_week">Kalenderwoche</option><option value="calendar_month">Kalendermonat</option></select></label><button class="primary" name="action" value="save_report">Speichern</button></form><div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div></section><section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th></tr></thead><tbody><?php foreach($reports as $report): ?><tr><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($report['base_entity']) ?></td><td><?= e($report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="4" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="split"><section class="panel"><h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editReport): ?><input type="hidden" name="report_id" value="<?= (int)$editReport['id'] ?>"><?php endif; ?><label>Name<input name="report_name" value="<?= e($editReport['name'] ?? '') ?>" required></label><label>Beschreibung<textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label><label>Basis<select name="base_entity"><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['base_entity'] ?? 'jobs')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Ansicht<select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= $editReport ? 'Änderungen speichern' : 'Speichern' ?></button><?php if($editReport): ?><a class="button" href="/?page=reports">Neu</a><?php endif; ?></div></form><div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div></section><section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): $exportType = reportExportType($report); ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>">Bearbeiten</a><?php if($exportType): ?><a href="/?page=export_pdf&type=<?= e($exportType) ?>">PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'calendar'): ?>
         <?php
         $events = dbAll($db, 'SELECT ce.*, a.status application_status, j.title job_title FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at ASC LIMIT 100', 'i', [userId()]);
