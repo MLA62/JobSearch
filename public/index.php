@@ -540,6 +540,108 @@ function reportExportType(array $report): ?string
     return in_array($base, ['jobs', 'applications', 'companies', 'contacts', 'documents'], true) ? $base : null;
 }
 
+function calendarViewOptions(): array
+{
+    return ['agenda'=>'Agenda','day'=>'Tagesplan','workweek'=>'Arbeitswoche','week'=>'Wochenplan','month'=>'Monatsplan'];
+}
+
+function calendarAnchorDate(array $user): DateTimeImmutable
+{
+    $timezone = new DateTimeZone((string) ($user['timezone'] ?? 'Europe/Zurich'));
+    $date = (string) ($_GET['date'] ?? '');
+    try {
+        return $date !== '' ? new DateTimeImmutable($date, $timezone) : new DateTimeImmutable('today', $timezone);
+    } catch (Throwable) {
+        return new DateTimeImmutable('today', $timezone);
+    }
+}
+
+function calendarRange(string $view, DateTimeImmutable $anchor): array
+{
+    return match ($view) {
+        'day' => [$anchor->setTime(0, 0), $anchor->setTime(23, 59, 59), '-1 day', '+1 day'],
+        'workweek' => [$anchor->modify('monday this week')->setTime(0, 0), $anchor->modify('friday this week')->setTime(23, 59, 59), '-1 week', '+1 week'],
+        'week' => [$anchor->modify('monday this week')->setTime(0, 0), $anchor->modify('sunday this week')->setTime(23, 59, 59), '-1 week', '+1 week'],
+        'month' => [$anchor->modify('first day of this month')->setTime(0, 0), $anchor->modify('last day of this month')->setTime(23, 59, 59), '-1 month', '+1 month'],
+        default => [$anchor->setTime(0, 0), $anchor->modify('+60 days')->setTime(23, 59, 59), '-30 days', '+30 days'],
+    };
+}
+
+function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, DateTimeImmutable $end): array
+{
+    $startSql = $start->format('Y-m-d H:i:s');
+    $endSql = $end->format('Y-m-d H:i:s');
+    $rows = [];
+    foreach (dbAll($db, 'SELECT ce.id, ce.title, ce.event_type, ce.starts_at, ce.ends_at, ce.status, ce.notes, ce.application_id, ce.contact_id, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? AND ce.starts_at BETWEEN ? AND ? ORDER BY ce.starts_at ASC', 'iss', [$userId, $startSql, $endSql]) as $event) {
+        $rows[] = [
+            'source' => 'calendar',
+            'id' => (int) $event['id'],
+            'title' => (string) $event['title'],
+            'type' => (string) $event['event_type'],
+            'status' => (string) $event['status'],
+            'starts_at' => (string) $event['starts_at'],
+            'ends_at' => (string) ($event['ends_at'] ?: date('Y-m-d H:i:s', strtotime((string) $event['starts_at']) + 1800)),
+            'meta' => trim((string) (($event['job_title'] ?? '') . (($event['company_name'] ?? '') ? ' · ' . $event['company_name'] : ''))),
+            'notes' => (string) ($event['notes'] ?? ''),
+            'href' => !empty($event['application_id']) ? '/?page=applications&edit=' . (int) $event['application_id'] . '#application-form' : '#event-' . (int) $event['id'],
+        ];
+    }
+    foreach (dbAll($db, 'SELECT a.id, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at BETWEEN ? AND ? ORDER BY a.next_action_at ASC', 'iss', [$userId, $startSql, $endSql]) as $todo) {
+        $rows[] = [
+            'source' => 'application',
+            'id' => (int) $todo['id'],
+            'title' => (string) ($todo['next_action'] ?: 'Pendent'),
+            'type' => 'Pendent',
+            'status' => 'open',
+            'starts_at' => (string) $todo['next_action_at'],
+            'ends_at' => date('Y-m-d H:i:s', strtotime((string) $todo['next_action_at']) + 1800),
+            'meta' => trim((string) ($todo['job_title'] . ' · ' . $todo['company_name'])),
+            'notes' => '',
+            'href' => '/?page=applications&edit=' . (int) $todo['id'] . '#application-form',
+        ];
+    }
+    foreach (dbAll($db, 'SELECT l.id, l.contact_id, l.channel, l.status, l.subject, l.follow_up_at, c.first_name, c.last_name, co.name company_name FROM contact_logs l JOIN contacts c ON c.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND l.follow_up_at BETWEEN ? AND ? ORDER BY l.follow_up_at ASC', 'iss', [$userId, $startSql, $endSql]) as $log) {
+        $rows[] = [
+            'source' => 'contact_log',
+            'id' => (int) $log['id'],
+            'title' => (string) ($log['subject'] ?: 'Kontakt nachfassen'),
+            'type' => contactLogChannelOptions()[(string)$log['channel']] ?? (string) $log['channel'],
+            'status' => (string) $log['status'],
+            'starts_at' => (string) $log['follow_up_at'],
+            'ends_at' => date('Y-m-d H:i:s', strtotime((string) $log['follow_up_at']) + 1800),
+            'meta' => trim((string) ($log['first_name'] . ' ' . $log['last_name'] . ' · ' . $log['company_name'])),
+            'notes' => '',
+            'href' => '/?page=contacts&edit_contact=' . (int) $log['contact_id'] . '#contact-log',
+        ];
+    }
+    usort($rows, static fn(array $a, array $b): int => strcmp((string)$a['starts_at'], (string)$b['starts_at']));
+    return $rows;
+}
+
+function calendarIcsEscape(string $value): string
+{
+    return str_replace(["\\", "\r\n", "\n", ",", ";"], ["\\\\", "\\n", "\\n", "\\,", "\\;"], $value);
+}
+
+function calendarIcsResponse(string $filename, array $events): never
+{
+    $ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JeMa Jobs//Calendar//DE\r\nCALSCALE:GREGORIAN\r\n";
+    foreach ($events as $event) {
+        $start = gmdate('Ymd\THis\Z', strtotime((string)$event['starts_at']));
+        $end = gmdate('Ymd\THis\Z', strtotime((string)$event['ends_at']));
+        $uid = calendarIcsEscape($event['source'] . '-' . $event['id'] . '@jobs.jema.business');
+        $summary = calendarIcsEscape((string)$event['title']);
+        $description = calendarIcsEscape(trim((string)$event['meta'] . "\n" . (string)$event['notes']));
+        $ics .= "BEGIN:VEVENT\r\nUID:{$uid}\r\nDTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\nDTSTART:{$start}\r\nDTEND:{$end}\r\nSUMMARY:{$summary}\r\nDESCRIPTION:{$description}\r\nEND:VEVENT\r\n";
+    }
+    $ics .= "END:VCALENDAR\r\n";
+    header('Content-Type: text/calendar; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    header('Content-Length: ' . strlen($ics));
+    echo $ics;
+    exit;
+}
+
 function localeForCountry(?string $countryCode): string
 {
     return match (strtoupper((string) $countryCode)) {
@@ -2667,6 +2769,13 @@ if ($page === 'export_pdf') {
     $rows = dbAll($db, 'SELECT j.id, j.title, c.name company, j.location_text, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC', 'i', [userId()]);
     pdfResponse('jobs.pdf', 'Jobs', ['Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], $r['status'], $r['workplace_type'], $r['updated_at']], $rows));
 }
+if ($page === 'export_ics') {
+    requireLogin();
+    $view = array_key_exists((string) ($_GET['view'] ?? 'agenda'), calendarViewOptions()) ? (string) $_GET['view'] : 'agenda';
+    $anchor = calendarAnchorDate($currentUser ?? []);
+    [$rangeStart, $rangeEnd] = calendarRange($view, $anchor);
+    calendarIcsResponse('jema-kalender-' . $view . '.ics', calendarEventRows($db, userId(), $rangeStart, $rangeEnd));
+}
 if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor'], true)) {
     redirect('/?page=dashboard');
 }
@@ -2873,12 +2982,58 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="split"><section class="panel"><h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editReport): ?><input type="hidden" name="report_id" value="<?= (int)$editReport['id'] ?>"><?php endif; ?><label>Name<input name="report_name" value="<?= e($editReport['name'] ?? '') ?>" required></label><label>Beschreibung<textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label><label>Basis<select name="base_entity"><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['base_entity'] ?? 'jobs')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Ansicht<select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= $editReport ? 'Änderungen speichern' : 'Speichern' ?></button><?php if($editReport): ?><a class="button" href="/?page=reports">Neu</a><?php endif; ?></div></form><div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div></section><section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): $exportType = reportExportType($report); ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>">Bearbeiten</a><?php if($exportType): ?><a href="/?page=export_pdf&type=<?= e($exportType) ?>">PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'calendar'): ?>
         <?php
-        $events = dbAll($db, 'SELECT ce.*, a.status application_status, j.title job_title FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at ASC LIMIT 100', 'i', [userId()]);
-        $followUps = dbAll($db, 'SELECT a.id, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL ORDER BY a.next_action_at ASC LIMIT 50', 'i', [userId()]);
+        $calendarViews = calendarViewOptions();
+        $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)$_GET['view'] : 'agenda';
+        $anchor = calendarAnchorDate($currentUser);
+        [$rangeStart, $rangeEnd, $prevStep, $nextStep] = calendarRange($calendarView, $anchor);
+        $calendarEvents = calendarEventRows($db, userId(), $rangeStart, $rangeEnd);
+        $calendarSort = (string)($_GET['sort'] ?? 'starts_at');
+        $calendarDir = sortDirection();
+        if ($calendarView === 'agenda') {
+            $sortMap = ['starts_at'=>'starts_at','title'=>'title','type'=>'type','status'=>'status'];
+            $sortKey = $sortMap[$calendarSort] ?? 'starts_at';
+            usort($calendarEvents, static function(array $a, array $b) use ($sortKey, $calendarDir): int {
+                $result = strcmp((string)($a[$sortKey] ?? ''), (string)($b[$sortKey] ?? ''));
+                return $calendarDir === 'asc' ? $result : -$result;
+            });
+        }
+        $prevDate = $anchor->modify($prevStep)->format('Y-m-d');
+        $nextDate = $anchor->modify($nextStep)->format('Y-m-d');
+        $weekNo = $anchor->format('W');
+        $weekdayNames = ['Mon'=>'Mo','Tue'=>'Di','Wed'=>'Mi','Thu'=>'Do','Fri'=>'Fr','Sat'=>'Sa','Sun'=>'So'];
+        $hours = range(7, 19);
+        $eventsByDate = [];
+        foreach ($calendarEvents as $entry) {
+            $eventsByDate[substr((string)$entry['starts_at'], 0, 10)][] = $entry;
+        }
+        $viewUrl = static fn(string $view, string $date): string => '/?page=calendar&view=' . urlencode($view) . '&date=' . urlencode($date);
+        $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
+        $headline = match($calendarView) {
+            'day' => $anchor->format('d.m.Y') . ' · KW ' . $weekNo,
+            'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · KW ' . $weekNo,
+            'week' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · KW ' . $weekNo,
+            'month' => $anchor->format('m.Y'),
+            default => $rangeStart->format('d.m.Y') . ' - ' . $rangeEnd->format('d.m.Y'),
+        };
+        $renderEvent = static function(array $entry): string {
+            $time = date('H:i', strtotime((string)$entry['starts_at']));
+            return '<a class="calendar-event" href="' . e((string)$entry['href']) . '"><strong>' . e($time . ' ' . (string)$entry['title']) . '</strong><span>' . e((string)$entry['type'] . ((string)$entry['meta'] !== '' ? ' · ' . (string)$entry['meta'] : '')) . '</span></a>';
+        };
         $appsForCalendar = dbAll($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 100', 'i', [userId()]);
         ?>
-        <div class="page-head"><div><p class="eyebrow">Zeitplan</p><h1>Kalender & Erinnerungen</h1></div><span><?= count($events) + count($followUps) ?> Einträge</span></div>
-        <div class="split"><section class="panel"><h2>Eintrag erstellen</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></section><section class="panel"><h2>Agenda</h2><div class="log-timeline"><?php foreach($events as $event): ?><article><div><strong><?= e($event['title']) ?></strong><span><?= e(displayDateTime($event['starts_at'], $currentUser)) ?> · <?= e($event['event_type']) ?></span></div><?php if($event['job_title']): ?><small><?= e($event['job_title']) ?></small><?php endif; ?><?php if($event['notes']): ?><p><?= nl2br(e($event['notes'])) ?></p><?php endif; ?></article><?php endforeach; ?><?php foreach($followUps as $todo): ?><article><div><strong><?= e($todo['next_action']) ?></strong><span><?= e(displayDateTime($todo['next_action_at'], $currentUser)) ?></span></div><small><?= e($todo['job_title'].' · '.$todo['company_name']) ?></small></article><?php endforeach; ?><?php if(!$events && !$followUps): ?><p class="empty">Keine Termine oder Wiedervorlagen.</p><?php endif; ?></div></section></div>
+        <div class="page-head"><div><p class="eyebrow">Zeitplan</p><h1>Kalender & Erinnerungen</h1></div><span><?= e($headline) ?> · <?= count($calendarEvents) ?> Einträge</span></div>
+        <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>">Zurück</a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>">Heute</a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>">Vor</a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
+        <div class="split"><section class="panel"><h2>Eintrag erstellen</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></section><section class="panel calendar-panel">
+        <?php if($calendarView === 'agenda'): ?>
+            <h2>Agenda</h2><form class="filters" method="get"><input type="hidden" name="page" value="calendar"><input type="hidden" name="view" value="agenda"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="sort"><option value="starts_at" <?= $calendarSort==='starts_at'?'selected':'' ?>>Sort: Zeit</option><option value="title" <?= $calendarSort==='title'?'selected':'' ?>>Sort: Titel</option><option value="type" <?= $calendarSort==='type'?'selected':'' ?>>Sort: Typ</option><option value="status" <?= $calendarSort==='status'?'selected':'' ?>>Sort: Status</option></select><select name="dir"><option value="asc" <?= $calendarDir==='asc'?'selected':'' ?>>Aufsteigend</option><option value="desc" <?= $calendarDir==='desc'?'selected':'' ?>>Absteigend</option></select><button>Sortieren</button></form><div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Ereignis</th><th>Typ</th><th>Status</th><th>Bezug</th></tr></thead><tbody><?php foreach($calendarEvents as $event): ?><tr><td><?= e(displayDateTime($event['starts_at'], $currentUser)) ?></td><td><a href="<?= e($event['href']) ?>"><?= e($event['title']) ?></a></td><td><?= e($event['type']) ?></td><td><?= e($event['status']) ?></td><td><?= e($event['meta']) ?></td></tr><?php endforeach; ?><?php if(!$calendarEvents): ?><tr><td colspan="5" class="empty">Keine Termine oder Wiedervorlagen.</td></tr><?php endif; ?></tbody></table></div>
+        <?php elseif(in_array($calendarView, ['day','workweek','week'], true)): ?>
+            <?php $days=[]; for($d=$rangeStart; $d <= $rangeEnd; $d=$d->modify('+1 day')) { $days[]=$d; } ?>
+            <h2><?= $calendarView==='day' ? 'Tagesplan' : ($calendarView==='workweek' ? 'Arbeitswochenplan' : 'Wochenplan') ?> · KW <?= e($weekNo) ?></h2><div class="time-grid" style="--day-count:<?= count($days) ?>"><div class="time-head"></div><?php foreach($days as $day): ?><div class="time-day-head"><?= e(($weekdayNames[$day->format('D')] ?? $day->format('D')) . ', ' . $day->format('d.m.')) ?></div><?php endforeach; ?><?php foreach($hours as $hour): ?><div class="time-slot"><?= sprintf('%02d:00', $hour) ?></div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $hourEvents=array_values(array_filter($eventsByDate[$dateKey] ?? [], static fn(array $ev): bool => (int)date('G', strtotime((string)$ev['starts_at'])) === $hour)); ?><div class="time-cell"><?php foreach($hourEvents as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+        <?php else: ?>
+            <?php $monthStart=$rangeStart->modify('monday this week'); $monthEnd=$rangeEnd->modify('sunday this week'); $monthDays=[]; for($d=$monthStart; $d <= $monthEnd; $d=$d->modify('+1 day')) { $monthDays[]=$d; } ?>
+            <h2>Monatsplan <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head">KW</div><?php foreach(['Mo','Di','Mi','Do','Fr','Sa','So'] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><strong><?= e($day->format('d.m.')) ?></strong><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+        <?php endif; ?>
+        </section></div>
     <?php elseif ($page === 'translations'): ?>
         <?php $translations = dbAll($db, 'SELECT id, entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version, is_current, updated_at FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]); ?>
         <div class="page-head"><div><p class="eyebrow">Sprache</p><h1>Übersetzungen</h1></div><span><?= count($translations) ?> Versionen</span></div>
