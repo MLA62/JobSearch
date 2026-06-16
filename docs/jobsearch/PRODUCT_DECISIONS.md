@@ -16,6 +16,9 @@ Status: 2026-06-15
 - During the open test phase, newly registered test users are activated
   immediately and may log in without email verification or administrator
   approval. The verification and approval flow remains a later hardening step.
+- Password reset tokens are already stored hashed and expire after one hour. In
+  the open test phase the reset link is shown directly after request because
+  outbound email is disabled.
 
 ## Privacy and sharing
 

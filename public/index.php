@@ -80,6 +80,11 @@ function outboundEmailEnabled(): bool
     return false;
 }
 
+function appUrl(array $config): string
+{
+    return rtrim((string) ($config['app_url'] ?? ''), '/');
+}
+
 function localeForCountry(?string $countryCode): string
 {
     return match (strtoupper((string) $countryCode)) {
@@ -824,6 +829,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/');
     }
 
+    if ($action === 'request_password_reset') {
+        $email = strtolower(trim((string) $_POST['email']));
+        $user = filter_var($email, FILTER_VALIDATE_EMAIL)
+            ? dbOne($db, "SELECT id, status FROM users WHERE email=? AND deleted_at IS NULL AND status NOT IN ('locked','disabled')", 's', [$email])
+            : null;
+        unset($_SESSION['password_reset_link']);
+        if ($user) {
+            $token = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $token);
+            $tokenType = 'password_reset';
+            $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type=? AND consumed_at IS NULL');
+            $stmt->bind_param('is', $user['id'], $tokenType);
+            $stmt->execute();
+            $expiresAt = (new DateTimeImmutable('+1 hour'))->format('Y-m-d H:i:s');
+            $stmt = $db->prepare('INSERT INTO auth_tokens (user_id, token_type, token_hash, expires_at) VALUES (?, ?, ?, ?)');
+            $stmt->bind_param('isss', $user['id'], $tokenType, $tokenHash, $expiresAt);
+            $stmt->execute();
+            $resetPath = '/?page=reset_password&token=' . urlencode($token);
+            $_SESSION['password_reset_link'] = (appUrl($config) ?: '') . $resetPath;
+            audit($db, (int) $user['id'], 'other', 'auth_token', (int) $stmt->insert_id, null, ['token_type' => 'password_reset']);
+        }
+        flash('Falls das Konto existiert, wurde ein Zurücksetzen vorbereitet.', 'success');
+        redirect('/?page=forgot_password&sent=1');
+    }
+
+    if ($action === 'reset_password') {
+        $token = trim((string) ($_POST['token'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+        $confirm = (string) ($_POST['password_confirm'] ?? '');
+        if ($token === '' || strlen($password) < 10 || $password !== $confirm) {
+            flash('Token ungültig oder Passwörter passen nicht zusammen. Mindestens 10 Zeichen.', 'danger');
+            redirect('/?page=reset_password&token=' . urlencode($token));
+        }
+        $tokenHash = hash('sha256', $token);
+        $reset = dbOne(
+            $db,
+            "SELECT t.id token_id, t.user_id, u.status
+               FROM auth_tokens t
+               JOIN users u ON u.id=t.user_id
+              WHERE t.token_type='password_reset'
+                AND t.token_hash=?
+                AND t.consumed_at IS NULL
+                AND t.expires_at > NOW()
+                AND u.deleted_at IS NULL
+              LIMIT 1",
+            's',
+            [$tokenHash]
+        );
+        if (!$reset || in_array((string) $reset['status'], ['locked', 'disabled'], true)) {
+            flash('Dieser Link ist ungültig oder abgelaufen.', 'danger');
+            redirect('/?page=forgot_password');
+        }
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL WHERE id=?');
+        $stmt->bind_param('si', $hash, $reset['user_id']);
+        $stmt->execute();
+        $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE id=?');
+        $stmt->bind_param('i', $reset['token_id']);
+        $stmt->execute();
+        audit($db, (int) $reset['user_id'], 'update', 'user', (int) $reset['user_id'], null, ['password_reset' => true]);
+        unset($_SESSION['password_reset_link']);
+        flash('Passwort wurde geändert. Du kannst dich jetzt anmelden.');
+        redirect('/?page=login');
+    }
+
     if ($action === 'logout') {
         session_destroy();
         redirect('/?page=login');
@@ -1525,7 +1595,7 @@ if ($page === 'document_download') {
     readfile($path);
     exit;
 }
-if ($currentUser && in_array($page, ['login', 'register'], true)) {
+if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 'reset_password'], true)) {
     redirect('/?page=dashboard');
 }
 $flash = $_SESSION['flash'] ?? null;
@@ -1574,6 +1644,33 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <button class="primary" name="action" value="login">Anmelden</button>
         </form>
         <p>Noch kein Konto? <a href="/?page=register">Registrieren</a></p>
+        <p><a href="/?page=forgot_password">Passwort vergessen?</a></p>
+    </section>
+<?php elseif ($page === 'forgot_password' && !$currentUser): ?>
+    <section class="auth-card">
+        <p class="eyebrow">Konto</p><h1>Passwort vergessen</h1>
+        <form method="post" class="stack">
+            <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <label>E-Mail<input type="email" name="email" required></label>
+            <button class="primary" name="action" value="request_password_reset">Link erstellen</button>
+        </form>
+        <?php if(!empty($_SESSION['password_reset_link'])): ?>
+            <div class="alert warning"><strong>Testphase:</strong> E-Mail-Versand ist deaktiviert. Nutze diesen Link einmalig: <a href="<?= e($_SESSION['password_reset_link']) ?>">Passwort zurücksetzen</a></div>
+        <?php endif; ?>
+        <p><a href="/?page=login">Zur Anmeldung</a></p>
+    </section>
+<?php elseif ($page === 'reset_password' && !$currentUser): ?>
+    <?php $resetToken = trim((string) ($_GET['token'] ?? '')); ?>
+    <section class="auth-card">
+        <p class="eyebrow">Konto</p><h1>Neues Passwort</h1>
+        <form method="post" class="stack">
+            <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <input type="hidden" name="token" value="<?= e($resetToken) ?>">
+            <label>Neues Passwort<input type="password" name="password" minlength="10" required></label>
+            <label>Passwort wiederholen<input type="password" name="password_confirm" minlength="10" required></label>
+            <button class="primary" name="action" value="reset_password">Passwort ändern</button>
+        </form>
+        <p><a href="/?page=login">Zur Anmeldung</a></p>
     </section>
 <?php elseif ($page === 'register' && !$currentUser): ?>
     <section class="auth-card">
