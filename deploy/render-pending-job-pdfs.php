@@ -13,13 +13,25 @@ if (isset($options['help'])) {
     exit(0);
 }
 
-$configPath = getenv('JEMA_JOBS_CONFIG') ?: (__DIR__ . '/../public/config.php');
-if (!is_file($configPath)) {
+$configuredPath = getenv('JEMA_JOBS_CONFIG') ?: '';
+$configCandidates = array_filter([
+    $configuredPath,
+    __DIR__ . '/../public/config.php',
+    __DIR__ . '/../config.php',
+]);
+$configPath = '';
+foreach ($configCandidates as $candidate) {
+    if (is_file($candidate)) {
+        $configPath = $candidate;
+        break;
+    }
+}
+if ($configPath === '') {
     fwrite(STDERR, "Application configuration is missing. Set JEMA_JOBS_CONFIG or create public/config.php.\n");
     exit(1);
 }
 $config = require $configPath;
-$publicRoot = realpath(__DIR__ . '/../public');
+$publicRoot = realpath(dirname($configPath));
 if (!$publicRoot) {
     fwrite(STDERR, "Could not resolve public directory.\n");
     exit(1);
