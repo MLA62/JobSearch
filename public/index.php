@@ -1794,12 +1794,45 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
               WHERE u.deleted_at IS NULL
            ORDER BY FIELD(u.status, 'active', 'invited', 'locked', 'disabled'), u.created_at DESC"
         );
+        $managedUserId = (int) ($_GET['manage_user'] ?? 0);
+        $managedUser = null;
+        foreach ($users as $candidate) {
+            if ((int) $candidate['id'] === $managedUserId) {
+                $managedUser = $candidate;
+                break;
+            }
+        }
         ?>
         <div class="page-head"><div><p class="eyebrow">Administration</p><h1>Benutzer</h1></div><span><?= count($users) ?> Konten</span></div>
+        <section class="panel">
+            <div class="section-head"><div><p class="eyebrow">Verwaltung</p><h2>Benutzer bearbeiten</h2></div></div>
+            <?php if(!$managedUser): ?>
+                <p class="meta-line">Wähle bei einem Benutzer „Verwalten“, um Name, E-Mail, Status, Admin-Rechte, Passwort oder Löschung zu bearbeiten.</p>
+            <?php else: $managedRoleCodes = array_filter(explode(',', (string) ($managedUser['role_codes'] ?? ''))); $managedIsConfigAdmin = in_array(strtolower((string) $managedUser['email']), $adminEmails, true); $managedIsAdmin = $managedIsConfigAdmin || in_array('admin', $managedRoleCodes, true); $managedIsSelf = (int) $managedUser['id'] === userId(); ?>
+                <h3><?= e(trim((string)$managedUser['first_name'].' '.(string)$managedUser['last_name'])) ?></h3>
+                <?php if($managedIsSelf): ?>
+                    <p class="alert warning">Eigenes Admin-Konto geschützt. Persönliche Daten bearbeitest Du über „Profil“.</p>
+                <?php else: ?>
+                    <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>">
+                        <div class="three"><label>Vorname<input name="first_name" value="<?= e($managedUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($managedUser['last_name']) ?>" required></label><label>E-Mail<input type="email" name="email" value="<?= e($managedUser['email']) ?>" required></label></div>
+                        <div class="two"><label>Status<select name="status"><?php foreach(['active'=>'Aktiv','invited'=>'Eingeladen/Test offen','locked'=>'Gesperrt','disabled'=>'Deaktiviert'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $managedUser['status']===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label class="check"><input type="checkbox" name="is_admin" value="1" <?= $managedIsAdmin?'checked':'' ?> <?= $managedIsConfigAdmin?'disabled':'' ?>> Admin-Rechte</label></div>
+                        <?php if($managedIsConfigAdmin): ?><input type="hidden" name="is_admin" value="1"><?php endif; ?>
+                        <button class="primary" name="action" value="admin_update_user">Benutzerdaten speichern</button>
+                    </form>
+                    <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>">
+                        <div class="two"><label>Neues Passwort<input type="password" name="new_password" minlength="10" required></label><label>Passwort wiederholen<input type="password" name="new_password_confirm" minlength="10" required></label></div>
+                        <button name="action" value="admin_reset_user_password">Passwort setzen</button>
+                    </form>
+                    <?php if(!$managedIsConfigAdmin): ?>
+                        <form method="post" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>"><button name="action" value="admin_delete_user">Benutzer löschen</button></form>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
+        </section>
         <section class="panel table-wrap"><table><thead><tr><th>Benutzer</th><th>Status</th><th>Nutzung</th><th>Zugriff</th><th>Aktionen</th></tr></thead><tbody>
             <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === userId(); ?>
                 <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
-                    <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small></td>
+                    <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
                     <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
                     <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?></td>
