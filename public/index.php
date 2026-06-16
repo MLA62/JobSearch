@@ -2796,10 +2796,16 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                 <p class="meta-line">2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.</p>
                 <form method="post" onsubmit="return confirm('2FA wirklich deaktivieren?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="disable_totp">2FA deaktivieren</button></form>
             <?php else: ?>
-                <p class="meta-line">Füge diesen Schlüssel in einer Authenticator-App hinzu und bestätige danach den 6-stelligen Code.</p>
-                <div class="stack">
-                    <label>Setup-Schlüssel<input value="<?= e($totpSetupSecret) ?>" readonly onclick="this.select()"></label>
-                    <label>otpauth URI<input value="<?= e($totpSetupUri) ?>" readonly onclick="this.select()"></label>
+                <p class="meta-line">Scanne den QR-Code mit einer Authenticator-App und bestätige danach den 6-stelligen Code.</p>
+                <div class="totp-setup">
+                    <div class="totp-qr" data-qr-text="<?= e($totpSetupUri) ?>" aria-label="QR-Code für Authenticator-App"></div>
+                    <div class="stack">
+                        <label>Setup-Schlüssel<input value="<?= e($totpSetupSecret) ?>" readonly onclick="this.select()"></label>
+                        <details class="totp-manual">
+                            <summary>Manuelle Eingabe anzeigen</summary>
+                            <label>otpauth URI<input value="<?= e($totpSetupUri) ?>" readonly onclick="this.select()"></label>
+                        </details>
+                    </div>
                 </div>
                 <form method="post" class="stack">
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
@@ -3087,4 +3093,6 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
 <?php endif; ?>
 </main>
 <footer>JeMa Jobs Prototyp · Private Daten bleiben benutzerisoliert</footer>
+<script src="/assets/qrcode.min.js" defer></script>
+<script src="/assets/totp-qr.js" defer></script>
 </body></html>
