@@ -540,6 +540,161 @@ function reportExportType(array $report): ?string
     return in_array($base, ['jobs', 'applications', 'companies', 'contacts', 'documents'], true) ? $base : null;
 }
 
+function reportFieldOptions(string $base): array
+{
+    return match ($base) {
+        'applications' => ['title'=>'Job','company'=>'Firma','status'=>'Status','channel'=>'Kanal','applied_at'=>'Gesendet','next_action'=>'Pendent','next_action_at'=>'Fällig'],
+        'companies' => ['name'=>'Firma','city'=>'Ort','website'=>'Website','is_intermediary'=>'Vermittler','updated_at'=>'Aktualisiert'],
+        'contacts' => ['name'=>'Kontakt','company'=>'Firma','email'=>'E-Mail','phone'=>'Telefon','position'=>'Funktion','open_logs'=>'Pendent','updated_at'=>'Aktualisiert'],
+        'documents' => ['title'=>'Dokument','type'=>'Typ','filename'=>'Datei','scope'=>'Bereich','version'=>'Version','created_at'=>'Erstellt'],
+        'calendar' => ['starts_at'=>'Zeit','title'=>'Ereignis','type'=>'Typ','status'=>'Status','meta'=>'Bezug'],
+        default => ['title'=>'Titel','company'=>'Firma','location'=>'Ort','status'=>'Status','workplace_type'=>'Arbeitsmodell','updated_at'=>'Aktualisiert'],
+    };
+}
+
+function reportDefaultColumns(string $base): array
+{
+    return array_slice(array_keys(reportFieldOptions($base)), 0, 6);
+}
+
+function reportStatusOptions(string $base): array
+{
+    return match ($base) {
+        'applications' => ['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'],
+        'contacts' => ['open'=>'Offene/geplante Logs','none'=>'Ohne offene Logs'],
+        'calendar' => ['planned'=>'Geplant','completed'=>'Erledigt','cancelled'=>'Abgebrochen'],
+        default => ['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'],
+    };
+}
+
+function saveReportSettings(mysqli $db, int $reportId, string $base): void
+{
+    $db->query('DELETE FROM saved_report_columns WHERE report_id=' . $reportId);
+    $db->query('DELETE FROM saved_report_filters WHERE report_id=' . $reportId);
+    $db->query('DELETE FROM saved_report_sorts WHERE report_id=' . $reportId);
+
+    $fields = reportFieldOptions($base);
+    $columns = array_values(array_filter((array) ($_POST['report_columns'] ?? []), static fn($field): bool => isset($fields[(string)$field])));
+    if (!$columns) {
+        $columns = reportDefaultColumns($base);
+    }
+    $columnStmt = $db->prepare('INSERT INTO saved_report_columns (report_id, field_name, label, sort_order, is_visible) VALUES (?, ?, ?, ?, 1)');
+    foreach ($columns as $index => $field) {
+        $field = (string) $field;
+        $label = $fields[$field];
+        $order = $index + 1;
+        $columnStmt->bind_param('issi', $reportId, $field, $label, $order);
+        $columnStmt->execute();
+    }
+
+    $filterStmt = $db->prepare('INSERT INTO saved_report_filters (report_id, field_name, operator, value_json, sort_order) VALUES (?, ?, ?, ?, ?)');
+    $order = 1;
+    $query = trim((string) ($_POST['report_q'] ?? ''));
+    if ($query !== '') {
+        $field = 'q';
+        $operator = 'contains';
+        $value = json_encode($query, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $filterStmt->bind_param('isssi', $reportId, $field, $operator, $value, $order);
+        $filterStmt->execute();
+        $order++;
+    }
+    $status = trim((string) ($_POST['report_status'] ?? ''));
+    if ($status !== '' && isset(reportStatusOptions($base)[$status])) {
+        $field = 'status';
+        $operator = 'eq';
+        $value = json_encode($status, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $filterStmt->bind_param('isssi', $reportId, $field, $operator, $value, $order);
+        $filterStmt->execute();
+    }
+
+    $sortField = (string) ($_POST['report_sort'] ?? '');
+    if (!isset($fields[$sortField])) {
+        $sortField = $columns[0] ?? array_key_first($fields);
+    }
+    $direction = strtolower((string) ($_POST['report_dir'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+    $priority = 1;
+    $sortStmt = $db->prepare('INSERT INTO saved_report_sorts (report_id, field_name, direction, priority) VALUES (?, ?, ?, ?)');
+    $sortStmt->bind_param('issi', $reportId, $sortField, $direction, $priority);
+    $sortStmt->execute();
+}
+
+function loadReportSettings(mysqli $db, int $reportId, string $base): array
+{
+    $columns = dbAll($db, 'SELECT field_name, label FROM saved_report_columns WHERE report_id=? AND is_visible=1 ORDER BY sort_order, id', 'i', [$reportId]);
+    $filters = dbAll($db, 'SELECT field_name, value_json FROM saved_report_filters WHERE report_id=? ORDER BY sort_order, id', 'i', [$reportId]);
+    $sort = dbOne($db, 'SELECT field_name, direction FROM saved_report_sorts WHERE report_id=? ORDER BY priority, id LIMIT 1', 'i', [$reportId]);
+    $selected = $columns ? array_map(static fn(array $row): string => (string)$row['field_name'], $columns) : reportDefaultColumns($base);
+    $filterValues = [];
+    foreach ($filters as $filter) {
+        $filterValues[(string)$filter['field_name']] = json_decode((string)$filter['value_json'], true) ?: '';
+    }
+    return ['columns'=>$selected, 'filters'=>$filterValues, 'sort'=>$sort ?: ['field_name'=>$selected[0] ?? 'title', 'direction'=>'asc']];
+}
+
+function reportDataset(mysqli $db, int $userId, array $report, array $settings, array $currentUser): array
+{
+    $base = (string) ($report['base_entity'] ?? 'jobs');
+    $fields = reportFieldOptions($base);
+    $columns = array_values(array_filter((array)$settings['columns'], static fn($field): bool => isset($fields[(string)$field])));
+    if (!$columns) {
+        $columns = reportDefaultColumns($base);
+    }
+    $headers = array_map(static fn(string $field): string => $fields[$field], $columns);
+    $filters = (array) ($settings['filters'] ?? []);
+    $q = strtolower((string) ($filters['q'] ?? ''));
+    $status = (string) ($filters['status'] ?? '');
+
+    $rows = match ($base) {
+        'applications' => dbAll($db, 'SELECT a.status, a.channel, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL', 'i', [$userId]),
+        'companies' => dbAll($db, 'SELECT name, city, website, is_intermediary, updated_at FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
+        'contacts' => dbAll($db, 'SELECT CONCAT(c.first_name, " ", c.last_name) name, co.name company, c.email, COALESCE(NULLIF(c.phone,""), c.mobile) phone, c.position, c.updated_at, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
+        'documents' => dbAll($db, 'SELECT d.title, dt.name_key type, d.original_filename filename, d.scope, d.version, d.created_at FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
+        'calendar' => calendarEventRows($db, $userId, (new DateTimeImmutable('-30 days'))->setTime(0, 0), (new DateTimeImmutable('+90 days'))->setTime(23, 59, 59)),
+        default => dbAll($db, 'SELECT j.title, c.name company, j.location_text location, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL', 'i', [$userId]),
+    };
+
+    $rows = array_values(array_filter($rows, static function(array $row) use ($q, $status, $base): bool {
+        if ($status !== '') {
+            if ($base === 'contacts') {
+                $hasOpen = (int)($row['open_logs'] ?? 0) > 0;
+                if (($status === 'open' && !$hasOpen) || ($status === 'none' && $hasOpen)) {
+                    return false;
+                }
+            } elseif ((string)($row['status'] ?? '') !== $status) {
+                return false;
+            }
+        }
+        if ($q === '') {
+            return true;
+        }
+        return str_contains(strtolower(implode(' ', array_map('strval', $row))), $q);
+    }));
+
+    $sort = (array) ($settings['sort'] ?? []);
+    $sortField = isset($fields[(string)($sort['field_name'] ?? '')]) ? (string)$sort['field_name'] : ($columns[0] ?? array_key_first($fields));
+    $dir = strtolower((string)($sort['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+    usort($rows, static function(array $a, array $b) use ($sortField, $dir): int {
+        $result = strcmp((string)($a[$sortField] ?? ''), (string)($b[$sortField] ?? ''));
+        return $dir === 'desc' ? -$result : $result;
+    });
+
+    $data = [];
+    foreach ($rows as $row) {
+        $data[] = array_map(static function(string $field) use ($row, $currentUser): string {
+            $value = $row[$field] ?? '';
+            if (in_array($field, ['updated_at','created_at','applied_at','next_action_at','starts_at'], true)) {
+                return displayDateTime($value ?: null, $currentUser);
+            }
+            if ($field === 'is_intermediary') {
+                return !empty($value) ? 'Ja' : 'Nein';
+            }
+            return (string) $value;
+        }, $columns);
+    }
+
+    return [$headers, $data];
+}
+
 function calendarViewOptions(): array
 {
     return ['agenda'=>'Agenda','day'=>'Tagesplan','workweek'=>'Arbeitswoche','week'=>'Wochenplan','month'=>'Monatsplan'];
@@ -1385,8 +1540,67 @@ function saveContactLogAttachment(mysqli $db, int $userId, int $contactId, int $
     $textStmt = $db->prepare('INSERT INTO document_texts (user_document_id, extraction_status, language_code) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE extraction_status=VALUES(extraction_status), language_code=VALUES(language_code)');
     $textStmt->bind_param('iss', $documentId, $extractStatus, $languageCode);
     $textStmt->execute();
+    $linkStmt = $db->prepare('INSERT IGNORE INTO contact_log_documents (contact_log_id, user_document_id) VALUES (?, ?)');
+    $linkStmt->bind_param('ii', $logId, $documentId);
+    $linkStmt->execute();
     audit($db, $userId, 'create', 'contact_log_attachment', $documentId, null, ['contact_id'=>$contactId,'contact_log_id'=>$logId,'title'=>$title]);
     return $documentId;
+}
+
+function contactLogAttachments(mysqli $db, int $userId, int $contactId): array
+{
+    $rows = dbAll($db, 'SELECT cld.contact_log_id, d.id, d.original_filename FROM contact_log_documents cld JOIN contact_logs l ON l.id=cld.contact_log_id JOIN user_documents d ON d.id=cld.user_document_id WHERE l.owner_user_id=? AND l.contact_id=? AND d.deleted_at IS NULL ORDER BY d.created_at DESC', 'ii', [$userId, $contactId]);
+    $grouped = [];
+    foreach ($rows as $row) {
+        $grouped[(int)$row['contact_log_id']][] = $row;
+    }
+    return $grouped;
+}
+
+function contactLogFormHtml(?array $entry, int $applicationId, int $contactId, array $channels, array $statuses): string
+{
+    $isEdit = (bool) $entry;
+    $occurred = $entry && !empty($entry['occurred_at']) ? date('Y-m-d\TH:i', strtotime((string)$entry['occurred_at'])) : date('Y-m-d\TH:i');
+    $followUp = $entry && !empty($entry['follow_up_at']) ? date('Y-m-d\TH:i', strtotime((string)$entry['follow_up_at'])) : '';
+    ob_start();
+    ?>
+    <form method="post" enctype="multipart/form-data" class="stack">
+        <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+        <?php if($applicationId > 0): ?><input type="hidden" name="application_id" value="<?= $applicationId ?>"><?php endif; ?>
+        <input type="hidden" name="contact_id" value="<?= $contactId ?>">
+        <?php if($isEdit): ?><input type="hidden" name="log_id" value="<?= (int)$entry['id'] ?>"><?php endif; ?>
+        <div class="three">
+            <label>Kanal<select name="log_channel"><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($entry['channel'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+            <label>Richtung<select name="direction"><?php foreach(['outgoing'=>'Ausgehend','incoming'=>'Eingehend','internal'=>'Intern'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($entry['direction'] ?? 'outgoing')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+            <label>Status<select name="log_status"><?php foreach($statuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($entry['status'] ?? 'open')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+        </div>
+        <div class="two"><label>Datum/Uhrzeit<input type="datetime-local" name="occurred_at" value="<?= e($occurred) ?>" required></label><label>Wiedervorlage<input type="datetime-local" name="follow_up_at" value="<?= e($followUp) ?>"></label></div>
+        <label>Betreff<input name="subject" value="<?= e($entry['subject'] ?? '') ?>"></label>
+        <label>Mitteilung<textarea name="log_body" rows="5"><?= e($entry['body'] ?? '') ?></textarea></label>
+        <div class="two"><label>Ergebnis / nächster Schritt<input name="outcome" value="<?= e($entry['outcome'] ?? '') ?>"></label><label>Anhang<input type="file" name="log_attachment"></label></div>
+        <div class="actions"><button class="primary" name="action" value="<?= $isEdit ? 'update_contact_log' : 'save_contact_log' ?>"><?= $isEdit ? 'Aktivität aktualisieren' : 'Aktivität speichern' ?></button><?php if($isEdit): ?><a class="button" href="<?= e($applicationId > 0 ? '/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contact-log' : '/?page=contacts&edit_contact=' . $contactId . '#contact-log') ?>">Abbrechen</a><?php endif; ?></div>
+    </form>
+    <?php
+    return (string) ob_get_clean();
+}
+
+function contactLogTimelineHtml(array $logs, array $attachments, array $channels, array $statuses, array $currentUser, int $applicationId = 0): string
+{
+    ob_start();
+    ?>
+    <div class="log-timeline">
+        <?php foreach($logs as $entry): ?><article class="log-status-<?= e($entry['status']) ?>">
+            <div><strong><?= e($entry['subject'] ?: ($channels[$entry['channel']] ?? ucfirst((string)$entry['channel']))) ?></strong><span><?= e(($statuses[$entry['status']] ?? $entry['status']).' · '.($channels[$entry['channel']] ?? $entry['channel']).' · '.$entry['direction'].' · '.displayDateTime($entry['occurred_at'], $currentUser)) ?></span></div>
+            <?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?>
+            <?php if($entry['outcome']): ?><small>Ergebnis / nächster Schritt: <?= e($entry['outcome']) ?></small><?php endif; ?>
+            <?php if($entry['follow_up_at']): ?><small>Wiedervorlage: <?= e(displayDateTime($entry['follow_up_at'], $currentUser)) ?></small><?php endif; ?>
+            <?php foreach(($attachments[(int)$entry['id']] ?? []) as $doc): ?><small>Anhang: <a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['original_filename']) ?></a></small><?php endforeach; ?>
+            <div class="actions"><a href="<?= e($applicationId > 0 ? '/?page=applications&edit=' . $applicationId . '&contact=' . (int)$entry['contact_id'] . '&edit_log=' . (int)$entry['id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$entry['contact_id'] . '&edit_log=' . (int)$entry['id'] . '#contact-log') ?>">Bearbeiten</a><form method="post" onsubmit="return confirm('Kontaktaktivität löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="log_id" value="<?= (int)$entry['id'] ?>"><button name="action" value="delete_contact_log">Löschen</button></form></div>
+        </article><?php endforeach; ?>
+        <?php if(!$logs): ?><p class="empty">Noch keine Kontaktaktivitäten.</p><?php endif; ?>
+    </div>
+    <?php
+    return (string) ob_get_clean();
 }
 
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
@@ -1864,7 +2078,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare('INSERT INTO saved_reports (owner_user_id, name, description, base_entity, display_type, is_shared) VALUES (?, ?, ?, ?, ?, 0)');
         $stmt->bind_param('issss', $uid, $name, $description, $baseEntity, $displayType);
         $stmt->execute();
-        audit($db, $uid, 'create', 'saved_report', (int) $stmt->insert_id, null, ['name' => $name, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
+        $reportId = (int) $stmt->insert_id;
+        saveReportSettings($db, $reportId, $baseEntity);
+        audit($db, $uid, 'create', 'saved_report', $reportId, null, ['name' => $name, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
         flash('Report gespeichert.');
         redirect('/?page=reports');
     }
@@ -1884,6 +2100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare('UPDATE saved_reports SET name=?, description=?, base_entity=?, display_type=? WHERE id=? AND owner_user_id=?');
         $stmt->bind_param('ssssii', $name, $description, $baseEntity, $displayType, $id, $uid);
         $stmt->execute();
+        saveReportSettings($db, $id, $baseEntity);
         audit($db, $uid, 'update', 'saved_report', $id, $old, ['name' => $name, 'description' => $description, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
         flash('Report aktualisiert.');
         redirect('/?page=reports&edit_report=' . $id);
@@ -2518,6 +2735,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect($applicationId > 0 ? '/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contact-log' : '/?page=contacts&edit_contact=' . $contactId . '#contact-log');
     }
 
+    if ($action === 'update_contact_log') {
+        $logId = (int) ($_POST['log_id'] ?? 0);
+        $uid = userId();
+        $old = dbOne($db, 'SELECT id, contact_id, application_id, status, subject FROM contact_logs WHERE id=? AND owner_user_id=?', 'ii', [$logId, $uid]);
+        if (!$old) { http_response_code(404); exit('Not found'); }
+        $allowedChannels = array_keys(contactLogChannelOptions());
+        $allowedDirections = ['incoming','outgoing','internal'];
+        $allowedLogStatuses = array_keys(contactLogStatusOptions());
+        $channel = in_array($_POST['log_channel'] ?? '', $allowedChannels, true) ? (string) $_POST['log_channel'] : 'note';
+        $direction = in_array($_POST['direction'] ?? '', $allowedDirections, true) ? (string) $_POST['direction'] : 'internal';
+        $logStatus = in_array($_POST['log_status'] ?? '', $allowedLogStatuses, true) ? (string) $_POST['log_status'] : 'done';
+        $subject = trim((string) ($_POST['subject'] ?? ''));
+        $body = trim((string) ($_POST['log_body'] ?? ''));
+        $occurredAt = trim((string) ($_POST['occurred_at'] ?? '')) ?: date('Y-m-d H:i:s');
+        $followUpAt = trim((string) ($_POST['follow_up_at'] ?? '')) ?: null;
+        $outcome = trim((string) ($_POST['outcome'] ?? ''));
+        $occurredAt = str_replace('T', ' ', $occurredAt) . (strlen($occurredAt) === 16 ? ':00' : '');
+        if ($followUpAt) { $followUpAt = str_replace('T', ' ', $followUpAt) . (strlen($followUpAt) === 16 ? ':00' : ''); }
+        $stmt = $db->prepare('UPDATE contact_logs SET channel=?, direction=?, status=?, subject=?, body=?, occurred_at=?, follow_up_at=?, outcome=? WHERE id=? AND owner_user_id=?');
+        $stmt->bind_param('ssssssssii', $channel, $direction, $logStatus, $subject, $body, $occurredAt, $followUpAt, $outcome, $logId, $uid);
+        $stmt->execute();
+        $contact = dbOne($db, 'SELECT first_name, last_name FROM contacts WHERE id=? AND owner_user_id=?', 'ii', [(int)$old['contact_id'], $uid]);
+        try {
+            saveContactLogAttachment($db, $uid, (int)$old['contact_id'], $logId, trim((string)($contact['first_name'] ?? '') . ' ' . (string)($contact['last_name'] ?? '')), $subject);
+        } catch (Throwable $exception) {
+            flash('Kontaktaktivität aktualisiert, aber Anhang konnte nicht abgelegt werden: ' . $exception->getMessage(), 'warning');
+            redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
+        }
+        audit($db, $uid, 'update', 'contact_log', $logId, $old, ['status'=>$logStatus,'subject'=>$subject]);
+        flash('Kontaktaktivität aktualisiert.');
+        redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
+    }
+
+    if ($action === 'delete_contact_log') {
+        $logId = (int) ($_POST['log_id'] ?? 0);
+        $uid = userId();
+        $old = dbOne($db, 'SELECT id, contact_id, application_id, subject, status FROM contact_logs WHERE id=? AND owner_user_id=?', 'ii', [$logId, $uid]);
+        if ($old) {
+            $stmt = $db->prepare('DELETE FROM contact_logs WHERE id=? AND owner_user_id=?');
+            $stmt->bind_param('ii', $logId, $uid);
+            $stmt->execute();
+            audit($db, $uid, 'delete', 'contact_log', $logId, $old, null);
+            flash('Kontaktaktivität gelöscht.');
+            redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
+        }
+        flash('Kontaktaktivität nicht gefunden.', 'danger');
+        redirect('/?page=contacts');
+    }
+
     if ($action === 'save_application') {
         $id = (int) ($_POST['id'] ?? 0);
         $old = dbOne($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
@@ -2750,6 +3016,14 @@ if ($page === 'export_csv') {
 if ($page === 'export_pdf') {
     requireLogin();
     $type = (string) ($_GET['type'] ?? 'jobs');
+    if ($type === 'report') {
+        $reportId = (int) ($_GET['report_id'] ?? 0);
+        $report = dbOne($db, 'SELECT id, name, base_entity FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$reportId, userId()]);
+        if (!$report) { http_response_code(404); exit('Not found'); }
+        $settings = loadReportSettings($db, $reportId, (string)$report['base_entity']);
+        [$headers, $rows] = reportDataset($db, userId(), $report, $settings, $currentUser);
+        pdfResponse('report-' . $reportId . '.pdf', (string)$report['name'], $headers, $rows);
+    }
     if ($type === 'applications') {
         $rows = dbAll($db, 'SELECT a.id, j.title, c.name company, a.status, a.channel, a.applied_at, a.next_action FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC', 'i', [userId()]);
         pdfResponse('bewerbungen.pdf', 'Bewerbungen', ['Job','Firma','Status','Kanal','Gesendet','Nächster Schritt'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['status'], $r['channel'], $r['applied_at'], $r['next_action']], $rows));
@@ -2804,7 +3078,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <a href="/?page=companies">Firmen</a>
             <a href="/?page=contacts">Kontakte</a>
             <a href="/?page=applications">Bewerbungen</a>
-            <a href="/?page=applications&todo=1">Pendent</a>
+            <a href="/?page=pendents">Pendent</a>
             <a href="/?page=calendar">Kalender</a>
             <a href="/?page=reports">Reports</a>
             <a href="/?page=sharing">Freigaben</a>
@@ -2943,11 +3217,53 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             ['label' => 'Jobs', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
             ['label' => 'Firmen', 'value' => count($companies), 'href' => '/?page=companies'],
             ['label' => 'Bewerbungen', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
-            ['label' => 'Pendent', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND next_action_at IS NOT NULL AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications&todo=1'],
+            ['label' => 'Pendent', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND next_action_at IS NOT NULL AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=pendents'],
         ]; ?>
         <div class="hero"><div><p class="eyebrow">Guten Tag, <?= e($currentUser['first_name']) ?></p><h1>Deine Jobs. Dein Prozess.</h1><p>Privat, strukturiert und auf allen Geräten nutzbar.</p></div><a class="button primary" href="/?page=jobs#new">Job erfassen</a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
         <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
+    <?php elseif ($page === 'pendents'): ?>
+        <?php
+        $scope = in_array((string)($_GET['scope'] ?? 'all'), ['all','applications','contacts','calendar'], true) ? (string)$_GET['scope'] : 'all';
+        $state = in_array((string)($_GET['state'] ?? 'all'), ['all','overdue','today','upcoming'], true) ? (string)$_GET['state'] : 'all';
+        $sort = in_array((string)($_GET['sort'] ?? 'due_at'), ['due_at','title','type','status'], true) ? (string)$_GET['sort'] : 'due_at';
+        $dir = sortDirection();
+        $now = new DateTimeImmutable('now', new DateTimeZone((string)($currentUser['timezone'] ?? 'Europe/Zurich')));
+        $todayStart = $now->setTime(0, 0)->format('Y-m-d H:i:s');
+        $todayEnd = $now->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+        $pendents = [];
+        if (in_array($scope, ['all','applications'], true)) {
+            foreach (dbAll($db, 'SELECT a.id, a.status, a.next_action title, a.next_action_at due_at, j.title job_title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL', 'i', [userId()]) as $row) {
+                $pendents[] = ['type'=>'Bewerbung','status'=>(string)$row['status'],'title'=>(string)($row['title'] ?: 'Pendent'),'due_at'=>(string)$row['due_at'],'ref'=>$row['job_title'].' · '.$row['company'],'href'=>'/?page=applications&edit='.(int)$row['id'].'#application-form'];
+            }
+        }
+        if (in_array($scope, ['all','contacts'], true)) {
+            foreach (dbAll($db, 'SELECT l.id, l.contact_id, l.status, l.subject title, l.follow_up_at due_at, c.first_name, c.last_name, co.name company FROM contact_logs l JOIN contacts c ON c.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND l.follow_up_at IS NOT NULL AND l.status IN ("open","planned")', 'i', [userId()]) as $row) {
+                $pendents[] = ['type'=>'Kontakt','status'=>(string)$row['status'],'title'=>(string)($row['title'] ?: 'Kontakt nachfassen'),'due_at'=>(string)$row['due_at'],'ref'=>trim($row['first_name'].' '.$row['last_name'].' · '.$row['company']),'href'=>'/?page=contacts&edit_contact='.(int)$row['contact_id'].'#contact-log'];
+            }
+        }
+        if (in_array($scope, ['all','calendar'], true)) {
+            foreach (dbAll($db, 'SELECT ce.id, ce.title, ce.event_type, ce.status, ce.starts_at due_at, ce.application_id, j.title job_title, c.name company FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? AND ce.status="planned"', 'i', [userId()]) as $row) {
+                $pendents[] = ['type'=>'Kalender','status'=>(string)$row['event_type'],'title'=>(string)$row['title'],'due_at'=>(string)$row['due_at'],'ref'=>trim((string)($row['job_title'] ?? '').' · '.(string)($row['company'] ?? ''), ' ·'),'href'=>!empty($row['application_id'])?'/?page=applications&edit='.(int)$row['application_id'].'#application-form':'/?page=calendar'];
+            }
+        }
+        $pendents = array_values(array_filter($pendents, static function(array $row) use ($state, $todayStart, $todayEnd): bool {
+            $due = (string)$row['due_at'];
+            return match ($state) {
+                'overdue' => $due < $todayStart,
+                'today' => $due >= $todayStart && $due <= $todayEnd,
+                'upcoming' => $due > $todayEnd,
+                default => true,
+            };
+        }));
+        usort($pendents, static function(array $a, array $b) use ($sort, $dir): int {
+            $result = strcmp((string)($a[$sort] ?? ''), (string)($b[$sort] ?? ''));
+            return $dir === 'desc' ? -$result : $result;
+        });
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Pendent</p><h1>Pendent-Zentrale</h1></div><span><?= count($pendents) ?> Einträge</span></div>
+        <form class="filters" method="get"><input type="hidden" name="page" value="pendents"><select name="scope"><option value="all" <?= $scope==='all'?'selected':'' ?>>Alle Bereiche</option><option value="applications" <?= $scope==='applications'?'selected':'' ?>>Bewerbungen</option><option value="contacts" <?= $scope==='contacts'?'selected':'' ?>>Kontakt-Log</option><option value="calendar" <?= $scope==='calendar'?'selected':'' ?>>Kalender</option></select><select name="state"><option value="all" <?= $state==='all'?'selected':'' ?>>Alle Fälligkeiten</option><option value="overdue" <?= $state==='overdue'?'selected':'' ?>>Überfällig</option><option value="today" <?= $state==='today'?'selected':'' ?>>Heute</option><option value="upcoming" <?= $state==='upcoming'?'selected':'' ?>>Anstehend</option></select><select name="sort"><option value="due_at" <?= $sort==='due_at'?'selected':'' ?>>Sort: Fällig</option><option value="title" <?= $sort==='title'?'selected':'' ?>>Sort: Titel</option><option value="type" <?= $sort==='type'?'selected':'' ?>>Sort: Bereich</option><option value="status" <?= $sort==='status'?'selected':'' ?>>Sort: Status</option></select><select name="dir"><option value="asc" <?= $dir==='asc'?'selected':'' ?>>Aufsteigend</option><option value="desc" <?= $dir==='desc'?'selected':'' ?>>Absteigend</option></select><button>Filtern</button></form>
+        <section class="panel table-wrap"><table><thead><tr><th>Fällig</th><th>Bereich</th><th>Titel</th><th>Status</th><th>Bezug</th><th>Aktion</th></tr></thead><tbody><?php foreach($pendents as $item): $isOverdue=(string)$item['due_at'] < $todayStart; ?><tr class="<?= $isOverdue ? 'is-overdue' : '' ?>"><td><?= e(displayDateTime($item['due_at'], $currentUser)) ?></td><td><?= e($item['type']) ?></td><td><strong><?= e($item['title']) ?></strong></td><td><?= e($item['status']) ?></td><td><?= e($item['ref']) ?></td><td><a href="<?= e($item['href']) ?>">Öffnen</a></td></tr><?php endforeach; ?><?php if(!$pendents): ?><tr><td colspan="6" class="empty">Keine Pendent-Einträge für diese Auswahl.</td></tr><?php endif; ?></tbody></table></section>
     <?php elseif ($page === 'sharing'): ?>
         <?php
         $shares = dbAll($db, 'SELECT * FROM guest_shares WHERE owner_user_id=? ORDER BY created_at DESC', 'i', [userId()]);
@@ -2977,9 +3293,33 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $editReport = $editReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$editReportId, userId()]) : null;
         $reportBaseOptions = reportBaseOptions();
         $reportDisplayOptions = reportDisplayOptions();
+        $reportBase = (string)($editReport['base_entity'] ?? 'jobs');
+        $reportFields = reportFieldOptions($reportBase);
+        $reportSettings = $editReport ? loadReportSettings($db, (int)$editReport['id'], $reportBase) : ['columns'=>reportDefaultColumns($reportBase), 'filters'=>[], 'sort'=>['field_name'=>array_key_first($reportFields), 'direction'=>'asc']];
+        $reportStatuses = reportStatusOptions($reportBase);
         ?>
         <div class="page-head"><div><p class="eyebrow">Auswertung</p><h1>Reports & Exporte</h1></div><span><?= count($reports) ?> Reports</span></div>
-        <div class="split"><section class="panel"><h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editReport): ?><input type="hidden" name="report_id" value="<?= (int)$editReport['id'] ?>"><?php endif; ?><label>Name<input name="report_name" value="<?= e($editReport['name'] ?? '') ?>" required></label><label>Beschreibung<textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label><label>Basis<select name="base_entity"><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['base_entity'] ?? 'jobs')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Ansicht<select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= $editReport ? 'Änderungen speichern' : 'Speichern' ?></button><?php if($editReport): ?><a class="button" href="/?page=reports">Neu</a><?php endif; ?></div></form><div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div></section><section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): $exportType = reportExportType($report); ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>">Bearbeiten</a><?php if($exportType): ?><a href="/?page=export_pdf&type=<?= e($exportType) ?>">PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="split">
+            <section class="panel">
+                <h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2>
+                <form method="post" class="stack">
+                    <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                    <?php if($editReport): ?><input type="hidden" name="report_id" value="<?= (int)$editReport['id'] ?>"><?php endif; ?>
+                    <label>Name<input name="report_name" value="<?= e($editReport['name'] ?? '') ?>" required></label>
+                    <label>Beschreibung<textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label>
+                    <div class="two">
+                        <label>Basis<select name="base_entity"><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= $reportBase===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                        <label>Ansicht<select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                    </div>
+                    <fieldset class="report-config"><legend>Spalten</legend><?php foreach($reportFields as $field=>$label): ?><label class="check"><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
+                    <div class="two"><label>Filtertext<input name="report_q" value="<?= e((string)($reportSettings['filters']['q'] ?? '')) ?>" placeholder="Text in allen Spalten"></label><label>Status<select name="report_status"><option value="">Alle</option><?php foreach($reportStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($reportSettings['filters']['status'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
+                    <div class="two"><label>Sortieren nach<select name="report_sort"><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label>Richtung<select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>>Aufsteigend</option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>>Absteigend</option></select></label></div>
+                    <div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= $editReport ? 'Änderungen speichern' : 'Speichern' ?></button><?php if($editReport): ?><a class="button" href="/?page=reports">Neu</a><a class="button" href="/?page=export_pdf&type=report&report_id=<?= (int)$editReport['id'] ?>">PDF</a><?php endif; ?></div>
+                </form>
+                <div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div>
+            </section>
+            <section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>">Bearbeiten</a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section>
+        </div>
     <?php elseif ($page === 'calendar'): ?>
         <?php
         $calendarViews = calendarViewOptions();
@@ -3007,6 +3347,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             $eventsByDate[substr((string)$entry['starts_at'], 0, 10)][] = $entry;
         }
         $viewUrl = static fn(string $view, string $date): string => '/?page=calendar&view=' . urlencode($view) . '&date=' . urlencode($date);
+        $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
+        $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · KW ' . $weekNo,
@@ -3028,12 +3370,12 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <h2>Agenda</h2><form class="filters" method="get"><input type="hidden" name="page" value="calendar"><input type="hidden" name="view" value="agenda"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="sort"><option value="starts_at" <?= $calendarSort==='starts_at'?'selected':'' ?>>Sort: Zeit</option><option value="title" <?= $calendarSort==='title'?'selected':'' ?>>Sort: Titel</option><option value="type" <?= $calendarSort==='type'?'selected':'' ?>>Sort: Typ</option><option value="status" <?= $calendarSort==='status'?'selected':'' ?>>Sort: Status</option></select><select name="dir"><option value="asc" <?= $calendarDir==='asc'?'selected':'' ?>>Aufsteigend</option><option value="desc" <?= $calendarDir==='desc'?'selected':'' ?>>Absteigend</option></select><button>Sortieren</button></form><div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Ereignis</th><th>Typ</th><th>Status</th><th>Bezug</th></tr></thead><tbody><?php foreach($calendarEvents as $event): ?><tr><td><?= e(displayDateTime($event['starts_at'], $currentUser)) ?></td><td><a href="<?= e($event['href']) ?>"><?= e($event['title']) ?></a></td><td><?= e($event['type']) ?></td><td><?= e($event['status']) ?></td><td><?= e($event['meta']) ?></td></tr><?php endforeach; ?><?php if(!$calendarEvents): ?><tr><td colspan="5" class="empty">Keine Termine oder Wiedervorlagen.</td></tr><?php endif; ?></tbody></table></div>
         <?php elseif(in_array($calendarView, ['day','workweek','week'], true)): ?>
             <?php $days=[]; for($d=$rangeStart; $d <= $rangeEnd; $d=$d->modify('+1 day')) { $days[]=$d; } ?>
-            <h2><?= $calendarView==='day' ? 'Tagesplan' : ($calendarView==='workweek' ? 'Arbeitswochenplan' : 'Wochenplan') ?> · KW <?= e($weekNo) ?></h2><div class="time-grid" style="--day-count:<?= count($days) ?>;--matrix-min:<?= count($days) === 1 ? '520px' : (count($days) === 5 ? '980px' : '1180px') ?>"><div class="time-head"></div><?php foreach($days as $day): ?><div class="time-day-head"><?= e(($weekdayNames[$day->format('D')] ?? $day->format('D')) . ', ' . $day->format('d.m.')) ?></div><?php endforeach; ?><?php foreach($hours as $hour): ?><div class="time-slot"><?= sprintf('%02d:00', $hour) ?></div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $hourEvents=array_values(array_filter($eventsByDate[$dateKey] ?? [], static fn(array $ev): bool => (int)date('G', strtotime((string)$ev['starts_at'])) === $hour)); ?><div class="time-cell"><?php foreach($hourEvents as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+            <h2><?= $calendarView==='day' ? 'Tagesplan' : ($calendarView==='workweek' ? 'Arbeitswochenplan' : 'Wochenplan') ?> · KW <?= e($weekNo) ?></h2><div class="time-grid" style="--day-count:<?= count($days) ?>;--matrix-min:<?= count($days) === 1 ? '520px' : (count($days) === 5 ? '980px' : '1180px') ?>"><div class="time-head"></div><?php foreach($days as $day): ?><div class="time-day-head"><?= e(($weekdayNames[$day->format('D')] ?? $day->format('D')) . ', ' . $day->format('d.m.')) ?></div><?php endforeach; ?><?php foreach($hours as $hour): ?><div class="time-slot"><?= sprintf('%02d:00', $hour) ?></div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $slotStart=$dateKey.'T'.sprintf('%02d:00',$hour); $hourEvents=array_values(array_filter($eventsByDate[$dateKey] ?? [], static fn(array $ev): bool => (int)date('G', strtotime((string)$ev['starts_at'])) === $hour)); ?><div class="time-cell"><a class="calendar-add" href="<?= e($newEntryUrl($slotStart)) ?>">+</a><?php foreach($hourEvents as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php else: ?>
             <?php $monthStart=$rangeStart->modify('monday this week'); $monthEnd=$rangeEnd->modify('sunday this week'); $monthDays=[]; for($d=$monthStart; $d <= $monthEnd; $d=$d->modify('+1 day')) { $monthDays[]=$d; } ?>
-            <h2>Monatsplan <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head">KW</div><?php foreach(['Mo','Di','Mi','Do','Fr','Sa','So'] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><strong><?= e($day->format('d.m.')) ?></strong><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+            <h2>Monatsplan <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head">KW</div><?php foreach(['Mo','Di','Mi','Do','Fr','Sa','So'] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><div class="month-day-top"><strong><?= e($day->format('d.m.')) ?></strong><a class="calendar-add" href="<?= e($newEntryUrl($dateKey.'T09:00')) ?>">+</a></div><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php endif; ?>
-        </section><details class="panel calendar-entry-panel"><summary>Eintrag erstellen</summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></details>
+        </section><details class="panel calendar-entry-panel" id="new-calendar-entry" <?= $newStart !== '' ? 'open' : '' ?>><summary>Eintrag erstellen</summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" value="<?= e($newStart) ?>" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></details>
     <?php elseif ($page === 'translations'): ?>
         <?php $translations = dbAll($db, 'SELECT id, entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version, is_current, updated_at FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]); ?>
         <div class="page-head"><div><p class="eyebrow">Sprache</p><h1>Übersetzungen</h1></div><span><?= count($translations) ?> Versionen</span></div>
@@ -3326,7 +3668,10 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
         $selectedContactId = (int) ($_GET['contact'] ?? ($applicationEdit['primary_contact_id'] ?? 0));
         $contactEdit = $selectedContactId > 0 && $applicationEdit ? dbOne($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND (company_id=? OR company_id=? OR application_id=? OR job_id=?) AND deleted_at IS NULL', 'iiiiii', [$selectedContactId, userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : null;
-        $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
+        $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, contact_id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
+        $contactAttachments = $contactEdit ? contactLogAttachments($db, userId(), (int)$contactEdit['id']) : [];
+        $editLogId = (int) ($_GET['edit_log'] ?? 0);
+        $editLog = $editLogId > 0 ? dbOne($db, 'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE id=? AND owner_user_id=? AND contact_id=?', 'iii', [$editLogId, userId(), (int)($contactEdit['id'] ?? 0)]) : null;
         $documentTypes = $applicationEdit ? dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id') : [];
         $applicationDocumentTypes = $applicationEdit ? documentTypesForScope($documentTypes, 'application') : [];
         $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND ((d.scope='application' AND d.application_id=?) OR d.scope='profile') AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
@@ -3431,7 +3776,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             </section>
             <section class="panel"><h2>Zugeordnete Kontakte</h2><div class="contact-list"><?php foreach($contacts as $contact): ?><article class="<?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'is-primary':'' ?> <?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><small><?= e($contact['contact_company_name']) ?> · Firma<?php if((int)$contact['job_id']===(int)$applicationEdit['job_id']): ?> · Job<?php endif; ?><?php if((int)($contact['application_id'] ?? 0)===(int)$applicationEdit['id']): ?> · Bewerbung<?php endif; ?></small><strong><a class="record-link" href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>&contact=<?= (int)$contact['id'] ?>#contacts"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?></article><?php endforeach; ?><?php if(!$contacts): ?><p class="empty">Noch keine Kontakte für Arbeitgeber, Job oder Bewerbung.</p><?php endif; ?></div></section>
         </section>
-        <?php if($contactEdit): ?><section class="panel contact-log" id="contact-log"><div class="section-head"><div><p class="eyebrow">Kontakt-Log</p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><div class="three"><label>Kanal<select name="log_channel"><?php foreach($contactLogChannels as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Richtung<select name="direction"><option value="outgoing">Ausgehend</option><option value="incoming">Eingehend</option><option value="internal">Intern</option></select></label><label>Status<select name="log_status"><?php foreach($contactLogStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= $v==='open'?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div><div class="two"><label>Aktionszeitpunkt<input type="datetime-local" name="occurred_at" value="<?= date('Y-m-d\TH:i') ?>" required></label><label>Wiedervorlage / nächster Termin<input type="datetime-local" name="follow_up_at"></label></div><label>Betreff<input name="subject"></label><label>Mitteilung<textarea name="log_body" rows="5"></textarea></label><div class="two"><label>Ergebnis / nächster Schritt<input name="outcome"></label><label>Anhang<input type="file" name="log_attachment"></label></div><button class="primary" name="action" value="save_contact_log">Aktivität speichern</button></form><div class="log-timeline"><?php foreach($contactLogs as $entry): ?><article class="log-status-<?= e($entry['status']) ?>"><div><strong><?= e($entry['subject'] ?: ($contactLogChannels[$entry['channel']] ?? ucfirst((string)$entry['channel']))) ?></strong><span><?= e(($contactLogStatuses[$entry['status']] ?? $entry['status']).' · '.($contactLogChannels[$entry['channel']] ?? $entry['channel']).' · '.$entry['direction'].' · '.displayDateTime($entry['occurred_at'], $currentUser)) ?></span></div><?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?><?php if($entry['outcome']): ?><small>Ergebnis / nächster Schritt: <?= e($entry['outcome']) ?></small><?php endif; ?><?php if($entry['follow_up_at']): ?><small>Wiedervorlage: <?= e(displayDateTime($entry['follow_up_at'], $currentUser)) ?></small><?php endif; ?></article><?php endforeach; ?><?php if(!$contactLogs): ?><p class="empty">Noch keine Kontaktaktivitäten.</p><?php endif; ?></div></section><?php endif; ?>
+        <?php if($contactEdit): ?><section class="panel contact-log" id="contact-log"><div class="section-head"><div><p class="eyebrow">Kontakt-Log</p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><?= contactLogFormHtml($editLog, (int)$applicationEdit['id'], (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser, (int)$applicationEdit['id']) ?></section><?php endif; ?>
         <?php endif; ?>
         <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><th>Job</th><th>Firma</th><th>Status</th><th>Kanal</th><th>Nächster Schritt</th><th>Aktionen</th></tr></thead><tbody><?php foreach($apps as $app): ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong><small><?= e($app['applied_at'] ? displayDateTime($app['applied_at'], $currentUser) : '') ?></small></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small>über <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e($app['channel']) ?></td><td><?= e($app['next_action']) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="6" class="empty">Keine Treffer.</td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · über <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung starten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section><?php endif; ?>
     <?php elseif ($page === 'contacts'): ?>
@@ -3442,8 +3787,10 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         $contactEdit=$contactEditId>0 ? dbOne($db,'SELECT id, company_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL','ii',[$contactEditId,userId()]) : null;
         $contactLogStatuses=contactLogStatusOptions();
         $contactLogChannels=contactLogChannelOptions();
-        $contactLogs=$contactEdit ? dbAll($db,'SELECT id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC','ii',[userId(),(int)$contactEdit['id']]) : [];
-        $contactAttachments=$contactEdit ? dbAll($db,'SELECT id, title, original_filename, description FROM user_documents WHERE user_id=? AND deleted_at IS NULL AND description LIKE ? ORDER BY created_at DESC','is',[userId(),'%Kontakt '.$contactEdit['first_name'].' '.$contactEdit['last_name'].' / Kontakt-Log %']) : [];
+        $contactLogs=$contactEdit ? dbAll($db,'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC','ii',[userId(),(int)$contactEdit['id']]) : [];
+        $contactAttachments=$contactEdit ? contactLogAttachments($db, userId(), (int)$contactEdit['id']) : [];
+        $editLogId=(int)($_GET['edit_log'] ?? 0);
+        $editLog=$editLogId > 0 ? dbOne($db,'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE id=? AND owner_user_id=? AND contact_id=?','iii',[$editLogId,userId(),(int)($contactEdit['id'] ?? 0)]) : null;
         $contactSql='SELECT ct.*, c.name company_name, j.title job_title, a.status application_status, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=ct.id AND l.owner_user_id=ct.owner_user_id) log_count, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=ct.id AND l.owner_user_id=ct.owner_user_id AND l.status IN ("planned","open")) open_log_count FROM contacts ct JOIN companies c ON c.id=ct.company_id LEFT JOIN jobs j ON j.id=ct.job_id LEFT JOIN applications a ON a.id=ct.application_id WHERE ct.owner_user_id=? AND ct.deleted_at IS NULL'; $contactTypes='i'; $contactVals=[userId()];
         if($contactCompanyFilter>0){ $contactSql.=' AND ct.company_id=?'; $contactTypes.='i'; $contactVals[]=$contactCompanyFilter; }
         if($contactQ !== ''){ $contactSql.=' AND (ct.first_name LIKE ? OR ct.last_name LIKE ? OR ct.email LIKE ? OR c.name LIKE ?)'; $like="%$contactQ%"; $contactTypes.='ssss'; array_push($contactVals,$like,$like,$like,$like); }
@@ -3453,7 +3800,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="page-head"><div><p class="eyebrow">CRM</p><h1>Kontakte</h1></div><span><?= count($contactRows) ?> Einträge</span></div>
         <form class="filters" method="get"><input type="hidden" name="page" value="contacts"><input type="hidden" name="company_id" value="<?= $contactCompanyFilter ?: '' ?>"><input name="q" value="<?= e($contactQ) ?>" placeholder="Name, Firma oder E-Mail"><select name="sort"><option value="name" <?= $contactSort==='name'?'selected':'' ?>>Sort: Name</option><option value="company" <?= $contactSort==='company'?'selected':'' ?>>Sort: Firma</option><option value="email" <?= $contactSort==='email'?'selected':'' ?>>Sort: E-Mail</option><option value="updated_at" <?= $contactSort==='updated_at'?'selected':'' ?>>Sort: Aktualisiert</option></select><select name="dir"><option value="asc" <?= $contactDir==='asc'?'selected':'' ?>>Aufsteigend</option><option value="desc" <?= $contactDir==='desc'?'selected':'' ?>>Absteigend</option></select><button>Filtern</button><a class="button" href="/?page=export_pdf&type=contacts">PDF</a></form>
         <?php if($contactCompany): ?><p class="filter-note">Kontakte bei <a href="/?page=companies&edit=<?= (int)$contactCompany['id'] ?>"><?= e($contactCompany['name']) ?></a> · <a href="/?page=contacts">Alle Kontakte anzeigen</a></p><?php endif; ?>
-        <div class="split"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><div class="three"><label>Kanal<select name="log_channel"><?php foreach($contactLogChannels as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Richtung<select name="direction"><option value="outgoing">Ausgehend</option><option value="incoming">Eingehend</option><option value="internal">Intern</option></select></label><label>Status<select name="log_status"><?php foreach($contactLogStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= $v==='open'?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div><div class="two"><label>Datum/Uhrzeit<input type="datetime-local" name="occurred_at" value="<?= date('Y-m-d\TH:i') ?>" required></label><label>Wiedervorlage<input type="datetime-local" name="follow_up_at"></label></div><label>Betreff<input name="subject"></label><label>Mitteilung<textarea name="log_body" rows="5"></textarea></label><div class="two"><label>Ergebnis / nächster Schritt<input name="outcome"></label><label>Anhang<input type="file" name="log_attachment"></label></div><button class="primary" name="action" value="save_contact_log">Aktivität speichern</button></form><div class="log-timeline"><?php foreach($contactLogs as $entry): $entryAttachments=array_values(array_filter($contactAttachments, static fn(array $doc): bool => str_contains((string)$doc['description'], 'Kontakt-Log '.(string)$entry['id']))); ?><article class="log-status-<?= e($entry['status']) ?>"><div><strong><?= e($entry['subject'] ?: ($contactLogChannels[$entry['channel']] ?? ucfirst((string)$entry['channel']))) ?></strong><span><?= e(($contactLogStatuses[$entry['status']] ?? $entry['status']).' · '.($contactLogChannels[$entry['channel']] ?? $entry['channel']).' · '.$entry['direction'].' · '.displayDateTime($entry['occurred_at'], $currentUser)) ?></span></div><?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?><?php if($entry['outcome']): ?><small>Ergebnis / nächster Schritt: <?= e($entry['outcome']) ?></small><?php endif; ?><?php if($entry['follow_up_at']): ?><small>Wiedervorlage: <?= e(displayDateTime($entry['follow_up_at'], $currentUser)) ?></small><?php endif; ?><?php foreach($entryAttachments as $doc): ?><small>Anhang: <a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['original_filename']) ?></a></small><?php endforeach; ?></article><?php endforeach; ?><?php if(!$contactLogs): ?><p class="empty">Noch keine Kontaktaktivitäten.</p><?php endif; ?></div></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><th>Kontakt</th><th>Firma</th><th>Erreichbar</th><th>CRM-Bezug</th><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="split"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><th>Kontakt</th><th>Firma</th><th>Erreichbar</th><th>CRM-Bezug</th><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
