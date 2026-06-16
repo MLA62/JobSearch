@@ -404,24 +404,84 @@ function pdfEscape(string $value): string
 
 function pdfResponse(string $filename, string $title, array $headers, array $rows): never
 {
-    $lines = [$title, str_repeat('-', min(90, strlen($title) + 8)), implode(' | ', $headers)];
-    foreach ($rows as $row) {
-        $lines[] = implode(' | ', array_map(static fn($value): string => mb_strimwidth((string) $value, 0, 42, '...'), $row));
-    }
     $objects = [];
     $pages = [];
-    $chunks = array_chunk($lines, 44);
     $fontObjectNo = 3;
-    foreach ($chunks as $chunk) {
-        $content = "BT /F1 9 Tf 36 806 Td 12 TL\n";
-        foreach ($chunk as $line) {
-            $content .= '(' . pdfEscape($line) . ") Tj T*\n";
+
+    $pageWidth = 842;
+    $pageHeight = 595;
+    $margin = 32;
+    $tableWidth = $pageWidth - ($margin * 2);
+    $headerHeight = 24;
+    $rowHeight = 23;
+    $tableTop = 500;
+    $rowsPerPage = 18;
+    $columnCount = max(1, count($headers));
+    $weights = [];
+    foreach ($headers as $index => $header) {
+        $max = mb_strlen((string) $header);
+        foreach (array_slice($rows, 0, 60) as $row) {
+            $max = max($max, mb_strlen((string) ($row[$index] ?? '')));
         }
-        $content .= "ET";
+        $weights[] = max(5, min(26, $max));
+    }
+    $weightTotal = array_sum($weights) ?: $columnCount;
+    $widths = [];
+    $remaining = $tableWidth;
+    foreach ($weights as $index => $weight) {
+        $width = $index === $columnCount - 1 ? $remaining : round($tableWidth * ($weight / $weightTotal), 2);
+        $width = max(42, $width);
+        $widths[] = $width;
+        $remaining -= $width;
+    }
+    if ($remaining < 0) {
+        $scale = $tableWidth / array_sum($widths);
+        foreach ($widths as $index => $width) {
+            $widths[$index] = round($width * $scale, 2);
+        }
+    }
+
+    $chunks = array_chunk($rows ?: [array_fill(0, $columnCount, '')], $rowsPerPage);
+    $pageTotal = count($chunks);
+    foreach ($chunks as $pageIndex => $chunk) {
+        $content = "0.09 0.13 0.16 rg\nBT /F1 18 Tf {$margin} 548 Td (" . pdfEscape($title) . ") Tj ET\n";
+        $content .= "0.39 0.45 0.48 rg\nBT /F1 8 Tf {$margin} 529 Td (Erstellt am " . pdfEscape(date('d.m.Y H:i')) . " | Seite " . ($pageIndex + 1) . " von {$pageTotal}) Tj ET\n";
+
+        $x = $margin;
+        $headerY = $tableTop - $headerHeight;
+        $content .= "0.91 0.94 0.95 rg {$margin} {$headerY} {$tableWidth} {$headerHeight} re f\n";
+        $content .= "0.62 0.67 0.70 RG 0.7 w {$margin} {$headerY} {$tableWidth} {$headerHeight} re S\n";
+        foreach ($headers as $index => $header) {
+            $width = $widths[$index] ?? ($tableWidth / $columnCount);
+            $text = mb_strimwidth((string) $header, 0, max(4, (int) floor(($width - 10) / 4.5)), '...');
+            $content .= "0.09 0.13 0.16 rg\nBT /F1 8.5 Tf " . ($x + 5) . ' ' . ($headerY + 9) . ' Td (' . pdfEscape($text) . ") Tj ET\n";
+            if ($index > 0) {
+                $content .= "0.62 0.67 0.70 RG {$x} {$headerY} m {$x} " . ($headerY + $headerHeight) . " l S\n";
+            }
+            $x += $width;
+        }
+
+        foreach ($chunk as $rowIndex => $row) {
+            $rowY = $headerY - (($rowIndex + 1) * $rowHeight);
+            $fill = $rowIndex % 2 === 0 ? '1 1 1' : '0.97 0.98 0.98';
+            $content .= "{$fill} rg {$margin} {$rowY} {$tableWidth} {$rowHeight} re f\n";
+            $content .= "0.82 0.85 0.86 RG 0.45 w {$margin} {$rowY} {$tableWidth} {$rowHeight} re S\n";
+            $x = $margin;
+            for ($index = 0; $index < $columnCount; $index++) {
+                $width = $widths[$index] ?? ($tableWidth / $columnCount);
+                $value = is_array($row) ? ($row[$index] ?? '') : '';
+                $text = mb_strimwidth((string) $value, 0, max(4, (int) floor(($width - 10) / 4.1)), '...');
+                if ($index > 0) {
+                    $content .= "0.82 0.85 0.86 RG {$x} {$rowY} m {$x} " . ($rowY + $rowHeight) . " l S\n";
+                }
+                $content .= "0.10 0.13 0.16 rg\nBT /F1 8 Tf " . ($x + 5) . ' ' . ($rowY + 8) . ' Td (' . pdfEscape($text) . ") Tj ET\n";
+                $x += $width;
+            }
+        }
         $contentNo = count($objects) + 4;
         $pageNo = $contentNo + 1;
         $objects[$contentNo] = "<< /Length " . strlen($content) . " >>\nstream\n{$content}\nendstream";
-        $objects[$pageNo] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 {$fontObjectNo} 0 R >> >> /Contents {$contentNo} 0 R >>";
+        $objects[$pageNo] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {$pageWidth} {$pageHeight}] /Resources << /Font << /F1 {$fontObjectNo} 0 R >> >> /Contents {$contentNo} 0 R >>";
         $pages[] = $pageNo . ' 0 R';
     }
     $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
