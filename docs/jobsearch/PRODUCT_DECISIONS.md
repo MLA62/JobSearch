@@ -11,14 +11,15 @@ Status: 2026-06-15
 - Email codes are recovery-only and expire after 10 minutes for guest access.
 - Initial administrator: Markus Lauber, German UI, `admin@jema.business`.
 - Central outbound SMTP account: `admin@jobs.jema.business`.
-- During the prototype phase no outbound email is sent; email contents are stored
-  only as drafts for manual copy/paste.
+- Outbound email is sent through the configured central SMTP account when
+  `smtp_enabled` is active. Without SMTP configuration the prototype keeps email
+  contents visible in the UI for manual copy/paste or direct testing.
 - During the open test phase, newly registered test users are activated
   immediately and may log in without email verification or administrator
   approval. The verification and approval flow remains a later hardening step.
-- Password reset tokens are already stored hashed and expire after one hour. In
-  the open test phase the reset link is shown directly after request because
-  outbound email is disabled.
+- Password reset tokens are stored hashed and expire after one hour. With SMTP
+  enabled the reset link is sent by email; otherwise it is shown directly after
+  request for prototype testing.
 
 ## Privacy and sharing
 

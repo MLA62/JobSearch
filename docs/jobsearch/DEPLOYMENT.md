@@ -33,6 +33,26 @@
 
 Never commit FTP, database, SMTP, API or application secrets to Git.
 
+## SMTP configuration
+
+Set these values in `public/config.php` on the server when outbound mail should
+be active:
+
+```php
+'mail_from' => 'admin@jobs.jema.business',
+'mail_from_name' => 'JeMa Jobs',
+'smtp_enabled' => true,
+'smtp_host' => 'smtp.example.com',
+'smtp_port' => 587,
+'smtp_encryption' => 'tls',
+'smtp_username' => 'admin@jobs.jema.business',
+'smtp_password' => 'replace-on-server',
+```
+
+Supported `smtp_encryption` values are `tls`, `ssl` and `none`. While
+`smtp_enabled` is false or SMTP details are missing, password reset links remain
+visible in the prototype UI and no email is sent.
+
 The FTP password supplied during initial planning was exposed in conversation
 and must be replaced before it is used for deployment. Prefer SFTP/SSH with a
 restricted key; otherwise use explicit FTPS with a newly generated password.

@@ -75,14 +75,137 @@ function flash(string $message, string $type = 'success'): void
     $_SESSION['flash'] = ['message' => $message, 'type' => $type];
 }
 
-function outboundEmailEnabled(): bool
+function outboundEmailEnabled(array $config): bool
 {
-    return false;
+    return !empty($config['smtp_enabled'])
+        && trim((string) ($config['smtp_host'] ?? '')) !== ''
+        && trim((string) ($config['mail_from'] ?? '')) !== '';
 }
 
 function appUrl(array $config): string
 {
     return rtrim((string) ($config['app_url'] ?? ''), '/');
+}
+
+function mailFromName(array $config): string
+{
+    return trim((string) ($config['mail_from_name'] ?? $config['app_name'] ?? 'JeMa Jobs'));
+}
+
+function encodeMailHeader(string $value): string
+{
+    if (preg_match('/^[\x20-\x7E]*$/', $value) === 1) {
+        return $value;
+    }
+    if (function_exists('mb_encode_mimeheader')) {
+        return mb_encode_mimeheader($value, 'UTF-8', 'B', "\r\n");
+    }
+    return '=?UTF-8?B?' . base64_encode($value) . '?=';
+}
+
+function smtpReadResponse($stream, array $acceptedCodes): string
+{
+    $response = '';
+    do {
+        $line = fgets($stream, 2048);
+        if ($line === false) {
+            throw new RuntimeException('SMTP-Server hat die Verbindung unerwartet beendet.');
+        }
+        $response .= $line;
+    } while (isset($line[3]) && $line[3] === '-');
+
+    $code = (int) substr($response, 0, 3);
+    if (!in_array($code, $acceptedCodes, true)) {
+        throw new RuntimeException('SMTP-Fehler: ' . trim($response));
+    }
+    return $response;
+}
+
+function smtpCommand($stream, string $command, array $acceptedCodes): string
+{
+    if (fwrite($stream, $command . "\r\n") === false) {
+        throw new RuntimeException('SMTP-Befehl konnte nicht gesendet werden.');
+    }
+    return smtpReadResponse($stream, $acceptedCodes);
+}
+
+function dotStuff(string $body): string
+{
+    $body = str_replace(["\r\n", "\r"], "\n", $body);
+    $body = str_replace("\n.", "\n..", $body);
+    if (str_starts_with($body, '.')) {
+        $body = '.' . $body;
+    }
+    return str_replace("\n", "\r\n", $body);
+}
+
+function sendSmtpMail(array $config, string $to, string $subject, string $textBody): void
+{
+    $host = trim((string) ($config['smtp_host'] ?? ''));
+    $from = trim((string) ($config['mail_from'] ?? ''));
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL) || !filter_var($from, FILTER_VALIDATE_EMAIL) || $host === '') {
+        throw new RuntimeException('SMTP-Konfiguration oder Empfängeradresse ist ungültig.');
+    }
+
+    $encryption = strtolower(trim((string) ($config['smtp_encryption'] ?? 'tls')));
+    $port = (int) ($config['smtp_port'] ?? ($encryption === 'ssl' ? 465 : 587));
+    $target = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
+    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT);
+    if (!is_resource($stream)) {
+        throw new RuntimeException('SMTP-Verbindung fehlgeschlagen: ' . $errstr);
+    }
+    stream_set_timeout($stream, 30);
+
+    try {
+        smtpReadResponse($stream, [220]);
+        $domain = parse_url(appUrl($config), PHP_URL_HOST) ?: ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        smtpCommand($stream, 'EHLO ' . $domain, [250]);
+        if ($encryption === 'tls') {
+            smtpCommand($stream, 'STARTTLS', [220]);
+            if (!stream_socket_enable_crypto($stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new RuntimeException('SMTP STARTTLS konnte nicht aktiviert werden.');
+            }
+            smtpCommand($stream, 'EHLO ' . $domain, [250]);
+        }
+
+        $username = (string) ($config['smtp_username'] ?? '');
+        if ($username !== '') {
+            smtpCommand($stream, 'AUTH LOGIN', [334]);
+            smtpCommand($stream, base64_encode($username), [334]);
+            smtpCommand($stream, base64_encode((string) ($config['smtp_password'] ?? '')), [235]);
+        }
+
+        smtpCommand($stream, 'MAIL FROM:<' . $from . '>', [250]);
+        smtpCommand($stream, 'RCPT TO:<' . $to . '>', [250, 251]);
+        smtpCommand($stream, 'DATA', [354]);
+
+        $fromHeader = encodeMailHeader(mailFromName($config)) . ' <' . $from . '>';
+        $headers = [
+            'Date: ' . date(DATE_RFC2822),
+            'From: ' . $fromHeader,
+            'To: <' . $to . '>',
+            'Subject: ' . encodeMailHeader($subject),
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: 8bit',
+        ];
+        smtpCommand($stream, implode("\r\n", $headers) . "\r\n\r\n" . dotStuff($textBody) . "\r\n.", [250]);
+        smtpCommand($stream, 'QUIT', [221]);
+    } finally {
+        fclose($stream);
+    }
+}
+
+function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $subject, string $body, string $status, ?string $error = null): void
+{
+    try {
+        $sentAt = $status === 'sent' ? date('Y-m-d H:i:s') : null;
+        $stmt = $db->prepare('INSERT INTO outbound_emails (owner_user_id, recipient_email, subject, body_text, status, sent_at, error_message) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('issssss', $userId, $recipient, $subject, $body, $status, $sentAt, $error);
+        $stmt->execute();
+    } catch (Throwable) {
+        // Mail logging must never block account recovery.
+    }
 }
 
 function localeForCountry(?string $countryCode): string
@@ -848,8 +971,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('isss', $user['id'], $tokenType, $tokenHash, $expiresAt);
             $stmt->execute();
             $resetPath = '/?page=reset_password&token=' . urlencode($token);
-            $_SESSION['password_reset_link'] = (appUrl($config) ?: '') . $resetPath;
-            $_SESSION['password_reset_notice'] = 'Reset-Link wurde erstellt.';
+            $resetLink = (appUrl($config) ?: '') . $resetPath;
+            $subject = 'Passwort fur JeMa Jobs zurucksetzen';
+            $body = "Hallo\n\nfur dein JeMa Jobs Konto wurde ein Passwort-Reset angefordert.\n\nBitte offne diesen Link innerhalb von 60 Minuten:\n" . $resetLink . "\n\nWenn du den Reset nicht angefordert hast, kannst du diese Nachricht ignorieren.\n";
+            if (outboundEmailEnabled($config)) {
+                try {
+                    sendSmtpMail($config, $email, $subject, $body);
+                    $_SESSION['password_reset_notice'] = 'Reset-Link wurde per E-Mail versendet.';
+                    logOutboundEmail($db, (int) $user['id'], $email, $subject, $body, 'sent');
+                } catch (Throwable $exception) {
+                    $_SESSION['password_reset_notice'] = 'E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.';
+                    logOutboundEmail($db, (int) $user['id'], $email, $subject, $body, 'failed', $exception->getMessage());
+                }
+            } else {
+                $_SESSION['password_reset_link'] = $resetLink;
+                $_SESSION['password_reset_notice'] = 'Reset-Link wurde erstellt.';
+            }
             audit($db, (int) $user['id'], 'other', 'auth_token', (int) $stmt->insert_id, null, ['token_type' => 'password_reset']);
         } else {
             $_SESSION['password_reset_notice'] = 'Testphase: Für diese E-Mail wurde kein aktives Konto gefunden.';
@@ -2042,7 +2179,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                     <label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label>
                 </div>
                 <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
-                <?php if(!outboundEmailEnabled()): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?>
+                <?php if(!outboundEmailEnabled($config)): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?>
                 <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
                 <label>Motivationsschreiben<textarea name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small>Das Feld enthält einen ChatGPT-Prompt, weil noch kein Motivationsschreiben gespeichert ist. Kopieren, in ChatGPT verwenden, Ergebnis hier einfügen und speichern.</small><?php endif; ?></label>
