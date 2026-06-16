@@ -13,6 +13,9 @@ Status: 2026-06-15
 - Central outbound SMTP account: `admin@jobs.jema.business`.
 - During the prototype phase no outbound email is sent; email contents are stored
   only as drafts for manual copy/paste.
+- During the open test phase, newly registered test users are activated
+  immediately and may log in without email verification or administrator
+  approval. The verification and approval flow remains a later hardening step.
 
 ## Privacy and sharing
 

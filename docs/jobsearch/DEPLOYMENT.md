@@ -26,6 +26,9 @@
 - cPanel cron capability for queued email, reminders and job imports.
 - Confirmation that PHP CLI is available and whether Composer can run on the
   server. If not, vendor dependencies must be built locally and uploaded.
+- Chromium, Google Chrome or another Chromium-compatible browser must be
+  available to the PHP CLI for original job PDF rendering. Configure its path as
+  `job_pdf_browser_path` in `public/config.php` if auto-detection is not enough.
 - TLS must be active for the final domain before login or file upload testing.
 
 Never commit FTP, database, SMTP, API or application secrets to Git.
@@ -41,6 +44,28 @@ through a short-lived FTPS deployment. It accepts POST requests only, requires
 a random installation token, blocks direct access to SQL/config files, removes
 its runtime configuration after success and writes a lock file. Delete the
 entire installer directory from the server immediately after verification.
+
+## Original job PDF worker
+
+New jobs imported with a source URL are saved with `original_pdf_status =
+pending`. A server-side worker renders those source pages with a headless browser
+and attaches the resulting PDF as `Originale Stellenausschreibung`.
+
+Run manually from the project root:
+
+```sh
+php deploy/render-pending-job-pdfs.php --limit=5
+```
+
+Recommended cron shape once PHP CLI and Chromium are confirmed:
+
+```sh
+*/10 * * * * cd /home/kerubina/jobs.jema.business && php deploy/render-pending-job-pdfs.php --limit=5 >> var/log/job-pdf-render.log 2>&1
+```
+
+Use `--dry-run` to list pending jobs without rendering. Use
+`--browser=/path/to/chrome` or `job_pdf_browser_path` in `public/config.php`
+when the browser is not in a standard location.
 
 ### Installation record
 

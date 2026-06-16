@@ -4,11 +4,14 @@ return [
     'app_name' => 'JeMa Jobs',
     'app_url' => 'https://jobs.jema.business',
     'app_key' => 'replace-with-64-random-hex-characters',
+    'admin_emails' => ['admin@jema.business'],
     'db_host' => 'localhost',
     'db_port' => 3306,
     'db_name' => 'kerubina_JeMaJobs',
     'db_user' => 'kerubina_JeMaJobs',
     'db_password' => 'replace-on-server',
     'mail_from' => 'admin@jobs.jema.business',
+    'job_pdf_browser_path' => '/usr/bin/chromium',
+    'job_pdf_render_limit' => 5,
+    'job_pdf_render_timeout' => 60,
 ];
-

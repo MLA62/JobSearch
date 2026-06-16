@@ -158,7 +158,7 @@ function uploadDocumentFile(array $file, int $userId): array
     if (!in_array($extension, $allowed, true)) {
         throw new RuntimeException('Dateityp ist noch nicht erlaubt.');
     }
-    ensureDocumentStorage($userId);
+    $dir = ensureDocumentStorage($userId);
     $name = bin2hex(random_bytes(18)) . '.' . $extension;
     $target = $dir . '/' . $name;
     if (!move_uploaded_file((string) $file['tmp_name'], $target)) {
@@ -222,6 +222,25 @@ function statementRows(mysqli_stmt $stmt, ?int $limit = null): array
         }
     }
     return $rows;
+}
+
+function isAdmin(mysqli $db, int $userId, array $config = []): bool
+{
+    if ($userId < 1) {
+        return false;
+    }
+    $user = dbOne($db, 'SELECT email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$userId]);
+    $adminEmails = array_map('strtolower', (array) ($config['admin_emails'] ?? ['admin@jema.business']));
+    if ($user && in_array(strtolower((string) $user['email']), $adminEmails, true)) {
+        return true;
+    }
+    $role = dbOne(
+        $db,
+        "SELECT 1 is_admin FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=? AND r.code='admin' LIMIT 1",
+        'i',
+        [$userId]
+    );
+    return (bool) $role;
 }
 
 function audit(mysqli $db, int $userId, string $action, string $entityType, int $entityId, ?array $old, ?array $new): void
@@ -770,14 +789,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         try {
             $stmt = $db->prepare(
-                "INSERT INTO users (email, password_hash, status, preferred_language, first_name, last_name) "
-                . "VALUES (?, ?, 'invited', 'de', ?, ?)"
+                "INSERT INTO users (email, password_hash, status, preferred_language, first_name, last_name, email_verified_at) "
+                . "VALUES (?, ?, 'active', 'de', ?, ?, NOW())"
             );
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt->bind_param('ssss', $email, $hash, $first, $last);
             $stmt->execute();
             audit($db, (int) $stmt->insert_id, 'create', 'user', (int) $stmt->insert_id, null, ['email' => $email]);
-            flash('Registrierung gespeichert. In der Prototypphase wird keine E-Mail verschickt; Freigabe und Bestätigung bleiben intern.');
+            flash('Registrierung gespeichert. Du kannst dich jetzt direkt anmelden.');
             redirect('/?page=login');
         } catch (mysqli_sql_exception $exception) {
             flash('Diese E-Mail-Adresse ist bereits registriert.', 'danger');
@@ -793,8 +812,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('E-Mail oder Passwort ist falsch.', 'danger');
             redirect('/?page=login');
         }
-        if ($user['status'] !== 'active') {
-            flash('Dieses Konto ist noch nicht freigeschaltet.', 'warning');
+        if (in_array((string) $user['status'], ['locked', 'disabled'], true)) {
+            flash('Dieses Konto ist gesperrt oder deaktiviert.', 'warning');
             redirect('/?page=login');
         }
         session_regenerate_id(true);
@@ -811,6 +830,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     requireLogin();
+
+    if ($action === 'admin_update_user') {
+        if (!isAdmin($db, userId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $targetUserId = (int) ($_POST['user_id'] ?? 0);
+        if ($targetUserId === userId()) {
+            flash('Das eigene Admin-Konto kann hier nicht geändert werden.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
+        if (!$target) {
+            flash('Benutzer nicht gefunden.', 'danger');
+            redirect('/?page=admin_users');
+        }
+        $status = in_array($_POST['status'] ?? '', ['invited','active','locked','disabled'], true) ? (string) $_POST['status'] : (string) $target['status'];
+        $stmt = $db->prepare('UPDATE users SET status=?, email_verified_at=CASE WHEN ?="active" THEN COALESCE(email_verified_at, NOW()) ELSE email_verified_at END WHERE id=?');
+        $stmt->bind_param('ssi', $status, $status, $targetUserId);
+        $stmt->execute();
+
+        $adminRole = dbOne($db, "SELECT id FROM roles WHERE code='admin' LIMIT 1");
+        $isAdminTarget = !empty($_POST['is_admin']);
+        if ($adminRole) {
+            $roleId = (int) $adminRole['id'];
+            if ($isAdminTarget) {
+                $stmt = $db->prepare('INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by) VALUES (?, ?, ?)');
+                $uid = userId();
+                $stmt->bind_param('iii', $targetUserId, $roleId, $uid);
+                $stmt->execute();
+            } else {
+                $stmt = $db->prepare('DELETE FROM user_roles WHERE user_id=? AND role_id=?');
+                $stmt->bind_param('ii', $targetUserId, $roleId);
+                $stmt->execute();
+            }
+        }
+        audit($db, userId(), 'update', 'user', $targetUserId, $target, ['status' => $status, 'is_admin' => $isAdminTarget]);
+        flash('Benutzer aktualisiert.');
+        redirect('/?page=admin_users');
+    }
 
     if ($action === 'preview_import') {
         $payload = trim((string) ($_POST['import_payload'] ?? ''));
@@ -1446,6 +1505,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
+$currentUserIsAdmin = $currentUser ? isAdmin($db, userId(), $config) : false;
 if ($currentUser && in_array($currentUser['timezone'], timezone_identifiers_list(), true)) {
     date_default_timezone_set($currentUser['timezone']);
 }
@@ -1495,6 +1555,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <a href="/?page=applications">Bewerbungen</a>
             <a href="/?page=applications&todo=1">Offene Schritte</a>
             <a href="/?page=profile">Profil</a>
+            <?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzer</a><?php endif; ?>
             <a href="/?page=audit">Log</a>
         </nav>
         <form method="post" class="logout"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout">Abmelden</button></form>
@@ -1537,6 +1598,51 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="hero"><div><p class="eyebrow">Guten Tag, <?= e($currentUser['first_name']) ?></p><h1>Deine Jobs. Dein Prozess.</h1><p>Privat, strukturiert und auf allen Geräten nutzbar.</p></div><a class="button primary" href="/?page=jobs#new">Job erfassen</a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
         <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
+    <?php elseif ($page === 'admin_users'): ?>
+        <?php
+        if (!$currentUserIsAdmin) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $adminEmails = array_map('strtolower', (array) ($config['admin_emails'] ?? ['admin@jema.business']));
+        $users = dbAll(
+            $db,
+            "SELECT u.id, u.email, u.status, u.first_name, u.last_name, u.created_at, u.last_login_at, u.email_verified_at,
+                    (SELECT GROUP_CONCAT(r.code ORDER BY r.code)
+                       FROM user_roles ur
+                       JOIN roles r ON r.id=ur.role_id
+                      WHERE ur.user_id=u.id) role_codes,
+                    (SELECT COUNT(*) FROM jobs j WHERE j.owner_user_id=u.id AND j.deleted_at IS NULL) job_count,
+                    (SELECT COUNT(*) FROM applications a WHERE a.user_id=u.id AND a.deleted_at IS NULL) application_count,
+                    (SELECT COUNT(*) FROM user_documents d WHERE d.user_id=u.id AND d.deleted_at IS NULL) document_count
+               FROM users u
+              WHERE u.deleted_at IS NULL
+           ORDER BY FIELD(u.status, 'active', 'invited', 'locked', 'disabled'), u.created_at DESC"
+        );
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Administration</p><h1>Benutzer</h1></div><span><?= count($users) ?> Konten</span></div>
+        <section class="panel table-wrap"><table><thead><tr><th>Benutzer</th><th>Status</th><th>Nutzung</th><th>Zugriff</th><th>Aktionen</th></tr></thead><tbody>
+            <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === userId(); ?>
+                <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
+                    <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small></td>
+                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
+                    <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
+                    <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?></td>
+                    <td>
+                        <?php if($isSelf): ?>
+                            <span class="meta-line">Eigenes Konto geschützt</span>
+                        <?php else: ?>
+                            <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                                <select name="status"><?php foreach(['active'=>'Aktiv','invited'=>'Eingeladen/Test offen','locked'=>'Gesperrt','disabled'=>'Deaktiviert'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $user['status']===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select>
+                                <label class="check"><input type="checkbox" name="is_admin" value="1" <?= $isUserAdmin?'checked':'' ?> <?= $isConfigAdmin?'disabled':'' ?>> Admin</label>
+                                <?php if($isConfigAdmin): ?><input type="hidden" name="is_admin" value="1"><?php endif; ?>
+                                <button class="primary" name="action" value="admin_update_user">Speichern</button>
+                            </form>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody></table></section>
     <?php elseif ($page === 'profile'): ?>
         <?php
         $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
