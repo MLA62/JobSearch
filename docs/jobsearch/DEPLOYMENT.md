@@ -87,6 +87,24 @@ Use `--dry-run` to list pending jobs without rendering. Use
 `--browser=/path/to/chrome` or `job_pdf_browser_path` in `public/config.php`
 when the browser is not in a standard location.
 
+## Document text worker
+
+Uploaded text and PDF documents are marked for text extraction. Run the worker
+manually from the project root:
+
+```sh
+php deploy/extract-document-texts.php --limit=20
+```
+
+Recommended cron shape once PHP CLI and `pdftotext` are confirmed:
+
+```sh
+*/15 * * * * cd /home/kerubina/jobs.jema.business && php deploy/extract-document-texts.php --limit=20 >> var/log/document-texts.log 2>&1
+```
+
+Plain text files are read directly. PDFs require Poppler's `pdftotext`; other
+formats are marked as skipped until a richer Office/OCR pipeline is available.
+
 ### Installation record
 
 - Installed on: 2026-06-15

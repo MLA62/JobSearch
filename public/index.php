@@ -309,6 +309,93 @@ function activeTotpMethod(mysqli $db, int $userId): ?array
     return dbOne($db, "SELECT * FROM two_factor_methods WHERE user_id=? AND method='totp' AND verified_at IS NOT NULL ORDER BY is_primary DESC, id DESC LIMIT 1", 'i', [$userId]);
 }
 
+function shareToken(): string
+{
+    return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+}
+
+function shareTokenHash(string $token): string
+{
+    return hash('sha256', $token);
+}
+
+function deviceHash(): string
+{
+    return hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500));
+}
+
+function activeGuestShare(mysqli $db, string $token): ?array
+{
+    if ($token === '') {
+        return null;
+    }
+    $share = dbOne(
+        $db,
+        'SELECT * FROM guest_shares WHERE token_hash=? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW()) LIMIT 1',
+        's',
+        [shareTokenHash($token)]
+    );
+    if ($share) {
+        $stmt = $db->prepare('UPDATE guest_shares SET last_accessed_at=NOW() WHERE id=?');
+        $id = (int) $share['id'];
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+    }
+    return $share;
+}
+
+function shareAllowsTarget(array $share, string $targetType, int $targetId): bool
+{
+    if (($share['target_type'] ?? '') === 'area') {
+        return true;
+    }
+    return ($share['target_type'] ?? '') === $targetType && (int) ($share['target_id'] ?? 0) === $targetId;
+}
+
+function storageUsageBytes(mysqli $db, int $userId): int
+{
+    $documents = dbOne($db, 'SELECT COALESCE(SUM(file_size),0) total FROM user_documents WHERE user_id=? AND deleted_at IS NULL', 'i', [$userId]);
+    $generated = dbOne($db, 'SELECT COALESCE(SUM(file_size),0) total FROM generated_files WHERE owner_user_id=? AND (expires_at IS NULL OR expires_at > NOW())', 'i', [$userId]);
+    return (int) ($documents['total'] ?? 0) + (int) ($generated['total'] ?? 0);
+}
+
+function bytesLabel(int $bytes): string
+{
+    if ($bytes >= 1073741824) {
+        return number_format($bytes / 1073741824, 2) . ' GB';
+    }
+    if ($bytes >= 1048576) {
+        return number_format($bytes / 1048576, 1) . ' MB';
+    }
+    return number_format($bytes / 1024, 1) . ' KB';
+}
+
+function cleanupPreview(mysqli $db, int $userId, string $cutoffDate): array
+{
+    $jobs = dbOne($db, "SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL AND updated_at < ? AND status IN ('rejected','closed')", 'is', [$userId, $cutoffDate . ' 00:00:00']);
+    $apps = dbOne($db, "SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL AND updated_at < ? AND status IN ('rejected','withdrawn','closed')", 'is', [$userId, $cutoffDate . ' 00:00:00']);
+    $documents = dbOne($db, "SELECT COUNT(*) c, COALESCE(SUM(file_size),0) bytes FROM user_documents WHERE user_id=? AND deleted_at IS NULL AND is_current=0 AND updated_at < ?", 'is', [$userId, $cutoffDate . ' 00:00:00']);
+    return [
+        'jobs' => (int) ($jobs['c'] ?? 0),
+        'applications' => (int) ($apps['c'] ?? 0),
+        'old_document_versions' => (int) ($documents['c'] ?? 0),
+        'document_bytes' => (int) ($documents['bytes'] ?? 0),
+    ];
+}
+
+function csvResponse(string $filename, array $headers, array $rows): never
+{
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, $headers, ';');
+    foreach ($rows as $row) {
+        fputcsv($out, $row, ';');
+    }
+    fclose($out);
+    exit;
+}
+
 function localeForCountry(?string $countryCode): string
 {
     return match (strtoupper((string) $countryCode)) {
@@ -1368,6 +1455,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=profile#security');
     }
 
+    if ($action === 'create_share') {
+        $targetType = in_array($_POST['target_type'] ?? '', ['area','company','job','application','contact','document','report'], true) ? (string) $_POST['target_type'] : 'area';
+        $targetId = $targetType === 'area' ? null : max(1, (int) ($_POST['target_id'] ?? 0));
+        $recipient = strtolower(trim((string) ($_POST['recipient_email'] ?? '')));
+        $permission = in_array($_POST['permission'] ?? '', ['view','comment','edit'], true) ? (string) $_POST['permission'] : 'view';
+        $downloadPolicy = in_array($_POST['download_policy'] ?? '', ['none','original','pdf','both'], true) ? (string) $_POST['download_policy'] : 'none';
+        $title = trim((string) ($_POST['title'] ?? '')) ?: 'Freigabe';
+        $expiresAt = trim((string) ($_POST['expires_at'] ?? '')) ?: null;
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL) || ($targetType !== 'area' && !$targetId)) {
+            flash('Empfänger und Ziel der Freigabe sind erforderlich.', 'danger');
+            redirect('/?page=sharing');
+        }
+        if ($expiresAt) {
+            $expiresAt = str_replace('T', ' ', $expiresAt) . (strlen($expiresAt) === 16 ? ':00' : '');
+        }
+        $token = shareToken();
+        $hash = shareTokenHash($token);
+        $watermark = !empty($_POST['watermark_enabled']) ? 1 : 0;
+        $uid = userId();
+        $stmt = $db->prepare('INSERT INTO guest_shares (owner_user_id, token_hash, title, target_type, target_id, recipient_email, permission, download_policy, watermark_enabled, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('isssisssis', $uid, $hash, $title, $targetType, $targetId, $recipient, $permission, $downloadPolicy, $watermark, $expiresAt);
+        $stmt->execute();
+        $shareId = (int) $stmt->insert_id;
+        $link = absoluteUrl($config, '/?page=guest&token=' . urlencode($token));
+        $_SESSION['last_share_link'] = $link;
+        $subject = 'JeMa Jobs Freigabe';
+        $body = "Hallo\n\nes wurde ein JeMa Jobs Bereich für dich freigegeben:\n" . $link . "\n\nDiese Freigabe ist persönlich und kann widerrufen werden.\n";
+        try {
+            sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body);
+            flash('Freigabe erstellt und per E-Mail vorbereitet.');
+        } catch (Throwable) {
+            flash('Freigabe erstellt. E-Mail konnte nicht versendet werden; Link wird angezeigt.', 'warning');
+        }
+        audit($db, $uid, 'create', 'guest_share', $shareId, null, ['target_type' => $targetType, 'target_id' => $targetId, 'recipient_email' => $recipient]);
+        redirect('/?page=sharing');
+    }
+
+    if ($action === 'revoke_share') {
+        $id = (int) ($_POST['share_id'] ?? 0);
+        $old = dbOne($db, 'SELECT * FROM guest_shares WHERE id=? AND owner_user_id=? AND revoked_at IS NULL', 'ii', [$id, userId()]);
+        if ($old) {
+            $stmt = $db->prepare('UPDATE guest_shares SET revoked_at=NOW() WHERE id=? AND owner_user_id=?');
+            $uid = userId();
+            $stmt->bind_param('ii', $id, $uid);
+            $stmt->execute();
+            audit($db, $uid, 'delete', 'guest_share', $id, $old, ['revoked' => true]);
+            flash('Freigabe widerrufen.');
+        }
+        redirect('/?page=sharing');
+    }
+
+    if ($action === 'save_translation') {
+        $entityType = in_array($_POST['entity_type'] ?? '', ['company','job','contact','application','document'], true) ? (string) $_POST['entity_type'] : 'job';
+        $entityId = max(1, (int) ($_POST['entity_id'] ?? 0));
+        $targetLanguage = in_array($_POST['target_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['target_language'] : 'de';
+        $title = trim((string) ($_POST['translation_title'] ?? '')) ?: null;
+        $body = trim((string) ($_POST['translation_body'] ?? ''));
+        if ($body === '') {
+            flash('Übersetzungstext ist erforderlich.', 'danger');
+            redirect('/?page=translations');
+        }
+        $uid = userId();
+        $existing = dbOne($db, 'SELECT COALESCE(MAX(version),0) v FROM record_translations WHERE owner_user_id=? AND entity_type=? AND entity_id=? AND target_language=?', 'isis', [$uid, $entityType, $entityId, $targetLanguage]);
+        $version = (int) ($existing['v'] ?? 0) + 1;
+        $stmt = $db->prepare('UPDATE record_translations SET is_current=0 WHERE owner_user_id=? AND entity_type=? AND entity_id=? AND target_language=?');
+        $stmt->bind_param('isis', $uid, $entityType, $entityId, $targetLanguage);
+        $stmt->execute();
+        $stmt = $db->prepare('INSERT INTO record_translations (owner_user_id, entity_type, entity_id, target_language, title, body, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, 1)');
+        $stmt->bind_param('isisssi', $uid, $entityType, $entityId, $targetLanguage, $title, $body, $version);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'record_translation', (int) $stmt->insert_id, null, ['entity_type' => $entityType, 'entity_id' => $entityId, 'target_language' => $targetLanguage, 'version' => $version]);
+        flash('Übersetzung gespeichert.');
+        redirect('/?page=translations');
+    }
+
+    if ($action === 'save_calendar_event') {
+        $title = trim((string) ($_POST['event_title'] ?? ''));
+        $startsAt = trim((string) ($_POST['starts_at'] ?? ''));
+        $eventType = in_array($_POST['event_type'] ?? '', ['task','follow_up','interview','deadline','meeting','reminder','other'], true) ? (string) $_POST['event_type'] : 'reminder';
+        if ($title === '' || $startsAt === '') {
+            flash('Titel und Startzeit sind erforderlich.', 'danger');
+            redirect('/?page=calendar');
+        }
+        $startsAt = str_replace('T', ' ', $startsAt) . (strlen($startsAt) === 16 ? ':00' : '');
+        $applicationId = (int) ($_POST['application_id'] ?? 0) ?: null;
+        $notes = trim((string) ($_POST['event_notes'] ?? '')) ?: null;
+        $uid = userId();
+        $stmt = $db->prepare('INSERT INTO calendar_events (owner_user_id, application_id, title, event_type, starts_at, notes) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('iissss', $uid, $applicationId, $title, $eventType, $startsAt, $notes);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'calendar_event', (int) $stmt->insert_id, null, ['title' => $title, 'starts_at' => $startsAt]);
+        flash('Kalendereintrag gespeichert.');
+        redirect('/?page=calendar');
+    }
+
+    if ($action === 'save_report') {
+        $name = trim((string) ($_POST['report_name'] ?? ''));
+        $baseEntity = in_array($_POST['base_entity'] ?? '', ['companies','jobs','contacts','contact_logs','applications','documents','calendar'], true) ? (string) $_POST['base_entity'] : 'jobs';
+        $displayType = in_array($_POST['display_type'] ?? '', ['table','list','cards','preview','calendar_day','calendar_week','calendar_month'], true) ? (string) $_POST['display_type'] : 'table';
+        if ($name === '') {
+            flash('Report-Name ist erforderlich.', 'danger');
+            redirect('/?page=reports');
+        }
+        $uid = userId();
+        $stmt = $db->prepare('INSERT INTO saved_reports (owner_user_id, name, base_entity, display_type, is_shared) VALUES (?, ?, ?, ?, 0)');
+        $stmt->bind_param('isss', $uid, $name, $baseEntity, $displayType);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'saved_report', (int) $stmt->insert_id, null, ['base_entity' => $baseEntity, 'display_type' => $displayType]);
+        flash('Report gespeichert.');
+        redirect('/?page=reports');
+    }
+
+    if ($action === 'request_cleanup') {
+        $cutoff = trim((string) ($_POST['cutoff_date'] ?? ''));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $cutoff)) {
+            flash('Stichtag ist erforderlich.', 'danger');
+            redirect('/?page=privacy');
+        }
+        $preview = cleanupPreview($db, userId(), $cutoff);
+        $previewJson = json_encode($preview, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        $status = 'requested';
+        $uid = userId();
+        $stmt = $db->prepare('INSERT INTO cleanup_requests (user_id, cutoff_date, status, preview_json, requested_at) VALUES (?, ?, ?, ?, NOW())');
+        $stmt->bind_param('isss', $uid, $cutoff, $status, $previewJson);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'cleanup_request', (int) $stmt->insert_id, null, $preview);
+        flash('Cleanup-Anfrage mit Vorschau erstellt.');
+        redirect('/?page=privacy');
+    }
+
     if ($action === 'preview_import') {
         $payload = trim((string) ($_POST['import_payload'] ?? ''));
         if ($payload === '') {
@@ -1595,6 +1812,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('iissiisssssisssi', $uid, $documentTypeId, $languageCode, $scope, $applicationId, $jobId, $title, $description, $uploaded['original'], $uploaded['path'], $uploaded['mime'], $uploaded['size'], $uploaded['sha256'], $validFrom, $validUntil, $version);
             $stmt->execute();
             $newDocumentId = (int) $stmt->insert_id;
+            $extractStatus = in_array($uploaded['mime'], ['text/plain','application/pdf'], true) ? 'pending' : 'skipped';
+            $textStmt = $db->prepare('INSERT INTO document_texts (user_document_id, extraction_status, language_code) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE extraction_status=VALUES(extraction_status), language_code=VALUES(language_code)');
+            $textStmt->bind_param('iss', $newDocumentId, $extractStatus, $languageCode);
+            $textStmt->execute();
             if ($scope === 'application') {
                 $purpose = documentPurposeForType((string) $type['code']);
                 $linkStmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
@@ -2105,6 +2326,54 @@ if ($page === 'document_download') {
     readfile($path);
     exit;
 }
+if ($page === 'guest_download') {
+    $token = (string) ($_GET['token'] ?? '');
+    $share = activeGuestShare($db, $token);
+    $documentId = (int) ($_GET['id'] ?? 0);
+    if (!$share || !in_array((string) $share['download_policy'], ['original','both'], true)) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+    $document = dbOne($db, 'SELECT id, user_id, application_id, job_id, original_filename, storage_path, mime_type, file_size FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$documentId, (int) $share['owner_user_id']]);
+    if (!$document) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $allowed = shareAllowsTarget($share, 'document', (int) $document['id'])
+        || (($share['target_type'] ?? '') === 'application' && (int) ($document['application_id'] ?? 0) === (int) $share['target_id'])
+        || (($share['target_type'] ?? '') === 'job' && (int) ($document['job_id'] ?? 0) === (int) $share['target_id'])
+        || (($share['target_type'] ?? '') === 'area');
+    if (!$allowed) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+    $path = realpath(__DIR__ . '/' . $document['storage_path']);
+    $root = realpath(storageRoot());
+    if (!$path || !$root || !str_starts_with($path, $root) || !is_file($path)) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    audit($db, (int) $share['owner_user_id'], 'read', 'guest_document', (int) $document['id'], null, ['share_id' => (int) $share['id']]);
+    header('Content-Type: ' . $document['mime_type']);
+    header('Content-Length: ' . (string) $document['file_size']);
+    header('Content-Disposition: attachment; filename="' . addslashes($document['original_filename']) . '"');
+    readfile($path);
+    exit;
+}
+if ($page === 'export_csv') {
+    requireLogin();
+    $type = (string) ($_GET['type'] ?? 'jobs');
+    if ($type === 'applications') {
+        $rows = dbAll($db, 'SELECT a.id, j.title, c.name company, a.status, a.channel, a.applied_at, a.next_action, a.next_action_at FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC', 'i', [userId()]);
+        csvResponse('bewerbungen.csv', ['ID','Job','Firma','Status','Kanal','Gesendet','Nächster Schritt','Fällig'], array_map(static fn(array $r): array => [(int)$r['id'], $r['title'], $r['company'], $r['status'], $r['channel'], $r['applied_at'], $r['next_action'], $r['next_action_at']], $rows));
+    }
+    if ($type === 'audit') {
+        $rows = dbAll($db, 'SELECT action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 1000', 'i', [userId()]);
+        csvResponse('audit.csv', ['Aktion','Typ','ID','Zeit'], array_map(static fn(array $r): array => [$r['action'], $r['entity_type'], $r['entity_id'], $r['created_at']], $rows));
+    }
+    $rows = dbAll($db, 'SELECT j.id, j.title, c.name company, j.location_text, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC', 'i', [userId()]);
+    csvResponse('jobs.csv', ['ID','Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [(int)$r['id'], $r['title'], $r['company'], $r['location_text'], $r['status'], $r['workplace_type'], $r['updated_at']], $rows));
+}
 if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor'], true)) {
     redirect('/?page=dashboard');
 }
@@ -2134,7 +2403,12 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <a href="/?page=contacts">Kontakte</a>
             <a href="/?page=applications">Bewerbungen</a>
             <a href="/?page=applications&todo=1">Offene Schritte</a>
+            <a href="/?page=calendar">Kalender</a>
+            <a href="/?page=reports">Reports</a>
+            <a href="/?page=sharing">Freigaben</a>
+            <a href="/?page=translations">Übersetzungen</a>
             <a href="/?page=profile">Profil</a>
+            <a href="/?page=privacy">Datenschutz</a>
             <?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzer</a><?php endif; ?>
             <a href="/?page=audit">Log</a>
         </nav>
@@ -2212,6 +2486,55 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         </form>
         <p><a href="/?page=login">Zur Anmeldung</a></p>
     </section>
+<?php elseif ($page === 'guest'): ?>
+    <?php
+    $guestToken = (string) ($_GET['token'] ?? '');
+    $share = activeGuestShare($db, $guestToken);
+    if (!$share) {
+        http_response_code(404);
+        echo '<section class="auth-card"><h1>Freigabe nicht verfügbar</h1><p>Dieser Link ist ungültig, abgelaufen oder wurde widerrufen.</p></section>';
+    } else {
+        $guestSessionId = null;
+        $device = deviceHash();
+        $session = dbOne($db, 'SELECT id FROM guest_sessions WHERE share_id=? AND device_hash=? AND revoked_at IS NULL', 'is', [(int)$share['id'], $device]);
+        if ($session) {
+            $guestSessionId = (int) $session['id'];
+            $stmt = $db->prepare('UPDATE guest_sessions SET last_seen_at=NOW() WHERE id=?');
+            $stmt->bind_param('i', $guestSessionId);
+            $stmt->execute();
+        } else {
+            $stmt = $db->prepare('INSERT INTO guest_sessions (share_id, recipient_email, device_hash, verified_at, last_seen_at) VALUES (?, ?, ?, NOW(), NOW())');
+            $stmt->bind_param('iss', $share['id'], $share['recipient_email'], $device);
+            $stmt->execute();
+            $guestSessionId = (int) $stmt->insert_id;
+        }
+        $ownerId = (int) $share['owner_user_id'];
+        $targetType = (string) $share['target_type'];
+        $targetId = (int) ($share['target_id'] ?? 0);
+        $guestJobs = [];
+        $guestApplications = [];
+        $guestDocuments = [];
+        if ($targetType === 'area') {
+            $guestJobs = dbAll($db, 'SELECT j.id, j.title, j.location_text, j.status, c.name company_name FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC LIMIT 50', 'i', [$ownerId]);
+            $guestApplications = dbAll($db, 'SELECT a.id, a.status, a.next_action, a.next_action_at, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 50', 'i', [$ownerId]);
+        } elseif ($targetType === 'job') {
+            $guestJobs = dbAll($db, 'SELECT j.id, j.title, j.location_text, j.status, c.name company_name, SUBSTRING(j.description,1,65535) description FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [$targetId, $ownerId]);
+            $guestDocuments = dbAll($db, 'SELECT id, title, original_filename, file_size FROM user_documents WHERE user_id=? AND job_id=? AND deleted_at IS NULL ORDER BY created_at DESC', 'ii', [$ownerId, $targetId]);
+        } elseif ($targetType === 'application') {
+            $guestApplications = dbAll($db, 'SELECT a.id, a.status, a.next_action, a.next_action_at, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$targetId, $ownerId]);
+            $guestDocuments = dbAll($db, "SELECT d.id, d.title, d.original_filename, d.file_size FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY d.created_at DESC", 'ii', [$targetId, $ownerId]);
+        } elseif ($targetType === 'document') {
+            $guestDocuments = dbAll($db, 'SELECT id, title, original_filename, file_size FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$targetId, $ownerId]);
+        }
+        $guestTranslations = dbAll($db, 'SELECT entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version FROM record_translations WHERE owner_user_id=? AND is_current=1 ORDER BY updated_at DESC LIMIT 20', 'i', [$ownerId]);
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Freigabe</p><h1><?= e($share['title']) ?></h1></div><span><?= e($share['permission']) ?> · Download <?= e($share['download_policy']) ?></span></div>
+        <?php if(!empty($share['watermark_enabled'])): ?><p class="filter-note">Persönliche Freigabe für <?= e($share['recipient_email']) ?>. Downloads können nachvollzogen werden.</p><?php endif; ?>
+        <?php if($guestJobs): ?><section class="panel table-wrap"><h2>Jobs</h2><table><thead><tr><th>Titel</th><th>Firma</th><th>Ort</th><th>Status</th></tr></thead><tbody><?php foreach($guestJobs as $job): ?><tr><td><strong><?= e($job['title']) ?></strong><?php if(!empty($job['description'])): ?><small><?= e(mb_strimwidth((string)$job['description'],0,220,'...')) ?></small><?php endif; ?></td><td><?= e($job['company_name']) ?></td><td><?= e($job['location_text']) ?></td><td><?= e($job['status']) ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
+        <?php if($guestApplications): ?><section class="panel table-wrap"><h2>Bewerbungen</h2><table><thead><tr><th>Job</th><th>Firma</th><th>Status</th><th>Nächster Schritt</th></tr></thead><tbody><?php foreach($guestApplications as $app): ?><tr><td><strong><?= e($app['title']) ?></strong><?php if(!empty($app['cover_letter_text'])): ?><small><?= nl2br(e(mb_strimwidth((string)$app['cover_letter_text'],0,300,'...'))) ?></small><?php endif; ?></td><td><?= e($app['company_name']) ?></td><td><?= e($app['status']) ?></td><td><?= e($app['next_action']) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'])) ?></small><?php endif; ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
+        <?php if($guestDocuments): ?><section class="panel table-wrap"><h2>Dokumente</h2><table><thead><tr><th>Dokument</th><th>Datei</th><th>Größe</th><th>Download</th></tr></thead><tbody><?php foreach($guestDocuments as $doc): ?><tr><td><?= e($doc['title']) ?></td><td><?= e($doc['original_filename']) ?></td><td><?= e(bytesLabel((int)$doc['file_size'])) ?></td><td><?php if(in_array((string)$share['download_policy'], ['original','both'], true)): ?><a href="/?page=guest_download&token=<?= e(urlencode($guestToken)) ?>&id=<?= (int)$doc['id'] ?>">Download</a><?php else: ?>gesperrt<?php endif; ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
+        <?php if($guestTranslations): ?><section class="panel"><h2>Übersetzungen</h2><div class="log-timeline"><?php foreach($guestTranslations as $translation): ?><article><div><strong><?= e($translation['title'] ?: $translation['entity_type'].' #'.$translation['entity_id']) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?></span></div><p><?= nl2br(e($translation['body'])) ?></p></article><?php endforeach; ?></div></section><?php endif; ?>
+    <?php } ?>
 <?php else: requireLogin(); ?>
     <?php if ($page === 'dashboard'): 
         $stats = [
@@ -2223,6 +2546,54 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         <div class="hero"><div><p class="eyebrow">Guten Tag, <?= e($currentUser['first_name']) ?></p><h1>Deine Jobs. Dein Prozess.</h1><p>Privat, strukturiert und auf allen Geräten nutzbar.</p></div><a class="button primary" href="/?page=jobs#new">Job erfassen</a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
         <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
+    <?php elseif ($page === 'sharing'): ?>
+        <?php
+        $shares = dbAll($db, 'SELECT * FROM guest_shares WHERE owner_user_id=? ORDER BY created_at DESC', 'i', [userId()]);
+        $shareTargets = [
+            'area' => 'Ganzer Bereich',
+            'job' => 'Ein Job',
+            'application' => 'Eine Bewerbung',
+            'document' => 'Ein Dokument',
+        ];
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Zusammenarbeit</p><h1>Freigaben</h1></div><span><?= count($shares) ?> Links</span></div>
+        <?php if(!empty($_SESSION['last_share_link'])): ?><div class="alert warning"><strong>Freigabelink:</strong> <a href="<?= e($_SESSION['last_share_link']) ?>"><?= e($_SESSION['last_share_link']) ?></a><input value="<?= e($_SESSION['last_share_link']) ?>" readonly onclick="this.select()"></div><?php unset($_SESSION['last_share_link']); endif; ?>
+        <div class="split"><section class="panel"><h2>Neue Freigabe</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <label>Titel<input name="title" placeholder="z. B. Bewerbung Review"></label>
+            <label>Empfänger-E-Mail<input type="email" name="recipient_email" required></label>
+            <div class="two"><label>Ziel<select name="target_type"><?php foreach($shareTargets as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label><label>Ziel-ID<input type="number" min="1" name="target_id" placeholder="leer bei ganzem Bereich"></label></div>
+            <div class="two"><label>Recht<select name="permission"><option value="view">Nur ansehen</option><option value="comment">Kommentieren</option><option value="edit">Bearbeiten vorbereitet</option></select></label><label>Download<select name="download_policy"><option value="none">Kein Download</option><option value="original">Original</option><option value="pdf">PDF vorbereitet</option><option value="both">Original und PDF</option></select></label></div>
+            <label>Ablauf<input type="datetime-local" name="expires_at"></label>
+            <label class="check"><input type="checkbox" name="watermark_enabled" value="1" checked> Wasserzeichen / persönliche Nachverfolgung</label>
+            <button class="primary" name="action" value="create_share">Freigabe erstellen</button>
+        </form></section>
+        <section class="panel table-wrap"><h2>Aktive und frühere Links</h2><table><thead><tr><th>Titel</th><th>Ziel</th><th>Empfänger</th><th>Status</th><th>Aktionen</th></tr></thead><tbody><?php foreach($shares as $share): ?><tr><td><strong><?= e($share['title']) ?></strong><small><?= e($share['permission']) ?> · Download <?= e($share['download_policy']) ?></small></td><td><?= e($share['target_type']) ?> #<?= e((string)$share['target_id']) ?></td><td><?= e($share['recipient_email']) ?></td><td><?php if($share['revoked_at']): ?>widerrufen<?php elseif($share['expires_at'] && strtotime((string)$share['expires_at']) < time()): ?>abgelaufen<?php else: ?>aktiv<?php endif; ?><small><?= e($share['last_accessed_at'] ? 'letzter Zugriff '.displayDateTime($share['last_accessed_at'], $currentUser) : 'noch kein Zugriff') ?></small></td><td><?php if(!$share['revoked_at']): ?><form method="post" onsubmit="return confirm('Freigabe widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="share_id" value="<?= (int)$share['id'] ?>"><button name="action" value="revoke_share">Widerrufen</button></form><?php endif; ?></td></tr><?php endforeach; ?><?php if(!$shares): ?><tr><td colspan="5" class="empty">Noch keine Freigaben.</td></tr><?php endif; ?></tbody></table></section></div>
+    <?php elseif ($page === 'reports'): ?>
+        <?php $reports = dbAll($db, 'SELECT * FROM saved_reports WHERE owner_user_id=? ORDER BY updated_at DESC', 'i', [userId()]); ?>
+        <div class="page-head"><div><p class="eyebrow">Auswertung</p><h1>Reports & Exporte</h1></div><span><?= count($reports) ?> Reports</span></div>
+        <div class="split"><section class="panel"><h2>Report speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Name<input name="report_name" required></label><label>Basis<select name="base_entity"><?php foreach(['jobs'=>'Jobs','applications'=>'Bewerbungen','companies'=>'Firmen','contacts'=>'Kontakte','documents'=>'Dokumente','calendar'=>'Kalender'] as $v=>$l): ?><option value="<?= $v ?>"><?= $l ?></option><?php endforeach; ?></select></label><label>Ansicht<select name="display_type"><option value="table">Tabelle</option><option value="list">Liste</option><option value="cards">Karten</option><option value="preview">Vorschau</option><option value="calendar_week">Kalenderwoche</option><option value="calendar_month">Kalendermonat</option></select></label><button class="primary" name="action" value="save_report">Speichern</button></form><div class="actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div></section><section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th></tr></thead><tbody><?php foreach($reports as $report): ?><tr><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($report['base_entity']) ?></td><td><?= e($report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="4" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section></div>
+    <?php elseif ($page === 'calendar'): ?>
+        <?php
+        $events = dbAll($db, 'SELECT ce.*, a.status application_status, j.title job_title FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at ASC LIMIT 100', 'i', [userId()]);
+        $followUps = dbAll($db, 'SELECT a.id, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL ORDER BY a.next_action_at ASC LIMIT 50', 'i', [userId()]);
+        $appsForCalendar = dbAll($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 100', 'i', [userId()]);
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Zeitplan</p><h1>Kalender & Erinnerungen</h1></div><span><?= count($events) + count($followUps) ?> Einträge</span></div>
+        <div class="split"><section class="panel"><h2>Eintrag erstellen</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></section><section class="panel"><h2>Agenda</h2><div class="log-timeline"><?php foreach($events as $event): ?><article><div><strong><?= e($event['title']) ?></strong><span><?= e(displayDateTime($event['starts_at'], $currentUser)) ?> · <?= e($event['event_type']) ?></span></div><?php if($event['job_title']): ?><small><?= e($event['job_title']) ?></small><?php endif; ?><?php if($event['notes']): ?><p><?= nl2br(e($event['notes'])) ?></p><?php endif; ?></article><?php endforeach; ?><?php foreach($followUps as $todo): ?><article><div><strong><?= e($todo['next_action']) ?></strong><span><?= e(displayDateTime($todo['next_action_at'], $currentUser)) ?></span></div><small><?= e($todo['job_title'].' · '.$todo['company_name']) ?></small></article><?php endforeach; ?><?php if(!$events && !$followUps): ?><p class="empty">Keine Termine oder Wiedervorlagen.</p><?php endif; ?></div></section></div>
+    <?php elseif ($page === 'translations'): ?>
+        <?php $translations = dbAll($db, 'SELECT * FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]); ?>
+        <div class="page-head"><div><p class="eyebrow">Sprache</p><h1>Übersetzungen</h1></div><span><?= count($translations) ?> Versionen</span></div>
+        <div class="split"><section class="panel"><h2>Übersetzung speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><div class="two"><label>Typ<select name="entity_type"><option value="job">Job</option><option value="company">Firma</option><option value="application">Bewerbung</option><option value="contact">Kontakt</option><option value="document">Dokument</option></select></label><label>ID<input type="number" min="1" name="entity_id" required></label></div><label>Zielsprache<select name="target_language"><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Titel<input name="translation_title"></label><label>Übersetzung<textarea name="translation_body" rows="8" required></textarea></label><button class="primary" name="action" value="save_translation">Speichern</button></form></section><section class="panel"><h2>Gespeicherte Übersetzungen</h2><div class="log-timeline"><?php foreach($translations as $translation): ?><article><div><strong><?= e($translation['title'] ?: $translation['entity_type'].' #'.$translation['entity_id']) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?><?= $translation['is_current'] ? ' · aktuell' : '' ?></span></div><p><?= nl2br(e(mb_strimwidth((string)$translation['body'],0,500,'...'))) ?></p></article><?php endforeach; ?><?php if(!$translations): ?><p class="empty">Noch keine Übersetzungen gespeichert.</p><?php endif; ?></div></section></div>
+    <?php elseif ($page === 'privacy'): ?>
+        <?php
+        $usage = storageUsageBytes($db, userId());
+        $quota = dbOne($db, 'SELECT quota_bytes FROM storage_quotas WHERE user_id=?', 'i', [userId()]);
+        $quotaBytes = (int) ($quota['quota_bytes'] ?? 5368709120);
+        $cleanupRequests = dbAll($db, 'SELECT * FROM cleanup_requests WHERE user_id=? ORDER BY created_at DESC LIMIT 20', 'i', [userId()]);
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Datenschutz</p><h1>Speicher, Exporte, Cleanup</h1></div><span><?= e(bytesLabel($usage)) ?> / <?= e(bytesLabel($quotaBytes)) ?></span></div>
+        <div class="split"><section class="panel"><h2>Speicherquote</h2><p><?= e(number_format($quotaBytes > 0 ? ($usage / $quotaBytes) * 100 : 0, 1)) ?>% genutzt.</p><progress max="<?= (int)$quotaBytes ?>" value="<?= (int)$usage ?>" style="width:100%"></progress><div class="actions"><a class="button" href="/?page=export_csv&type=audit">Audit exportieren</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen exportieren</a></div></section><section class="panel"><h2>Cleanup anfragen</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Daten älter als<input type="date" name="cutoff_date" value="<?= e((new DateTimeImmutable('-6 months'))->format('Y-m-d')) ?>" required></label><button class="primary" name="action" value="request_cleanup">Vorschau erstellen und anfragen</button></form></section></div>
+        <section class="panel table-wrap"><h2>Cleanup-Anfragen</h2><table><thead><tr><th>Stichtag</th><th>Status</th><th>Vorschau</th><th>Erstellt</th></tr></thead><tbody><?php foreach($cleanupRequests as $request): $preview=json_decode((string)$request['preview_json'], true) ?: []; ?><tr><td><?= e($request['cutoff_date']) ?></td><td><?= e($request['status']) ?></td><td><small>Jobs: <?= (int)($preview['jobs'] ?? 0) ?> · Bewerbungen: <?= (int)($preview['applications'] ?? 0) ?> · alte Dokumentversionen: <?= (int)($preview['old_document_versions'] ?? 0) ?> · <?= e(bytesLabel((int)($preview['document_bytes'] ?? 0))) ?></small></td><td><?= e(displayDateTime($request['created_at'], $currentUser)) ?></td></tr><?php endforeach; ?><?php if(!$cleanupRequests): ?><tr><td colspan="4" class="empty">Noch keine Cleanup-Anfragen.</td></tr><?php endif; ?></tbody></table></section>
     <?php elseif ($page === 'admin_users'): ?>
         <?php
         if (!$currentUserIsAdmin) {

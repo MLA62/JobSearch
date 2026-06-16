@@ -112,5 +112,10 @@ transparent starter match score, application creation from jobs, editable applic
 status, channel, email and cover-letter text, follow-up dates, employer/intermediary
 company relationships, primary contacts, contact logs, immutable status history and
 immutable audit-log display.
-Guest sharing, deeper document processing and scheduled portal imports are the
-next implementation phases.
+Guest sharing now has owner-managed links, target scoping, expiry/revocation,
+download policy and a guest view. The current prototype keeps guest device
+tracking lightweight and prepares email/device verification for SMTP hardening.
+Reports, calendar reminders, manual translations, storage quota visibility,
+cleanup requests and CSV exports are available as first workflow surfaces.
+Deeper OCR/document intelligence, scheduled portal imports, WebAuthn and fully
+automated report/PDF generation remain next hardening phases.
