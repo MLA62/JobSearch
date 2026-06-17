@@ -2149,6 +2149,52 @@ function translationTargetExists(mysqli $db, int $userId, string $entityType, in
     };
 }
 
+function translationSource(mysqli $db, int $userId, string $entityType, int $entityId, array $currentUser): array
+{
+    $lines = [];
+    $title = '';
+    if ($entityType === 'job') {
+        $row = dbOne($db, 'SELECT j.title, j.location_text, j.source_url, SUBSTRING(j.description,1,65535) description, c.name company_name FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [$entityId, $userId]);
+        if ($row) {
+            $title = (string)$row['title'];
+            $lines = ['Job: ' . $row['title'], 'Firma: ' . $row['company_name'], 'Ort: ' . $row['location_text'], 'Quelle: ' . $row['source_url'], '', (string)$row['description']];
+        }
+    } elseif ($entityType === 'company') {
+        $row = dbOne($db, 'SELECT name, legal_name, website, email, phone, industry, employee_count, address_line1, address_line2, postal_code, city, region, country_code, notes FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]);
+        if ($row) {
+            $title = (string)$row['name'];
+            $lines = ['Firma: ' . $row['name'], 'Rechtsname: ' . $row['legal_name'], 'Website: ' . $row['website'], 'E-Mail: ' . $row['email'], 'Telefon: ' . $row['phone'], 'Branche: ' . $row['industry'], 'Grösse: ' . $row['employee_count'], 'Adresse: ' . trim((string)$row['address_line1'] . "\n" . (string)$row['address_line2'] . "\n" . (string)$row['postal_code'] . ' ' . (string)$row['city']), 'Region/Land: ' . $row['region'] . ' / ' . $row['country_code'], 'Notizen: ' . $row['notes']];
+        }
+    } elseif ($entityType === 'application') {
+        $row = dbOne($db, 'SELECT a.status, a.channel, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$entityId, $userId]);
+        if ($row) {
+            $title = (string)$row['title'];
+            $lines = ['Bewerbung: ' . $row['title'], 'Firma: ' . $row['company_name'], 'Status: ' . $row['status'], 'Kanal: ' . $row['channel'], 'URL: ' . $row['application_url'], 'Portal: ' . $row['portal_account'], 'Referenz: ' . $row['reference_number'], 'E-Mail-Betreff: ' . $row['email_subject'], '', 'E-Mail-Text:', (string)$row['email_body'], '', 'Motivationsschreiben:', (string)$row['cover_letter_text'], '', 'Online-Notizen:', (string)$row['online_notes'], '', 'Interne Notizen:', (string)$row['notes']];
+        }
+    } elseif ($entityType === 'contact') {
+        $row = dbOne($db, 'SELECT ct.first_name, ct.last_name, ct.position, ct.department, ct.email, ct.phone, ct.mobile, ct.linkedin_url, SUBSTRING(ct.notes,1,65535) notes, c.name company_name FROM contacts ct LEFT JOIN companies c ON c.id=ct.company_id WHERE ct.id=? AND ct.owner_user_id=? AND ct.deleted_at IS NULL', 'ii', [$entityId, $userId]);
+        if ($row) {
+            $title = trim((string)$row['first_name'] . ' ' . (string)$row['last_name']);
+            $lines = ['Kontakt: ' . $title, 'Firma: ' . $row['company_name'], 'Funktion: ' . $row['position'], 'Abteilung: ' . $row['department'], 'E-Mail: ' . $row['email'], 'Telefon: ' . trim((string)$row['phone'] . ' ' . (string)$row['mobile']), 'LinkedIn: ' . $row['linkedin_url'], 'Notizen: ' . $row['notes']];
+        }
+    } elseif ($entityType === 'document') {
+        $row = dbOne($db, 'SELECT ud.title, ud.description, ud.original_filename, COALESCE(NULLIF(dt.corrected_text,""), NULLIF(dt.extracted_text,""), NULLIF(dt.ocr_text,"")) document_text FROM user_documents ud LEFT JOIN document_texts dt ON dt.user_document_id=ud.id WHERE ud.id=? AND ud.user_id=? AND ud.deleted_at IS NULL', 'ii', [$entityId, $userId]);
+        if ($row) {
+            $title = (string)$row['title'];
+            $lines = ['Dokument: ' . $row['title'], 'Datei: ' . $row['original_filename'], 'Beschreibung: ' . $row['description'], '', (string)$row['document_text']];
+        }
+    }
+    $source = trim((string)preg_replace("/\n{3,}/", "\n\n", implode("\n", array_filter($lines, static fn($line): bool => trim((string)$line) !== ''))));
+    return ['title' => $title, 'source' => $source];
+}
+
+function translationPrompt(string $targetLanguage, string $title, string $source): string
+{
+    $language = documentLanguageChoices()[$targetLanguage] ?? $targetLanguage;
+    $source = mb_substr($source, 0, 12000);
+    return trim("Übersetze den folgenden Inhalt nach {$language}.\n\nBitte fachlich korrekt, natürlich und professionell formulieren. Struktur, Namen, Firmennamen, URLs, E-Mail-Adressen, Telefonnummern und Datumsangaben unverändert lassen. Keine Fakten erfinden.\n\nTitel/Kontext: {$title}\n\n--- AUSGANGSTEXT ---\n{$source}");
+}
+
 function allowedDocumentTypeCodes(string $scope): array
 {
     if ($scope === 'application') {
@@ -2859,6 +2905,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, $uid, 'create', 'record_translation', (int) $stmt->insert_id, null, ['entity_type' => $entityType, 'entity_id' => $entityId, 'target_language' => $targetLanguage, 'version' => $version]);
         flash('Übersetzung gespeichert.');
         redirect('/?page=translations');
+    }
+
+    if ($action === 'prepare_translation') {
+        $target = (string) ($_POST['translation_target'] ?? '');
+        $targetLanguage = in_array($_POST['target_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['target_language'] : 'de';
+        if (!preg_match('/^(company|job|contact|application|document):(\d+)$/', $target, $matches)) {
+            flash('Bitte zuerst einen Datensatz auswählen.', 'danger');
+            redirect('/?page=translations');
+        }
+        $entityType = $matches[1];
+        $entityId = (int) $matches[2];
+        $uid = userId();
+        if (!translationTargetExists($db, $uid, $entityType, $entityId)) {
+            flash('Der gewählte Datensatz ist nicht verfügbar.', 'danger');
+            redirect('/?page=translations');
+        }
+        $source = translationSource($db, $uid, $entityType, $entityId, $currentUser ?? []);
+        if (trim((string)$source['source']) === '') {
+            flash('Für diesen Datensatz ist kein Ausgangstext vorhanden.', 'warning');
+            redirect('/?page=translations');
+        }
+        $_SESSION['translation_draft'] = [
+            'target' => $target,
+            'target_language' => $targetLanguage,
+            'title' => trim((string) ($_POST['translation_title'] ?? '')) ?: (string)$source['title'],
+            'body' => translationPrompt($targetLanguage, (string)$source['title'], (string)$source['source']),
+        ];
+        flash('Übersetzungsauftrag vorbereitet. Text kopieren, übersetzen lassen, Ergebnis hier einfügen und speichern.');
+        redirect('/?page=translations#translation-form');
     }
 
     if ($action === 'save_calendar_event') {
@@ -4130,7 +4205,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.22');
+$appVersion = (string) ($config['app_version'] ?? '0.14.23');
 
 ?><!doctype html>
 <html lang="de">
@@ -4490,11 +4565,13 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.22');
         </section><details class="panel calendar-entry-panel" id="new-calendar-entry" <?= $newStart !== '' ? 'open' : '' ?>><summary>Eintrag erstellen</summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" value="<?= e($newStart) ?>" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></details>
     <?php elseif ($page === 'translations'): ?>
         <?php
+        $translationDraft = $_SESSION['translation_draft'] ?? [];
+        unset($_SESSION['translation_draft']);
         $translations = dbAll($db, 'SELECT id, entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version, is_current, updated_at FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]);
         $translationTargets = translationTargetOptions($db, userId());
         ?>
         <div class="page-head"><div><p class="eyebrow">Sprache</p><h1>Übersetzungen</h1></div><span><?= count($translations) ?> Versionen</span></div>
-        <div class="split"><section class="panel"><h2>Übersetzung speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Datensatz<select name="translation_target" required><option value="">Bitte auswählen</option><?php foreach($translationTargets as $type=>$group): if(!$group['rows']) continue; ?><optgroup label="<?= e((string)$group['label']) ?>"><?php foreach($group['rows'] as $target): ?><option value="<?= e($type . ':' . (int)$target['id']) ?>"><?= e((string)$target['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Zielsprache<select name="target_language"><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Titel<input name="translation_title"></label><label>Übersetzung<textarea name="translation_body" rows="8" required></textarea></label><button class="primary" name="action" value="save_translation">Speichern</button></form></section><section class="panel"><h2>Gespeicherte Übersetzungen</h2><div class="log-timeline"><?php foreach($translations as $translation): ?><article><div><strong><?= e($translation['title'] ?: ucfirst((string)$translation['entity_type'])) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?><?= $translation['is_current'] ? ' · aktuell' : '' ?></span></div><p><?= nl2br(e(mb_strimwidth((string)$translation['body'],0,500,'...'))) ?></p></article><?php endforeach; ?><?php if(!$translations): ?><p class="empty">Noch keine Übersetzungen gespeichert.</p><?php endif; ?></div></section></div>
+        <div class="split"><section class="panel" id="translation-form"><h2>Übersetzung speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Datensatz<select name="translation_target" required><option value="">Bitte auswählen</option><?php foreach($translationTargets as $type=>$group): if(!$group['rows']) continue; ?><optgroup label="<?= e((string)$group['label']) ?>"><?php foreach($group['rows'] as $target): $targetValue=$type . ':' . (int)$target['id']; ?><option value="<?= e($targetValue) ?>" <?= ($translationDraft['target'] ?? '')===$targetValue?'selected':'' ?>><?= e((string)$target['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Zielsprache<select name="target_language"><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($translationDraft['target_language'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Titel<input name="translation_title" value="<?= e((string)($translationDraft['title'] ?? '')) ?>"></label><label>Übersetzung<textarea name="translation_body" rows="12" required><?= e((string)($translationDraft['body'] ?? '')) ?></textarea><small>Mit “Übersetzung vorbereiten” wird aus dem gewählten Datensatz ein fertiger Übersetzungsauftrag erstellt. Das übersetzte Ergebnis danach hier einfügen und speichern.</small></label><div class="actions"><button name="action" value="prepare_translation">Übersetzung vorbereiten</button><button class="primary" name="action" value="save_translation">Speichern</button></div></form></section><section class="panel"><h2>Gespeicherte Übersetzungen</h2><div class="log-timeline"><?php foreach($translations as $translation): ?><article><div><strong><?= e($translation['title'] ?: ucfirst((string)$translation['entity_type'])) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?><?= $translation['is_current'] ? ' · aktuell' : '' ?></span></div><p><?= nl2br(e(mb_strimwidth((string)$translation['body'],0,500,'...'))) ?></p></article><?php endforeach; ?><?php if(!$translations): ?><p class="empty">Noch keine Übersetzungen gespeichert.</p><?php endif; ?></div></section></div>
     <?php elseif ($page === 'privacy'): ?>
         <?php
         $usage = storageUsageBytes($db, userId());
