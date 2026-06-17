@@ -112,9 +112,10 @@ The first deployed prototype includes responsive login/registration, strict priv
 ownership checks, dashboard, company and job CRUD, assisted import from job URLs or
 pasted email/job-ad text, search/status/blue-collar filters, duplicate warnings, a
 transparent starter match score, application creation from jobs, editable application
-status, channel, email and cover-letter text, follow-up dates, employer/intermediary
-company relationships, primary contacts, contact logs, immutable status history and
-immutable audit-log display.
+status, channel, online application URL, portal/login hint without passwords,
+reference number, email and cover-letter text, follow-up dates,
+employer/intermediary company relationships, primary contacts, contact logs,
+immutable status history and immutable audit-log display.
 Guest sharing now has owner-managed links, target scoping, expiry/revocation,
 download policy and a guest view. The current prototype keeps guest device
 tracking lightweight and prepares email/device verification for SMTP hardening.

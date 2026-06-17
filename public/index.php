@@ -646,7 +646,7 @@ function reportExportType(array $report): ?string
 function reportFieldOptions(string $base): array
 {
     return match ($base) {
-        'applications' => ['title'=>'Job','company'=>'Firma','status'=>'Status','channel'=>'Kanal','applied_at'=>'Gesendet','next_action'=>'Pendent','next_action_at'=>'Fällig'],
+        'applications' => ['title'=>'Job','company'=>'Firma','status'=>'Status','channel'=>'Kanal','application_url'=>'Online-URL','reference_number'=>'Referenz','applied_at'=>'Gesendet','next_action'=>'Pendent','next_action_at'=>'Fällig'],
         'companies' => ['name'=>'Firma','city'=>'Ort','website'=>'Website','is_intermediary'=>'Vermittler','updated_at'=>'Aktualisiert'],
         'contacts' => ['name'=>'Kontakt','company'=>'Firma','email'=>'E-Mail','phone'=>'Telefon','position'=>'Funktion','open_logs'=>'Pendent','updated_at'=>'Aktualisiert'],
         'documents' => ['title'=>'Dokument','type'=>'Typ','filename'=>'Datei','scope'=>'Bereich','version'=>'Version','created_at'=>'Erstellt'],
@@ -748,7 +748,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
     $status = (string) ($filters['status'] ?? '');
 
     $rows = match ($base) {
-        'applications' => dbAll($db, 'SELECT a.status, a.channel, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL', 'i', [$userId]),
+        'applications' => dbAll($db, 'SELECT a.status, a.channel, a.application_url, a.reference_number, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL', 'i', [$userId]),
         'companies' => dbAll($db, 'SELECT name, city, website, is_intermediary, updated_at FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
         'contacts' => dbAll($db, 'SELECT CONCAT(c.first_name, " ", c.last_name) name, co.name company, c.email, COALESCE(NULLIF(c.phone,""), c.mobile) phone, c.position, c.updated_at, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
         'documents' => dbAll($db, 'SELECT d.title, dt.name_key type, d.original_filename filename, d.scope, d.version, d.created_at FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
@@ -1172,6 +1172,10 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
         'Status: ' . (string)$application['status'],
         'Kanal: ' . (string)$application['channel'],
         'Gesendet am: ' . displayDateTime($application['applied_at'] ?? null, $currentUser),
+        'Online-Bewerbungs-URL: ' . (string)($application['application_url'] ?? ''),
+        'Portal / Konto-Hinweis: ' . (string)($application['portal_account'] ?? ''),
+        'Referenznummer: ' . (string)($application['reference_number'] ?? ''),
+        'Online-Notizen: ' . (string)($application['online_notes'] ?? ''),
         'Nächster Schritt: ' . (string)$application['next_action'],
         'Fällig am: ' . displayDateTime($application['next_action_at'] ?? null, $currentUser),
         'Bestehender Betreff: ' . (string)$application['email_subject'],
@@ -3092,6 +3096,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nextActionAt = trim((string) ($_POST['next_action_at'] ?? '')) ?: null;
         $emailSubject = trim((string) ($_POST['email_subject'] ?? '')) ?: null;
         $emailBody = trim((string) ($_POST['email_body'] ?? '')) ?: null;
+        $applicationUrl = trim((string) ($_POST['application_url'] ?? '')) ?: null;
+        if ($applicationUrl !== null && !filter_var($applicationUrl, FILTER_VALIDATE_URL)) {
+            flash('Online-Bewerbungs-URL ist ungültig.', 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
+        $portalAccount = trim((string) ($_POST['portal_account'] ?? '')) ?: null;
+        $referenceNumber = trim((string) ($_POST['reference_number'] ?? '')) ?: null;
+        $onlineNotes = trim((string) ($_POST['online_notes'] ?? '')) ?: null;
         $coverLetter = trim((string) ($_POST['cover_letter_text'] ?? '')) ?: null;
         $notes = trim((string) ($_POST['notes'] ?? '')) ?: null;
         $primaryContactId = (int) ($_POST['primary_contact_id'] ?? 0);
@@ -3115,9 +3127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($appliedAt) { $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : ''); }
         if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
         if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
-        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
+        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
         $uid = userId();
-        $stmt->bind_param('iisssssssssii', $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
+        $stmt->bind_param('iisssssssssssssii', $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
         $stmt->execute();
         if ($old['status'] !== $status) {
             $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: null;
@@ -3132,7 +3144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $jobStmt->execute();
             }
         }
-        audit($db, $uid, 'update', 'application', $id, ['status' => $old['status']], ['status' => $status, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt]);
+        audit($db, $uid, 'update', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl, 'reference_number' => $referenceNumber, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt]);
         flash('Bewerbung gespeichert.');
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
@@ -4025,7 +4037,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
         $appSortMap=['updated_at'=>'a.updated_at','title'=>'j.title','company'=>'c.name','status'=>'a.status','next_action_at'=>'a.next_action_at','applied_at'=>'a.applied_at'];
         $appSql.=' ORDER BY ' . ($appSortMap[$appSort] ?? 'a.updated_at') . ' ' . strtoupper($appDir);
         $apps=dbAll($db,$appSql,$appTypes,$appVals);
-        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
         $selectedContactId = (int) ($_GET['contact'] ?? ($applicationEdit['primary_contact_id'] ?? 0));
@@ -4067,6 +4079,10 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
                     <label>Kanal<select name="channel"><option value="">Nicht gewählt</option><?php foreach($channels as $v=>$l): ?><option value="<?= $v ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
                     <label>Gesendet am<input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
+                <div class="history"><h3>Online-Bewerbung / Portal</h3><p class="meta-line">Viele Bewerbungen laufen über Portale oder Karriereseiten. Speichere hier den Link, Referenz und Upload-Hinweise. Keine Passwörter hinterlegen.</p></div>
+                <label>Online-Bewerbungs-URL<input type="url" name="application_url" value="<?= e($applicationEdit['application_url'] ?? '') ?>" placeholder="https://..."><?php if(!empty($applicationEdit['application_url'])): ?><small><a href="<?= e($applicationEdit['application_url']) ?>" target="_blank" rel="noopener">Online-Bewerbung öffnen</a></small><?php endif; ?></label>
+                <div class="two"><label>Portal / Login-Hinweis<input name="portal_account" value="<?= e($applicationEdit['portal_account'] ?? '') ?>" placeholder="z. B. Firmenportal, JobCloud, LinkedIn / Konto-E-Mail"></label><label>Referenznummer<input name="reference_number" value="<?= e($applicationEdit['reference_number'] ?? '') ?>" placeholder="Bestätigungs- oder Job-Referenz"></label></div>
+                <label>Online-Notizen<textarea name="online_notes" rows="3" placeholder="Welche Dokumente hochgeladen, Fragen beantwortet, Bestätigung erhalten, Login-Hinweise ohne Passwort"><?= e($applicationEdit['online_notes'] ?? '') ?></textarea></label>
                 <label>Hauptkontakt<select name="primary_contact_id"><option value="0">Noch kein Kontakt gewählt</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label>
                 <div class="two">
                     <label>Nächster Schritt<select name="next_action"><option value="">Kein nächster Schritt</option><?php foreach($nextActionChoices as $choice): ?><option value="<?= e($choice) ?>" <?= ($applicationEdit['next_action'] ?? '')===$choice?'selected':'' ?>><?= e($choice) ?></option><?php endforeach; ?></select><?php if(($applicationEdit['next_action'] ?? '') && !in_array((string)$applicationEdit['next_action'], $nextActionChoices, true)): ?><small>Bisheriger Freitext: <?= e($applicationEdit['next_action']) ?></small><?php endif; ?></label>
