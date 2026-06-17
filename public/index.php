@@ -94,6 +94,10 @@ try {
     ensureColumn($db, 'applications', 'next_action', '`next_action` VARCHAR(255) NULL', 'salary_currency');
     ensureColumn($db, 'applications', 'next_action_at', '`next_action_at` DATETIME NULL', 'next_action');
     ensureColumn($db, 'applications', 'notes', '`notes` LONGTEXT NULL', 'next_action_at');
+    ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
+    ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
+    ensureColumn($db, 'users', 'x_url', '`x_url` VARCHAR(500) NULL', 'facebook_url');
+    ensureColumn($db, 'users', 'other_profile_url', '`other_profile_url` VARCHAR(500) NULL', 'x_url');
     ensureColumn($db, 'contacts', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'status', "`status` ENUM('planned','open','done','cancelled') NOT NULL DEFAULT 'done'", 'direction');
@@ -107,6 +111,9 @@ try {
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
     modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
     $db->query("UPDATE applications SET next_action='Antwort auf Bewerbung pendent', next_action_at=COALESCE(applied_at, next_action_at, NOW()) WHERE status='sent' AND deleted_at IS NULL AND (next_action IS NULL OR next_action='' OR next_action='Eingang bestätigen lassen' OR next_action<>'Antwort auf Bewerbung pendent' OR (applied_at IS NOT NULL AND (next_action_at IS NULL OR next_action_at<>applied_at)) OR (applied_at IS NULL AND next_action_at IS NULL))");
+    foreach (dbAll($db, "SELECT a.id, a.user_id FROM applications a WHERE a.status='sent' AND a.deleted_at IS NULL AND a.primary_contact_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM contact_logs l WHERE l.owner_user_id=a.user_id AND l.application_id=a.id AND l.contact_id=a.primary_contact_id AND l.subject='Bewerbung eingereicht') LIMIT 200") as $submittedApplication) {
+        ensureSubmittedApplicationContactLog($db, (int) $submittedApplication['user_id'], (int) $submittedApplication['id']);
+    }
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
 }
@@ -1066,7 +1073,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
     $rows = match ($base) {
         'applications' => dbAll($db, 'SELECT a.status, a.channel, a.application_url, a.reference_number, a.applied_at, a.next_action, a.next_action_at, j.title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL', 'i', [$userId]),
         'companies' => dbAll($db, 'SELECT name, city, website, is_intermediary, updated_at FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
-        'contacts' => dbAll($db, 'SELECT CONCAT(c.first_name, " ", c.last_name) name, co.name company, c.email, COALESCE(NULLIF(c.phone,""), c.mobile) phone, c.position, c.updated_at, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
+        'contacts' => dbAll($db, 'SELECT CONCAT(c.last_name, " ", c.first_name) name, co.name company, c.email, COALESCE(NULLIF(c.phone,""), c.mobile) phone, c.position, c.updated_at, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
         'documents' => dbAll($db, 'SELECT d.title, dt.name_key type, d.original_filename filename, d.scope, d.version, d.created_at FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
         'calendar' => calendarEventRows($db, $userId, (new DateTimeImmutable('-30 days'))->setTime(0, 0), (new DateTimeImmutable('+90 days'))->setTime(23, 59, 59)),
         default => dbAll($db, 'SELECT j.title, c.name company, j.location_text location, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL', 'i', [$userId]),
@@ -2140,6 +2147,48 @@ function contactLogStatusOptions(): array
     return ['planned'=>'Geplant','open'=>'Offen','done'=>'Erledigt','cancelled'=>'Abgebrochen'];
 }
 
+function ensureSubmittedApplicationContactLog(mysqli $db, int $userId, int $applicationId): void
+{
+    $application = dbOne(
+        $db,
+        "SELECT a.id, a.user_id, a.primary_contact_id, a.applied_at, a.channel, a.job_id, j.title job_title, c.name company_name, ct.company_id contact_company_id
+           FROM applications a
+           JOIN jobs j ON j.id=a.job_id
+           JOIN companies c ON c.id=j.company_id
+           JOIN contacts ct ON ct.id=a.primary_contact_id AND ct.owner_user_id=a.user_id AND ct.deleted_at IS NULL
+          WHERE a.id=? AND a.user_id=? AND a.status='sent' AND a.deleted_at IS NULL AND a.primary_contact_id IS NOT NULL
+          LIMIT 1",
+        'ii',
+        [$applicationId, $userId]
+    );
+    if (!$application) {
+        return;
+    }
+    $contactId = (int) $application['primary_contact_id'];
+    $exists = dbOne($db, "SELECT id FROM contact_logs WHERE owner_user_id=? AND application_id=? AND contact_id=? AND subject='Bewerbung eingereicht' LIMIT 1", 'iii', [$userId, $applicationId, $contactId]);
+    if ($exists) {
+        return;
+    }
+    $channel = (string) ($application['channel'] ?? '');
+    $logChannel = match ($channel) {
+        'email' => 'email',
+        'mail' => 'letter',
+        'portal', 'website' => 'other',
+        default => 'note',
+    };
+    $subject = 'Bewerbung eingereicht';
+    $body = 'Bewerbung eingereicht: ' . trim((string)$application['job_title'] . ' · ' . (string)$application['company_name'], ' ·');
+    $occurredAt = (string) ($application['applied_at'] ?: date('Y-m-d H:i:s'));
+    $direction = 'outgoing';
+    $status = 'done';
+    $outcome = 'Antwort auf Bewerbung pendent';
+    $stmt = $db->prepare('INSERT INTO contact_logs (owner_user_id, contact_id, company_id, application_id, job_id, channel, direction, status, subject, body, occurred_at, follow_up_at, outcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)');
+    $companyId = (int) $application['contact_company_id'];
+    $jobId = (int) $application['job_id'];
+    $stmt->bind_param('iiiiisssssss', $userId, $contactId, $companyId, $applicationId, $jobId, $logChannel, $direction, $status, $subject, $body, $occurredAt, $outcome);
+    $stmt->execute();
+}
+
 function saveContactLogAttachment(mysqli $db, int $userId, int $contactId, int $logId, string $contactName, string $subject): ?int
 {
     $file = $_FILES['log_attachment'] ?? null;
@@ -2913,7 +2962,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save_profile') {
         $uid = userId();
-        $storedUser = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,city,region,country_code FROM users WHERE id=?', 'i', [$uid]);
+        $storedUser = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,linkedin_url,facebook_url,x_url,other_profile_url,city,region,country_code FROM users WHERE id=?', 'i', [$uid]);
         $first = trim((string) ($_POST['first_name'] ?? ''));
         $last = trim((string) ($_POST['last_name'] ?? ''));
         $language = array_key_exists((string) ($_POST['preferred_language'] ?? ''), documentLanguageChoices())
@@ -2923,15 +2972,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $timezone = in_array($_POST['timezone'] ?? '', $validTimezones, true) ? (string) $_POST['timezone'] : 'Europe/Zurich';
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
         $mobile = trim((string) ($_POST['mobile'] ?? '')) ?: null;
+        $linkedinUrl = trim((string) ($_POST['linkedin_url'] ?? '')) ?: null;
+        $facebookUrl = trim((string) ($_POST['facebook_url'] ?? '')) ?: null;
+        $xUrl = trim((string) ($_POST['x_url'] ?? '')) ?: null;
+        $otherProfileUrl = trim((string) ($_POST['other_profile_url'] ?? '')) ?: null;
         $city = trim((string) ($_POST['city'] ?? '')) ?: null;
         [$country, $region] = countryForRegion((string) ($_POST['region_key'] ?? ''));
         if ($first === '' || $last === '') {
             flash('Vorname und Nachname sind erforderlich.', 'danger');
             redirect('/?page=profile');
         }
+        foreach (['LinkedIn'=>$linkedinUrl, 'Facebook'=>$facebookUrl, 'X'=>$xUrl, 'Andere'=>$otherProfileUrl] as $label => $url) {
+            if ($url !== null && !filter_var($url, FILTER_VALIDATE_URL)) {
+                flash($label . '-URL ist ungültig.', 'danger');
+                redirect('/?page=profile');
+            }
+        }
         $old = $storedUser;
-        $stmt = $db->prepare('UPDATE users SET first_name=?, last_name=?, preferred_language=?, timezone=?, phone=?, mobile=?, city=?, region=?, country_code=? WHERE id=?');
-        $stmt->bind_param('sssssssssi', $first, $last, $language, $timezone, $phone, $mobile, $city, $region, $country, $uid);
+        $stmt = $db->prepare('UPDATE users SET first_name=?, last_name=?, preferred_language=?, timezone=?, phone=?, mobile=?, linkedin_url=?, facebook_url=?, x_url=?, other_profile_url=?, city=?, region=?, country_code=? WHERE id=?');
+        $stmt->bind_param('sssssssssssssi', $first, $last, $language, $timezone, $phone, $mobile, $linkedinUrl, $facebookUrl, $xUrl, $otherProfileUrl, $city, $region, $country, $uid);
         $stmt->execute();
         $allowedRemote = ['onsite','hybrid','remote','any'];
         $allowedEmployment = ['full_time','part_time','temporary','contract','internship','freelance'];
@@ -3692,6 +3751,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         audit($db, $uid, 'update', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl, 'reference_number' => $referenceNumber, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt]);
+        if ($status === 'sent' && $primaryContactId > 0) {
+            ensureSubmittedApplicationContactLog($db, $uid, $id);
+        }
         flash('Bewerbung gespeichert.');
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
@@ -3739,6 +3801,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $history->bind_param('iisss', $id, $uid, $oldStatus, $sentStatus, $comment);
             $history->execute();
             audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id, 'attachments' => count($attachments)]);
+            ensureSubmittedApplicationContactLog($db, $uid, $id);
             flash('Bewerbungs-E-Mail wurde versendet.');
         } else {
             flash('Eigener SMTP-Versand ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
@@ -4014,7 +4077,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.17');
+$appVersion = (string) ($config['app_version'] ?? '0.14.19');
 
 ?><!doctype html>
 <html lang="de">
@@ -4610,6 +4673,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.17');
             <label>App- und Dokumentensprache<select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small>Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.</small></label>
             <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
+            <div class="two"><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($currentUser['linkedin_url'] ?? '') ?>" placeholder="https://www.linkedin.com/in/..."></label><label>Facebook<input type="url" name="facebook_url" value="<?= e($currentUser['facebook_url'] ?? '') ?>" placeholder="https://www.facebook.com/..."></label></div>
+            <div class="two"><label>X<input type="url" name="x_url" value="<?= e($currentUser['x_url'] ?? '') ?>" placeholder="https://x.com/..."></label><label>Andere<input type="url" name="other_profile_url" value="<?= e($currentUser['other_profile_url'] ?? '') ?>" placeholder="https://..."></label></div>
             <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
             <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Sprachrekords einzeln hinzufügen. Jede Sprache darf nur einmal vorkommen; mindestens eine Sprache muss C2 Muttersprache sein.</p></div>
             <div class="language-records">
@@ -4895,7 +4960,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.17');
     <?php elseif ($page === 'contacts'): ?>
         <?php
         $contactCompanyFilter=(int)($_GET['company_id'] ?? 0);
-        $contactSfFields = ['name'=>['label'=>'Kontakt','expr'=>'CONCAT(ct.first_name, " ", ct.last_name)'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'reachable'=>['label'=>'Erreichbar','expr'=>'CONCAT_WS(" ", ct.email, ct.phone, ct.mobile)'], 'crm'=>['label'=>'CRM-Bezug','expr'=>'CONCAT_WS(" ", j.title, a.status)']];
+        $contactSfFields = ['name'=>['label'=>'Kontakt','expr'=>'CONCAT(ct.last_name, " ", ct.first_name)'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'reachable'=>['label'=>'Erreichbar','expr'=>'CONCAT_WS(" ", ct.email, ct.phone, ct.mobile)'], 'crm'=>['label'=>'CRM-Bezug','expr'=>'CONCAT_WS(" ", j.title, a.status)']];
         $contactSf = sfState('contacts', $contactSfFields, ['sort'=>'name','dir'=>'asc']);
         $contactPreserve = ['page'=>'contacts', 'company_id'=>$contactCompanyFilter ?: '', 'edit_contact'=>$_GET['edit_contact'] ?? ''];
         $contactCompany=$contactCompanyFilter ? dbOne($db,'SELECT id,name FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL','ii',[$contactCompanyFilter,userId()]) : null;
@@ -4917,7 +4982,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.17');
         <div class="page-head"><div><p class="eyebrow">CRM</p><h1>Kontakte</h1></div><span><?= count($contactRows) ?> Einträge</span></div>
         <div class="actions export-actions"><?= sfToolbar('contacts', $contactSf, ['page'=>'contacts', 'company_id'=>$contactCompanyFilter ?: ''], $contactSfFields) ?><a class="button" href="/?page=export_pdf&type=contacts">PDF</a></div>
         <?php if($contactCompany): ?><p class="filter-note">Kontakte bei <a href="/?page=companies&edit=<?= (int)$contactCompany['id'] ?>"><?= e($contactCompany['name']) ?></a> · <a href="/?page=contacts">Alle Kontakte anzeigen</a></p><?php endif; ?>
-        <div class="<?= $contactEdit ? 'split' : 'full-width' ?>"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('contacts','name','Kontakt',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','company','Firma',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','reachable','Erreichbar',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','crm','CRM-Bezug',$contactSf,$contactPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Kontakt-Log</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="<?= $contactEdit ? 'split' : 'full-width' ?>"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('contacts','name','Kontakt',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','company','Firma',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','reachable','Erreichbar',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','crm','CRM-Bezug',$contactSf,$contactPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Neuer Eintrag</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
