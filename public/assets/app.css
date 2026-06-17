@@ -37,7 +37,7 @@
     --radius-sm: 5px;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; min-width: 0; }
 
 html {
     font-family: "Segoe UI", Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -254,8 +254,8 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 .stack { display: grid; gap: 16px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 20px; align-items: start; }
-.inner-split { grid-template-columns: minmax(260px, 360px) 1fr; }
+.split { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.inner-split { grid-template-columns: minmax(0, 360px) minmax(0, 1fr); }
 
 .page-head {
     display: flex;
@@ -288,6 +288,7 @@ input,
 select,
 textarea {
     width: 100%;
+    max-width: 100%;
     min-height: 42px;
     border: 1.5px solid var(--line);
     border-bottom-color: var(--line-strong);
@@ -387,6 +388,7 @@ button.primary:hover { background: linear-gradient(180deg, #c2410c, var(--accent
 
 .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .actions form { margin: 0; }
+.editor-actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--divider); }
 .actions a,
 .actions button {
     color: var(--accent);
