@@ -776,6 +776,48 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 .application-documents article { cursor: grab; }
 .application-documents article:active { cursor: grabbing; }
 
+.dossier-page { max-width: 1180px; }
+.dossier-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
+    gap: 22px;
+    align-items: start;
+}
+.dossier-hero dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+.dossier-hero dt { color: var(--muted); font-size: .78rem; font-weight: 800; text-transform: uppercase; }
+.dossier-hero dd { margin: 0; font-weight: 800; }
+.dossier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+.dossier-grid article,
+.dossier-list article {
+    border: 1.5px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    padding: 14px;
+}
+.dossier-list { display: grid; gap: 12px; }
+.dossier-list strong, .dossier-list span, .dossier-list small { display: block; }
+.dossier-text,
+.dossier-document-text {
+    white-space: normal;
+    line-height: 1.5;
+}
+.dossier-document-text {
+    border-top: 1px solid var(--divider);
+    margin-top: 10px;
+    padding-top: 10px;
+    max-height: 420px;
+    overflow: auto;
+}
+
 .history { border-top: 1px solid var(--divider); margin-top: 24px; padding-top: 20px; }
 .history article { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 10px 0; }
 .history article span { color: var(--muted); font-size: .82rem; }
@@ -909,7 +951,7 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .hero { padding: 28px; display: block; }
     .hero .button { display: inline-flex; margin-top: 18px; }
     .stats { grid-template-columns: 1fr 1fr; }
-    .split, .inner-split, .two, .three, .company-path, .contact-workspace, .application-list, .language-record, .language-add, .salary-row { grid-template-columns: 1fr; }
+    .split, .inner-split, .two, .three, .company-path, .contact-workspace, .application-list, .language-record, .language-add, .salary-row, .dossier-hero, .dossier-grid { grid-template-columns: 1fr; }
     .import-form { grid-template-columns: 1fr; }
     .calendar-toolbar { align-items: stretch; }
     .calendar-toolbar .actions { width: 100%; flex-wrap: wrap; }

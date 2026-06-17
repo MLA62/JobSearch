@@ -337,6 +337,21 @@ CREATE TABLE jobs (
     CONSTRAINT fk_jobs_source FOREIGN KEY (source_id) REFERENCES job_sources(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE job_questions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id BIGINT UNSIGNED NOT NULL,
+    job_id BIGINT UNSIGNED NOT NULL,
+    question_text TEXT NOT NULL,
+    answer_text LONGTEXT NULL,
+    sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME NULL,
+    KEY idx_job_questions_job (job_id, sort_order),
+    CONSTRAINT fk_job_questions_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
+    CONSTRAINT fk_job_questions_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE contacts (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     owner_user_id BIGINT UNSIGNED NOT NULL,

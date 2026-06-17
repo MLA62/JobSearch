@@ -96,6 +96,20 @@ try {
     ensureColumn($db, 'applications', 'notes', '`notes` LONGTEXT NULL', 'next_action_at');
     ensureColumn($db, 'companies', 'notes', '`notes` TEXT NULL', 'rating');
     ensureColumn($db, 'jobs', 'notes', '`notes` LONGTEXT NULL', 'description');
+    $db->query("CREATE TABLE IF NOT EXISTS job_questions (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        owner_user_id BIGINT UNSIGNED NOT NULL,
+        job_id BIGINT UNSIGNED NOT NULL,
+        question_text TEXT NOT NULL,
+        answer_text LONGTEXT NULL,
+        sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at DATETIME NULL,
+        KEY idx_job_questions_job (job_id, sort_order),
+        CONSTRAINT fk_job_questions_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
+        CONSTRAINT fk_job_questions_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
     ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
     ensureColumn($db, 'users', 'x_url', '`x_url` VARCHAR(500) NULL', 'facebook_url');
@@ -758,6 +772,93 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
         $objects[$contentNo] = "<< /Length " . strlen($content) . " >>\nstream\n{$content}\nendstream";
         $objects[$pageNo] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {$pageWidth} {$pageHeight}] /Resources << /Font << /F1 {$fontObjectNo} 0 R >> >> /Contents {$contentNo} 0 R >>";
         $pages[] = $pageNo . ' 0 R';
+    }
+    $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    $objects[2] = '<< /Type /Pages /Kids [' . implode(' ', $pages) . '] /Count ' . count($pages) . ' >>';
+    $objects[$fontObjectNo] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    ksort($objects);
+    $pdf = "%PDF-1.4\n";
+    $offsets = [0];
+    foreach ($objects as $number => $body) {
+        $offsets[$number] = strlen($pdf);
+        $pdf .= "{$number} 0 obj\n{$body}\nendobj\n";
+    }
+    $xref = strlen($pdf);
+    $pdf .= "xref\n0 " . (max(array_keys($objects)) + 1) . "\n0000000000 65535 f \n";
+    for ($i = 1; $i <= max(array_keys($objects)); $i++) {
+        $pdf .= sprintf("%010d 00000 n \n", $offsets[$i] ?? 0);
+    }
+    $pdf .= "trailer\n<< /Size " . (max(array_keys($objects)) + 1) . " /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    header('Content-Length: ' . strlen($pdf));
+    echo $pdf;
+    exit;
+}
+
+function pdfTextResponse(string $filename, string $title, array $sections): never
+{
+    $pageWidth = 595;
+    $pageHeight = 842;
+    $margin = 42;
+    $lineHeight = 13;
+    $fontObjectNo = 3;
+    $objects = [];
+    $pages = [];
+    $pageContents = [];
+    $content = '';
+    $pageNo = 1;
+    $y = 792;
+    $lineWidth = 96;
+
+    $newPage = function () use (&$content, &$pageContents, &$pageNo, &$y, $pageWidth, $pageHeight, $margin, $title): void {
+        if ($content !== '') {
+            $pageContents[] = $content;
+        }
+        $content = "0.09 0.13 0.16 rg\nBT /F1 16 Tf {$margin} 806 Td (" . pdfEscape($title) . ") Tj ET\n";
+        $content .= "0.45 0.50 0.54 rg\nBT /F1 8 Tf {$margin} 788 Td (Erstellt am " . pdfEscape(date('d.m.Y H:i')) . " | Seite {$pageNo}) Tj ET\n";
+        $content .= "0.78 0.81 0.84 RG 0.6 w {$margin} 778 m " . ($pageWidth - $margin) . " 778 l S\n";
+        $y = 758;
+        $pageNo++;
+    };
+    $addLine = function (string $text, int $size = 9, bool $heading = false) use (&$content, &$y, $lineHeight, $margin, $newPage): void {
+        if ($y < 52) {
+            $newPage();
+        }
+        $fontSize = $heading ? 12 : $size;
+        $color = $heading ? '0.77 0.20 0.00' : '0.10 0.13 0.16';
+        $content .= "{$color} rg\nBT /F1 {$fontSize} Tf {$margin} {$y} Td (" . pdfEscape($text) . ") Tj ET\n";
+        $y -= $heading ? 18 : $lineHeight;
+    };
+    $newPage();
+    foreach ($sections as $sectionTitle => $lines) {
+        $addLine((string) $sectionTitle, 12, true);
+        foreach ((array) $lines as $line) {
+            $parts = preg_split('/\R/u', (string) $line) ?: [''];
+            foreach ($parts as $part) {
+                $part = trim((string) $part);
+                if ($part === '') {
+                    $addLine('');
+                    continue;
+                }
+                foreach (explode("\n", wordwrap($part, $lineWidth, "\n", true)) as $wrappedLine) {
+                    if ($wrappedLine !== '') {
+                        $addLine($wrappedLine);
+                    }
+                }
+            }
+        }
+        $addLine('');
+    }
+    if ($content !== '') {
+        $pageContents[] = $content;
+    }
+    foreach ($pageContents as $pageContent) {
+        $contentNo = count($objects) + 4;
+        $pageObjNo = $contentNo + 1;
+        $objects[$contentNo] = "<< /Length " . strlen($pageContent) . " >>\nstream\n{$pageContent}\nendstream";
+        $objects[$pageObjNo] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {$pageWidth} {$pageHeight}] /Resources << /Font << /F1 {$fontObjectNo} 0 R >> >> /Contents {$contentNo} 0 R >>";
+        $pages[] = $pageObjNo . ' 0 R';
     }
     $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     $objects[2] = '<< /Type /Pages /Kids [' . implode(' ', $pages) . '] /Count ' . count($pages) . ' >>';
@@ -2273,6 +2374,108 @@ function translationPrompt(string $targetLanguage, string $title, string $source
     return trim("Übersetze den folgenden Inhalt nach {$language}.\n\nBitte fachlich korrekt, natürlich und professionell formulieren. Struktur, Namen, Firmennamen, URLs, E-Mail-Adressen, Telefonnummern und Datumsangaben unverändert lassen. Keine Fakten erfinden.\n\nTitel/Kontext: {$title}\n\n--- AUSGANGSTEXT ---\n{$source}");
 }
 
+function applicationDossier(mysqli $db, int $userId, int $applicationId, array $currentUser): ?array
+{
+    $application = dbOne(
+        $db,
+        'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.applied_at, a.channel, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) application_notes, a.next_action, a.next_action_at, a.created_at application_created_at, a.updated_at application_updated_at,
+                j.company_id, j.title job_title, j.location_text, j.status job_status, j.workplace_type, j.engagement_type, j.contract_term, j.salary_min, j.salary_currency, j.salary_period, j.source_url, SUBSTRING(j.description,1,65535) job_description, SUBSTRING(j.notes,1,65535) job_notes,
+                c.name company_name, c.website company_website, c.email company_email, c.phone company_phone, c.address_line1, c.address_line2, c.postal_code, c.city company_city, c.region company_region, c.country_code company_country, SUBSTRING(c.notes,1,65535) company_notes,
+                i.name intermediary_company_name
+           FROM applications a
+           JOIN jobs j ON j.id=a.job_id
+           JOIN companies c ON c.id=j.company_id
+           LEFT JOIN companies i ON i.id=a.intermediary_company_id
+          WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL',
+        'ii',
+        [$applicationId, $userId]
+    );
+    if (!$application) {
+        return null;
+    }
+    $jobId = (int) $application['job_id'];
+    $companyId = (int) $application['company_id'];
+    $intermediaryId = (int) ($application['intermediary_company_id'] ?? 0);
+    $contacts = dbAll($db, 'SELECT ct.id, ct.company_id, ct.application_id, ct.job_id, ct.first_name, ct.last_name, ct.position, ct.department, ct.email, ct.phone, ct.mobile, ct.linkedin_url, ct.preferred_language, SUBSTRING(ct.notes,1,65535) notes, co.name company_name FROM contacts ct JOIN companies co ON co.id=ct.company_id WHERE ct.owner_user_id=? AND ct.deleted_at IS NULL AND (ct.company_id=? OR ct.company_id=? OR ct.application_id=? OR ct.job_id=?) ORDER BY co.name, ct.last_name, ct.first_name', 'iiiii', [$userId, $companyId, $intermediaryId, $applicationId, $jobId]);
+    $questions = dbAll($db, 'SELECT id, question_text, answer_text, sort_order, created_at, updated_at FROM job_questions WHERE owner_user_id=? AND job_id=? AND deleted_at IS NULL ORDER BY sort_order, id', 'ii', [$userId, $jobId]);
+    try {
+        $documents = dbAll($db, 'SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, COALESCE(NULLIF(txt.corrected_text,""), NULLIF(txt.extracted_text,""), NULLIF(txt.ocr_text,"")) document_text FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id LEFT JOIN document_texts txt ON txt.user_document_id=d.id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC', 'ii', [$applicationId, $userId]);
+    } catch (Throwable) {
+        $documents = dbAll($db, 'SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, "" document_text FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC', 'ii', [$applicationId, $userId]);
+    }
+    $history = dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [$applicationId]);
+    $contactLogs = dbAll($db, 'SELECT l.id, l.contact_id, l.application_id, l.job_id, l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,65535) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND (l.application_id=? OR l.job_id=? OR l.company_id=? OR ct.company_id=? OR ct.company_id=?) ORDER BY l.occurred_at DESC', 'iiiiii', [$userId, $applicationId, $jobId, $companyId, $companyId, $intermediaryId]);
+    $calendarEvents = dbAll($db, 'SELECT id, title, event_type, starts_at, ends_at, all_day, status, location, notes FROM calendar_events WHERE owner_user_id=? AND application_id=? ORDER BY starts_at DESC', 'ii', [$userId, $applicationId]);
+    return ['application' => $application, 'contacts' => $contacts, 'questions' => $questions, 'documents' => $documents, 'history' => $history, 'contact_logs' => $contactLogs, 'calendar_events' => $calendarEvents, 'generated_at' => date('Y-m-d H:i:s'), 'user' => $currentUser];
+}
+
+function dossierPdfSections(array $dossier): array
+{
+    $a = $dossier['application'];
+    $sections = [
+        'Übersicht' => [
+            'Bewerbung: ' . (string)$a['job_title'],
+            'Firma: ' . (string)$a['company_name'] . ((string)($a['intermediary_company_name'] ?? '') !== '' ? ' über ' . (string)$a['intermediary_company_name'] : ''),
+            'Status: ' . (string)$a['status'] . ' | Kanal: ' . (string)$a['channel'],
+            'Gesendet: ' . (string)$a['applied_at'] . ' | Pendent: ' . trim((string)$a['next_action'] . ' ' . (string)$a['next_action_at']),
+            'Bewerbungs-URL: ' . (string)$a['application_url'],
+            'Portal/Referenz: ' . trim((string)$a['portal_account'] . ' / ' . (string)$a['reference_number'], ' /'),
+        ],
+        'Firma' => [
+            'Name: ' . (string)$a['company_name'],
+            'Website: ' . (string)$a['company_website'],
+            'E-Mail/Telefon: ' . trim((string)$a['company_email'] . ' / ' . (string)$a['company_phone'], ' /'),
+            'Adresse: ' . trim((string)$a['address_line1'] . ' ' . (string)$a['address_line2'] . ', ' . (string)$a['postal_code'] . ' ' . (string)$a['company_city'], ' ,'),
+            'Kommentar: ' . (string)$a['company_notes'],
+        ],
+        'Job' => [
+            'Titel: ' . (string)$a['job_title'],
+            'Ort: ' . (string)$a['location_text'],
+            'Status/Modell: ' . (string)$a['job_status'] . ' / ' . (string)$a['workplace_type'],
+            'Quelle: ' . (string)$a['source_url'],
+            'Lohn: ' . trim((string)$a['salary_min'] . ' ' . (string)$a['salary_currency'] . ' / ' . (string)$a['salary_period'], ' /'),
+            'Kommentar: ' . (string)$a['job_notes'],
+            'Beschreibung: ' . (string)$a['job_description'],
+        ],
+        'Bewerbung' => [
+            'Online-Notizen: ' . (string)$a['online_notes'],
+            'Interne Notizen: ' . (string)$a['application_notes'],
+            'E-Mail-Betreff: ' . (string)$a['email_subject'],
+            'E-Mail-Text: ' . (string)$a['email_body'],
+            'Motivationsschreiben: ' . (string)$a['cover_letter_text'],
+        ],
+        'Kontakte' => [],
+        'Fragen' => [],
+        'Dokumente' => [],
+        'Aktivitäten' => [],
+    ];
+    foreach ((array)$dossier['contacts'] as $c) {
+        $sections['Kontakte'][] = trim((string)$c['last_name'] . ' ' . (string)$c['first_name']) . ' | ' . (string)$c['company_name'] . ' | ' . (string)$c['position'] . ' | ' . trim((string)$c['email'] . ' ' . (string)$c['phone'] . ' ' . (string)$c['mobile']) . ' | Kommentar: ' . (string)$c['notes'];
+    }
+    foreach ((array)$dossier['questions'] as $q) {
+        $sections['Fragen'][] = 'F: ' . (string)$q['question_text'] . "\nA: " . (string)$q['answer_text'];
+    }
+    foreach ((array)$dossier['documents'] as $doc) {
+        $sections['Dokumente'][] = (string)$doc['title'] . ' v' . (int)$doc['version'] . ' | ' . (string)$doc['original_filename'] . ' | ' . bytesLabel((int)$doc['file_size']);
+        $sections['Dokumente'][] = trim((string)($doc['document_text'] ?? '')) !== '' ? mb_substr((string)$doc['document_text'], 0, 12000) : 'Kein extrahierter Dokumentinhalt vorhanden.';
+    }
+    foreach ((array)$dossier['history'] as $row) {
+        $sections['Aktivitäten'][] = (string)$row['changed_at'] . ' | Status: ' . (string)$row['old_status'] . ' -> ' . (string)$row['new_status'] . ' | ' . (string)$row['comment'];
+    }
+    foreach ((array)$dossier['contact_logs'] as $row) {
+        $sections['Aktivitäten'][] = (string)$row['occurred_at'] . ' | Kontakt: ' . trim((string)$row['first_name'] . ' ' . (string)$row['last_name']) . ' | ' . (string)$row['subject'] . ' | ' . (string)$row['body'] . ' | ' . (string)$row['outcome'];
+    }
+    foreach ((array)$dossier['calendar_events'] as $row) {
+        $sections['Aktivitäten'][] = (string)$row['starts_at'] . ' | Kalender: ' . (string)$row['title'] . ' | ' . (string)$row['status'] . ' | ' . (string)$row['notes'];
+    }
+    foreach ($sections as $key => $lines) {
+        if (!$lines) {
+            $sections[$key] = ['Keine Einträge.'];
+        }
+    }
+    return $sections;
+}
+
 function allowedDocumentTypeCodes(string $scope): array
 {
     if ($scope === 'application') {
@@ -3674,6 +3877,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=jobs');
     }
 
+    if ($action === 'save_job_question') {
+        $jobId = (int) ($_POST['job_id'] ?? 0);
+        $question = trim((string) ($_POST['question_text'] ?? ''));
+        $answer = trim((string) ($_POST['answer_text'] ?? ''));
+        $sortOrder = max(0, (int) ($_POST['sort_order'] ?? 0));
+        $job = dbOne($db, 'SELECT id FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
+        if (!$job || $question === '') {
+            flash('Frage konnte nicht gespeichert werden.', 'danger');
+            redirect('/?page=jobs&edit=' . $jobId . '#job-questions');
+        }
+        $uid = userId();
+        $stmt = $db->prepare('INSERT INTO job_questions (owner_user_id, job_id, question_text, answer_text, sort_order) VALUES (?, ?, ?, ?, ?)');
+        $stmt->bind_param('iissi', $uid, $jobId, $question, $answer, $sortOrder);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'job_question', (int)$stmt->insert_id, null, ['job_id'=>$jobId,'question_text'=>$question]);
+        flash('Frage gespeichert.');
+        redirect('/?page=jobs&edit=' . $jobId . '#job-questions');
+    }
+
+    if ($action === 'delete_job_question') {
+        $questionId = (int) ($_POST['question_id'] ?? 0);
+        $question = dbOne($db, 'SELECT id, job_id, question_text FROM job_questions WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$questionId, userId()]);
+        if ($question) {
+            $stmt = $db->prepare('UPDATE job_questions SET deleted_at=NOW() WHERE id=? AND owner_user_id=?');
+            $uid = userId();
+            $stmt->bind_param('ii', $questionId, $uid);
+            $stmt->execute();
+            audit($db, $uid, 'delete', 'job_question', $questionId, $question, null);
+            flash('Frage gelöscht.');
+            redirect('/?page=jobs&edit=' . (int)$question['job_id'] . '#job-questions');
+        }
+        flash('Frage nicht gefunden.', 'danger');
+        redirect('/?page=jobs');
+    }
+
     if ($action === 'start_application') {
         $jobId = (int) ($_POST['job_id'] ?? 0);
         $job = dbOne($db, 'SELECT id, title, source_url FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
@@ -4191,6 +4429,41 @@ if ($page === 'document_download') {
     readfile($path);
     exit;
 }
+if ($page === 'application_dossier') {
+    requireLogin();
+    $applicationId = (int) ($_GET['id'] ?? 0);
+    $dossier = applicationDossier($db, userId(), $applicationId, $currentUser);
+    if (!$dossier) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $application = $dossier['application'];
+    $filenameBase = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string)$application['company_name'] . '-' . (string)$application['job_title']) ?: 'bewerbungsdokumentation';
+    if (($_GET['format'] ?? '') === 'pdf') {
+        pdfTextResponse('Bewerbungsdokumentation-' . $filenameBase . '.pdf', 'Bewerbungsdokumentation', dossierPdfSections($dossier));
+    }
+    $statusLabels = applicationStatusOptions();
+    $channelLabels = applicationChannelOptions();
+    $contactLogChannels = contactLogChannelOptions();
+    $contactLogStatuses = contactLogStatusOptions();
+    ?><!doctype html>
+    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '0.14.27')) ?>"></head>
+    <body><main class="container dossier-page">
+        <div class="page-head"><div><p class="eyebrow">Bewerbungsdokumentation</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
+        <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form">Zur Bewerbung</a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf">PDF erstellen</a></div>
+        <section class="panel dossier-hero">
+            <div><h2><?= e((string)$application['job_title']) ?></h2><p><?= e((string)$application['company_name']) ?><?= $application['intermediary_company_name'] ? ' · über ' . e((string)$application['intermediary_company_name']) : '' ?></p></div>
+            <dl><div><dt>Status</dt><dd><?= e($statusLabels[(string)$application['status']] ?? (string)$application['status']) ?></dd></div><div><dt>Kanal</dt><dd><?= e($channelLabels[(string)$application['channel']] ?? (string)$application['channel']) ?></dd></div><div><dt>Gesendet</dt><dd><?= e($application['applied_at'] ? displayDateTime((string)$application['applied_at'], $currentUser) : 'Noch nicht eingereicht') ?></dd></div><div><dt>Pendent</dt><dd><?= e(trim((string)$application['next_action'] . ' ' . ($application['next_action_at'] ? displayDateTime((string)$application['next_action_at'], $currentUser) : ''))) ?></dd></div></dl>
+        </section>
+        <section class="panel dossier-grid"><article><h2>Firma</h2><p><strong><?= e((string)$application['company_name']) ?></strong></p><p><?= e(trim((string)$application['address_line1'] . ' ' . (string)$application['address_line2'])) ?><br><?= e(trim((string)$application['postal_code'] . ' ' . (string)$application['company_city'])) ?></p><p><?= $application['company_website'] ? '<a href="' . e((string)$application['company_website']) . '" target="_blank" rel="noopener">' . e((string)$application['company_website']) . '</a>' : '' ?></p><p><?= e(trim((string)$application['company_email'] . ' ' . (string)$application['company_phone'])) ?></p><p><?= nl2br(e((string)$application['company_notes'])) ?></p></article><article><h2>Job</h2><p><strong><?= e((string)$application['job_title']) ?></strong></p><p><?= e((string)$application['location_text']) ?> · <?= e((string)$application['workplace_type']) ?> · <?= e((string)$application['contract_term']) ?></p><p><?= $application['source_url'] ? '<a href="' . e((string)$application['source_url']) . '" target="_blank" rel="noopener">Quell-URL öffnen</a>' : '' ?></p><p><?= nl2br(e((string)$application['job_notes'])) ?></p></article><article><h2>Bewerbung</h2><p>URL: <?= $application['application_url'] ? '<a href="' . e((string)$application['application_url']) . '" target="_blank" rel="noopener">' . e((string)$application['application_url']) . '</a>' : 'Keine URL' ?></p><p>Portal: <?= e((string)$application['portal_account']) ?><br>Referenz: <?= e((string)$application['reference_number']) ?></p><p><?= nl2br(e((string)$application['application_notes'])) ?></p></article></section>
+        <section class="panel"><h2>Jobbeschreibung</h2><div class="dossier-text"><?= nl2br(e((string)$application['job_description'])) ?></div></section>
+        <section class="panel"><h2>Kontakte in dieser Firma</h2><div class="dossier-list"><?php foreach($dossier['contacts'] as $contact): ?><article><strong><?= e(trim((string)$contact['first_name'] . ' ' . (string)$contact['last_name'])) ?></strong><span><?= e((string)$contact['company_name']) ?> · <?= e(trim((string)$contact['position'] . ' ' . (string)$contact['department'])) ?></span><small><?= e(trim((string)$contact['email'] . ' ' . (string)$contact['phone'] . ' ' . (string)$contact['mobile'])) ?></small><?php if($contact['linkedin_url']): ?><a href="<?= e((string)$contact['linkedin_url']) ?>" target="_blank" rel="noopener">LinkedIn</a><?php endif; ?><p><?= nl2br(e((string)$contact['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['contacts']): ?><p class="empty">Keine Kontakte erfasst.</p><?php endif; ?></div></section>
+        <section class="panel"><h2>Fragen</h2><div class="dossier-list"><?php foreach($dossier['questions'] as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['questions']): ?><p class="empty">Noch keine Fragen beim Job erfasst.</p><?php endif; ?></div></section>
+        <section class="panel"><h2>Eingereichte Dokumente</h2><div class="dossier-list"><?php foreach($dossier['documents'] as $doc): ?><article><strong><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e((string)$doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], (string)($currentUser['preferred_language'] ?? 'de'))) ?> · <?= e((string)$doc['original_filename']) ?> · <?= e(bytesLabel((int)$doc['file_size'])) ?></span><div class="dossier-document-text"><?= trim((string)($doc['document_text'] ?? '')) !== '' ? nl2br(e((string)$doc['document_text'])) : '<p class="empty">Kein extrahierter Dokumentinhalt vorhanden.</p>' ?></div></article><?php endforeach; ?><?php if(!$dossier['documents']): ?><p class="empty">Keine Dokumente zugeordnet.</p><?php endif; ?></div></section>
+        <section class="panel"><h2>Aktivitäten</h2><div class="log-timeline"><?php foreach($dossier['history'] as $entry): ?><article><strong>Status: <?= e((string)$entry['old_status']) ?> → <?= e((string)$entry['new_status']) ?></strong><span><?= e(displayDateTime((string)$entry['changed_at'], $currentUser)) ?></span><p><?= e((string)$entry['comment']) ?></p></article><?php endforeach; ?><?php foreach($dossier['contact_logs'] as $entry): ?><article class="log-status-<?= e((string)$entry['status']) ?>"><strong><?= e((string)$entry['subject']) ?></strong><span><?= e(displayDateTime((string)$entry['occurred_at'], $currentUser)) ?> · <?= e($contactLogChannels[(string)$entry['channel']] ?? (string)$entry['channel']) ?> · <?= e($contactLogStatuses[(string)$entry['status']] ?? (string)$entry['status']) ?></span><small><?= e(trim((string)$entry['first_name'] . ' ' . (string)$entry['last_name'])) ?> · <?= e((string)$entry['company_name']) ?></small><p><?= nl2br(e((string)$entry['body'])) ?></p><?php if($entry['outcome']): ?><small>Ergebnis: <?= e((string)$entry['outcome']) ?></small><?php endif; ?></article><?php endforeach; ?><?php foreach($dossier['calendar_events'] as $entry): ?><article><strong>Kalender: <?= e((string)$entry['title']) ?></strong><span><?= e(displayDateTime((string)$entry['starts_at'], $currentUser)) ?> · <?= e((string)$entry['status']) ?></span><p><?= nl2br(e((string)$entry['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['history'] && !$dossier['contact_logs'] && !$dossier['calendar_events']): ?><p class="empty">Noch keine Aktivitäten vorhanden.</p><?php endif; ?></div></section>
+    </main></body></html><?php
+    exit;
+}
 if ($page === 'application_documents_zip') {
     requireLogin();
     $applicationId = (int) ($_GET['id'] ?? 0);
@@ -4368,7 +4641,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.27');
+$appVersion = (string) ($config['app_version'] ?? '0.14.28');
 
 ?><!doctype html>
 <html lang="de">
@@ -5090,6 +5363,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.27');
         }
         $jobCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
         $jobContacts = $edit ? dbAll($db, 'SELECT c.id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, co.name company_name, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.owner_user_id=c.owner_user_id) log_count FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL AND (c.job_id=? OR c.company_id=?) ORDER BY CASE WHEN c.job_id=? THEN 0 ELSE 1 END, c.last_name, c.first_name', 'iiii', [userId(), (int)$edit['id'], (int)$edit['company_id'], (int)$edit['id']]) : [];
+        $jobQuestions = $edit ? dbAll($db, 'SELECT id, question_text, answer_text, sort_order, created_at FROM job_questions WHERE owner_user_id=? AND job_id=? AND deleted_at IS NULL ORDER BY sort_order, id', 'ii', [userId(), (int)$edit['id']]) : [];
         ?>
         <div class="page-head"><div><p class="eyebrow">Stellen-Pipeline</p><h1>Jobs</h1></div><span><?= count($jobs) ?> Treffer</span></div>
         <section class="panel import-panel"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
@@ -5108,6 +5382,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.27');
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application">Bewerbung vorbereiten</button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>">Bewerbungen anzeigen</a></form><?php endif; ?></section>
         <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow">Kontakte</p><h2>Kontakte zur Stelle</h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>">Alle Firmenkontakte</a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label>Vorname<input name="first_name" required></label><label>Nachname<input name="last_name" required></label></div><div class="two"><label>Funktion<input name="position"></label><label>Abteilung<input name="department"></label></div><label>E-Mail<input type="email" name="contact_email"></label><div class="two"><label>Telefon<input name="phone"></label><label>Mobil<input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Kommentar<textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact">Kontakt speichern</button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · Stelle' : ' · Firma' ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Kontakt-Log</a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty">Noch keine Kontakte zur Firma oder Stelle.</p><?php endif; ?></div></div></section><?php endif; ?>
+        <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow">Vorbereitung</p><h2>Fragen zur Bewerbung</h2></div><span><?= count($jobQuestions) ?> Fragen</span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label>Frage<textarea name="question_text" rows="3" required placeholder="z. B. Welche Schwerpunkte hat die Rolle im ersten Monat?"></textarea></label><label>Antwort / Vorbereitung<textarea name="answer_text" rows="4" placeholder="Notizen, vorbereitete Antwort, Stichworte"></textarea></label><label>Reihenfolge<input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question">Frage speichern</button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('Frage löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question">Löschen</button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty">Noch keine Fragen erfasst.</p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title','Titel',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company','Firma',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location','Ort',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status','Status',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match','Match',$jobSf,$jobPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e($job['status']) ?><small><?= e($job['engagement_type']) ?> · <?= e($job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small>Lohn: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application">Bewerbung vorbereiten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty">Keine Treffer.</td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line">Lohn: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung vorbereiten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section><?php endif; ?></div>
     <?php elseif ($page === 'applications'): ?>
         <?php
@@ -5153,7 +5428,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.27');
         $channels=['email'=>'E-Mail','portal'=>'Jobportal','website'=>'Karriereseite','mail'=>'Post','referral'=>'Empfehlung','other'=>'Andere'];
         ?>
         <div class="page-head"><div><p class="eyebrow">Pipeline</p><h1>Bewerbungen</h1></div><span><?= count($apps) ?> Einträge</span></div>
-        <div class="actions export-actions"><?= sfToolbar('applications', $appSf, ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : ''], $appSfFields) ?><a class="button" href="/?page=applications&view=cards<?= $appCompanyFilter ? '&company_id=' . (int)$appCompanyFilter : '' ?><?= $appJobFilter ? '&job_id=' . (int)$appJobFilter : '' ?><?= $todoOnly ? '&todo=1' : '' ?>">Karten</a><a class="button" href="/?page=applications&view=table<?= $appCompanyFilter ? '&company_id=' . (int)$appCompanyFilter : '' ?><?= $appJobFilter ? '&job_id=' . (int)$appJobFilter : '' ?><?= $todoOnly ? '&todo=1' : '' ?>">Tabelle</a><a class="button" href="/?page=export_pdf&type=applications">PDF</a></div>
+        <div class="actions export-actions"><?= sfToolbar('applications', $appSf, ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : ''], $appSfFields) ?><a class="button" href="/?page=applications&view=cards<?= $appCompanyFilter ? '&company_id=' . (int)$appCompanyFilter : '' ?><?= $appJobFilter ? '&job_id=' . (int)$appJobFilter : '' ?><?= $todoOnly ? '&todo=1' : '' ?>">Karten</a><a class="button" href="/?page=applications&view=table<?= $appCompanyFilter ? '&company_id=' . (int)$appCompanyFilter : '' ?><?= $appJobFilter ? '&job_id=' . (int)$appJobFilter : '' ?><?= $todoOnly ? '&todo=1' : '' ?>">Tabelle</a><a class="button" href="/?page=export_pdf&type=applications">PDF</a><?php if($applicationEdit): ?><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationEdit['id'] ?>">Bewerbungsdokumentation</a><?php endif; ?></div>
         <?php if($appCompanyFilter || $appJobFilter || $todoOnly): ?><p class="filter-note">Gefilterte Ansicht · <a href="/?page=applications">Alle Bewerbungen anzeigen</a></p><?php endif; ?>
         <?php if ($applicationEdit): ?><section class="panel company-path" id="companies"><div><p class="eyebrow">Firmenbeziehung</p><h2><?= e($applicationEdit['company_name']) ?><?php if($applicationEdit['intermediary_company_name']): ?> <span>über <?= e($applicationEdit['intermediary_company_name']) ?></span><?php endif; ?></h2><p>Die Stelle gehört zur Kunden-/Arbeitgeberfirma. Optional kann eine Vermittler- oder Temporärfirma dazwischengeschaltet sein.</p></div><form method="post" class="company-path-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><label>Vermittlerfirma<select name="intermediary_company_id"><option value="0">Direktbewerbung ohne Vermittler</option><?php foreach($intermediaryCompanies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$applicationEdit['intermediary_company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select><small>Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.</small></label><button class="primary" name="action" value="set_intermediary">Zuordnung speichern</button></form></section><?php endif; ?>
         <?php if ($applicationEdit): ?>
