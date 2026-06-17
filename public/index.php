@@ -4077,7 +4077,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.19');
+$appVersion = (string) ($config['app_version'] ?? '0.14.20');
 
 ?><!doctype html>
 <html lang="de">

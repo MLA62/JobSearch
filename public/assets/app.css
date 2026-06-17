@@ -252,8 +252,8 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 
 .auth-card { width: min(520px, 100%); margin: 7vh auto; }
 .stack { display: grid; gap: 16px; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .split { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
 .inner-split { grid-template-columns: minmax(0, 360px) minmax(0, 1fr); }
 .full-width { display: block; width: 100%; }
@@ -661,7 +661,7 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 .salary-row input,
 .salary-row select { padding: 8px 10px; }
 .language-add { background: #fff7ed; }
-.salary-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(190px, .8fr); gap: 12px; align-items: end; }
+.salary-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .salary-currency-display { color: var(--muted); font-weight: 700; }
 
 details { border-top: 1px solid var(--divider); padding-top: 10px; margin: 16px 0; }
