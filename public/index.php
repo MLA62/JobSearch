@@ -3364,6 +3364,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
+$appVersion = (string) ($config['app_version'] ?? '0.12.0');
 
 ?><!doctype html>
 <html lang="de">
@@ -3380,29 +3381,24 @@ $bodyClasses = array_filter([
     <a class="brand" href="/"><img src="/assets/favicon.svg" alt="" width="32" height="32"> <span>JeMa <strong>Jobs</strong></span></a>
     <?php if ($currentUser): ?>
         <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')">Menü</button>
-        <nav>
-            <a href="/?page=dashboard">Übersicht</a>
-            <a href="/?page=jobs">Jobs</a>
-            <a href="/?page=companies">Firmen</a>
-            <a href="/?page=contacts">Kontakte</a>
-            <a href="/?page=applications">Bewerbungen</a>
-            <a href="/?page=pendents">Pendent</a>
-            <a href="/?page=calendar">Kalender</a>
-            <a href="/?page=reports">Reports</a>
-            <a href="/?page=sharing">Freigaben</a>
-            <a href="/?page=translations">Übersetzungen</a>
-            <a href="/?page=profile">Profil</a>
-            <a href="/?page=privacy">Datenschutz</a>
-            <?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzer</a><?php endif; ?>
-            <a href="/?page=audit">Log</a>
+        <nav class="menubar" aria-label="Hauptmenü">
+            <div class="menu-group"><button type="button" class="menu-trigger">Datei</button><div class="menu-panel"><a href="/?page=dashboard">Übersicht</a><div class="submenu"><button type="button">Stammdaten</button><div class="submenu-panel"><a href="/?page=profile">Profil</a><a href="/?page=documents">Dokumente</a><a href="/?page=translations">Übersetzungen</a></div></div><a href="/?page=privacy">Datenschutz</a><a href="/?page=audit">Log</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">CRM</button><div class="menu-panel"><a href="/?page=companies">Firmen</a><a href="/?page=contacts">Kontakte</a><a href="/?page=sharing">Freigaben</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Bewerbung</button><div class="menu-panel"><a href="/?page=jobs">Jobs</a><a href="/?page=applications">Bewerbungen</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Planung</button><div class="menu-panel"><a href="/?page=pendents">Pendent</a><a href="/?page=calendar">Kalender</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Auswertung</button><div class="menu-panel"><a href="/?page=reports">Reports</a><a href="/?page=export_pdf&type=jobs">Jobs PDF</a><a href="/?page=export_pdf&type=applications">Bewerbungen PDF</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Konto</button><div class="menu-panel"><a href="/?page=profile">Profil</a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzerverwaltung</a><?php endif; ?></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Hilfe</button><div class="menu-panel menu-panel-right"><a href="/?page=help">Hilfe</a><a href="/?page=about">Über</a></div></div>
         </nav>
         <?php if($supportImpersonating): ?>
             <div class="support-context"><strong>ADMIN Support</strong><span><?= e((string)($_SESSION['support_admin_name'] ?? 'Admin')) ?> in Umgebung <?= e((string)($_SESSION['support_target_name'] ?? userLabel($currentUser))) ?></span></div>
-            <form method="post" class="logout"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="stop_admin_support">Support beenden</button></form>
         <?php elseif($supportGrant): ?>
             <div class="support-context"><strong>ADMIN Support freigegeben</strong><span>Administratoren können sich einklinken.</span></div>
         <?php endif; ?>
-        <form method="post" class="logout"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout">Abmelden</button></form>
+        <div class="topbar-actions">
+            <?php if($supportImpersonating): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="stop_admin_support">Support beenden</button></form><?php endif; ?>
+            <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout">Abmelden</button></form>
+        </div>
     <?php endif; ?>
 </header>
 <main class="container">
@@ -4180,6 +4176,20 @@ $bodyClasses = array_filter([
         <form class="filters" method="get"><input type="hidden" name="page" value="documents"><input name="q" value="<?= e($docQ) ?>" placeholder="Titel, Datei oder Typ"><select name="sort"><option value="created_at" <?= $docSort==='created_at'?'selected':'' ?>>Sort: Datum</option><option value="title" <?= $docSort==='title'?'selected':'' ?>>Sort: Titel</option><option value="type" <?= $docSort==='type'?'selected':'' ?>>Sort: Typ</option><option value="version" <?= $docSort==='version'?'selected':'' ?>>Sort: Version</option></select><select name="dir"><option value="desc" <?= $docDir==='desc'?'selected':'' ?>>Absteigend</option><option value="asc" <?= $docDir==='asc'?'selected':'' ?>>Aufsteigend</option></select><button>Filtern</button><a class="button" href="/?page=export_pdf&type=documents">PDF</a></form>
         <div class="split"><section class="panel"><h2>Dokument hochladen</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button></form></section>
         <section class="panel table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Datum</th><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+    <?php elseif ($page === 'help'): ?>
+        <div class="page-head"><div><p class="eyebrow">Support</p><h1>Hilfe</h1></div><span>In Vorbereitung</span></div>
+        <section class="panel empty"><h2>Hilfe</h2><p>Dieser Bereich ist vorbereitet und wird später mit Anleitungen, Abläufen und Support-Hinweisen gefüllt.</p></section>
+    <?php elseif ($page === 'about'): ?>
+        <div class="page-head"><div><p class="eyebrow">Über</p><h1>JeMa Jobs</h1></div><span><?= e($config['app_name'] ?? 'JeMa Jobs') ?></span></div>
+        <section class="panel about-panel">
+            <p class="version-number">Version <?= e($appVersion) ?></p>
+            <h2>Privates Job-CRM</h2>
+            <p>JeMa Jobs unterstützt die strukturierte Verwaltung von Firmen, Kontakten, Stellen, Bewerbungen, Pendenten, Dokumenten, Reports, Kalenderterminen und Freigaben. Die Daten bleiben benutzerisoliert; administrative Support-Zugriffe benötigen eine ausdrückliche Freigabe des jeweiligen Benutzers.</p>
+            <div class="two">
+                <article><h3>Ersteller</h3><p>Markus Lauber<br><a href="mailto:Markus@Lauber.online">Markus@Lauber.online</a></p></article>
+                <article><h3>Stand</h3><p>Prototyp mit Live-Betrieb, Benutzer-SMTP, 2FA, Passwort-Reset, Kontakt-Log, Kalender-Matrix, Reports und ADMIN Support.</p></article>
+            </div>
+        </section>
     <?php elseif ($page === 'audit'): ?>
         <?php $logs=dbAll($db,'SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 100','i',[userId()]); ?>
         <div class="page-head"><div><p class="eyebrow">Unveränderbar</p><h1>Änderungsprotokoll</h1></div><span>Letzte 100</span></div><section class="panel table-wrap"><table><thead><tr><th>Zeit</th><th>Aktion</th><th>Bereich</th></tr></thead><tbody><?php foreach($logs as $log): ?><tr><td><?= e(displayDateTime($log['created_at'], $currentUser)) ?></td><td><?= e($log['action']) ?></td><td><?= e($log['entity_type']) ?></td></tr><?php endforeach; ?></tbody></table></section>
