@@ -106,6 +106,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
     modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
+    $db->query("UPDATE applications SET next_action=COALESCE(NULLIF(next_action, ''), 'Eingang bestätigen lassen'), next_action_at=NOW() WHERE status='sent' AND deleted_at IS NULL AND next_action_at IS NULL");
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
 }
@@ -2764,7 +2765,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $eventType = in_array($_POST['event_type'] ?? '', ['task','follow_up','interview','deadline','meeting','reminder','other'], true) ? (string) $_POST['event_type'] : 'reminder';
         if ($title === '' || $startsAt === '') {
             flash('Titel und Startzeit sind erforderlich.', 'danger');
-            redirect('/?page=calendar');
+            redirect('/?page=calendar&view=agenda');
         }
         $startsAt = str_replace('T', ' ', $startsAt) . (strlen($startsAt) === 16 ? ':00' : '');
         $applicationId = (int) ($_POST['application_id'] ?? 0) ?: null;
@@ -2775,7 +2776,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, $uid, 'create', 'calendar_event', (int) $stmt->insert_id, null, ['title' => $title, 'starts_at' => $startsAt]);
         flash('Kalendereintrag gespeichert.');
-        redirect('/?page=calendar');
+        redirect('/?page=calendar&view=agenda');
     }
 
     if ($action === 'save_report') {
@@ -3669,6 +3670,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($appliedAt) { $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : ''); }
         if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
         if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
+        if ($status === 'sent' && !$nextAction) { $nextAction = 'Eingang bestätigen lassen'; }
+        if ($status === 'sent' && !$nextActionAt) { $nextActionAt = date('Y-m-d H:i:s'); }
         $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
         $uid = userId();
         $stmt->bind_param('iisssssssssssssii', $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
@@ -3725,8 +3728,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $now = date('Y-m-d H:i:s');
             $sentStatus = 'sent';
             $nextAction = 'Eingang bestätigen lassen';
-            $stmt = $db->prepare('UPDATE applications SET status=?, channel="email", applied_at=COALESCE(applied_at, ?), next_action=?, email_subject=?, email_body=? WHERE id=? AND user_id=?');
-            $stmt->bind_param('sssssii', $sentStatus, $now, $nextAction, $subject, $body, $id, $uid);
+            $stmt = $db->prepare('UPDATE applications SET status=?, channel="email", applied_at=COALESCE(applied_at, ?), next_action=?, next_action_at=COALESCE(next_action_at, ?), email_subject=?, email_body=? WHERE id=? AND user_id=?');
+            $stmt->bind_param('ssssssii', $sentStatus, $now, $nextAction, $now, $subject, $body, $id, $uid);
             $stmt->execute();
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
             $comment = 'Bewerbungs-E-Mail versendet an ' . $recipient;
@@ -3991,7 +3994,8 @@ if ($page === 'export_pdf') {
 }
 if ($page === 'export_ics') {
     requireLogin();
-    $view = array_key_exists((string) ($_GET['view'] ?? 'agenda'), calendarViewOptions()) ? (string) $_GET['view'] : 'agenda';
+    $requestedView = (string) ($_GET['view'] ?? 'agenda');
+    $view = array_key_exists($requestedView, calendarViewOptions()) ? $requestedView : 'agenda';
     $anchor = calendarAnchorDate($currentUser ?? []);
     [$rangeStart, $rangeEnd] = calendarRange($view, $anchor);
     calendarIcsResponse('jema-kalender-' . $view . '.ics', calendarEventRows($db, userId(), $rangeStart, $rangeEnd));
@@ -4008,7 +4012,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.14');
+$appVersion = (string) ($config['app_version'] ?? '0.14.15');
 
 ?><!doctype html>
 <html lang="de">
@@ -4028,7 +4032,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.14');
             <div class="menu-group"><button type="button" class="menu-trigger">Datei</button><div class="menu-panel"><a href="/?page=dashboard">Übersicht</a><div class="submenu"><button type="button">Stammdaten</button><div class="submenu-panel"><a href="/?page=profile">Profil</a><a href="/?page=documents">Dokumente</a><a href="/?page=translations">Übersetzungen</a></div></div><a href="/?page=privacy">Datenschutz</a><a href="/?page=audit">Log</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">CRM</button><div class="menu-panel"><a href="/?page=companies">Firmen</a><a href="/?page=contacts">Kontakte</a><a href="/?page=sharing">Freigaben</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Bewerbung</button><div class="menu-panel"><a href="/?page=jobs">Jobs</a><a href="/?page=applications">Bewerbungen</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Planung</button><div class="menu-panel"><a href="/?page=pendents">Pendent</a><a href="/?page=calendar">Kalender</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Planung</button><div class="menu-panel"><a href="/?page=pendents">Pendent</a><a href="/?page=calendar&view=agenda">Kalender</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Auswertung</button><div class="menu-panel"><a href="/?page=reports">Reports</a><a href="/?page=export_pdf&type=jobs">Jobs PDF</a><a href="/?page=export_pdf&type=applications">Bewerbungen PDF</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Konto</button><div class="menu-panel"><a href="/?page=profile">Profil</a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzerverwaltung</a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Hilfe</button><div class="menu-panel menu-panel-right"><a href="/?page=help">Hilfe</a><a href="/?page=about">Über</a></div></div>
