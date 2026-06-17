@@ -106,7 +106,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
     modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
-    $db->query("UPDATE applications SET next_action=COALESCE(NULLIF(next_action, ''), 'Eingang bestätigen lassen'), next_action_at=NOW() WHERE status='sent' AND deleted_at IS NULL AND next_action_at IS NULL");
+    $db->query("UPDATE applications SET next_action='Antwort auf Bewerbung pendent', next_action_at=COALESCE(applied_at, next_action_at, NOW()) WHERE status='sent' AND deleted_at IS NULL AND (next_action_at IS NULL OR next_action IS NULL OR next_action='' OR next_action='Eingang bestätigen lassen')");
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
 }
@@ -3670,8 +3670,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($appliedAt) { $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : ''); }
         if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
         if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
-        if ($status === 'sent' && !$nextAction) { $nextAction = 'Eingang bestätigen lassen'; }
-        if ($status === 'sent' && !$nextActionAt) { $nextActionAt = date('Y-m-d H:i:s'); }
+        if ($status === 'sent' && (!$nextAction || $nextAction === 'Eingang bestätigen lassen')) { $nextAction = 'Antwort auf Bewerbung pendent'; }
+        if ($status === 'sent' && !$nextActionAt) { $nextActionAt = $appliedAt ?: date('Y-m-d H:i:s'); }
         $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
         $uid = userId();
         $stmt->bind_param('iisssssssssssssii', $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
@@ -3727,7 +3727,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($sent) {
             $now = date('Y-m-d H:i:s');
             $sentStatus = 'sent';
-            $nextAction = 'Eingang bestätigen lassen';
+            $nextAction = 'Antwort auf Bewerbung pendent';
             $stmt = $db->prepare('UPDATE applications SET status=?, channel="email", applied_at=COALESCE(applied_at, ?), next_action=?, next_action_at=COALESCE(next_action_at, ?), email_subject=?, email_body=? WHERE id=? AND user_id=?');
             $stmt->bind_param('ssssssii', $sentStatus, $now, $nextAction, $now, $subject, $body, $id, $uid);
             $stmt->execute();
