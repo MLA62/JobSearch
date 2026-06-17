@@ -335,7 +335,7 @@ function dotStuff(string $body): string
     return str_replace("\n", "\r\n", $body);
 }
 
-function sendSmtpMail(array $config, string $to, string $subject, string $textBody): void
+function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): void
 {
     $host = trim((string) ($config['smtp_host'] ?? ''));
     $from = trim((string) ($config['mail_from'] ?? ''));
@@ -382,10 +382,34 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
             'To: <' . $to . '>',
             'Subject: ' . encodeMailHeader($subject),
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'Content-Transfer-Encoding: 8bit',
         ];
-        smtpCommand($stream, implode("\r\n", $headers) . "\r\n\r\n" . dotStuff($textBody) . "\r\n.", [250]);
+        if ($attachments) {
+            $boundary = 'jema_jobs_' . bin2hex(random_bytes(12));
+            $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
+            $message = '--' . $boundary . "\r\n"
+                . "Content-Type: text/plain; charset=UTF-8\r\n"
+                . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+                . $textBody . "\r\n";
+            foreach ($attachments as $attachment) {
+                $path = (string) ($attachment['path'] ?? '');
+                if (!is_file($path)) {
+                    continue;
+                }
+                $filename = basename((string) ($attachment['filename'] ?? basename($path)));
+                $mime = (string) ($attachment['mime'] ?? 'application/octet-stream');
+                $message .= '--' . $boundary . "\r\n"
+                    . 'Content-Type: ' . $mime . '; name="' . addslashes($filename) . '"' . "\r\n"
+                    . "Content-Transfer-Encoding: base64\r\n"
+                    . 'Content-Disposition: attachment; filename="' . addslashes($filename) . '"' . "\r\n\r\n"
+                    . chunk_split(base64_encode((string) file_get_contents($path))) . "\r\n";
+            }
+            $message .= '--' . $boundary . "--\r\n";
+        } else {
+            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            $headers[] = 'Content-Transfer-Encoding: 8bit';
+            $message = $textBody;
+        }
+        smtpCommand($stream, implode("\r\n", $headers) . "\r\n\r\n" . dotStuff($message) . "\r\n.", [250]);
         smtpCommand($stream, 'QUIT', [221]);
     } finally {
         fclose($stream);
@@ -441,7 +465,7 @@ function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $su
     }
 }
 
-function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string $to, string $subject, string $body): bool
+function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string $to, string $subject, string $body, array $attachments = []): bool
 {
     $mailConfig = smtpConfigForOwner($db, $config, $ownerUserId);
     if (!$mailConfig) {
@@ -449,7 +473,7 @@ function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string 
         return false;
     }
     try {
-        sendSmtpMail($mailConfig, $to, $subject, $body);
+        sendSmtpMail($mailConfig, $to, $subject, $body, $attachments);
         logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'sent');
         return true;
     } catch (Throwable $exception) {
@@ -1363,6 +1387,54 @@ function interpolateSql(mysqli $db, string $sql, string $types, array $values): 
     return $sql;
 }
 
+function applicationDocumentFiles(mysqli $db, int $userId, int $applicationId): array
+{
+    $rows = dbAll(
+        $db,
+        'SELECT d.id, d.original_filename, d.storage_path, d.mime_type, d.file_size
+           FROM application_documents ad
+           JOIN user_documents d ON d.id=ad.user_document_id
+          WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL
+          ORDER BY ad.sort_order, d.scope DESC, d.title, d.version DESC',
+        'ii',
+        [$applicationId, $userId]
+    );
+    $root = realpath(storageRoot());
+    if (!$root) {
+        return [];
+    }
+    $files = [];
+    foreach ($rows as $row) {
+        $path = realpath(__DIR__ . '/' . (string) $row['storage_path']);
+        if (!$path || !str_starts_with($path, $root) || !is_file($path)) {
+            continue;
+        }
+        $files[] = [
+            'id' => (int) $row['id'],
+            'filename' => (string) $row['original_filename'],
+            'path' => $path,
+            'mime' => (string) ($row['mime_type'] ?: 'application/octet-stream'),
+            'size' => (int) $row['file_size'],
+        ];
+    }
+    return $files;
+}
+
+function zipSafeName(string $filename, array &$used): string
+{
+    $name = preg_replace('/[\\\\\/:*?"<>|]+/', '_', basename($filename)) ?: 'dokument.pdf';
+    $base = pathinfo($name, PATHINFO_FILENAME);
+    $extension = pathinfo($name, PATHINFO_EXTENSION);
+    $candidate = $name;
+    $i = 2;
+    while (isset($used[mb_strtolower($candidate)])) {
+        $candidate = $base . '-' . $i . ($extension !== '' ? '.' . $extension : '');
+        $i++;
+    }
+    $used[mb_strtolower($candidate)] = true;
+    return $candidate;
+}
+
 function isAdmin(mysqli $db, int $userId, array $config = []): bool
 {
     if ($userId < 1) {
@@ -1433,7 +1505,7 @@ function applicationNextActionChoices(): array
 
 function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string
 {
-    $application = dbOne($db, 'SELECT a.*, j.title job_title, j.location_text, j.status job_status, j.workplace_type, j.engagement_type, j.contract_term, j.source_url, SUBSTRING(j.description,1,65535) job_description, c.name company_name, c.website company_website, c.phone company_phone, c.address_line1, c.address_line2, c.postal_code, c.city company_city, c.region company_region, c.country_code company_country, i.name intermediary_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, $userId]);
+    $application = dbOne($db, 'SELECT a.*, j.company_id, j.title job_title, j.location_text, j.status job_status, j.workplace_type, j.engagement_type, j.contract_term, j.source_url, SUBSTRING(j.description,1,65535) job_description, c.name company_name, c.website company_website, c.phone company_phone, c.address_line1, c.address_line2, c.postal_code, c.city company_city, c.region company_region, c.country_code company_country, i.name intermediary_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, $userId]);
     if (!$application) {
         return '';
     }
@@ -3014,17 +3086,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'attach_application_document') {
         $applicationId = (int) ($_POST['application_id'] ?? 0);
+        $documentIds = array_map('intval', (array) ($_POST['user_document_ids'] ?? []));
         $documentId = (int) ($_POST['user_document_id'] ?? 0);
+        if ($documentId > 0) {
+            $documentIds[] = $documentId;
+        }
+        $documentIds = array_values(array_unique(array_filter($documentIds)));
         $purpose = in_array($_POST['purpose'] ?? '', ['cv','cover_letter','certificate','reference','portfolio','other'], true) ? (string) $_POST['purpose'] : 'other';
         $application = dbOne($db, 'SELECT id FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$applicationId, userId()]);
-        $document = dbOne($db, "SELECT d.id, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.id=? AND d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL", 'ii', [$documentId, userId()]);
-        if ($application && $document) {
-            $purpose = documentPurposeForType((string) $document['type_code']);
-            $stmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
-            $stmt->bind_param('iis', $applicationId, $documentId, $purpose);
-            $stmt->execute();
-            audit($db, userId(), 'create', 'application_document', $documentId, null, ['application_id'=>$applicationId,'purpose'=>$purpose]);
-            flash('Dokument der Bewerbung zugeordnet.');
+        $attached = 0;
+        if ($application && $documentIds) {
+            foreach ($documentIds as $documentId) {
+                $document = dbOne($db, "SELECT d.id, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.id=? AND d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL", 'ii', [$documentId, userId()]);
+                if (!$document) {
+                    continue;
+                }
+                $purpose = documentPurposeForType((string) $document['type_code']);
+                $stmt = $db->prepare('INSERT IGNORE INTO application_documents (application_id, user_document_id, purpose, sort_order) VALUES (?, ?, ?, 0)');
+                $stmt->bind_param('iis', $applicationId, $documentId, $purpose);
+                $stmt->execute();
+                $attached += max(0, $stmt->affected_rows);
+                audit($db, userId(), 'create', 'application_document', $documentId, null, ['application_id'=>$applicationId,'purpose'=>$purpose]);
+            }
+            flash($attached > 0 ? $attached . ' Dokumente der Bewerbung zugeordnet.' : 'Dokumente waren bereits zugeordnet.');
         }
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
@@ -3528,9 +3612,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         $uid = userId();
+        $attachments = applicationDocumentFiles($db, $uid, $id);
         $sent = false;
         try {
-            $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body);
+            $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body, $attachments);
         } catch (Throwable) {
             flash('E-Mail konnte nicht versendet werden. Bitte eigene SMTP-Konfiguration prüfen.', 'danger');
             redirect('/?page=applications&edit=' . $id . '#application-form');
@@ -3547,7 +3632,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $oldStatus = (string) $application['status'];
             $history->bind_param('iisss', $id, $uid, $oldStatus, $sentStatus, $comment);
             $history->execute();
-            audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id]);
+            audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id, 'attachments' => count($attachments)]);
             flash('Bewerbungs-E-Mail wurde versendet.');
         } else {
             flash('Eigener SMTP-Versand ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
@@ -3640,6 +3725,38 @@ if ($page === 'document_download') {
     header('Content-Length: ' . (string) $document['file_size']);
     header('Content-Disposition: attachment; filename="' . addslashes($document['original_filename']) . '"');
     readfile($path);
+    exit;
+}
+if ($page === 'application_documents_zip') {
+    requireLogin();
+    $applicationId = (int) ($_GET['id'] ?? 0);
+    $application = dbOne($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, userId()]);
+    if (!$application || !class_exists(ZipArchive::class)) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $files = applicationDocumentFiles($db, userId(), $applicationId);
+    if (!$files) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $tmp = tempnam(sys_get_temp_dir(), 'jema-docs-');
+    $zip = new ZipArchive();
+    if (!$tmp || $zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
+        http_response_code(500);
+        exit('ZIP konnte nicht erstellt werden.');
+    }
+    $used = [];
+    foreach ($files as $file) {
+        $zip->addFile((string) $file['path'], zipSafeName((string) $file['filename'], $used));
+    }
+    $zip->close();
+    $filename = 'Bewerbungsunterlagen-' . preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $application['company_name'] . '-' . (string) $application['title']) . '.zip';
+    header('Content-Type: application/zip');
+    header('Content-Length: ' . (string) filesize($tmp));
+    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    readfile($tmp);
+    @unlink($tmp);
     exit;
 }
 if ($page === 'guest_download') {
@@ -3739,7 +3856,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.11');
+$appVersion = (string) ($config['app_version'] ?? '0.14.12');
 
 ?><!doctype html>
 <html lang="de">
@@ -4479,6 +4596,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.11');
         $documentTypes = $applicationEdit ? dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id') : [];
         $applicationDocumentTypes = $applicationEdit ? documentTypesForScope($documentTypes, 'application') : [];
         $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND ((d.scope='application' AND d.application_id=?) OR d.scope='profile') AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
+        $attachedDocumentIds = array_flip(array_map('intval', array_column($applicationDocuments, 'id')));
         $applicationProfileDocuments = $applicationEdit ? dbAll($db, "SELECT d.id, d.title, d.version, d.original_filename, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL ORDER BY d.title, d.version DESC", 'i', [userId()]) : [];
         $intermediaryCompanies = $applicationEdit ? array_values(array_filter($companies, static fn (array $company): bool => !empty($company['is_intermediary']) && (int)$company['id'] !== (int)$applicationEdit['company_id'])) : [];
         $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
@@ -4537,12 +4655,15 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.11');
             <?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
         </section>
         <section class="panel contact-log" id="documents">
-            <div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><a href="/?page=profile#documents">Stammdaten im Profil</a></div>
+            <div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><div class="actions"><a href="/?page=profile#documents">Stammdaten im Profil</a><?php if($applicationDocuments): ?><a class="button" href="/?page=application_documents_zip&id=<?= (int)$applicationEdit['id'] ?>">Portalpaket herunterladen</a><?php endif; ?></div></div>
             <div class="split inner-split">
-                <form method="post" class="stack">
+                <form method="post" class="stack doc-picker">
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
                     <input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>">
-                    <label>Stammdaten übernehmen<select name="user_document_id"><?php foreach($applicationProfileDocuments as $doc): ?><option value="<?= (int)$doc['id'] ?>"><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?> · <?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label>
+                    <div class="actions"><button type="button" data-doc-select="all">Alle markieren</button><button type="button" data-doc-select="none">Auswahl löschen</button></div>
+                    <div class="doc-choice-list">
+                        <?php foreach($applicationProfileDocuments as $doc): $alreadyAttached = isset($attachedDocumentIds[(int)$doc['id']]); ?><label class="doc-choice <?= $alreadyAttached ? 'is-attached' : '' ?>"><input type="checkbox" name="user_document_ids[]" value="<?= (int)$doc['id'] ?>" <?= $alreadyAttached ? 'checked' : '' ?>><span><strong><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?> · <?= e($doc['title']) ?></strong><small><?= e($doc['original_filename']) ?> · v<?= (int)$doc['version'] ?><?= $alreadyAttached ? ' · zugeordnet' : '' ?></small></span></label><?php endforeach; ?>
+                    </div>
                     <button class="primary" name="action" value="attach_application_document" <?= !$applicationProfileDocuments ? 'disabled' : '' ?>>Stammdaten der Bewerbung zuordnen</button>
                     <?php if(!$applicationProfileDocuments): ?><p class="empty">Noch keine aktuellen Stammdaten im Profil vorhanden.</p><?php endif; ?>
                 </form>
@@ -4560,8 +4681,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.11');
                     <button class="primary" name="action" value="upload_document">Bewerbungsdokument speichern</button>
                 </form>
             </div>
-            <div class="log-timeline">
-                <?php foreach($applicationDocuments as $doc): ?><article>
+            <div class="log-timeline application-documents">
+                <?php foreach($applicationDocuments as $doc): ?><article draggable="true" data-download-url="/?page=document_download&id=<?= (int)$doc['id'] ?>">
                     <div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], $userLanguage)) ?> · <?= e(displayDateTime($doc['created_at'], $currentUser)) ?> · <?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</span></div>
                     <small><?= e($doc['scope'] === 'profile' ? 'Stammdaten · ' . $doc['original_filename'] : $doc['original_filename']) ?></small>
                     <?php if($doc['scope'] === 'profile'): ?><form method="post" class="actions" onsubmit="return confirm('Dokument-Zuordnung entfernen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="user_document_id" value="<?= (int)$doc['id'] ?>"><button name="action" value="detach_application_document">Entfernen</button></form><?php else: ?><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form><?php endif; ?>
@@ -4569,6 +4690,26 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.11');
                 <?php if(!$applicationDocuments): ?><p class="empty">Noch keine Bewerbungsdokumente vorhanden.</p><?php endif; ?>
             </div>
         </section>
+        <script>
+        (() => {
+            document.querySelectorAll('[data-doc-select]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const form = button.closest('form');
+                    if (!form) return;
+                    const checked = button.dataset.docSelect === 'all';
+                    form.querySelectorAll('input[name="user_document_ids[]"]').forEach((input) => { input.checked = checked; });
+                });
+            });
+            document.querySelectorAll('.application-documents [draggable="true"]').forEach((card) => {
+                card.addEventListener('dragstart', (event) => {
+                    const url = card.dataset.downloadUrl || card.querySelector('a')?.href || '';
+                    const title = card.querySelector('strong')?.innerText || url;
+                    event.dataTransfer?.setData('text/uri-list', new URL(url, location.origin).href);
+                    event.dataTransfer?.setData('text/plain', title + '\n' + new URL(url, location.origin).href);
+                });
+            });
+        })();
+        </script>
         <section class="contact-workspace" id="contacts">
             <section class="panel">
                 <div class="section-head"><div><p class="eyebrow">Firma → Job → Kontakt</p><h2><?= $contactEdit ? 'Kontakt bearbeiten' : 'Kontakt erfassen' ?></h2></div><?php if($contactEdit): ?><a href="/?page=applications&edit=<?= (int)$applicationEdit['id'] ?>#contacts">Neu</a><?php endif; ?></div>

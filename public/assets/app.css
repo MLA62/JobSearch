@@ -710,6 +710,23 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 .log-timeline article.log-status-done { border-left-color: var(--success); }
 .log-timeline article.log-status-cancelled { opacity: .72; }
 .log-timeline span, .log-timeline small { display: block; color: var(--muted); }
+.doc-picker { align-content: start; }
+.doc-choice-list { display: grid; gap: 8px; max-height: 360px; overflow: auto; padding-right: 4px; }
+.doc-choice {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 10px;
+    align-items: start;
+    border: 1.5px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    padding: 10px;
+}
+.doc-choice input { margin-top: 3px; }
+.doc-choice strong, .doc-choice small { display: block; }
+.doc-choice.is-attached { border-color: var(--accent-border); background: var(--accent-soft); }
+.application-documents article { cursor: grab; }
+.application-documents article:active { cursor: grabbing; }
 
 .history { border-top: 1px solid var(--divider); margin-top: 24px; padding-top: 20px; }
 .history article { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 10px 0; }
