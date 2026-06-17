@@ -412,6 +412,7 @@ button.primary:hover { background: linear-gradient(180deg, #c2410c, var(--accent
 .alert.warning, .prototype-note { background: var(--warning-soft); border: 1px solid #f2c94c; color: var(--warning); }
 
 .table-wrap { overflow: auto; }
+.table-wrap:has(.sf-menu[open]) { overflow: visible; }
 table {
     width: 100%;
     border-collapse: separate;
@@ -421,6 +422,7 @@ table {
     border-radius: var(--radius);
     overflow: hidden;
 }
+table:has(.sf-menu[open]) { overflow: visible; }
 th,
 td {
     text-align: left;
@@ -487,6 +489,8 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 .filters input[name="q"] { min-width: 220px; }
 .filter-note { margin: -10px 0 16px; }
 .export-actions { flex-wrap: wrap; margin-top: 16px; }
+.reports-layout { display: grid; gap: 20px; }
+.report-editor-panel form { max-width: 920px; }
 
 .sf-toolbar {
     display: inline-flex;
@@ -561,11 +565,13 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 }
 
 .sf-form {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    z-index: 30;
+    position: fixed;
+    top: var(--sf-menu-top, 140px);
+    left: var(--sf-menu-left, 24px);
+    z-index: 80;
     width: min(290px, calc(100vw - 32px));
+    max-height: min(420px, calc(100vh - var(--sf-menu-top, 140px) - 16px));
+    overflow: auto;
     display: grid;
     gap: 12px;
     padding: 14px;

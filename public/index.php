@@ -3529,7 +3529,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.0');
+$appVersion = (string) ($config['app_version'] ?? '0.14.1');
 
 ?><!doctype html>
 <html lang="de">
@@ -3789,8 +3789,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.0');
         ?>
         <div class="page-head"><div><p class="eyebrow">Auswertung</p><h1>Reports & Exporte</h1></div><span><?= count($reports) ?> Reports</span></div>
         <?php if($reportEditMissing): ?><div class="alert warning">Dieser Report wurde nicht gefunden oder gehört nicht zu deinem Konto.</div><?php endif; ?>
-        <div class="split">
-            <section class="panel" id="report-editor">
+        <div class="reports-layout">
+            <section class="panel report-editor-panel" id="report-editor">
                 <h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2>
                 <form method="post" class="stack">
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
@@ -4445,4 +4445,35 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.0');
 <footer>JeMa Jobs Prototyp · Private Daten bleiben benutzerisoliert</footer>
 <script src="/assets/qrcode.min.js" defer></script>
 <script src="/assets/totp-qr.js" defer></script>
+<script>
+(() => {
+    const placeMenu = (menu) => {
+        if (!menu.open) return;
+        const button = menu.querySelector('.sf-button');
+        const form = menu.querySelector('.sf-form');
+        if (!button || !form) return;
+        const rect = button.getBoundingClientRect();
+        const width = Math.min(290, window.innerWidth - 32);
+        const left = Math.max(16, Math.min(rect.right - width, window.innerWidth - width - 16));
+        const top = Math.min(rect.bottom + 8, window.innerHeight - 80);
+        form.style.setProperty('--sf-menu-left', `${left}px`);
+        form.style.setProperty('--sf-menu-top', `${top}px`);
+    };
+    const closeOtherMenus = (current) => {
+        document.querySelectorAll('.sf-menu[open]').forEach((menu) => {
+            if (menu !== current) menu.removeAttribute('open');
+        });
+    };
+    document.addEventListener('toggle', (event) => {
+        const menu = event.target;
+        if (!(menu instanceof HTMLElement) || !menu.classList.contains('sf-menu')) return;
+        if (menu.open) {
+            closeOtherMenus(menu);
+            placeMenu(menu);
+        }
+    }, true);
+    window.addEventListener('resize', () => document.querySelectorAll('.sf-menu[open]').forEach(placeMenu));
+    window.addEventListener('scroll', () => document.querySelectorAll('.sf-menu[open]').forEach(placeMenu), true);
+})();
+</script>
 </body></html>
