@@ -7,17 +7,19 @@
     --surface: #ffffff;
     --surface-subtle: #f8fafc;
     --surface-raised: #ffffff;
-    --field: #eef2f7;
-    --field-hover: #f8fafc;
+    --field: #dde3eb;
+    --field-hover: #e9eef5;
     --field-active: #ffffff;
     --line: #64748b;
     --line-soft: #aeb8c6;
     --line-strong: #475569;
     --divider: #8fa0b3;
-    --accent: #005fb8;
-    --accent-hover: #004f9e;
-    --accent-soft: #dbeafe;
-    --accent-ring: rgba(0, 95, 184, .28);
+    --accent: #c2410c;
+    --accent-hover: #9a3412;
+    --accent-soft: #ffedd5;
+    --accent-ring: rgba(194, 65, 12, .3);
+    --accent-border: #f59e0b;
+    --accent-strong: #7c2d12;
     --danger: #b42318;
     --danger-soft: #fee4e2;
     --success: #067647;
@@ -177,8 +179,8 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 .menu-panel a:hover,
 .submenu > button:hover {
     background: var(--accent-soft);
-    border-color: #8bbdf0;
-    color: #083b75;
+    border-color: var(--accent-border);
+    color: var(--accent-strong);
     text-decoration: none;
 }
 
@@ -347,9 +349,9 @@ button {
 
 .button:hover,
 button:hover {
-    background: linear-gradient(180deg, #fff, #e5f0ff);
+    background: linear-gradient(180deg, #fff, #fff7ed);
     border-color: var(--accent);
-    color: #083b75;
+    color: var(--accent-strong);
     text-decoration: none;
 }
 
@@ -368,13 +370,13 @@ button:active {
 .primary,
 .button.primary,
 button.primary {
-    background: linear-gradient(180deg, #0a6fcb, var(--accent));
-    border-color: #004f9e;
+    background: linear-gradient(180deg, #ea580c, var(--accent));
+    border-color: var(--accent-hover);
     color: #fff;
 }
 .primary:hover,
 .button.primary:hover,
-button.primary:hover { background: linear-gradient(180deg, #0067c0, #004f9e); color: #fff; }
+button.primary:hover { background: linear-gradient(180deg, #c2410c, var(--accent-hover)); color: #fff; }
 
 .primary-link {
     color: #fff !important;
@@ -396,7 +398,7 @@ button.primary:hover { background: linear-gradient(180deg, #0067c0, #004f9e); co
     font-weight: 700;
 }
 .actions a:hover,
-.actions button:hover { color: var(--accent-hover); background: var(--accent-soft); border-color: #b7d7f7; text-decoration: none; }
+.actions button:hover { color: var(--accent-hover); background: var(--accent-soft); border-color: var(--accent-border); text-decoration: none; }
 
 .alert {
     padding: 13px 16px;
@@ -439,7 +441,7 @@ th {
     font-weight: 800;
 }
 tbody tr:nth-child(even) td { background: #f8fafc; }
-tbody tr:hover td { background: #e0f2fe; }
+tbody tr:hover td { background: #fff7ed; }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }
@@ -464,12 +466,12 @@ tbody tr:hover td { background: #e0f2fe; }
 .application-card.is-selected,
 .job-card.is-selected,
 .contact-list article.is-selected {
-    background: #dbeafe !important;
+    background: #ffedd5 !important;
     border-color: var(--accent) !important;
     box-shadow: inset 5px 0 0 var(--accent), var(--shadow) !important;
 }
 tr.is-selected td {
-    background: #dbeafe !important;
+    background: #ffedd5 !important;
     border-top: 1.5px solid var(--accent);
     border-bottom: 1.5px solid var(--accent);
 }
@@ -515,7 +517,7 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 .language-add select,
 .salary-row input,
 .salary-row select { padding: 8px 10px; }
-.language-add { background: #eef6ff; }
+.language-add { background: #fff7ed; }
 .salary-row { display: grid; grid-template-columns: 1fr 1fr minmax(190px, .8fr); gap: 12px; align-items: end; }
 .salary-currency-display { color: var(--muted); font-weight: 700; }
 
@@ -611,8 +613,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 .time-cell { min-height: 60px; padding: 4px; background: #fff; }
 .calendar-event {
     display: block;
-    border: 1px solid #8bbdf0;
-    background: #eaf4ff;
+    border: 1px solid var(--accent-border);
+    background: #fff7ed;
     color: var(--text);
     padding: 4px 5px;
     margin: 2px 0;
@@ -628,8 +630,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     place-items: center;
     width: 22px;
     height: 22px;
-    border: 1px solid #8bbdf0;
-    background: #eaf4ff;
+    border: 1px solid var(--accent-border);
+    background: #fff7ed;
     color: var(--accent);
     border-radius: var(--radius-sm);
     font-weight: 900;
