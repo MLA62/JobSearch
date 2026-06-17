@@ -21,8 +21,8 @@
 - Confirm the actual document root. The supplied paths refer to both
   `/public_html/jobs.jema.business` and `/home/kerubina/jobs.jema.business/`.
 - Database username and a newly generated database password.
-- SMTP host, port, encryption mode, username, password and sender address for
-  verification, 2FA and application email.
+- Optional central SMTP fallback for system-owned flows. Normal outbound mail
+  is configured per user in the profile.
 - cPanel cron capability for queued email, reminders and job imports.
 - Confirmation that PHP CLI is available and whether Composer can run on the
   server. If not, vendor dependencies must be built locally and uploaded.
@@ -35,8 +35,12 @@ Never commit FTP, database, SMTP, API or application secrets to Git.
 
 ## SMTP configuration
 
-Set these values in `public/config.php` on the server when outbound mail should
-be active:
+Users configure their own SMTP host, port, encryption mode, username, password
+and sender address in the profile. Passwords are encrypted with `app_key`
+before storage.
+
+Set these values in `public/config.php` only when a central fallback account
+should be active for flows where no user SMTP can exist yet:
 
 ```php
 'mail_from' => 'admin@jobs.jema.business',
@@ -49,9 +53,9 @@ be active:
 'smtp_password' => 'replace-on-server',
 ```
 
-Supported `smtp_encryption` values are `tls`, `ssl` and `none`. While
-`smtp_enabled` is false or SMTP details are missing, password reset links remain
-visible in the prototype UI and no email is sent.
+Supported `smtp_encryption` values are `tls`, `ssl` and `none`. While a user
+has no active SMTP details, password reset links remain visible in the
+prototype UI and user-owned outbound email is kept as a draft.
 
 The FTP password supplied during initial planning was exposed in conversation
 and must be replaced before it is used for deployment. Prefer SFTP/SSH with a

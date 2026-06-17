@@ -82,6 +82,53 @@ function outboundEmailEnabled(array $config): bool
         && trim((string) ($config['mail_from'] ?? '')) !== '';
 }
 
+function secretKey(array $config): string
+{
+    $seed = (string) ($config['app_key'] ?? $config['app_secret'] ?? $config['db_password'] ?? '');
+    if ($seed === '') {
+        $seed = 'jema-jobs-local-prototype';
+    }
+    return hash('sha256', $seed, true);
+}
+
+function encryptSecret(array $config, string $plain): ?string
+{
+    if ($plain === '') {
+        return null;
+    }
+    if (!function_exists('openssl_encrypt')) {
+        throw new RuntimeException('OpenSSL ist für SMTP-Passwörter nicht verfügbar.');
+    }
+    $iv = random_bytes(12);
+    $tag = '';
+    $cipher = openssl_encrypt($plain, 'aes-256-gcm', secretKey($config), OPENSSL_RAW_DATA, $iv, $tag);
+    if ($cipher === false) {
+        throw new RuntimeException('SMTP-Passwort konnte nicht verschlüsselt werden.');
+    }
+    return 'v1:' . base64_encode($iv) . ':' . base64_encode($tag) . ':' . base64_encode($cipher);
+}
+
+function decryptSecret(array $config, ?string $stored): string
+{
+    $stored = (string) $stored;
+    if ($stored === '') {
+        return '';
+    }
+    $parts = explode(':', $stored, 4);
+    if (count($parts) !== 4 || $parts[0] !== 'v1' || !function_exists('openssl_decrypt')) {
+        return '';
+    }
+    $plain = openssl_decrypt(
+        base64_decode($parts[3], true) ?: '',
+        'aes-256-gcm',
+        secretKey($config),
+        OPENSSL_RAW_DATA,
+        base64_decode($parts[1], true) ?: '',
+        base64_decode($parts[2], true) ?: ''
+    );
+    return $plain === false ? '' : $plain;
+}
+
 function appUrl(array $config): string
 {
     return rtrim((string) ($config['app_url'] ?? ''), '/');
@@ -201,6 +248,43 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
     }
 }
 
+function userSmtpSettings(mysqli $db, array $config, int $userId): ?array
+{
+    if ($userId < 1) {
+        return null;
+    }
+    try {
+        $settings = dbOne($db, 'SELECT * FROM user_smtp_settings WHERE user_id=? AND is_active=1 LIMIT 1', 'i', [$userId]);
+    } catch (Throwable) {
+        return null;
+    }
+    if (!$settings || trim((string) ($settings['smtp_host'] ?? '')) === '' || trim((string) ($settings['from_email'] ?? '')) === '') {
+        return null;
+    }
+    return [
+        'app_url' => $config['app_url'] ?? '',
+        'app_name' => $config['app_name'] ?? 'JeMa Jobs',
+        'smtp_enabled' => true,
+        'smtp_host' => (string) $settings['smtp_host'],
+        'smtp_port' => (int) $settings['smtp_port'],
+        'smtp_encryption' => (string) $settings['smtp_encryption'],
+        'smtp_username' => (string) ($settings['smtp_username'] ?? ''),
+        'smtp_password' => decryptSecret($config, $settings['smtp_password_encrypted'] ?? null),
+        'mail_from' => (string) $settings['from_email'],
+        'mail_from_name' => trim((string) ($settings['from_name'] ?? '')) ?: mailFromName($config),
+    ];
+}
+
+function smtpConfigForOwner(mysqli $db, array $config, int $ownerUserId): ?array
+{
+    return userSmtpSettings($db, $config, $ownerUserId);
+}
+
+function mailEnabledForUser(mysqli $db, array $config, int $ownerUserId): bool
+{
+    return smtpConfigForOwner($db, $config, $ownerUserId) !== null;
+}
+
 function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $subject, string $body, string $status, ?string $error = null): void
 {
     try {
@@ -215,12 +299,13 @@ function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $su
 
 function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string $to, string $subject, string $body): bool
 {
-    if (!outboundEmailEnabled($config)) {
+    $mailConfig = smtpConfigForOwner($db, $config, $ownerUserId);
+    if (!$mailConfig) {
         logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'draft');
         return false;
     }
     try {
-        sendSmtpMail($config, $to, $subject, $body);
+        sendSmtpMail($mailConfig, $to, $subject, $body);
         logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'sent');
         return true;
     } catch (Throwable $exception) {
@@ -1658,10 +1743,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $subject = 'E-Mail fur JeMa Jobs bestaetigen';
                 $body = "Hallo {$first}\n\nbitte bestaetige deine E-Mail-Adresse fur JeMa Jobs innerhalb von 24 Stunden:\n" . $verifyLink . "\n\nWenn du dich nicht registriert hast, kannst du diese Nachricht ignorieren.\n";
                 try {
-                    sendConfiguredMail($db, $config, $newUserId, $email, $subject, $body);
+                    sendSmtpMail($config, $email, $subject, $body);
+                    logOutboundEmail($db, $newUserId, $email, $subject, $body, 'sent');
                     $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach.';
-                } catch (Throwable) {
-                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.';
+                } catch (Throwable $exception) {
+                    logOutboundEmail($db, $newUserId, $email, $subject, $body, 'failed', $exception->getMessage());
+                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte System-SMTP-Konfiguration prüfen.';
                 }
             } else {
                 $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. E-Mail-Versand ist deaktiviert; das Konto wurde für die Testphase direkt bestätigt.';
@@ -1748,14 +1835,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resetLink = (appUrl($config) ?: '') . $resetPath;
             $subject = 'Passwort fur JeMa Jobs zurucksetzen';
             $body = "Hallo\n\nfur dein JeMa Jobs Konto wurde ein Passwort-Reset angefordert.\n\nBitte offne diesen Link innerhalb von 60 Minuten:\n" . $resetLink . "\n\nWenn du den Reset nicht angefordert hast, kannst du diese Nachricht ignorieren.\n";
-            if (outboundEmailEnabled($config)) {
+            if (mailEnabledForUser($db, $config, (int) $user['id'])) {
                 try {
-                    sendSmtpMail($config, $email, $subject, $body);
+                    sendConfiguredMail($db, $config, (int) $user['id'], $email, $subject, $body);
                     $_SESSION['password_reset_notice'] = 'Reset-Link wurde per E-Mail versendet.';
-                    logOutboundEmail($db, (int) $user['id'], $email, $subject, $body, 'sent');
                 } catch (Throwable $exception) {
-                    $_SESSION['password_reset_notice'] = 'E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.';
-                    logOutboundEmail($db, (int) $user['id'], $email, $subject, $body, 'failed', $exception->getMessage());
+                    $_SESSION['password_reset_notice'] = 'E-Mail konnte nicht versendet werden. Bitte eigene SMTP-Konfiguration prüfen.';
                 }
             } else {
                 $_SESSION['password_reset_link'] = $resetLink;
@@ -2014,8 +2099,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subject = 'JeMa Jobs Freigabe';
         $body = "Hallo\n\nes wurde ein JeMa Jobs Bereich für dich freigegeben:\n" . $link . "\n\nDiese Freigabe ist persönlich und kann widerrufen werden.\n";
         try {
-            sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body);
-            flash('Freigabe erstellt und per E-Mail vorbereitet.');
+            if (sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body)) {
+                flash('Freigabe erstellt und per E-Mail versendet.');
+            } else {
+                flash('Freigabe erstellt. Eigener SMTP-Versand ist nicht aktiv; Link wird angezeigt.', 'warning');
+            }
         } catch (Throwable) {
             flash('Freigabe erstellt. E-Mail konnte nicht versendet werden; Link wird angezeigt.', 'warning');
         }
@@ -2316,6 +2404,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, $uid, 'update', 'profile', $uid, $old, ['first_name'=>$first,'last_name'=>$last,'preferred_language'=>$language,'timezone'=>$timezone,'language_skills'=>$savedLanguageSkills]);
         flash('Profil gespeichert.');
         redirect('/?page=profile');
+    }
+
+    if ($action === 'save_smtp_settings' || $action === 'test_smtp_settings') {
+        requireLogin();
+        $uid = userId();
+        $host = trim((string) ($_POST['smtp_host'] ?? ''));
+        $port = (int) ($_POST['smtp_port'] ?? 587);
+        $encryption = in_array((string) ($_POST['smtp_encryption'] ?? 'tls'), ['tls', 'ssl', 'none'], true) ? (string) $_POST['smtp_encryption'] : 'tls';
+        $username = trim((string) ($_POST['smtp_username'] ?? '')) ?: null;
+        $password = (string) ($_POST['smtp_password'] ?? '');
+        $fromEmail = strtolower(trim((string) ($_POST['from_email'] ?? '')));
+        $fromName = trim((string) ($_POST['from_name'] ?? '')) ?: null;
+        $isActive = !empty($_POST['is_active']) ? 1 : 0;
+        if ($host === '' || $port < 1 || $port > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+            flash('SMTP-Host, Port und Absender-E-Mail sind erforderlich.', 'danger');
+            redirect('/?page=profile#smtp');
+        }
+        $existing = dbOne($db, 'SELECT smtp_password_encrypted FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [$uid]);
+        $encryptedPassword = $existing['smtp_password_encrypted'] ?? null;
+        if ($password !== '') {
+            $encryptedPassword = encryptSecret($config, $password);
+        }
+        if ($existing) {
+            $stmt = $db->prepare('UPDATE user_smtp_settings SET smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password_encrypted=?, from_email=?, from_name=?, is_active=? WHERE user_id=?');
+            $stmt->bind_param('sisssssii', $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $isActive, $uid);
+            $stmt->execute();
+        } else {
+            $stmt = $db->prepare('INSERT INTO user_smtp_settings (user_id, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password_encrypted, from_email, from_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('isisssssi', $uid, $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $isActive);
+            $stmt->execute();
+        }
+        audit($db, $uid, 'update', 'user_smtp_settings', $uid, null, ['smtp_host' => $host, 'from_email' => $fromEmail, 'is_active' => $isActive]);
+        if ($action === 'test_smtp_settings') {
+            try {
+                $smtpTestUser = dbOne($db, 'SELECT email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$uid]);
+                sendConfiguredMail($db, $config, $uid, (string) ($smtpTestUser['email'] ?? $fromEmail), 'JeMa Jobs SMTP-Test', "Hallo\n\nDer E-Mail-Versand über deine SMTP-Konfiguration funktioniert.\n");
+                flash('SMTP gespeichert und Test-E-Mail versendet.');
+            } catch (Throwable $exception) {
+                flash('SMTP gespeichert, Test-E-Mail fehlgeschlagen: ' . $exception->getMessage(), 'danger');
+            }
+        } else {
+            flash('SMTP-Einstellungen gespeichert.');
+        }
+        redirect('/?page=profile#smtp');
     }
 
     if ($action === 'upload_document') {
@@ -2918,7 +3050,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body);
         } catch (Throwable) {
-            flash('E-Mail konnte nicht versendet werden. Bitte SMTP-Konfiguration prüfen.', 'danger');
+            flash('E-Mail konnte nicht versendet werden. Bitte eigene SMTP-Konfiguration prüfen.', 'danger');
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         if ($sent) {
@@ -2936,7 +3068,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id]);
             flash('Bewerbungs-E-Mail wurde versendet.');
         } else {
-            flash('SMTP ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
+            flash('Eigener SMTP-Versand ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
         }
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
@@ -3555,6 +3687,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
         }
         $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
         $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
+        $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
         ?>
         <div class="page-head"><div><p class="eyebrow">Konto</p><h1>Eigenes Profil</h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel" id="security">
@@ -3581,9 +3714,31 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                 </form>
             <?php endif; ?>
         </section>
+        <section class="panel" id="smtp">
+            <div class="section-head"><div><p class="eyebrow">E-Mail</p><h2>Eigener SMTP-Versand</h2></div><span><?= !empty($smtpSettings['is_active']) ? 'Aktiv' : 'Nicht aktiv' ?></span></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                <div class="three">
+                    <label>SMTP-Host<input name="smtp_host" value="<?= e($smtpSettings['smtp_host'] ?? '') ?>" placeholder="smtp.example.com" required></label>
+                    <label>Port<input type="number" min="1" max="65535" name="smtp_port" value="<?= e((string)($smtpSettings['smtp_port'] ?? 587)) ?>" required></label>
+                    <label>Verschlüsselung<select name="smtp_encryption"><?php foreach(['tls'=>'STARTTLS','ssl'=>'SSL/TLS','none'=>'Keine'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['smtp_encryption'] ?? 'tls')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+                </div>
+                <div class="two">
+                    <label>SMTP-Benutzer<input name="smtp_username" value="<?= e($smtpSettings['smtp_username'] ?? '') ?>" autocomplete="username"></label>
+                    <label>SMTP-Passwort<input type="password" name="smtp_password" autocomplete="new-password" placeholder="<?= empty($smtpSettings) ? '' : 'Leer lassen = unverändert' ?>"></label>
+                </div>
+                <div class="two">
+                    <label>Absender-E-Mail<input type="email" name="from_email" value="<?= e($smtpSettings['from_email'] ?? $currentUser['email']) ?>" required></label>
+                    <label>Absender-Name<input name="from_name" value="<?= e($smtpSettings['from_name'] ?? trim((string)$currentUser['first_name'] . ' ' . (string)$currentUser['last_name'])) ?>"></label>
+                </div>
+                <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> SMTP für meinen Versand aktivieren</label>
+                <div class="actions"><button class="primary" name="action" value="save_smtp_settings">SMTP speichern</button><button name="action" value="test_smtp_settings">Speichern & testen</button></div>
+                <p class="meta-line">Passwort-Reset, Freigaben und Bewerbungs-E-Mails werden über diese SMTP-Daten verschickt, sobald sie aktiv sind.</p>
+            </form>
+        </section>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
-            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Prototyp-Regel: Es werden keine E-Mails verschickt. Änderungen der Login-E-Mail bleiben bis zur Versandfreigabe deaktiviert.</small></label>
+            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Login-E-Mail. Der Versand läuft über deine SMTP-Einstellungen.</small></label>
             <label>App- und Dokumentensprache<select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small>Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.</small></label>
             <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
@@ -3764,7 +3919,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                     <label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label>
                 </div>
                 <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
-                <?php if(!outboundEmailEnabled($config)): ?><p class="prototype-note">Prototyp: Es wird keine E-Mail verschickt. Betreff und Begleittext sind nur Entwürfe zum Kopieren.</p><?php endif; ?>
+                <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="prototype-note">Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.</p><?php endif; ?>
                 <label>E-Mail-Empfänger<input type="email" name="recipient_email" value="<?= e($contactEdit['email'] ?? '') ?>" placeholder="Kontakt auswählen oder Adresse eintragen"></label>
                 <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>

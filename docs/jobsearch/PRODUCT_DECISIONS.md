@@ -10,16 +10,16 @@ Status: 2026-06-15
 - Primary 2FA methods: WebAuthn/security key or TOTP authenticator.
 - Email codes are recovery-only and expire after 10 minutes for guest access.
 - Initial administrator: Markus Lauber, German UI, `admin@jema.business`.
-- Central outbound SMTP account: `admin@jobs.jema.business`.
-- Outbound email is sent through the configured central SMTP account when
-  `smtp_enabled` is active. Without SMTP configuration the prototype keeps email
-  contents visible in the UI for manual copy/paste or direct testing.
+- Users maintain their own SMTP settings in the profile. Password reset,
+  shares and application email use the owner's active SMTP configuration.
+- A configured central SMTP account is only a fallback for system-owned flows
+  where no user SMTP exists yet, such as initial registration verification.
 - During the open test phase, newly registered test users are activated
   immediately and may log in without email verification or administrator
   approval. The verification and approval flow remains a later hardening step.
-- Password reset tokens are stored hashed and expire after one hour. With SMTP
-  enabled the reset link is sent by email; otherwise it is shown directly after
-  request for prototype testing.
+- Password reset tokens are stored hashed and expire after one hour. With an
+  active SMTP setup on the target account the reset link is sent by email;
+  otherwise it is shown directly after request for prototype testing.
 - TOTP 2FA can be activated in the profile. Activated accounts must enter the
   authenticator code during login; administrators can reset a user's 2FA setup.
 - Registration creates a verification token when SMTP is active. Without SMTP
