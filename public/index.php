@@ -3096,22 +3096,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'start_application') {
         $jobId = (int) ($_POST['job_id'] ?? 0);
         $job = dbOne($db, 'SELECT id, title FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
-        if (!$job) { http_response_code(404); exit('Not found'); }
+        if (!$job) {
+            flash('Diese Stelle ist nicht mehr verfügbar.', 'danger');
+            redirect('/?page=jobs');
+        }
         $existing = dbOne($db, 'SELECT id FROM applications WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [userId(), $jobId]);
         if ($existing) {
             redirect('/?page=applications&edit=' . (int) $existing['id'] . '#application-form');
         }
-        $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, next_action) VALUES (?, ?, 'draft', 'Unterlagen vorbereiten')");
         $uid = userId();
-        $stmt->bind_param('ii', $uid, $jobId);
-        $stmt->execute();
-        $applicationId = (int) $stmt->insert_id;
-        $history = $db->prepare("INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, NULL, 'draft', 'Bewerbung angelegt')");
-        $history->bind_param('ii', $applicationId, $uid);
-        $history->execute();
-        audit($db, $uid, 'create', 'application', $applicationId, null, ['job_id' => $jobId, 'status' => 'draft']);
-        flash('Bewerbung angelegt. Ergänze jetzt Unterlagen und nächsten Schritt.');
-        redirect('/?page=applications&edit=' . $applicationId . '#application-form');
+        try {
+            $db->begin_transaction();
+            $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, channel, next_action) VALUES (?, ?, 'draft', 'other', 'Unterlagen vorbereiten')");
+            $stmt->bind_param('ii', $uid, $jobId);
+            $stmt->execute();
+            $applicationId = (int) $stmt->insert_id;
+            $history = $db->prepare("INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, NULL, 'draft', 'Bewerbung angelegt')");
+            $history->bind_param('ii', $applicationId, $uid);
+            $history->execute();
+            audit($db, $uid, 'create', 'application', $applicationId, null, ['job_id' => $jobId, 'status' => 'draft']);
+            $db->commit();
+            flash('Bewerbung angelegt. Ergänze jetzt Unterlagen und nächsten Schritt.');
+            redirect('/?page=applications&edit=' . $applicationId . '#application-form');
+        } catch (Throwable $exception) {
+            try { $db->rollback(); } catch (Throwable) {}
+            flash('Bewerbung konnte nicht gestartet werden. Bitte erneut versuchen.', 'danger');
+            redirect('/?page=jobs&edit=' . $jobId . '#new');
+        }
     }
 
     if ($action === 'set_intermediary') {
@@ -3628,7 +3639,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.6');
+$appVersion = (string) ($config['app_version'] ?? '0.14.7');
 
 ?><!doctype html>
 <html lang="de">
