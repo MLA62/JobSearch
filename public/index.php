@@ -1435,6 +1435,93 @@ function zipSafeName(string $filename, array &$used): string
     return $candidate;
 }
 
+function applicationTempRoot(): string
+{
+    return __DIR__ . '/storage/temp/application-documents';
+}
+
+function removeTree(string $path): void
+{
+    if (!is_dir($path)) {
+        return;
+    }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        $target = $path . '/' . $entry;
+        is_dir($target) ? removeTree($target) : @unlink($target);
+    }
+    @rmdir($path);
+}
+
+function cleanupApplicationTempPackages(): void
+{
+    $packages = $_SESSION['application_temp_packages'] ?? [];
+    $root = applicationTempRoot();
+    foreach ($packages as $token => $package) {
+        if ((int) ($package['expires_at'] ?? 0) >= time()) {
+            continue;
+        }
+        removeTree((string) ($package['dir'] ?? ''));
+        unset($packages[$token]);
+    }
+    $_SESSION['application_temp_packages'] = $packages;
+    if (is_dir($root)) {
+        foreach (scandir($root) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $target = $root . '/' . $entry;
+            if (is_dir($target) && filemtime($target) !== false && filemtime($target) < time() - 7200) {
+                removeTree($target);
+            }
+        }
+    }
+}
+
+function createApplicationTempPackage(mysqli $db, int $userId, int $applicationId): ?array
+{
+    cleanupApplicationTempPackages();
+    $files = applicationDocumentFiles($db, $userId, $applicationId);
+    if (!$files) {
+        return null;
+    }
+    $root = applicationTempRoot();
+    if (!is_dir($root)) {
+        mkdir($root, 0775, true);
+    }
+    $token = bin2hex(random_bytes(16));
+    $dir = $root . '/' . $userId . '-' . $applicationId . '-' . $token;
+    mkdir($dir, 0775, true);
+    $used = [];
+    $items = [];
+    foreach ($files as $file) {
+        $name = zipSafeName((string) $file['filename'], $used);
+        $target = $dir . '/' . $name;
+        if (!copy((string) $file['path'], $target)) {
+            continue;
+        }
+        $items[] = [
+            'name' => $name,
+            'size' => (int) filesize($target),
+            'mime' => (string) $file['mime'],
+        ];
+    }
+    if (!$items) {
+        removeTree($dir);
+        return null;
+    }
+    $package = [
+        'application_id' => $applicationId,
+        'dir' => $dir,
+        'expires_at' => time() + 3600,
+        'items' => $items,
+    ];
+    $_SESSION['application_temp_packages'][$token] = $package;
+    return ['token' => $token] + $package;
+}
+
 function isAdmin(mysqli $db, int $userId, array $config = []): bool
 {
     if ($userId < 1) {
@@ -3759,6 +3846,53 @@ if ($page === 'application_documents_zip') {
     @unlink($tmp);
     exit;
 }
+if ($page === 'application_documents_temp') {
+    requireLogin();
+    $applicationId = (int) ($_GET['id'] ?? 0);
+    $application = dbOne($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$applicationId, userId()]);
+    if (!$application) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $package = createApplicationTempPackage($db, userId(), $applicationId);
+    if (!$package) {
+        flash('Keine Bewerbungsdokumente für einen temporären Ordner vorhanden.', 'warning');
+        redirect('/?page=applications&edit=' . $applicationId . '#documents');
+    }
+    ?><!doctype html>
+    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '0.14.13')) ?>"></head>
+    <body><main class="container"><section class="panel"><p class="eyebrow">Temporärer Unterlagenordner</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line">Dieser App-Ordner ist temporär und wird nach ca. 60 Minuten ungültig. Die Dateien liegen als Kopien bereit.</p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents">Zur Bewerbung</a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>">Als ZIP herunterladen</a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
+    exit;
+}
+if ($page === 'application_temp_file') {
+    requireLogin();
+    cleanupApplicationTempPackages();
+    $token = (string) ($_GET['token'] ?? '');
+    $file = basename((string) ($_GET['file'] ?? ''));
+    $package = $_SESSION['application_temp_packages'][$token] ?? null;
+    if (!$package || $file === '') {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $dir = realpath((string) $package['dir']);
+    $path = realpath((string) $package['dir'] . '/' . $file);
+    if (!$dir || !$path || !str_starts_with($path, $dir) || !is_file($path)) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    $mime = 'application/octet-stream';
+    foreach ((array) ($package['items'] ?? []) as $item) {
+        if (($item['name'] ?? '') === $file) {
+            $mime = (string) ($item['mime'] ?? $mime);
+            break;
+        }
+    }
+    header('Content-Type: ' . $mime);
+    header('Content-Length: ' . (string) filesize($path));
+    header('Content-Disposition: attachment; filename="' . addslashes($file) . '"');
+    readfile($path);
+    exit;
+}
 if ($page === 'guest_download') {
     $token = (string) ($_GET['token'] ?? '');
     $share = activeGuestShare($db, $token);
@@ -3856,7 +3990,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.12');
+$appVersion = (string) ($config['app_version'] ?? '0.14.13');
 
 ?><!doctype html>
 <html lang="de">
@@ -4655,7 +4789,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.12');
             <?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
         </section>
         <section class="panel contact-log" id="documents">
-            <div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><div class="actions"><a href="/?page=profile#documents">Stammdaten im Profil</a><?php if($applicationDocuments): ?><a class="button" href="/?page=application_documents_zip&id=<?= (int)$applicationEdit['id'] ?>">Portalpaket herunterladen</a><?php endif; ?></div></div>
+            <div class="section-head"><div><p class="eyebrow">Bewerbungsdaten</p><h2>Bewerbungsdokumente</h2></div><div class="actions"><a href="/?page=profile#documents">Stammdaten im Profil</a><?php if($applicationDocuments): ?><a class="button" href="/?page=application_documents_temp&id=<?= (int)$applicationEdit['id'] ?>">Temporären Ordner öffnen</a><a class="button" href="/?page=application_documents_zip&id=<?= (int)$applicationEdit['id'] ?>">Portalpaket herunterladen</a><?php endif; ?></div></div>
             <div class="split inner-split">
                 <form method="post" class="stack doc-picker">
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
