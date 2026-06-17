@@ -805,11 +805,23 @@ function sfState(string $context, array $fields, array $defaults = []): array
         } else {
             $field = (string) ($_GET['sf_field'] ?? '');
             if (isset($fields[$field])) {
-                $filter = trim((string) ($_GET['sf_filter'] ?? ''));
-                if ($filter === '') {
+                if (!empty($_GET['sf_clear_filter'])) {
                     unset($state['filters'][$field]);
+                } elseif (isset($fields[$field]['choices'])) {
+                    $allowed = array_map('strval', array_keys((array) $fields[$field]['choices']));
+                    $selected = array_values(array_intersect(array_map('strval', (array) ($_GET['sf_filter_multi'] ?? [])), $allowed));
+                    if ($selected) {
+                        $state['filters'][$field] = $selected;
+                    } else {
+                        unset($state['filters'][$field]);
+                    }
                 } else {
-                    $state['filters'][$field] = $filter;
+                    $filter = trim((string) ($_GET['sf_filter'] ?? ''));
+                    if ($filter === '') {
+                        unset($state['filters'][$field]);
+                    } else {
+                        $state['filters'][$field] = $filter;
+                    }
                 }
                 $sort = strtolower((string) ($_GET['sf_sort'] ?? ''));
                 if (in_array($sort, ['asc', 'desc'], true)) {
@@ -833,6 +845,7 @@ function sfState(string $context, array $fields, array $defaults = []): array
         $state['sort']['dir'] = 'asc';
     }
     $_SESSION[$key] = $state;
+    $state['_fields'] = $fields;
     return $state;
 }
 
@@ -840,17 +853,30 @@ function sfApplySql(array $state, array $fields, string &$types, array &$values)
 {
     $clauses = [];
     foreach ((array) ($state['filters'] ?? []) as $field => $filter) {
-        $filter = trim((string) $filter);
-        if ($filter === '' || !isset($fields[$field])) {
+        if (!isset($fields[$field])) {
             continue;
         }
         $expr = (string) ($fields[$field]['expr'] ?? '');
         if ($expr === '') {
             continue;
         }
-        $clauses[] = $expr . ' LIKE ?';
-        $types .= 's';
-        $values[] = '%' . $filter . '%';
+        if (isset($fields[$field]['choices'])) {
+            $selected = array_values(array_intersect(array_map('strval', (array) $filter), array_map('strval', array_keys((array) $fields[$field]['choices']))));
+            if (!$selected) {
+                continue;
+            }
+            $clauses[] = $expr . ' IN (' . implode(',', array_fill(0, count($selected), '?')) . ')';
+            $types .= str_repeat('s', count($selected));
+            array_push($values, ...$selected);
+        } else {
+            $filter = trim((string) $filter);
+            if ($filter === '') {
+                continue;
+            }
+            $clauses[] = $expr . ' LIKE ?';
+            $types .= 's';
+            $values[] = '%' . $filter . '%';
+        }
     }
     return $clauses ? ' AND ' . implode(' AND ', $clauses) : '';
 }
@@ -876,8 +902,18 @@ function sfApplyRows(array $rows, array $state, array $fields): array
 {
     $filters = (array) ($state['filters'] ?? []);
     if ($filters) {
-        $rows = array_values(array_filter($rows, static function (array $row) use ($filters): bool {
+        $rows = array_values(array_filter($rows, static function (array $row) use ($filters, $fields): bool {
             foreach ($filters as $field => $filter) {
+                if (!isset($fields[$field])) {
+                    continue;
+                }
+                if (isset($fields[$field]['choices'])) {
+                    $selected = array_values(array_intersect(array_map('strval', (array) $filter), array_map('strval', array_keys((array) $fields[$field]['choices']))));
+                    if ($selected && !in_array((string) ($row[$field] ?? ''), $selected, true)) {
+                        return false;
+                    }
+                    continue;
+                }
                 $filter = mb_strtolower(trim((string) $filter));
                 if ($filter !== '' && !str_contains(mb_strtolower((string) ($row[$field] ?? '')), $filter)) {
                     return false;
@@ -909,19 +945,34 @@ function sfHiddenInputs(array $preserve): string
     return $html;
 }
 
-function sfHeader(string $context, string $field, string $label, array $state, array $preserve = []): string
+function sfHeader(string $context, string $field, string $label, array $state, array $preserve = [], array $fields = []): string
 {
-    $currentFilter = (string) (($state['filters'][$field] ?? ''));
+    $fieldDef = $fields[$field] ?? [];
+    if (!$fieldDef && isset($state['_fields'][$field])) {
+        $fieldDef = (array) $state['_fields'][$field];
+    }
+    $rawFilter = $state['filters'][$field] ?? '';
+    $currentFilter = isset($fieldDef['choices']) ? array_values(array_map('strval', (array) $rawFilter)) : (string) $rawFilter;
     $isSort = (string) ($state['sort']['field'] ?? '') === $field;
     $sortDir = $isSort ? strtolower((string) ($state['sort']['dir'] ?? 'asc')) : '';
-    $active = $currentFilter !== '' || $isSort;
-    $summary = '<summary class="sf-button ' . ($active ? 'is-active' : '') . '" title="Sortieren und filtern">' . ($isSort ? ($sortDir === 'desc' ? 'v' : '^') : '=') . ($currentFilter !== '' ? '*' : '') . '</summary>';
+    $hasFilter = is_array($currentFilter) ? $currentFilter !== [] : $currentFilter !== '';
+    $active = $hasFilter || $isSort;
+    $summary = '<summary class="sf-button ' . ($active ? 'is-active' : '') . '" title="Sortieren und filtern">' . ($isSort ? ($sortDir === 'desc' ? 'v' : '^') : '=') . ($hasFilter ? '*' : '') . '</summary>';
     $html = '<th><div class="sf-head"><span>' . e($label) . '</span><details class="sf-menu">' . $summary;
     $html .= '<form method="get" class="sf-form">' . sfHiddenInputs($preserve);
     $html .= '<input type="hidden" name="sf_context" value="' . e($context) . '"><input type="hidden" name="sf_field" value="' . e($field) . '">';
-    $html .= '<label>Filter<input name="sf_filter" value="' . e($currentFilter) . '" placeholder="' . e($label) . ' enthält"></label>';
+    if (isset($fieldDef['choices'])) {
+        $html .= '<fieldset class="sf-multi"><legend>Filter</legend>';
+        foreach ((array) $fieldDef['choices'] as $value => $choiceLabel) {
+            $checked = in_array((string) $value, $currentFilter, true) ? ' checked' : '';
+            $html .= '<label><input type="checkbox" name="sf_filter_multi[]" value="' . e((string) $value) . '"' . $checked . '> ' . e((string) $choiceLabel) . '</label>';
+        }
+        $html .= '</fieldset>';
+    } else {
+        $html .= '<label>Filter<input name="sf_filter" value="' . e((string) $currentFilter) . '" placeholder="' . e($label) . ' enthält"></label>';
+    }
     $html .= '<label>Sortierung<select name="sf_sort"><option value="none">Keine</option><option value="asc" ' . ($sortDir === 'asc' ? 'selected' : '') . '>Aufsteigend</option><option value="desc" ' . ($sortDir === 'desc' ? 'selected' : '') . '>Absteigend</option></select></label>';
-    $html .= '<div class="actions"><button class="primary">Anwenden</button><button name="sf_filter" value="">Filter löschen</button></div>';
+    $html .= '<div class="actions"><button class="primary">Anwenden</button><button name="sf_clear_filter" value="1">Filter löschen</button></div>';
     $html .= '</form></details></div></th>';
     return $html;
 }
@@ -991,6 +1042,31 @@ function reportStatusOptions(string $base): array
         'calendar' => ['planned'=>'Geplant','completed'=>'Erledigt','cancelled'=>'Abgebrochen'],
         default => ['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'],
     };
+}
+
+function jobStatusOptions(): array
+{
+    return ['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'];
+}
+
+function applicationStatusOptions(): array
+{
+    return ['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'];
+}
+
+function applicationChannelOptions(): array
+{
+    return ['email'=>'E-Mail','portal'=>'Jobportal','website'=>'Karriereseite','mail'=>'Post','referral'=>'Empfehlung','other'=>'Andere'];
+}
+
+function calendarEventTypeOptions(): array
+{
+    return ['task'=>'Aufgabe','follow_up'=>'Nachfassen','interview'=>'Interview','deadline'=>'Frist','meeting'=>'Termin','reminder'=>'Erinnerung','other'=>'Andere'];
+}
+
+function calendarStatusOptions(): array
+{
+    return ['planned'=>'Geplant','completed'=>'Erledigt','cancelled'=>'Abgebrochen'];
 }
 
 function saveReportSettings(mysqli $db, int $reportId, string $base): void
@@ -4205,7 +4281,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.23');
+$appVersion = (string) ($config['app_version'] ?? '0.14.24');
 
 ?><!doctype html>
 <html lang="de">
@@ -4376,7 +4452,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
         <?php
         $pendentSfFields = [
             'due_at'=>['label'=>'Fällig'],
-            'type'=>['label'=>'Bereich'],
+            'type'=>['label'=>'Bereich', 'choices'=>['Bewerbung'=>'Bewerbung','Kontakt'=>'Kontakt','Kalender'=>'Kalender']],
             'title'=>['label'=>'Titel'],
             'status'=>['label'=>'Status'],
             'ref'=>['label'=>'Bezug'],
@@ -4426,7 +4502,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
             'title'=>['label'=>'Titel'],
             'target_label'=>['label'=>'Ziel'],
             'recipient_email'=>['label'=>'Empfänger'],
-            'status_label'=>['label'=>'Status'],
+            'status_label'=>['label'=>'Status', 'choices'=>['aktiv'=>'Aktiv','abgelaufen'=>'Abgelaufen','widerrufen'=>'Widerrufen']],
         ];
         $shareSf = sfState('sharing', $shareSfFields, ['sort'=>'title','dir'=>'asc']);
         $sharePreserve = ['page'=>'sharing'];
@@ -4459,8 +4535,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
         unset($reportRow);
         $reportListSfFields = [
             'name'=>['label'=>'Name'],
-            'base_label'=>['label'=>'Basis'],
-            'display_label'=>['label'=>'Ansicht'],
+            'base_label'=>['label'=>'Basis', 'choices'=>array_combine(array_values($reportBaseOptions), array_values($reportBaseOptions))],
+            'display_label'=>['label'=>'Ansicht', 'choices'=>array_combine(array_values($reportDisplayOptions), array_values($reportDisplayOptions))],
             'updated_at'=>['label'=>'Aktualisiert'],
         ];
         $reportListSf = sfState('reports', $reportListSfFields, ['sort'=>'updated_at','dir'=>'desc']);
@@ -4505,7 +4581,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
             'starts_at'=>['label'=>'Zeit'],
             'title'=>['label'=>'Ereignis'],
             'type'=>['label'=>'Typ'],
-            'status'=>['label'=>'Status'],
+            'status'=>['label'=>'Status', 'choices'=>calendarStatusOptions()],
             'meta'=>['label'=>'Bezug'],
         ];
         $calendarSf = sfState('calendar_agenda', $calendarSfFields, ['sort'=>'starts_at','dir'=>'asc']);
@@ -4878,7 +4954,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
     <?php elseif ($page === 'companies'): ?>
         <?php
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT * FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
-        $companySfFields = ['name'=>['label'=>'Firma','expr'=>'c.name'], 'address'=>['label'=>'Adresse / Telefon','expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.city, c.phone)'], 'role'=>['label'=>'Rolle / Vermittlung','expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")'], 'links'=>['label'=>'Verknüpfungen','expr'=>'CAST(c.updated_at AS CHAR)']];
+        $companySfFields = ['name'=>['label'=>'Firma','expr'=>'c.name'], 'address'=>['label'=>'Adresse / Telefon','expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.city, c.phone)'], 'role'=>['label'=>'Rolle / Vermittlung','expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")', 'choices'=>['Direkt'=>'Direkte Firma','Vermittler'=>'Vermittler']], 'links'=>['label'=>'Verknüpfungen','expr'=>'CAST(c.updated_at AS CHAR)']];
         $companySf = sfState('companies', $companySfFields, ['sort'=>'name','dir'=>'asc']);
         $companyPreserve = ['page'=>'companies', 'edit'=>$_GET['edit'] ?? ''];
         $companySql='SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND (j2.company_id=c.id OR a.intermediary_company_id=c.id)) application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL'; $companyTypes='i'; $companyVals=[userId()];
@@ -4906,7 +4982,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $companyFilter = (int)($_GET['company_id'] ?? 0); $jobView = ($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
-        $jobSfFields = ['title'=>['label'=>'Titel','expr'=>'j.title'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'location'=>['label'=>'Ort','expr'=>'j.location_text'], 'status'=>['label'=>'Status','expr'=>'j.status'], 'match'=>['label'=>'Match','expr'=>'j.updated_at']];
+        $jobSfFields = ['title'=>['label'=>'Titel','expr'=>'j.title'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'location'=>['label'=>'Ort','expr'=>'j.location_text'], 'status'=>['label'=>'Status','expr'=>'j.status', 'choices'=>jobStatusOptions()], 'match'=>['label'=>'Match','expr'=>'j.updated_at']];
         $jobSf = sfState('jobs', $jobSfFields, ['sort'=>'title','dir'=>'asc']);
         $jobPreserve = ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: '', 'edit'=>$_GET['edit'] ?? ''];
         $sql = 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.original_pdf_status, j.original_pdf_requested_at, j.original_pdf_rendered_at, j.original_pdf_error, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, SUBSTRING(j.description,1,65535) description, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
@@ -4949,7 +5025,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']); $appView=($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
-        $appSfFields = ['title'=>['label'=>'Job','expr'=>'j.title'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'status'=>['label'=>'Status','expr'=>'a.status'], 'channel'=>['label'=>'Kanal','expr'=>'a.channel'], 'next_action'=>['label'=>'Nächster Schritt','expr'=>'CONCAT_WS(" ", a.next_action, a.next_action_at)']];
+        $appSfFields = ['title'=>['label'=>'Job','expr'=>'j.title'], 'company'=>['label'=>'Firma','expr'=>'c.name'], 'status'=>['label'=>'Status','expr'=>'a.status', 'choices'=>applicationStatusOptions()], 'channel'=>['label'=>'Kanal','expr'=>'a.channel', 'choices'=>applicationChannelOptions()], 'next_action'=>['label'=>'Nächster Schritt','expr'=>'CONCAT_WS(" ", a.next_action, a.next_action_at)']];
         $appSf = sfState('applications', $appSfFields, ['sort'=>'title','dir'=>'asc']);
         $appPreserve = ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : '', 'edit'=>$_GET['edit'] ?? ''];
         $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.updated_at, j.title, j.company_id, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
@@ -5139,9 +5215,14 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
         $profileDocumentTypes = documentTypesForScope($documentTypes, 'profile');
+        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $documentTypeChoices = [];
+        foreach ($profileDocumentTypes as $type) {
+            $documentTypeChoices[(string)$type['code']] = documentTypeLabel((string)$type['code'], $userLanguage);
+        }
         $docSfFields = [
             'title'=>['label'=>'Dokument','expr'=>'d.title'],
-            'type'=>['label'=>'Typ','expr'=>'dt.code'],
+            'type'=>['label'=>'Typ','expr'=>'dt.code', 'choices'=>$documentTypeChoices],
             'version'=>['label'=>'Version','expr'=>'CAST(d.version AS CHAR)'],
             'created_at'=>['label'=>'Datum','expr'=>'d.created_at'],
         ];
@@ -5152,7 +5233,6 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.23');
         $docOrder = sfOrderSql($docSf, $docSfFields, 'created_at');
         $docSql .= $docOrder !== '' ? $docOrder . ', d.title' : ' ORDER BY d.created_at DESC, d.title';
         $documents = dbAll($db, $docSql, $docTypes, $docVals);
-        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
         $editDocumentId = (int) ($_GET['edit_document'] ?? 0);
         $editDocument = $editDocumentId > 0 ? dbOne($db, "SELECT d.*, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.id=? AND d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL", 'ii', [$editDocumentId, userId()]) : null;
         ?>
