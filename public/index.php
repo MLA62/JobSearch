@@ -2349,6 +2349,36 @@ function ensureSubmittedApplicationContactLog(mysqli $db, int $userId, int $appl
     $stmt->execute();
 }
 
+function ensureSubmittedApplicationCalendarEvent(mysqli $db, int $userId, int $applicationId): void
+{
+    $application = dbOne(
+        $db,
+        "SELECT a.id, a.applied_at, j.title job_title, c.name company_name
+           FROM applications a
+           JOIN jobs j ON j.id=a.job_id
+           JOIN companies c ON c.id=j.company_id
+          WHERE a.id=? AND a.user_id=? AND a.status='sent' AND a.deleted_at IS NULL
+          LIMIT 1",
+        'ii',
+        [$applicationId, $userId]
+    );
+    if (!$application) {
+        return;
+    }
+    $exists = dbOne($db, "SELECT id FROM calendar_events WHERE owner_user_id=? AND application_id=? AND title='Bewerbung online eingereicht' LIMIT 1", 'ii', [$userId, $applicationId]);
+    if ($exists) {
+        return;
+    }
+    $title = 'Bewerbung online eingereicht';
+    $type = 'task';
+    $startsAt = (string) ($application['applied_at'] ?: date('Y-m-d H:i:s'));
+    $status = 'completed';
+    $notes = 'Online-Bewerbung eingereicht: ' . trim((string)$application['job_title'] . ' · ' . (string)$application['company_name'], ' ·');
+    $stmt = $db->prepare('INSERT INTO calendar_events (owner_user_id, application_id, title, event_type, starts_at, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $stmt->bind_param('iisssss', $userId, $applicationId, $title, $type, $startsAt, $status, $notes);
+    $stmt->execute();
+}
+
 function saveContactLogAttachment(mysqli $db, int $userId, int $contactId, int $logId, string $contactName, string $subject): ?int
 {
     $file = $_FILES['log_attachment'] ?? null;
@@ -3958,7 +3988,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($status === 'sent' && $primaryContactId > 0) {
             ensureSubmittedApplicationContactLog($db, $uid, $id);
         }
+        if ($status === 'sent') {
+            ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
+        }
         flash('Bewerbung gespeichert.');
+        redirect('/?page=applications&edit=' . $id . '#application-form');
+    }
+
+    if ($action === 'submit_online_application') {
+        $id = (int) ($_POST['id'] ?? 0);
+        $uid = userId();
+        $old = dbOne($db, 'SELECT id, job_id, primary_contact_id, status FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+        if (!$old) { http_response_code(404); exit('Not found'); }
+        $applicationUrl = trim((string) ($_POST['application_url'] ?? '')) ?: null;
+        if ($applicationUrl !== null && !filter_var($applicationUrl, FILTER_VALIDATE_URL)) {
+            flash('Online-Bewerbungs-URL ist ungültig.', 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
+        $appliedAt = trim((string) ($_POST['applied_at'] ?? '')) ?: date('Y-m-d H:i:s');
+        $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : '');
+        $channel = in_array($_POST['channel'] ?? '', ['portal','website','other'], true) ? (string) $_POST['channel'] : 'website';
+        $portalAccount = trim((string) ($_POST['portal_account'] ?? '')) ?: null;
+        $referenceNumber = trim((string) ($_POST['reference_number'] ?? '')) ?: null;
+        $onlineNotes = trim((string) ($_POST['online_notes'] ?? '')) ?: null;
+        $coverLetter = trim((string) ($_POST['cover_letter_text'] ?? '')) ?: null;
+        $notes = trim((string) ($_POST['notes'] ?? '')) ?: null;
+        $primaryContactId = (int) ($_POST['primary_contact_id'] ?? 0);
+        if ($primaryContactId > 0) {
+            $validContact = dbOne($db, 'SELECT id FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$primaryContactId, $uid]);
+            if (!$validContact) { $primaryContactId = 0; }
+        }
+        $status = 'sent';
+        $nextAction = 'Antwort auf Bewerbung pendent';
+        $stmt = $db->prepare('UPDATE applications SET primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
+        $stmt->bind_param('isssssssssssii', $primaryContactId, $status, $channel, $appliedAt, $nextAction, $appliedAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $coverLetter, $notes, $id, $uid);
+        $stmt->execute();
+        if ((string)$old['status'] !== $status) {
+            $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
+            $comment = 'Online-Bewerbung eingereicht';
+            $oldStatus = (string) $old['status'];
+            $history->bind_param('iisss', $id, $uid, $oldStatus, $status, $comment);
+            $history->execute();
+        }
+        $jobStatus = 'applied';
+        $jobId = (int) $old['job_id'];
+        $jobStmt = $db->prepare('UPDATE jobs SET status=? WHERE id=? AND owner_user_id=?');
+        $jobStmt->bind_param('sii', $jobStatus, $jobId, $uid);
+        $jobStmt->execute();
+        if ($primaryContactId > 0) {
+            ensureSubmittedApplicationContactLog($db, $uid, $id);
+        }
+        ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
+        audit($db, $uid, 'submit', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl, 'next_action' => $nextAction, 'next_action_at' => $appliedAt]);
+        flash('Online-Bewerbung wurde als eingereicht protokolliert.');
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
 
@@ -4006,6 +4088,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $history->execute();
             audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id, 'attachments' => count($attachments)]);
             ensureSubmittedApplicationContactLog($db, $uid, $id);
+            ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
             flash('Bewerbungs-E-Mail wurde versendet.');
         } else {
             flash('Eigener SMTP-Versand ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
@@ -4281,7 +4364,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.25');
+$appVersion = (string) ($config['app_version'] ?? '0.14.26');
 
 ?><!doctype html>
 <html lang="de">
@@ -5085,9 +5168,17 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.25');
                 </div>
                 <div class="history"><h3>Online-Bewerbung / Webformular</h3><p class="meta-line">Für Online-Bewerbungen brauchst du keinen Kontakt. Öffne die Bewerbungs-URL, fülle die externe Webseite aus und protokolliere hier Portal, Referenz, hochgeladene Unterlagen und Bestätigung. Keine Passwörter hinterlegen.</p></div>
                 <?php $onlineApplicationUrl = (string)($applicationEdit['application_url'] ?: ($applicationEdit['job_source_url'] ?? '')); ?>
-                <label>Online-Bewerbungs-URL<input type="url" name="application_url" value="<?= e($onlineApplicationUrl) ?>" placeholder="https://..."><?php if($onlineApplicationUrl !== ''): ?><small><a href="<?= e($onlineApplicationUrl) ?>" target="_blank" rel="noopener">Webformular öffnen</a></small><?php endif; ?></label>
-                <div class="two"><label>Portal / Login-Hinweis<input name="portal_account" value="<?= e($applicationEdit['portal_account'] ?? '') ?>" placeholder="z. B. Firmenportal, JobCloud, LinkedIn / Konto-E-Mail"></label><label>Referenznummer<input name="reference_number" value="<?= e($applicationEdit['reference_number'] ?? '') ?>" placeholder="Bestätigungs- oder Job-Referenz"></label></div>
-                <label>Online-Notizen<textarea name="online_notes" rows="3" placeholder="Welche Dokumente hochgeladen, Fragen beantwortet, Bestätigung erhalten, Login-Hinweise ohne Passwort"><?= e($applicationEdit['online_notes'] ?? '') ?></textarea></label>
+                <div class="online-assistant">
+                    <div class="actions">
+                        <?php if($onlineApplicationUrl !== ''): ?><a class="button primary" href="<?= e($onlineApplicationUrl) ?>" target="_blank" rel="noopener">Webformular öffnen</a><?php endif; ?>
+                        <?php if($applicationDocuments): ?><a class="button" href="/?page=application_documents_temp&id=<?= (int)$applicationEdit['id'] ?>" target="_blank" rel="noopener">Temporärer Ordner</a><a class="button" href="/?page=application_documents_zip&id=<?= (int)$applicationEdit['id'] ?>">Portalpaket ZIP</a><?php endif; ?>
+                    </div>
+                    <p class="meta-line">Nach dem Absenden auf der externen Webseite hier “Online eingereicht” klicken. Dann werden Status, Pendent und Kalender automatisch gesetzt.</p>
+                </div>
+                <label>Online-Bewerbungs-URL<input id="application-url" type="url" name="application_url" value="<?= e($onlineApplicationUrl) ?>" placeholder="https://..."></label>
+                <div class="two"><label>Portal / Login-Hinweis<input id="portal-account" name="portal_account" value="<?= e($applicationEdit['portal_account'] ?? '') ?>" placeholder="z. B. Firmenportal, JobCloud, LinkedIn / Konto-E-Mail"></label><label>Referenznummer<input id="reference-number" name="reference_number" value="<?= e($applicationEdit['reference_number'] ?? '') ?>" placeholder="Bestätigungs- oder Job-Referenz"></label></div>
+                <label>Online-Notizen<textarea id="online-notes" name="online_notes" rows="3" placeholder="Welche Dokumente hochgeladen, Fragen beantwortet, Bestätigung erhalten, Login-Hinweise ohne Passwort"><?= e($applicationEdit['online_notes'] ?? '') ?></textarea></label>
+                <div class="actions copy-actions"><button type="button" data-copy-target="application-url">URL kopieren</button><button type="button" data-copy-target="portal-account">Portalhinweis kopieren</button><button type="button" data-copy-target="reference-number">Referenz kopieren</button><button type="button" data-copy-target="online-notes">Online-Notizen kopieren</button></div>
                 <label>Kontakt (optional)<select name="primary_contact_id"><option value="0">Kein Kontakt nötig / Online-Bewerbung</option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label>
                 <div class="two">
                     <label>Nächster Schritt<select name="next_action"><option value="">Kein nächster Schritt</option><?php foreach($nextActionChoices as $choice): ?><option value="<?= e($choice) ?>" <?= ($applicationEdit['next_action'] ?? '')===$choice?'selected':'' ?>><?= e($choice) ?></option><?php endforeach; ?></select><?php if(($applicationEdit['next_action'] ?? '') && !in_array((string)$applicationEdit['next_action'], $nextActionChoices, true)): ?><small>Bisheriger Freitext: <?= e($applicationEdit['next_action']) ?></small><?php endif; ?></label>
@@ -5096,12 +5187,12 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.25');
                 <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
                 <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="app-note">Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.</p><?php endif; ?>
                 <label>E-Mail-Empfänger<input type="email" name="recipient_email" value="<?= e($contactEdit['email'] ?? '') ?>" placeholder="Kontakt auswählen oder Adresse eintragen"></label>
-                <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
-                <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
-                <label>Motivationsschreiben<textarea name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small>Das Feld enthält einen ChatGPT-Prompt, weil noch kein Motivationsschreiben gespeichert ist. Kopieren, in ChatGPT verwenden, Ergebnis hier einfügen und speichern.</small><?php endif; ?></label>
+                <label>E-Mail-Betreff<input id="email-subject" name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
+                <label>E-Mail-Begleittext<textarea id="email-body" name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
+                <label>Motivationsschreiben<textarea id="cover-letter-text" name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small>Das Feld enthält einen ChatGPT-Prompt, weil noch kein Motivationsschreiben gespeichert ist. Kopieren, in ChatGPT verwenden, Ergebnis hier einfügen und speichern.</small><?php endif; ?></label>
+                <div class="actions copy-actions"><button type="button" data-copy-target="email-subject">Betreff kopieren</button><button type="button" data-copy-target="email-body">Begleittext kopieren</button><button type="button" data-copy-target="cover-letter-text">Motivation kopieren</button></div>
                 <label>Interne Notizen<textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
-                <button class="primary" name="action" value="save_application">Bewerbung speichern</button>
-                <button name="action" value="send_application_email">E-Mail senden</button>
+                <div class="actions"><button class="primary" name="action" value="save_application">Bewerbung speichern</button><button class="primary" name="action" value="submit_online_application">Online eingereicht</button><button name="action" value="send_application_email">E-Mail senden</button></div>
             </form>
             <?php if($history): ?><div class="history"><h3>Statusverlauf</h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
         </section>
@@ -5158,6 +5249,23 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.25');
                     event.dataTransfer?.setData('text/uri-list', new URL(url, location.origin).href);
                     event.dataTransfer?.setData('text/plain', title + '\n' + new URL(url, location.origin).href);
                 });
+            });
+            document.querySelectorAll('[data-copy-target]').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const target = document.getElementById(button.dataset.copyTarget || '');
+                    if (!target) return;
+                    const value = 'value' in target ? target.value : target.textContent;
+                    if (!value) return;
+                    try {
+                        await navigator.clipboard.writeText(value);
+                        button.textContent = 'Kopiert';
+                        setTimeout(() => { button.textContent = button.dataset.copyLabel || 'Kopieren'; }, 1200);
+                    } catch {
+                        target.focus();
+                        target.select?.();
+                    }
+                });
+                button.dataset.copyLabel = button.textContent || 'Kopieren';
             });
         })();
         </script>
