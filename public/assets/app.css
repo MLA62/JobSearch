@@ -645,7 +645,7 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 .salary-row input,
 .salary-row select { padding: 8px 10px; }
 .language-add { background: #fff7ed; }
-.salary-row { display: grid; grid-template-columns: 1fr 1fr minmax(190px, .8fr); gap: 12px; align-items: end; }
+.salary-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(190px, .8fr); gap: 12px; align-items: end; }
 .salary-currency-display { color: var(--muted); font-weight: 700; }
 
 details { border-top: 1px solid var(--divider); padding-top: 10px; margin: 16px 0; }
