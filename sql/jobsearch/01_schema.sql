@@ -295,6 +295,7 @@ CREATE TABLE jobs (
     external_id VARCHAR(190) NULL,
     title VARCHAR(255) NOT NULL,
     description LONGTEXT NULL,
+    notes LONGTEXT NULL,
     requirements LONGTEXT NULL,
     benefits LONGTEXT NULL,
     employment_type ENUM('full_time','part_time','temporary','contract','internship','freelance','other') NULL,
