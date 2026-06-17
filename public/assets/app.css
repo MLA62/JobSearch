@@ -409,7 +409,7 @@ button.primary:hover { background: linear-gradient(180deg, #c2410c, var(--accent
     color: #065f46;
 }
 .alert.danger { background: var(--danger-soft); border-color: #fda29b; color: var(--danger); }
-.alert.warning, .prototype-note { background: var(--warning-soft); border: 1px solid #f2c94c; color: var(--warning); }
+.alert.warning, .app-note { background: var(--warning-soft); border: 1px solid #f2c94c; color: var(--warning); }
 
 .table-wrap { overflow: auto; }
 .table-wrap:has(.sf-menu[open]) { overflow: visible; }
@@ -418,7 +418,7 @@ table {
     border-collapse: separate;
     border-spacing: 0;
     background: #fff;
-    border: 1.5px solid var(--divider);
+    border: 1.5px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
 }
@@ -441,12 +441,26 @@ th {
     text-transform: uppercase;
     letter-spacing: 0;
     font-weight: 800;
+    border-bottom: 1.5px solid var(--line);
 }
 tbody tr:nth-child(even) td { background: #f8fafc; }
 tbody tr:hover td { background: #fff7ed; }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }
+td.actions {
+    display: table-cell;
+    min-width: 160px;
+    white-space: normal;
+}
+td.actions > a,
+td.actions > form,
+td.actions > button {
+    display: inline-flex;
+    margin: 0 14px 8px 0;
+    vertical-align: top;
+}
+td.actions > form button { margin: 0; }
 
 .cards,
 .application-list,
@@ -464,7 +478,7 @@ tbody tr:hover td { background: #fff7ed; }
 .empty { text-align: center; color: var(--muted); padding: 50px; }
 .compact-empty { padding: 10px 12px; text-align: left; }
 
-.is-selected,
+.is-selected:not(tr),
 .application-card.is-selected,
 .job-card.is-selected,
 .contact-list article.is-selected {
@@ -474,8 +488,7 @@ tbody tr:hover td { background: #fff7ed; }
 }
 tr.is-selected td {
     background: #ffedd5 !important;
-    border-top: 1.5px solid var(--accent);
-    border-bottom: 1.5px solid var(--accent);
+    border-bottom-color: var(--divider);
 }
 tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 

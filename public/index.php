@@ -36,6 +36,18 @@ try {
     if (!$column) {
         $db->query('ALTER TABLE users ADD COLUMN last_seen_at DATETIME NULL AFTER last_login_at');
     }
+    $db->query("CREATE TABLE IF NOT EXISTS user_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        session_hash CHAR(64) NOT NULL,
+        ip_hash CHAR(64) NULL,
+        user_agent_hash CHAR(64) NULL,
+        first_seen_at DATETIME NOT NULL,
+        last_seen_at DATETIME NOT NULL,
+        logged_out_at DATETIME NULL,
+        UNIQUE KEY uniq_user_session_hash (session_hash),
+        KEY idx_user_sessions_user_active (user_id, logged_out_at, last_seen_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 } catch (Throwable $exception) {
     // Optional runtime telemetry must not block the app.
 }
@@ -75,6 +87,53 @@ function userId(): int
 function realUserId(): int
 {
     return (int) ($_SESSION['support_admin_user_id'] ?? $_SESSION['user_id'] ?? 0);
+}
+
+function sessionPresenceHash(): string
+{
+    return hash('sha256', session_id());
+}
+
+function requestHash(string $value): ?string
+{
+    $value = trim($value);
+    return $value === '' ? null : hash('sha256', $value);
+}
+
+function touchUserPresence(mysqli $db, int $userId): void
+{
+    if ($userId <= 0) {
+        return;
+    }
+    try {
+        $sessionHash = sessionPresenceHash();
+        $ipHash = requestHash((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        $userAgentHash = requestHash((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+        $stmt = $db->prepare("INSERT INTO user_sessions (user_id, session_hash, ip_hash, user_agent_hash, first_seen_at, last_seen_at, logged_out_at)
+            VALUES (?, ?, ?, ?, NOW(), NOW(), NULL)
+            ON DUPLICATE KEY UPDATE user_id=VALUES(user_id), ip_hash=VALUES(ip_hash), user_agent_hash=VALUES(user_agent_hash), last_seen_at=NOW(), logged_out_at=NULL");
+        $stmt->bind_param('isss', $userId, $sessionHash, $ipHash, $userAgentHash);
+        $stmt->execute();
+        $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . $userId);
+    } catch (Throwable $exception) {
+        // Presence is informational and must never block productive work.
+    }
+}
+
+function endUserPresenceSession(mysqli $db, int $userId): void
+{
+    if ($userId <= 0) {
+        return;
+    }
+    try {
+        $sessionHash = sessionPresenceHash();
+        $stmt = $db->prepare('UPDATE user_sessions SET logged_out_at=NOW(), last_seen_at=NOW() WHERE user_id=? AND session_hash=?');
+        $stmt->bind_param('is', $userId, $sessionHash);
+        $stmt->execute();
+        $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . $userId);
+    } catch (Throwable $exception) {
+        // Logout must continue even if presence cleanup is unavailable.
+    }
 }
 
 function isSupportImpersonation(): bool
@@ -1987,6 +2046,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
         $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . (int) $user['id']);
+        touchUserPresence($db, (int) $user['id']);
         audit($db, (int) $user['id'], 'login', 'user', (int) $user['id'], null, null);
         redirect('/');
     }
@@ -2004,6 +2064,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $pendingUserId;
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
         $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . $pendingUserId);
+        touchUserPresence($db, $pendingUserId);
         $stmt = $db->prepare('UPDATE two_factor_methods SET last_used_at=NOW() WHERE id=?');
         $methodId = (int) $totp['id'];
         $stmt->bind_param('i', $methodId);
@@ -2094,6 +2155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'logout') {
+        endUserPresenceSession($db, realUserId());
         session_destroy();
         redirect('/?page=login');
     }
@@ -3403,9 +3465,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
 if ($currentUser) {
-    $lastSeen = strtotime((string)($currentUser['last_seen_at'] ?? '')) ?: 0;
-    if ($lastSeen < time() - 60) {
-        $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . (int) userId());
+    touchUserPresence($db, realUserId());
+    if (realUserId() === userId()) {
         $currentUser['last_seen_at'] = date('Y-m-d H:i:s');
     }
 }
@@ -3567,7 +3628,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.3');
+$appVersion = (string) ($config['app_version'] ?? '0.14.6');
 
 ?><!doctype html>
 <html lang="de">
@@ -3733,7 +3794,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
         ]; ?>
         <div class="hero"><div><p class="eyebrow">Guten Tag, <?= e($currentUser['first_name']) ?></p><h1>Deine Jobs. Dein Prozess.</h1><p>Privat, strukturiert und auf allen Geräten nutzbar.</p></div><a class="button primary" href="/?page=jobs#new">Job erfassen</a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
-        <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Der Prototyp berechnet bereits einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
+        <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Die App berechnet einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
     <?php elseif ($page === 'pendents'): ?>
         <?php
         $pendentSfFields = [
@@ -3944,6 +4005,15 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
         $users = dbAll(
             $db,
             "SELECT u.id, u.email, u.status, u.first_name, u.last_name, u.created_at, u.last_login_at, u.last_seen_at, u.email_verified_at,
+                    (SELECT COUNT(*)
+                       FROM user_sessions us
+                      WHERE us.user_id=u.id
+                        AND us.logged_out_at IS NULL
+                        AND us.last_seen_at >= NOW() - INTERVAL 10 MINUTE) active_session_count,
+                    (SELECT MAX(us.last_seen_at)
+                       FROM user_sessions us
+                      WHERE us.user_id=u.id
+                        AND us.logged_out_at IS NULL) session_last_seen_at,
                     (SELECT GROUP_CONCAT(r.code ORDER BY r.code)
                        FROM user_roles ur
                        JOIN roles r ON r.id=ur.role_id
@@ -3961,7 +4031,10 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
             $roleCodesForRow = array_filter(explode(',', (string) ($userRow['role_codes'] ?? '')));
             $isConfigAdminForRow = in_array(strtolower((string) $userRow['email']), $adminEmails, true);
             $lastSeenTs = strtotime((string)($userRow['last_seen_at'] ?? '')) ?: 0;
-            $userRow['online_label'] = $lastSeenTs >= time() - 600 ? 'Online' : 'Offline';
+            $sessionLastSeenTs = strtotime((string)($userRow['session_last_seen_at'] ?? '')) ?: 0;
+            $lastActivityTs = max($lastSeenTs, $sessionLastSeenTs);
+            $userRow['last_activity_at'] = $sessionLastSeenTs > 0 ? $userRow['session_last_seen_at'] : $userRow['last_seen_at'];
+            $userRow['online_label'] = ((int)($userRow['active_session_count'] ?? 0) > 0 || $lastActivityTs >= time() - 600) ? 'Online' : 'Offline';
             $userRow['full_name'] = trim((string)$userRow['first_name'].' '.(string)$userRow['last_name']);
             $userRow['usage_label'] = (int)$userRow['job_count'] . ' Jobs · ' . (int)$userRow['application_count'] . ' Bewerbungen · ' . (int)$userRow['document_count'] . ' Dokumente';
             $userRow['access_label'] = (($isConfigAdminForRow || in_array('admin', $roleCodesForRow, true)) ? 'Admin' : 'Benutzer') . ' · ' . $userRow['online_label'];
@@ -4027,7 +4100,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
             <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === realUserId(); ?>
                 <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
                     <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><span class="badge <?= ($user['online_label'] ?? '') === 'Online' ? 'role-badge' : '' ?>"><?= e($user['online_label'] ?? 'Offline') ?></span><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
-                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?><?php if($user['last_seen_at']): ?><small>zuletzt aktiv: <?= e(displayDateTime($user['last_seen_at'], $currentUser)) ?></small><?php endif; ?></td>
+                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?><?php if($user['last_activity_at']): ?><small>zuletzt aktiv: <?= e(displayDateTime($user['last_activity_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
                     <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?><?php if(!empty($user['support_granted_at'])): ?><small>ADMIN Support frei seit <?= e(displayDateTime($user['support_granted_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td>
@@ -4335,7 +4408,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
                     <label>Fällig am<input type="datetime-local" name="next_action_at" value="<?= e($applicationEdit['next_action_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['next_action_at'])) : '') ?>"></label>
                 </div>
                 <label>Kommentar zur Statusänderung<input name="status_comment" placeholder="Optional, wird im Verlauf gespeichert"></label>
-                <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="prototype-note">Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.</p><?php endif; ?>
+                <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="app-note">Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.</p><?php endif; ?>
                 <label>E-Mail-Empfänger<input type="email" name="recipient_email" value="<?= e($contactEdit['email'] ?? '') ?>" placeholder="Kontakt auswählen oder Adresse eintragen"></label>
                 <label>E-Mail-Betreff<input name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label>E-Mail-Begleittext<textarea name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
@@ -4465,7 +4538,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
             <p>JeMa Jobs unterstützt die strukturierte Verwaltung von Firmen, Kontakten, Stellen, Bewerbungen, Pendenten, Dokumenten, Reports, Kalenderterminen und Freigaben. Die Daten bleiben benutzerisoliert; administrative Support-Zugriffe benötigen eine ausdrückliche Freigabe des jeweiligen Benutzers.</p>
             <div class="two">
                 <article><h3>Ersteller</h3><p>Markus Lauber<br><a href="mailto:Markus@Lauber.online">Markus@Lauber.online</a></p></article>
-                <article><h3>Stand</h3><p>Prototyp mit Live-Betrieb, Benutzer-SMTP, 2FA, Passwort-Reset, Kontakt-Log, Kalender-Matrix, Reports und ADMIN Support.</p></article>
+                <article><h3>Stand</h3><p>Produktivbetrieb mit Benutzer-SMTP, 2FA, Passwort-Reset, Kontakt-Log, Kalender-Matrix, Reports und ADMIN Support.</p></article>
             </div>
         </section>
     <?php elseif ($page === 'audit'): ?>
@@ -4484,7 +4557,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.3');
     <?php endif; ?>
 <?php endif; ?>
 </main>
-<footer>JeMa Jobs Prototyp · Private Daten bleiben benutzerisoliert</footer>
+<footer>JeMa Jobs · Produktivbetrieb · Private Daten bleiben benutzerisoliert</footer>
 <script src="/assets/qrcode.min.js" defer></script>
 <script src="/assets/totp-qr.js" defer></script>
 <script>
