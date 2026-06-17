@@ -3376,7 +3376,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.12.0');
+$appVersion = (string) ($config['app_version'] ?? '0.13.1');
 
 ?><!doctype html>
 <html lang="de">
@@ -3385,8 +3385,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css">
-<link rel="stylesheet" href="/assets/applications.css">
+<link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>">
+<link rel="stylesheet" href="/assets/applications.css?v=<?= e($appVersion) ?>">
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
