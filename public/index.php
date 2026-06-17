@@ -52,6 +52,31 @@ try {
     // Optional runtime telemetry must not block the app.
 }
 
+try {
+    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'application_url'")->fetch_assoc();
+    if (!$column) {
+        $db->query('ALTER TABLE applications ADD COLUMN application_url VARCHAR(1000) NULL AFTER channel');
+    }
+    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'portal_account'")->fetch_assoc();
+    if (!$column) {
+        $db->query('ALTER TABLE applications ADD COLUMN portal_account VARCHAR(254) NULL AFTER application_url');
+    }
+    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'online_notes'")->fetch_assoc();
+    if (!$column) {
+        $db->query('ALTER TABLE applications ADD COLUMN online_notes TEXT NULL AFTER reference_number');
+    }
+    $statusColumn = $db->query("SHOW COLUMNS FROM applications LIKE 'status'")->fetch_assoc();
+    if ($statusColumn && strpos((string) $statusColumn['Type'], "'ready'") === false) {
+        $db->query("ALTER TABLE applications MODIFY status ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
+    }
+    $channelColumn = $db->query("SHOW COLUMNS FROM applications LIKE 'channel'")->fetch_assoc();
+    if ($channelColumn && strpos((string) $channelColumn['Type'], "'website'") === false) {
+        $db->query("ALTER TABLE applications MODIFY channel ENUM('email','portal','website','mail','referral','other') NULL");
+    }
+} catch (Throwable $exception) {
+    error_log('Online application schema check failed: ' . $exception->getMessage());
+}
+
 function e(?string $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -3121,7 +3146,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=applications&edit=' . $applicationId . '#application-form');
         } catch (Throwable $exception) {
             try { $db->rollback(); } catch (Throwable) {}
-            flash('Bewerbung konnte nicht gestartet werden. Bitte erneut versuchen.', 'danger');
+            error_log('Start application failed for job ' . $jobId . ': ' . $exception->getMessage());
+            flash('Bewerbung konnte nicht vorbereitet werden. Die Datenbank wurde geprüft; bitte erneut versuchen.', 'danger');
             redirect('/?page=jobs&edit=' . $jobId . '#new');
         }
     }
@@ -3640,7 +3666,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.8');
+$appVersion = (string) ($config['app_version'] ?? '0.14.9');
 
 ?><!doctype html>
 <html lang="de">
@@ -4488,7 +4514,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.8');
             <?php if($contactEdit): ?><section class="panel contact-log contact-log-inline" id="contact-log"><div class="section-head"><div><p class="eyebrow">Kontakt-Log</p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><?= contactLogFormHtml($editLog, (int)$applicationEdit['id'], (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser, (int)$applicationEdit['id']) ?></section><?php endif; ?>
         </section>
         <?php endif; ?>
-        <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('applications','title','Job',$appSf,$appPreserve) ?><?= sfHeader('applications','company','Firma',$appSf,$appPreserve) ?><?= sfHeader('applications','status','Status',$appSf,$appPreserve) ?><?= sfHeader('applications','channel','Kanal',$appSf,$appPreserve) ?><?= sfHeader('applications','next_action','Nächster Schritt',$appSf,$appPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($apps as $app): ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong><small><?= e($app['applied_at'] ? displayDateTime($app['applied_at'], $currentUser) : '') ?></small></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small>über <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e($app['channel']) ?></td><td><?= e($app['next_action']) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="6" class="empty">Keine Treffer.</td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · über <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung starten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section><?php endif; ?>
+        <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('applications','title','Job',$appSf,$appPreserve) ?><?= sfHeader('applications','company','Firma',$appSf,$appPreserve) ?><?= sfHeader('applications','status','Status',$appSf,$appPreserve) ?><?= sfHeader('applications','channel','Kanal',$appSf,$appPreserve) ?><?= sfHeader('applications','next_action','Nächster Schritt',$appSf,$appPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($apps as $app): ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong><small><?= e($app['applied_at'] ? displayDateTime($app['applied_at'], $currentUser) : '') ?></small></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small>über <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e($app['channel']) ?></td><td><?= e($app['next_action']) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="6" class="empty">Keine Treffer.</td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · über <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong>Nächster Schritt:</strong> <?= e($app['next_action']) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form">Bearbeiten</a><form method="post" onsubmit="return confirm('Bewerbung löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2>Noch keine Bewerbungen</h2><p>Öffne Jobs und wähle bei einer passenden Stelle „Bewerbung vorbereiten“.</p><a class="button primary" href="/?page=jobs">Zu den Jobs</a></div><?php endif; ?></section><?php endif; ?>
     <?php elseif ($page === 'contacts'): ?>
         <?php
         $contactCompanyFilter=(int)($_GET['company_id'] ?? 0);
