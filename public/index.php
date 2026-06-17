@@ -2111,6 +2111,44 @@ function documentLanguageChoices(): array
     return ['de' => 'Deutsch', 'es' => 'Español', 'pt' => 'Português', 'en' => 'English'];
 }
 
+function translationTargetOptions(mysqli $db, int $userId): array
+{
+    return [
+        'job' => [
+            'label' => 'Jobs',
+            'rows' => dbAll($db, 'SELECT j.id, CONCAT(j.title, " · ", c.name) label FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.title ASC LIMIT 250', 'i', [$userId]),
+        ],
+        'company' => [
+            'label' => 'Firmen',
+            'rows' => dbAll($db, 'SELECT id, name label FROM companies WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY name ASC LIMIT 250', 'i', [$userId]),
+        ],
+        'application' => [
+            'label' => 'Bewerbungen',
+            'rows' => dbAll($db, 'SELECT a.id, CONCAT(j.title, " · ", c.name, " · ", UPPER(a.status)) label FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 250', 'i', [$userId]),
+        ],
+        'contact' => [
+            'label' => 'Kontakte',
+            'rows' => dbAll($db, 'SELECT ct.id, TRIM(CONCAT(COALESCE(ct.last_name, ""), " ", COALESCE(ct.first_name, ""), IF(c.name IS NULL OR c.name="", "", CONCAT(" · ", c.name)))) label FROM contacts ct LEFT JOIN companies c ON c.id=ct.company_id WHERE ct.owner_user_id=? AND ct.deleted_at IS NULL ORDER BY ct.last_name ASC, ct.first_name ASC LIMIT 250', 'i', [$userId]),
+        ],
+        'document' => [
+            'label' => 'Dokumente',
+            'rows' => dbAll($db, 'SELECT ud.id, CONCAT(ud.title, " · v", ud.version, IF(ud.is_current=1, " · aktuell", "")) label FROM user_documents ud WHERE ud.user_id=? AND ud.deleted_at IS NULL ORDER BY ud.title ASC, ud.version DESC LIMIT 250', 'i', [$userId]),
+        ],
+    ];
+}
+
+function translationTargetExists(mysqli $db, int $userId, string $entityType, int $entityId): bool
+{
+    return match ($entityType) {
+        'job' => (bool) dbOne($db, 'SELECT id FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]),
+        'company' => (bool) dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]),
+        'application' => (bool) dbOne($db, 'SELECT id FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]),
+        'contact' => (bool) dbOne($db, 'SELECT id FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]),
+        'document' => (bool) dbOne($db, 'SELECT id FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$entityId, $userId]),
+        default => false,
+    };
+}
+
 function allowedDocumentTypeCodes(string $scope): array
 {
     if ($scope === 'application') {
@@ -2731,14 +2769,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'create_share') {
-        $targetType = in_array($_POST['target_type'] ?? '', ['area','company','job','application','contact','document','report'], true) ? (string) $_POST['target_type'] : 'area';
-        $targetId = $targetType === 'area' ? null : max(1, (int) ($_POST['target_id'] ?? 0));
+        $shareTarget = (string) ($_POST['share_target'] ?? 'area');
+        if ($shareTarget === 'area') {
+            $targetType = 'area';
+            $targetId = null;
+        } elseif (preg_match('/^(job|application|document):(\d+)$/', $shareTarget, $targetMatches)) {
+            $targetType = $targetMatches[1];
+            $targetId = (int) $targetMatches[2];
+        } else {
+            $targetType = in_array($_POST['target_type'] ?? '', ['area','company','job','application','contact','document','report'], true) ? (string) $_POST['target_type'] : 'area';
+            $targetId = $targetType === 'area' ? null : max(1, (int) ($_POST['target_id'] ?? 0));
+        }
         $recipient = strtolower(trim((string) ($_POST['recipient_email'] ?? '')));
         $permission = in_array($_POST['permission'] ?? '', ['view','comment','edit'], true) ? (string) $_POST['permission'] : 'view';
         $downloadPolicy = in_array($_POST['download_policy'] ?? '', ['none','original','pdf','both'], true) ? (string) $_POST['download_policy'] : 'none';
         $title = trim((string) ($_POST['title'] ?? '')) ?: 'Freigabe';
         $expiresAt = trim((string) ($_POST['expires_at'] ?? '')) ?: null;
-        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL) || ($targetType !== 'area' && !$targetId)) {
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL) || ($targetType !== 'area' && (!$targetId || !translationTargetExists($db, userId(), $targetType, (int)$targetId)))) {
             flash('Empfänger und Ziel der Freigabe sind erforderlich.', 'danger');
             redirect('/?page=sharing');
         }
@@ -2785,16 +2832,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'save_translation') {
-        $entityType = in_array($_POST['entity_type'] ?? '', ['company','job','contact','application','document'], true) ? (string) $_POST['entity_type'] : 'job';
-        $entityId = max(1, (int) ($_POST['entity_id'] ?? 0));
+        $target = (string) ($_POST['translation_target'] ?? '');
+        if (preg_match('/^(company|job|contact|application|document):(\d+)$/', $target, $matches)) {
+            $entityType = $matches[1];
+            $entityId = (int) $matches[2];
+        } else {
+            $entityType = in_array($_POST['entity_type'] ?? '', ['company','job','contact','application','document'], true) ? (string) $_POST['entity_type'] : '';
+            $entityId = max(0, (int) ($_POST['entity_id'] ?? 0));
+        }
         $targetLanguage = in_array($_POST['target_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['target_language'] : 'de';
         $title = trim((string) ($_POST['translation_title'] ?? '')) ?: null;
         $body = trim((string) ($_POST['translation_body'] ?? ''));
-        if ($body === '') {
-            flash('Übersetzungstext ist erforderlich.', 'danger');
+        $uid = userId();
+        if ($body === '' || $entityType === '' || $entityId < 1 || !translationTargetExists($db, $uid, $entityType, $entityId)) {
+            flash('Datensatz und Übersetzungstext sind erforderlich.', 'danger');
             redirect('/?page=translations');
         }
-        $uid = userId();
         $existing = dbOne($db, 'SELECT COALESCE(MAX(version),0) v FROM record_translations WHERE owner_user_id=? AND entity_type=? AND entity_id=? AND target_language=?', 'isis', [$uid, $entityType, $entityId, $targetLanguage]);
         $version = (int) ($existing['v'] ?? 0) + 1;
         $stmt = $db->prepare('UPDATE record_translations SET is_current=0 WHERE owner_user_id=? AND entity_type=? AND entity_id=? AND target_language=?');
@@ -4077,7 +4130,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.21');
+$appVersion = (string) ($config['app_version'] ?? '0.14.22');
 
 ?><!doctype html>
 <html lang="de">
@@ -4281,8 +4334,16 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.21');
             'application' => 'Eine Bewerbung',
             'document' => 'Ein Dokument',
         ];
+        $shareTargetGroups = array_intersect_key(translationTargetOptions($db, userId()), array_flip(['job','application','document']));
+        $shareTargetLabels = [];
+        foreach ($shareTargetGroups as $type => $group) {
+            foreach ($group['rows'] as $target) {
+                $shareTargetLabels[$type . ':' . (int)$target['id']] = (string)$target['label'];
+            }
+        }
         foreach ($shares as &$shareRow) {
-            $shareRow['target_label'] = (string) ($shareTargets[$shareRow['target_type']] ?? $shareRow['target_type']);
+            $shareKey = (string)$shareRow['target_type'] . ':' . (int)$shareRow['target_id'];
+            $shareRow['target_label'] = (string) ($shareRow['target_type'] === 'area' ? 'Ganzer Bereich' : ($shareTargetLabels[$shareKey] ?? ($shareTargets[$shareRow['target_type']] ?? $shareRow['target_type'])));
             $shareRow['status_label'] = $shareRow['revoked_at'] ? 'widerrufen' : (($shareRow['expires_at'] && strtotime((string)$shareRow['expires_at']) < time()) ? 'abgelaufen' : 'aktiv');
         }
         unset($shareRow);
@@ -4301,13 +4362,13 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.21');
         <div class="split"><section class="panel"><h2>Neue Freigabe</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <label>Titel<input name="title" placeholder="z. B. Bewerbung Review"></label>
             <label>Empfänger-E-Mail<input type="email" name="recipient_email" required></label>
-            <div class="two"><label>Ziel<select name="target_type"><?php foreach($shareTargets as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label><label>Datensatz<input type="number" min="1" name="target_id" placeholder="leer bei ganzem Bereich"></label></div>
+            <label>Ziel<select name="share_target" required><option value="area">Ganzer Bereich</option><?php foreach($shareTargetGroups as $type=>$group): if(!$group['rows']) continue; ?><optgroup label="<?= e((string)$group['label']) ?>"><?php foreach($group['rows'] as $target): ?><option value="<?= e($type . ':' . (int)$target['id']) ?>"><?= e((string)$target['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Recht<select name="permission"><option value="view">Nur ansehen</option><option value="comment">Kommentieren</option><option value="edit">Bearbeiten vorbereitet</option></select></label><label>Download<select name="download_policy"><option value="none">Kein Download</option><option value="original">Original</option><option value="pdf">PDF vorbereitet</option><option value="both">Original und PDF</option></select></label></div>
             <label>Ablauf<input type="datetime-local" name="expires_at"></label>
             <label class="check"><input type="checkbox" name="watermark_enabled" value="1" checked> Wasserzeichen / persönliche Nachverfolgung</label>
             <button class="primary" name="action" value="create_share">Freigabe erstellen</button>
         </form></section>
-        <section class="panel table-wrap"><h2>Aktive und frühere Links</h2><div class="actions export-actions"><?= sfToolbar('sharing', $shareSf, $sharePreserve, $shareSfFields) ?></div><table><thead><tr><?= sfHeader('sharing','title','Titel',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','target_label','Ziel',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','recipient_email','Empfänger',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','status_label','Status',$shareSf,$sharePreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($shares as $share): ?><tr><td><strong><?= e($share['title']) ?></strong><small><?= e($share['permission']) ?> · Download <?= e($share['download_policy']) ?></small></td><td><?= e($share['target_label']) ?> #<?= e((string)$share['target_id']) ?></td><td><?= e($share['recipient_email']) ?></td><td><?= e($share['status_label']) ?><small><?= e($share['last_accessed_at'] ? 'letzter Zugriff '.displayDateTime($share['last_accessed_at'], $currentUser) : 'noch kein Zugriff') ?></small></td><td><?php if(!$share['revoked_at']): ?><form method="post" onsubmit="return confirm('Freigabe widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="share_id" value="<?= (int)$share['id'] ?>"><button name="action" value="revoke_share">Widerrufen</button></form><?php endif; ?></td></tr><?php endforeach; ?><?php if(!$shares): ?><tr><td colspan="5" class="empty">Noch keine Freigaben.</td></tr><?php endif; ?></tbody></table></section></div>
+        <section class="panel table-wrap"><h2>Aktive und frühere Links</h2><div class="actions export-actions"><?= sfToolbar('sharing', $shareSf, $sharePreserve, $shareSfFields) ?></div><table><thead><tr><?= sfHeader('sharing','title','Titel',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','target_label','Ziel',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','recipient_email','Empfänger',$shareSf,$sharePreserve) ?><?= sfHeader('sharing','status_label','Status',$shareSf,$sharePreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($shares as $share): ?><tr><td><strong><?= e($share['title']) ?></strong><small><?= e($share['permission']) ?> · Download <?= e($share['download_policy']) ?></small></td><td><?= e($share['target_label']) ?></td><td><?= e($share['recipient_email']) ?></td><td><?= e($share['status_label']) ?><small><?= e($share['last_accessed_at'] ? 'letzter Zugriff '.displayDateTime($share['last_accessed_at'], $currentUser) : 'noch kein Zugriff') ?></small></td><td><?php if(!$share['revoked_at']): ?><form method="post" onsubmit="return confirm('Freigabe widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="share_id" value="<?= (int)$share['id'] ?>"><button name="action" value="revoke_share">Widerrufen</button></form><?php endif; ?></td></tr><?php endforeach; ?><?php if(!$shares): ?><tr><td colspan="5" class="empty">Noch keine Freigaben.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'reports'): ?>
         <?php
         $reports = dbAll($db, 'SELECT id, name, description, base_entity, display_type, updated_at FROM saved_reports WHERE owner_user_id=? ORDER BY updated_at DESC', 'i', [userId()]);
@@ -4386,6 +4447,15 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.21');
         foreach ($calendarEvents as $entry) {
             $eventsByDate[substr((string)$entry['starts_at'], 0, 10)][] = $entry;
         }
+        $isDayEntry = static fn(array $entry): bool => date('H:i:s', strtotime((string)$entry['starts_at'])) === '00:00:00';
+        foreach ($eventsByDate as &$dateEvents) {
+            usort($dateEvents, static function(array $a, array $b) use ($isDayEntry): int {
+                $aDay = $isDayEntry($a) ? 0 : 1;
+                $bDay = $isDayEntry($b) ? 0 : 1;
+                return [$aDay, (string)$a['starts_at'], (string)$a['title']] <=> [$bDay, (string)$b['starts_at'], (string)$b['title']];
+            });
+        }
+        unset($dateEvents);
         $viewUrl = static fn(string $view, string $date): string => '/?page=calendar&view=' . urlencode($view) . '&date=' . urlencode($date);
         $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
         $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
@@ -4397,9 +4467,11 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.21');
             'month' => $anchor->format('m.Y'),
             default => $rangeStart->format('d.m.Y') . ' - ' . $rangeEnd->format('d.m.Y'),
         };
-        $renderEvent = static function(array $entry): string {
+        $renderEvent = static function(array $entry, bool $showTime = true) use ($isDayEntry): string {
             $time = date('H:i', strtotime((string)$entry['starts_at']));
-            return '<a class="calendar-event" href="' . e((string)$entry['href']) . '"><strong>' . e($time . ' ' . (string)$entry['title']) . '</strong><span>' . e((string)$entry['type'] . ((string)$entry['meta'] !== '' ? ' · ' . (string)$entry['meta'] : '')) . '</span></a>';
+            $title = (!$showTime || $isDayEntry($entry)) ? (string)$entry['title'] : $time . ' ' . (string)$entry['title'];
+            $class = $isDayEntry($entry) ? 'calendar-event is-day-entry' : 'calendar-event';
+            return '<a class="' . $class . '" href="' . e((string)$entry['href']) . '"><strong>' . e($title) . '</strong><span>' . e((string)$entry['type'] . ((string)$entry['meta'] !== '' ? ' · ' . (string)$entry['meta'] : '')) . '</span></a>';
         };
         $appsForCalendar = dbAll($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 100', 'i', [userId()]);
         ?>
@@ -4410,16 +4482,19 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.21');
             <h2>Agenda</h2><div class="actions export-actions"><?= sfToolbar('calendar_agenda', $calendarSf, $calendarPreserve, $calendarSfFields) ?></div><div class="table-wrap"><table><thead><tr><?= sfHeader('calendar_agenda','starts_at','Zeit',$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','title','Ereignis',$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','type','Typ',$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','status','Status',$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','meta','Bezug',$calendarSf,$calendarPreserve) ?></tr></thead><tbody><?php foreach($calendarEvents as $event): ?><tr><td><?= e(displayDateTime($event['starts_at'], $currentUser)) ?></td><td><a href="<?= e($event['href']) ?>"><?= e($event['title']) ?></a></td><td><?= e($event['type']) ?></td><td><?= e($event['status']) ?></td><td><?= e($event['meta']) ?></td></tr><?php endforeach; ?><?php if(!$calendarEvents): ?><tr><td colspan="5" class="empty">Keine Termine oder Wiedervorlagen.</td></tr><?php endif; ?></tbody></table></div>
         <?php elseif(in_array($calendarView, ['day','workweek','week'], true)): ?>
             <?php $days=[]; for($d=$rangeStart; $d <= $rangeEnd; $d=$d->modify('+1 day')) { $days[]=$d; } ?>
-            <h2><?= $calendarView==='day' ? 'Tagesplan' : ($calendarView==='workweek' ? 'Arbeitswochenplan' : 'Wochenplan') ?> · KW <?= e($weekNo) ?></h2><div class="time-grid" style="--day-count:<?= count($days) ?>;--matrix-min:<?= count($days) === 1 ? '520px' : (count($days) === 5 ? '980px' : '1180px') ?>"><div class="time-head"></div><?php foreach($days as $day): ?><div class="time-day-head"><?= e(($weekdayNames[$day->format('D')] ?? $day->format('D')) . ', ' . $day->format('d.m.')) ?></div><?php endforeach; ?><?php foreach($hours as $hour): ?><div class="time-slot"><?= sprintf('%02d:00', $hour) ?></div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $slotStart=$dateKey.'T'.sprintf('%02d:00',$hour); $hourEvents=array_values(array_filter($eventsByDate[$dateKey] ?? [], static fn(array $ev): bool => (int)date('G', strtotime((string)$ev['starts_at'])) === $hour)); ?><div class="time-cell"><a class="calendar-add" href="<?= e($newEntryUrl($slotStart)) ?>">+</a><?php foreach($hourEvents as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+            <h2><?= $calendarView==='day' ? 'Tagesplan' : ($calendarView==='workweek' ? 'Arbeitswochenplan' : 'Wochenplan') ?> · KW <?= e($weekNo) ?></h2><div class="time-grid" style="--day-count:<?= count($days) ?>;--matrix-min:<?= count($days) === 1 ? '520px' : (count($days) === 5 ? '980px' : '1180px') ?>"><div class="time-head"></div><?php foreach($days as $day): ?><div class="time-day-head"><?= e(($weekdayNames[$day->format('D')] ?? $day->format('D')) . ', ' . $day->format('d.m.')) ?></div><?php endforeach; ?><div class="time-all-day-label">Tag</div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $dayEntries=array_values(array_filter($eventsByDate[$dateKey] ?? [], $isDayEntry)); ?><div class="time-all-day-cell"><?php foreach($dayEntries as $event): ?><?= $renderEvent($event, false) ?><?php endforeach; ?></div><?php endforeach; ?><?php foreach($hours as $hour): ?><div class="time-slot"><?= sprintf('%02d:00', $hour) ?></div><?php foreach($days as $day): $dateKey=$day->format('Y-m-d'); $slotStart=$dateKey.'T'.sprintf('%02d:00',$hour); $hourEvents=array_values(array_filter($eventsByDate[$dateKey] ?? [], static fn(array $ev): bool => date('H:i:s', strtotime((string)$ev['starts_at'])) !== '00:00:00' && (int)date('G', strtotime((string)$ev['starts_at'])) === $hour)); ?><div class="time-cell"><a class="calendar-add" href="<?= e($newEntryUrl($slotStart)) ?>">+</a><?php foreach($hourEvents as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php else: ?>
             <?php $monthStart=$rangeStart->modify('monday this week'); $monthEnd=$rangeEnd->modify('sunday this week'); $monthDays=[]; for($d=$monthStart; $d <= $monthEnd; $d=$d->modify('+1 day')) { $monthDays[]=$d; } ?>
-            <h2>Monatsplan <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head">KW</div><?php foreach(['Mo','Di','Mi','Do','Fr','Sa','So'] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><div class="month-day-top"><strong><?= e($day->format('d.m.')) ?></strong><a class="calendar-add" href="<?= e($newEntryUrl($dateKey.'T09:00')) ?>">+</a></div><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
+            <h2>Monatsplan <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head">KW</div><?php foreach(['Mo','Di','Mi','Do','Fr','Sa','So'] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><div class="month-day-top"><strong><?= e($day->format('d.m.')) ?></strong><a class="calendar-add" href="<?= e($newEntryUrl($dateKey.'T09:00')) ?>">+</a></div><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event, !$isDayEntry($event)) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php endif; ?>
         </section><details class="panel calendar-entry-panel" id="new-calendar-entry" <?= $newStart !== '' ? 'open' : '' ?>><summary>Eintrag erstellen</summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Titel<input name="event_title" required></label><label>Typ<select name="event_type"><option value="reminder">Erinnerung</option><option value="follow_up">Nachfassen</option><option value="interview">Interview</option><option value="deadline">Frist</option><option value="meeting">Termin</option><option value="task">Aufgabe</option></select></label><label>Start<input type="datetime-local" name="starts_at" value="<?= e($newStart) ?>" required></label><label>Bewerbung<select name="application_id"><option value="0">Keine Verknüpfung</option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label>Notizen<textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event">Speichern</button></form></details>
     <?php elseif ($page === 'translations'): ?>
-        <?php $translations = dbAll($db, 'SELECT id, entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version, is_current, updated_at FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]); ?>
+        <?php
+        $translations = dbAll($db, 'SELECT id, entity_type, entity_id, target_language, title, SUBSTRING(body,1,65535) body, version, is_current, updated_at FROM record_translations WHERE owner_user_id=? ORDER BY updated_at DESC LIMIT 100', 'i', [userId()]);
+        $translationTargets = translationTargetOptions($db, userId());
+        ?>
         <div class="page-head"><div><p class="eyebrow">Sprache</p><h1>Übersetzungen</h1></div><span><?= count($translations) ?> Versionen</span></div>
-        <div class="split"><section class="panel"><h2>Übersetzung speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><div class="two"><label>Typ<select name="entity_type"><option value="job">Job</option><option value="company">Firma</option><option value="application">Bewerbung</option><option value="contact">Kontakt</option><option value="document">Dokument</option></select></label><label>Datensatz<input type="number" min="1" name="entity_id" required></label></div><label>Zielsprache<select name="target_language"><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Titel<input name="translation_title"></label><label>Übersetzung<textarea name="translation_body" rows="8" required></textarea></label><button class="primary" name="action" value="save_translation">Speichern</button></form></section><section class="panel"><h2>Gespeicherte Übersetzungen</h2><div class="log-timeline"><?php foreach($translations as $translation): ?><article><div><strong><?= e($translation['title'] ?: ucfirst((string)$translation['entity_type'])) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?><?= $translation['is_current'] ? ' · aktuell' : '' ?></span></div><p><?= nl2br(e(mb_strimwidth((string)$translation['body'],0,500,'...'))) ?></p></article><?php endforeach; ?><?php if(!$translations): ?><p class="empty">Noch keine Übersetzungen gespeichert.</p><?php endif; ?></div></section></div>
+        <div class="split"><section class="panel"><h2>Übersetzung speichern</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Datensatz<select name="translation_target" required><option value="">Bitte auswählen</option><?php foreach($translationTargets as $type=>$group): if(!$group['rows']) continue; ?><optgroup label="<?= e((string)$group['label']) ?>"><?php foreach($group['rows'] as $target): ?><option value="<?= e($type . ':' . (int)$target['id']) ?>"><?= e((string)$target['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Zielsprache<select name="target_language"><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Titel<input name="translation_title"></label><label>Übersetzung<textarea name="translation_body" rows="8" required></textarea></label><button class="primary" name="action" value="save_translation">Speichern</button></form></section><section class="panel"><h2>Gespeicherte Übersetzungen</h2><div class="log-timeline"><?php foreach($translations as $translation): ?><article><div><strong><?= e($translation['title'] ?: ucfirst((string)$translation['entity_type'])) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?><?= $translation['is_current'] ? ' · aktuell' : '' ?></span></div><p><?= nl2br(e(mb_strimwidth((string)$translation['body'],0,500,'...'))) ?></p></article><?php endforeach; ?><?php if(!$translations): ?><p class="empty">Noch keine Übersetzungen gespeichert.</p><?php endif; ?></div></section></div>
     <?php elseif ($page === 'privacy'): ?>
         <?php
         $usage = storageUsageBytes($db, userId());

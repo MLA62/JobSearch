@@ -755,7 +755,9 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 .time-head,
 .time-day-head,
 .time-slot,
-.time-cell {
+.time-cell,
+.time-all-day-label,
+.time-all-day-cell {
     border-right: 1px solid var(--divider);
     border-bottom: 1px solid var(--divider);
 }
@@ -771,6 +773,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 }
 .time-slot { background: #f1f5f9; color: var(--muted); font-size: .78rem; padding: 8px; }
 .time-cell { min-height: 60px; padding: 4px; background: #fff; }
+.time-all-day-label { background: #fff7ed; color: var(--accent-strong); font-size: .78rem; font-weight: 900; padding: 8px; }
+.time-all-day-cell { min-height: 42px; padding: 4px; background: #fffaf5; }
 .calendar-event {
     display: block;
     border: 1px solid var(--accent-border);
@@ -781,6 +785,10 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     border-radius: 4px;
     font-size: .72rem;
     line-height: 1.18;
+}
+.calendar-event.is-day-entry {
+    border-color: var(--accent-hover);
+    background: #ffedd5;
 }
 .calendar-event strong,
 .calendar-event span { display: block; }
