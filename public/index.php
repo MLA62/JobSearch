@@ -3601,6 +3601,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
         $reports = dbAll($db, 'SELECT id, name, description, base_entity, display_type, updated_at FROM saved_reports WHERE owner_user_id=? ORDER BY updated_at DESC', 'i', [userId()]);
         $editReportId = (int) ($_GET['edit_report'] ?? 0);
         $editReport = $editReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$editReportId, userId()]) : null;
+        $reportEditMissing = $editReportId > 0 && !$editReport;
         $reportBaseOptions = reportBaseOptions();
         $reportDisplayOptions = reportDisplayOptions();
         $reportBase = (string)($editReport['base_entity'] ?? 'jobs');
@@ -3609,8 +3610,9 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
         $reportStatuses = reportStatusOptions($reportBase);
         ?>
         <div class="page-head"><div><p class="eyebrow">Auswertung</p><h1>Reports & Exporte</h1></div><span><?= count($reports) ?> Reports</span></div>
+        <?php if($reportEditMissing): ?><div class="alert warning">Dieser Report wurde nicht gefunden oder gehört nicht zu deinem Konto.</div><?php endif; ?>
         <div class="split">
-            <section class="panel">
+            <section class="panel" id="report-editor">
                 <h2><?= $editReport ? 'Report bearbeiten' : 'Report speichern' ?></h2>
                 <form method="post" class="stack">
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
@@ -3628,7 +3630,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.12.0');
                 </form>
                 <div class="actions export-actions"><a class="button" href="/?page=export_csv&type=jobs">Jobs CSV</a><a class="button" href="/?page=export_pdf&type=jobs">Jobs PDF</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen CSV</a><a class="button" href="/?page=export_pdf&type=applications">Bewerbungen PDF</a><a class="button" href="/?page=export_csv&type=audit">Audit CSV</a></div>
             </section>
-            <section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>">Bearbeiten</a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section>
+            <section class="panel table-wrap"><h2>Gespeicherte Reports</h2><table><thead><tr><th>Name</th><th>Basis</th><th>Ansicht</th><th>Aktualisiert</th><th>Aktionen</th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($reportBaseOptions[$report['base_entity']] ?? $report['base_entity']) ?></td><td><?= e($reportDisplayOptions[$report['display_type']] ?? $report['display_type']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>">Anzeigen</a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor">Bearbeiten</a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('Report wirklich löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty">Noch keine Reports gespeichert.</td></tr><?php endif; ?></tbody></table></section>
         </div>
     <?php elseif ($page === 'calendar'): ?>
         <?php
