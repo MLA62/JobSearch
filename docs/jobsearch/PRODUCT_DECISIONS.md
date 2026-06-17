@@ -24,6 +24,9 @@ Status: 2026-06-15
   authenticator code during login; administrators can reset a user's 2FA setup.
 - Registration creates a verification token when SMTP is active. Without SMTP
   configuration the open test phase keeps new accounts directly verified.
+- A user can explicitly grant ADMIN Support from the profile. While granted, an
+  administrator can enter the user's environment; both sessions show a distinct
+  header color and the grant can be revoked by the user at any time.
 
 ## Privacy and sharing
 

@@ -63,6 +63,24 @@ function userId(): int
     return (int) ($_SESSION['user_id'] ?? 0);
 }
 
+function realUserId(): int
+{
+    return (int) ($_SESSION['support_admin_user_id'] ?? $_SESSION['user_id'] ?? 0);
+}
+
+function isSupportImpersonation(): bool
+{
+    return !empty($_SESSION['support_admin_user_id']) && !empty($_SESSION['support_target_user_id']);
+}
+
+function endSupportImpersonationSession(): void
+{
+    if (!empty($_SESSION['support_admin_user_id'])) {
+        $_SESSION['user_id'] = (int) $_SESSION['support_admin_user_id'];
+    }
+    unset($_SESSION['support_admin_user_id'], $_SESSION['support_admin_name'], $_SESSION['support_target_user_id'], $_SESSION['support_target_name']);
+}
+
 function requireLogin(): void
 {
     if (userId() < 1) {
@@ -1045,6 +1063,24 @@ function isAdmin(mysqli $db, int $userId, array $config = []): bool
     return (bool) $role;
 }
 
+function activeSupportGrant(mysqli $db, int $userId): ?array
+{
+    if ($userId < 1) {
+        return null;
+    }
+    try {
+        return dbOne($db, 'SELECT * FROM support_access_grants WHERE user_id=? AND revoked_at IS NULL ORDER BY granted_at DESC LIMIT 1', 'i', [$userId]);
+    } catch (Throwable) {
+        return null;
+    }
+}
+
+function userLabel(array $user): string
+{
+    $name = trim((string) ($user['first_name'] ?? '') . ' ' . (string) ($user['last_name'] ?? ''));
+    return $name !== '' ? $name : (string) ($user['email'] ?? 'Benutzer');
+}
+
 function audit(mysqli $db, int $userId, string $action, string $entityType, int $entityId, ?array $old, ?array $new): void
 {
     $stmt = $db->prepare(
@@ -1901,13 +1937,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     requireLogin();
 
+    if ($action === 'stop_admin_support') {
+        if (!isSupportImpersonation()) {
+            redirect('/');
+        }
+        $targetId = userId();
+        $adminId = realUserId();
+        audit($db, $targetId, 'other', 'support_access', $targetId, null, ['admin_user_id' => $adminId, 'ended' => true]);
+        endSupportImpersonationSession();
+        flash('Support-Umgebung beendet. Du bist wieder in deinem Admin-Konto.');
+        redirect('/?page=admin_users');
+    }
+
+    if ($action === 'grant_admin_support') {
+        if (isSupportImpersonation()) {
+            flash('Support-Freigaben können während einer Support-Sitzung nicht geändert werden.', 'warning');
+            redirect('/?page=profile#support-access');
+        }
+        $uid = userId();
+        $stmt = $db->prepare('UPDATE support_access_grants SET revoked_at=NOW(), revoked_by_user_id=? WHERE user_id=? AND revoked_at IS NULL');
+        $stmt->bind_param('ii', $uid, $uid);
+        $stmt->execute();
+        $stmt = $db->prepare('INSERT INTO support_access_grants (user_id, granted_by_user_id) VALUES (?, ?)');
+        $stmt->bind_param('ii', $uid, $uid);
+        $stmt->execute();
+        audit($db, $uid, 'create', 'support_access', (int) $stmt->insert_id, null, ['granted' => true]);
+        flash('ADMIN Support ist freigegeben. Ein Administrator kann sich jetzt in deine Umgebung einklinken.');
+        redirect('/?page=profile#support-access');
+    }
+
+    if ($action === 'revoke_admin_support') {
+        if (isSupportImpersonation()) {
+            flash('Support-Freigaben können während einer Support-Sitzung nicht geändert werden.', 'warning');
+            redirect('/?page=profile#support-access');
+        }
+        $uid = userId();
+        $stmt = $db->prepare('UPDATE support_access_grants SET revoked_at=NOW(), revoked_by_user_id=? WHERE user_id=? AND revoked_at IS NULL');
+        $stmt->bind_param('ii', $uid, $uid);
+        $stmt->execute();
+        audit($db, $uid, 'delete', 'support_access', $uid, null, ['revoked' => true]);
+        flash('ADMIN Support wurde widerrufen.');
+        redirect('/?page=profile#support-access');
+    }
+
+    if ($action === 'admin_start_support') {
+        $adminId = realUserId();
+        if (!isAdmin($db, $adminId, $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        if (isSupportImpersonation()) {
+            flash('Beende zuerst die aktuelle Support-Umgebung.', 'warning');
+            redirect('/');
+        }
+        $targetUserId = (int) ($_POST['user_id'] ?? 0);
+        if ($targetUserId === $adminId) {
+            flash('Das eigene Konto kann nicht als Support-Umgebung geöffnet werden.', 'warning');
+            redirect('/?page=admin_users');
+        }
+        $target = dbOne($db, "SELECT id, email, first_name, last_name, status FROM users WHERE id=? AND deleted_at IS NULL AND status NOT IN ('locked','disabled')", 'i', [$targetUserId]);
+        $grant = activeSupportGrant($db, $targetUserId);
+        if (!$target || !$grant) {
+            flash('Für diesen Benutzer liegt keine aktive ADMIN-Support-Freigabe vor.', 'danger');
+            redirect('/?page=admin_users');
+        }
+        $admin = dbOne($db, 'SELECT first_name, last_name, email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$adminId]) ?: [];
+        session_regenerate_id(true);
+        $_SESSION['support_admin_user_id'] = $adminId;
+        $_SESSION['support_admin_name'] = userLabel($admin);
+        $_SESSION['support_target_user_id'] = $targetUserId;
+        $_SESSION['support_target_name'] = userLabel($target);
+        $_SESSION['user_id'] = $targetUserId;
+        $_SESSION['user_name'] = userLabel($target);
+        audit($db, $targetUserId, 'other', 'support_access', (int) $grant['id'], null, ['admin_user_id' => $adminId, 'started' => true]);
+        flash('Support-Umgebung geöffnet: ' . userLabel($target));
+        redirect('/');
+    }
+
     if ($action === 'admin_update_user') {
-        if (!isAdmin($db, userId(), $config)) {
+        if (!isAdmin($db, realUserId(), $config)) {
             http_response_code(403);
             exit('Forbidden');
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
-        if ($targetUserId === userId()) {
+        if ($targetUserId === realUserId()) {
             flash('Das eigene Admin-Konto kann hier nicht geändert werden.', 'warning');
             redirect('/?page=admin_users');
         }
@@ -1939,7 +2052,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $roleId = (int) $adminRole['id'];
             if ($isAdminTarget) {
                 $stmt = $db->prepare('INSERT IGNORE INTO user_roles (user_id, role_id, assigned_by) VALUES (?, ?, ?)');
-                $uid = userId();
+                $uid = realUserId();
                 $stmt->bind_param('iii', $targetUserId, $roleId, $uid);
                 $stmt->execute();
             } else {
@@ -1948,18 +2061,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute();
             }
         }
-        audit($db, userId(), 'update', 'user', $targetUserId, $target, ['email' => $email, 'first_name' => $firstName, 'last_name' => $lastName, 'status' => $status, 'is_admin' => $isAdminTarget]);
+        audit($db, realUserId(), 'update', 'user', $targetUserId, $target, ['email' => $email, 'first_name' => $firstName, 'last_name' => $lastName, 'status' => $status, 'is_admin' => $isAdminTarget]);
         flash('Benutzer aktualisiert.');
         redirect('/?page=admin_users');
     }
 
     if ($action === 'admin_reset_user_password') {
-        if (!isAdmin($db, userId(), $config)) {
+        if (!isAdmin($db, realUserId(), $config)) {
             http_response_code(403);
             exit('Forbidden');
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
-        if ($targetUserId === userId()) {
+        if ($targetUserId === realUserId()) {
             flash('Das eigene Admin-Passwort bitte über Passwort vergessen oder Profil-Sicherheit ändern.', 'warning');
             redirect('/?page=admin_users');
         }
@@ -1977,18 +2090,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='password_reset' AND consumed_at IS NULL");
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
-        audit($db, userId(), 'update', 'user', $targetUserId, ['admin_password_reset' => true], ['target_email' => $target['email']]);
+        audit($db, realUserId(), 'update', 'user', $targetUserId, ['admin_password_reset' => true], ['target_email' => $target['email']]);
         flash('Passwort wurde zurückgesetzt.');
         redirect('/?page=admin_users');
     }
 
     if ($action === 'admin_delete_user') {
-        if (!isAdmin($db, userId(), $config)) {
+        if (!isAdmin($db, realUserId(), $config)) {
             http_response_code(403);
             exit('Forbidden');
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
-        if ($targetUserId === userId()) {
+        if ($targetUserId === realUserId()) {
             flash('Das eigene Admin-Konto kann hier nicht gelöscht werden.', 'warning');
             redirect('/?page=admin_users');
         }
@@ -2008,18 +2121,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND consumed_at IS NULL');
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
-        audit($db, userId(), 'delete', 'user', $targetUserId, $target, ['soft_delete' => true]);
+        audit($db, realUserId(), 'delete', 'user', $targetUserId, $target, ['soft_delete' => true]);
         flash('Benutzer wurde gelöscht.');
         redirect('/?page=admin_users');
     }
 
     if ($action === 'admin_reset_user_2fa') {
-        if (!isAdmin($db, userId(), $config)) {
+        if (!isAdmin($db, realUserId(), $config)) {
             http_response_code(403);
             exit('Forbidden');
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
-        if ($targetUserId === userId()) {
+        if ($targetUserId === realUserId()) {
             flash('Die eigene 2FA bitte im Profil verwalten.', 'warning');
             redirect('/?page=admin_users');
         }
@@ -2034,7 +2147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='two_factor' AND consumed_at IS NULL");
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
-        audit($db, userId(), 'delete', 'user', $targetUserId, ['two_factor_reset' => true], ['target_email' => $target['email']]);
+        audit($db, realUserId(), 'delete', 'user', $targetUserId, ['two_factor_reset' => true], ['target_email' => $target['email']]);
         flash('2FA wurde für den Benutzer zurückgesetzt.');
         redirect('/?page=admin_users');
     }
@@ -3092,7 +3205,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
-$currentUserIsAdmin = $currentUser ? isAdmin($db, userId(), $config) : false;
+$currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
+if (isSupportImpersonation()) {
+    $targetId = (int) ($_SESSION['support_target_user_id'] ?? 0);
+    if ($targetId !== userId() || !activeSupportGrant($db, $targetId) || !$currentUser) {
+        endSupportImpersonationSession();
+        flash('ADMIN Support wurde beendet, weil die Freigabe nicht mehr aktiv ist.', 'warning');
+        redirect('/?page=admin_users');
+    }
+}
 if ($currentUser && in_array($currentUser['timezone'], timezone_identifiers_list(), true)) {
     date_default_timezone_set($currentUser['timezone']);
 }
@@ -3237,6 +3358,12 @@ if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 're
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id = ? AND deleted_at IS NULL ORDER BY name', 'i', [userId()]) : [];
+$supportGrant = $currentUser ? activeSupportGrant($db, userId()) : null;
+$supportImpersonating = isSupportImpersonation();
+$bodyClasses = array_filter([
+    $supportGrant ? 'support-granted' : '',
+    $supportImpersonating ? 'support-impersonating' : '',
+]);
 
 ?><!doctype html>
 <html lang="de">
@@ -3248,8 +3375,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
 <link rel="stylesheet" href="/assets/app.css">
 <link rel="stylesheet" href="/assets/applications.css">
 </head>
-<body>
-<header class="topbar">
+<body class="<?= e(implode(' ', $bodyClasses)) ?>">
+<header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
     <a class="brand" href="/"><img src="/assets/favicon.svg" alt="" width="32" height="32"> <span>JeMa <strong>Jobs</strong></span></a>
     <?php if ($currentUser): ?>
         <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')">Menü</button>
@@ -3269,6 +3396,12 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzer</a><?php endif; ?>
             <a href="/?page=audit">Log</a>
         </nav>
+        <?php if($supportImpersonating): ?>
+            <div class="support-context"><strong>ADMIN Support</strong><span><?= e((string)($_SESSION['support_admin_name'] ?? 'Admin')) ?> in Umgebung <?= e((string)($_SESSION['support_target_name'] ?? userLabel($currentUser))) ?></span></div>
+            <form method="post" class="logout"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="stop_admin_support">Support beenden</button></form>
+        <?php elseif($supportGrant): ?>
+            <div class="support-context"><strong>ADMIN Support freigegeben</strong><span>Administratoren können sich einklinken.</span></div>
+        <?php endif; ?>
         <form method="post" class="logout"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout">Abmelden</button></form>
     <?php endif; ?>
 </header>
@@ -3588,7 +3721,8 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                     (SELECT COUNT(*) FROM jobs j WHERE j.owner_user_id=u.id AND j.deleted_at IS NULL) job_count,
                     (SELECT COUNT(*) FROM applications a WHERE a.user_id=u.id AND a.deleted_at IS NULL) application_count,
                     (SELECT COUNT(*) FROM user_documents d WHERE d.user_id=u.id AND d.deleted_at IS NULL) document_count,
-                    (SELECT COUNT(*) FROM two_factor_methods tf WHERE tf.user_id=u.id AND tf.verified_at IS NOT NULL) two_factor_count
+                    (SELECT COUNT(*) FROM two_factor_methods tf WHERE tf.user_id=u.id AND tf.verified_at IS NOT NULL) two_factor_count,
+                    (SELECT sag.granted_at FROM support_access_grants sag WHERE sag.user_id=u.id AND sag.revoked_at IS NULL ORDER BY sag.granted_at DESC LIMIT 1) support_granted_at
                FROM users u
               WHERE u.deleted_at IS NULL
            ORDER BY FIELD(u.status, 'active', 'invited', 'locked', 'disabled'), u.created_at DESC"
@@ -3607,7 +3741,7 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
             <div class="section-head"><div><p class="eyebrow">Verwaltung</p><h2>Benutzer bearbeiten</h2></div></div>
             <?php if(!$managedUser): ?>
                 <p class="meta-line">Wähle bei einem Benutzer „Verwalten“, um Name, E-Mail, Status, Admin-Rechte, Passwort oder Löschung zu bearbeiten.</p>
-            <?php else: $managedRoleCodes = array_filter(explode(',', (string) ($managedUser['role_codes'] ?? ''))); $managedIsConfigAdmin = in_array(strtolower((string) $managedUser['email']), $adminEmails, true); $managedIsAdmin = $managedIsConfigAdmin || in_array('admin', $managedRoleCodes, true); $managedIsSelf = (int) $managedUser['id'] === userId(); ?>
+            <?php else: $managedRoleCodes = array_filter(explode(',', (string) ($managedUser['role_codes'] ?? ''))); $managedIsConfigAdmin = in_array(strtolower((string) $managedUser['email']), $adminEmails, true); $managedIsAdmin = $managedIsConfigAdmin || in_array('admin', $managedRoleCodes, true); $managedIsSelf = (int) $managedUser['id'] === realUserId(); ?>
                 <h3><?= e(trim((string)$managedUser['first_name'].' '.(string)$managedUser['last_name'])) ?></h3>
                 <?php if($managedIsSelf): ?>
                     <p class="alert warning">Eigenes Admin-Konto geschützt. Persönliche Daten bearbeitest Du über „Profil“.</p>
@@ -3628,16 +3762,21 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                     <?php if(!$managedIsConfigAdmin): ?>
                         <form method="post" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>"><button name="action" value="admin_delete_user">Benutzer löschen</button></form>
                     <?php endif; ?>
+                    <?php if(!empty($managedUser['support_granted_at'])): ?>
+                        <form method="post" onsubmit="return confirm('In diese Benutzerumgebung einklinken?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$managedUser['id'] ?>"><button class="primary" name="action" value="admin_start_support">In Umgebung einklinken</button></form>
+                    <?php else: ?>
+                        <p class="meta-line">ADMIN Support nicht freigegeben.</p>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
         </section>
         <section class="panel table-wrap"><table><thead><tr><th>Benutzer</th><th>Status</th><th>Nutzung</th><th>Zugriff</th><th>Aktionen</th></tr></thead><tbody>
-            <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === userId(); ?>
+            <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === realUserId(); ?>
                 <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
                     <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
                     <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
-                    <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?></td>
+                    <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?><?php if(!empty($user['support_granted_at'])): ?><small>ADMIN Support frei seit <?= e(displayDateTime($user['support_granted_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td>
                         <?php if($isSelf): ?>
                             <span class="meta-line">Eigenes Konto geschützt</span>
@@ -3661,6 +3800,11 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                             <?php endif; ?>
                             <?php if(!$isConfigAdmin): ?>
                                 <form method="post" class="actions" onsubmit="return confirm('Benutzer wirklich löschen? Die Daten werden aus der aktiven Ansicht entfernt.')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button name="action" value="admin_delete_user">Löschen</button></form>
+                            <?php endif; ?>
+                            <?php if(!empty($user['support_granted_at'])): ?>
+                                <form method="post" class="actions" onsubmit="return confirm('In diese Benutzerumgebung einklinken?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button class="primary" name="action" value="admin_start_support">Einklinken</button></form>
+                            <?php else: ?>
+                                <span class="meta-line">Kein ADMIN Support</span>
                             <?php endif; ?>
                         <?php endif; ?>
                     </td>
@@ -3712,6 +3856,18 @@ $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id 
                     <label>6-stelliger Code<input name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
                     <button class="primary" name="action" value="enable_totp">2FA aktivieren</button>
                 </form>
+            <?php endif; ?>
+        </section>
+        <section class="panel" id="support-access">
+            <div class="section-head"><div><p class="eyebrow">Support</p><h2>ADMIN Support</h2></div><span><?= $supportGrant ? 'Freigegeben' : 'Nicht freigegeben' ?></span></div>
+            <?php if($supportImpersonating): ?>
+                <p class="alert warning">Diese Umgebung wird gerade im ADMIN Support verwendet. Änderungen an der Freigabe sind währenddessen gesperrt.</p>
+            <?php elseif($supportGrant): ?>
+                <p class="meta-line">Du hast ADMIN Support seit <?= e(displayDateTime((string)$supportGrant['granted_at'], $currentUser)) ?> freigegeben. Ein Administrator kann sich wie du in deine Umgebung einklinken, bis du widerrufst.</p>
+                <form method="post" onsubmit="return confirm('ADMIN Support wirklich widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="revoke_admin_support">ADMIN Support widerrufen</button></form>
+            <?php else: ?>
+                <p class="meta-line">Erlaube ADMIN Support nur, wenn ein Administrator deine Umgebung 1:1 sehen und bedienen soll. Du kannst die Freigabe jederzeit widerrufen.</p>
+                <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="grant_admin_support">ADMIN Support erlauben</button></form>
             <?php endif; ?>
         </section>
         <section class="panel" id="smtp">
