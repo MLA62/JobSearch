@@ -52,27 +52,60 @@ try {
     // Optional runtime telemetry must not block the app.
 }
 
+function ensureColumn(mysqli $db, string $table, string $column, string $definition, ?string $after = null): void
+{
+    $escapedTable = str_replace('`', '``', $table);
+    $escapedColumn = $db->real_escape_string($column);
+    $exists = $db->query("SHOW COLUMNS FROM `{$escapedTable}` LIKE '{$escapedColumn}'")->fetch_assoc();
+    if ($exists) {
+        return;
+    }
+    $afterSql = '';
+    if ($after !== null) {
+        $escapedAfter = $db->real_escape_string($after);
+        $afterExists = $db->query("SHOW COLUMNS FROM `{$escapedTable}` LIKE '{$escapedAfter}'")->fetch_assoc();
+        if ($afterExists) {
+            $afterSql = ' AFTER `' . str_replace('`', '``', $after) . '`';
+        }
+    }
+    $db->query("ALTER TABLE `{$escapedTable}` ADD COLUMN {$definition}{$afterSql}");
+}
+
+function modifyColumnWhenMissingValue(mysqli $db, string $table, string $column, string $value, string $definition): void
+{
+    $escapedTable = str_replace('`', '``', $table);
+    $escapedColumn = $db->real_escape_string($column);
+    $columnInfo = $db->query("SHOW COLUMNS FROM `{$escapedTable}` LIKE '{$escapedColumn}'")->fetch_assoc();
+    if ($columnInfo && strpos((string) $columnInfo['Type'], "'" . $value . "'") === false) {
+        $db->query("ALTER TABLE `{$escapedTable}` MODIFY {$definition}");
+    }
+}
+
 try {
-    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'application_url'")->fetch_assoc();
-    if (!$column) {
-        $db->query('ALTER TABLE applications ADD COLUMN application_url VARCHAR(1000) NULL AFTER channel');
-    }
-    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'portal_account'")->fetch_assoc();
-    if (!$column) {
-        $db->query('ALTER TABLE applications ADD COLUMN portal_account VARCHAR(254) NULL AFTER application_url');
-    }
-    $column = $db->query("SHOW COLUMNS FROM applications LIKE 'online_notes'")->fetch_assoc();
-    if (!$column) {
-        $db->query('ALTER TABLE applications ADD COLUMN online_notes TEXT NULL AFTER reference_number');
-    }
-    $statusColumn = $db->query("SHOW COLUMNS FROM applications LIKE 'status'")->fetch_assoc();
-    if ($statusColumn && strpos((string) $statusColumn['Type'], "'ready'") === false) {
-        $db->query("ALTER TABLE applications MODIFY status ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
-    }
-    $channelColumn = $db->query("SHOW COLUMNS FROM applications LIKE 'channel'")->fetch_assoc();
-    if ($channelColumn && strpos((string) $channelColumn['Type'], "'website'") === false) {
-        $db->query("ALTER TABLE applications MODIFY channel ENUM('email','portal','website','mail','referral','other') NULL");
-    }
+    ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_company_id` BIGINT UNSIGNED NULL', 'job_id');
+    ensureColumn($db, 'applications', 'primary_contact_id', '`primary_contact_id` BIGINT UNSIGNED NULL', 'intermediary_company_id');
+    ensureColumn($db, 'applications', 'application_url', '`application_url` VARCHAR(1000) NULL', 'channel');
+    ensureColumn($db, 'applications', 'portal_account', '`portal_account` VARCHAR(254) NULL', 'application_url');
+    ensureColumn($db, 'applications', 'reference_number', '`reference_number` VARCHAR(120) NULL', 'portal_account');
+    ensureColumn($db, 'applications', 'online_notes', '`online_notes` TEXT NULL', 'reference_number');
+    ensureColumn($db, 'applications', 'cover_letter_text', '`cover_letter_text` LONGTEXT NULL', 'online_notes');
+    ensureColumn($db, 'applications', 'email_subject', '`email_subject` VARCHAR(255) NULL', 'cover_letter_text');
+    ensureColumn($db, 'applications', 'email_body', '`email_body` LONGTEXT NULL', 'email_subject');
+    ensureColumn($db, 'applications', 'next_action', '`next_action` VARCHAR(255) NULL', 'salary_currency');
+    ensureColumn($db, 'applications', 'next_action_at', '`next_action_at` DATETIME NULL', 'next_action');
+    ensureColumn($db, 'applications', 'notes', '`notes` LONGTEXT NULL', 'next_action_at');
+    ensureColumn($db, 'contacts', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
+    ensureColumn($db, 'contact_logs', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
+    ensureColumn($db, 'contact_logs', 'status', "`status` ENUM('planned','open','done','cancelled') NOT NULL DEFAULT 'done'", 'direction');
+    $db->query("CREATE TABLE IF NOT EXISTS application_documents (
+        application_id BIGINT UNSIGNED NOT NULL,
+        user_document_id BIGINT UNSIGNED NOT NULL,
+        purpose ENUM('cv','cover_letter','certificate','reference','portfolio','other') NOT NULL DEFAULT 'other',
+        sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (application_id, user_document_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
+    modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
 }
@@ -1242,6 +1275,10 @@ function uploadDocumentFile(array $file, int $userId): array
 
 function dbOne(mysqli $db, string $sql, string $types = '', array $values = []): ?array
 {
+    if (!method_exists(mysqli_stmt::class, 'get_result')) {
+        $rows = queryRowsWithoutMysqlnd($db, $sql, $types, $values, 1);
+        return $rows[0] ?? null;
+    }
     $stmt = $db->prepare($sql);
     if ($types !== '') {
         $stmt->bind_param($types, ...$values);
@@ -1253,6 +1290,9 @@ function dbOne(mysqli $db, string $sql, string $types = '', array $values = []):
 
 function dbAll(mysqli $db, string $sql, string $types = '', array $values = []): array
 {
+    if (!method_exists(mysqli_stmt::class, 'get_result')) {
+        return queryRowsWithoutMysqlnd($db, $sql, $types, $values);
+    }
     $stmt = $db->prepare($sql);
     if ($types !== '') {
         $stmt->bind_param($types, ...$values);
@@ -1263,31 +1303,64 @@ function dbAll(mysqli $db, string $sql, string $types = '', array $values = []):
 
 function statementRows(mysqli_stmt $stmt, ?int $limit = null): array
 {
-    $metadata = $stmt->result_metadata();
-    if (!$metadata) {
+    $result = $stmt->get_result();
+    if (!$result) {
         return [];
     }
 
-    $row = [];
-    $references = [];
-    foreach ($metadata->fetch_fields() as $field) {
-        $row[$field->name] = null;
-        $references[] = &$row[$field->name];
-    }
-    call_user_func_array([$stmt, 'bind_result'], $references);
-
     $rows = [];
-    while ($stmt->fetch()) {
-        $copy = [];
-        foreach ($row as $name => $value) {
-            $copy[$name] = $value;
-        }
-        $rows[] = $copy;
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
         if ($limit !== null && count($rows) >= $limit) {
             break;
         }
     }
     return $rows;
+}
+
+function queryRowsWithoutMysqlnd(mysqli $db, string $sql, string $types = '', array $values = [], ?int $limit = null): array
+{
+    $query = interpolateSql($db, $sql, $types, $values);
+    $result = $db->query($query);
+    if (!($result instanceof mysqli_result)) {
+        return [];
+    }
+    $rows = [];
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+        if ($limit !== null && count($rows) >= $limit) {
+            break;
+        }
+    }
+    $result->free();
+    return $rows;
+}
+
+function interpolateSql(mysqli $db, string $sql, string $types, array $values): string
+{
+    if ($types === '') {
+        return $sql;
+    }
+    $offset = 0;
+    foreach ($values as $index => $value) {
+        $pos = strpos($sql, '?', $offset);
+        if ($pos === false) {
+            break;
+        }
+        $type = $types[$index] ?? 's';
+        if ($value === null) {
+            $replacement = 'NULL';
+        } elseif ($type === 'i') {
+            $replacement = (string) (int) $value;
+        } elseif ($type === 'd') {
+            $replacement = (string) (float) $value;
+        } else {
+            $replacement = "'" . $db->real_escape_string((string) $value) . "'";
+        }
+        $sql = substr($sql, 0, $pos) . $replacement . substr($sql, $pos + 1);
+        $offset = $pos + strlen($replacement);
+    }
+    return $sql;
 }
 
 function isAdmin(mysqli $db, int $userId, array $config = []): bool
@@ -3666,7 +3739,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.9');
+$appVersion = (string) ($config['app_version'] ?? '0.14.11');
 
 ?><!doctype html>
 <html lang="de">
@@ -4410,9 +4483,14 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.9');
         $intermediaryCompanies = $applicationEdit ? array_values(array_filter($companies, static fn (array $company): bool => !empty($company['is_intermediary']) && (int)$company['id'] !== (int)$applicationEdit['company_id'])) : [];
         $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
         $nextActionChoices = applicationNextActionChoices();
-        $coverLetterPrompt = $applicationEdit && trim((string)($applicationEdit['cover_letter_text'] ?? '')) === ''
-            ? applicationPrompt($db, userId(), (int)$applicationEdit['id'], $currentUser)
-            : '';
+        $coverLetterPrompt = '';
+        if ($applicationEdit && trim((string)($applicationEdit['cover_letter_text'] ?? '')) === '') {
+            try {
+                $coverLetterPrompt = applicationPrompt($db, userId(), (int)$applicationEdit['id'], $currentUser);
+            } catch (Throwable $exception) {
+                error_log('Application prompt failed for application ' . (int)$applicationEdit['id'] . ': ' . $exception->getMessage());
+            }
+        }
         $applicationStatuses=['draft'=>'Entwurf','ready'=>'Bereit','sent'=>'Gesendet','confirmed'=>'Bestätigt','interview'=>'Interview','assessment'=>'Assessment','offer'=>'Angebot','accepted'=>'Angenommen','rejected'=>'Absage','withdrawn'=>'Zurückgezogen','closed'=>'Abgeschlossen'];
         $contactLogStatuses=contactLogStatusOptions();
         $contactLogChannels=contactLogChannelOptions();
