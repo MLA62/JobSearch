@@ -214,6 +214,18 @@ function requireLogin(): void
     }
 }
 
+function clearAuthenticatedSession(): void
+{
+    unset(
+        $_SESSION['user_id'],
+        $_SESSION['user_name'],
+        $_SESSION['support_admin_user_id'],
+        $_SESSION['support_admin_name'],
+        $_SESSION['support_target_user_id'],
+        $_SESSION['support_target_name']
+    );
+}
+
 function flash(string $message, string $type = 'success'): void
 {
     $_SESSION['flash'] = ['message' => $message, 'type' => $type];
@@ -2295,6 +2307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $totp = activeTotpMethod($db, (int) $user['id']);
         if ($totp) {
             session_regenerate_id(true);
+            clearAuthenticatedSession();
             $_SESSION['pending_2fa_user_id'] = (int) $user['id'];
             $_SESSION['pending_2fa_user_name'] = $user['first_name'] . ' ' . $user['last_name'];
             redirect('/?page=two_factor');
@@ -2313,6 +2326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $pendingUserId ? dbOne($db, 'SELECT * FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$pendingUserId]) : null;
         $totp = $user ? activeTotpMethod($db, $pendingUserId) : null;
         if (!$user || !$totp || !verifyTotpCode((string) $totp['secret_encrypted'], (string) ($_POST['totp_code'] ?? ''))) {
+            clearAuthenticatedSession();
             flash('2FA-Code ist ungültig.', 'danger');
             redirect('/?page=two_factor');
         }
@@ -3745,6 +3759,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+if ($page === 'two_factor' && !empty($_SESSION['pending_2fa_user_id'])) {
+    clearAuthenticatedSession();
+}
+
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
 if ($currentUser) {
@@ -3990,7 +4008,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.13');
+$appVersion = (string) ($config['app_version'] ?? '0.14.14');
 
 ?><!doctype html>
 <html lang="de">
