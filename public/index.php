@@ -31,6 +31,15 @@ try {
     exit('Database connection failed.');
 }
 
+try {
+    $column = $db->query("SHOW COLUMNS FROM users LIKE 'last_seen_at'")->fetch_assoc();
+    if (!$column) {
+        $db->query('ALTER TABLE users ADD COLUMN last_seen_at DATETIME NULL AFTER last_login_at');
+    }
+} catch (Throwable $exception) {
+    // Optional runtime telemetry must not block the app.
+}
+
 function e(?string $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -1977,7 +1986,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-        $db->query('UPDATE users SET last_login_at = NOW() WHERE id = ' . (int) $user['id']);
+        $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . (int) $user['id']);
         audit($db, (int) $user['id'], 'login', 'user', (int) $user['id'], null, null);
         redirect('/');
     }
@@ -1994,7 +2003,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $pendingUserId;
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-        $db->query('UPDATE users SET last_login_at = NOW() WHERE id = ' . $pendingUserId);
+        $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . $pendingUserId);
         $stmt = $db->prepare('UPDATE two_factor_methods SET last_used_at=NOW() WHERE id=?');
         $methodId = (int) $totp['id'];
         $stmt->bind_param('i', $methodId);
@@ -2730,7 +2739,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $applicationId = $scope === 'application' ? (int) ($_POST['application_id'] ?? 0) : null;
         $application = null;
         $jobId = null;
-        $redirectTarget = $scope === 'application' && $applicationId ? '/?page=applications&edit=' . $applicationId . '#documents' : '/?page=profile#documents';
+        $returnTo = (string) ($_POST['document_return'] ?? '');
+        $redirectTarget = $scope === 'application' && $applicationId ? '/?page=applications&edit=' . $applicationId . '#documents' : ($returnTo === 'documents' ? '/?page=documents' : '/?page=profile#documents');
         if ($scope === 'application') {
             $application = dbOne($db, 'SELECT a.id, a.job_id FROM applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL AND j.deleted_at IS NULL', 'ii', [$applicationId, $uid]);
             if (!$application) {
@@ -2798,6 +2808,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect($redirectTarget);
     }
 
+    if ($action === 'update_document') {
+        $id = (int) ($_POST['document_id'] ?? 0);
+        $uid = userId();
+        $documentTypeId = (int) ($_POST['document_type_id'] ?? 0);
+        $languageCode = array_key_exists((string) ($_POST['document_language'] ?? ''), documentLanguageChoices()) ? (string) $_POST['document_language'] : null;
+        $title = trim((string) ($_POST['document_title'] ?? ''));
+        $description = trim((string) ($_POST['document_description'] ?? '')) ?: null;
+        $validFrom = trim((string) ($_POST['valid_from'] ?? '')) ?: null;
+        $validUntil = trim((string) ($_POST['valid_until'] ?? '')) ?: null;
+        $old = dbOne($db, "SELECT id, document_type_id, language_code, title, description, valid_from, valid_until FROM user_documents WHERE id=? AND user_id=? AND scope='profile' AND deleted_at IS NULL", 'ii', [$id, $uid]);
+        $type = dbOne($db, 'SELECT id, code FROM document_types WHERE id=?', 'i', [$documentTypeId]);
+        if (!$old || !$type || !in_array((string) $type['code'], allowedDocumentTypeCodes('profile'), true) || $title === '') {
+            flash('Dokument konnte nicht aktualisiert werden.', 'danger');
+            redirect('/?page=documents');
+        }
+        $stmt = $db->prepare('UPDATE user_documents SET document_type_id=?, language_code=?, title=?, description=?, valid_from=?, valid_until=? WHERE id=? AND user_id=?');
+        $stmt->bind_param('isssssii', $documentTypeId, $languageCode, $title, $description, $validFrom, $validUntil, $id, $uid);
+        $stmt->execute();
+        audit($db, $uid, 'update', 'user_document', $id, $old, ['document_type_id'=>$documentTypeId,'language_code'=>$languageCode,'title'=>$title,'description'=>$description,'valid_from'=>$validFrom,'valid_until'=>$validUntil]);
+        flash('Dokument aktualisiert.');
+        redirect('/?page=documents&edit_document=' . $id);
+    }
+
     if ($action === 'delete_document') {
         $id = (int) ($_POST['id'] ?? 0);
         $uid = userId();
@@ -2812,9 +2845,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit($db, $uid, 'delete', 'user_document', $id, $old, null);
             flash('Dokument gelöscht.');
         }
+        $returnTo = (string) ($_POST['document_return'] ?? '');
         $target = $old && ($old['scope'] ?? '') === 'application' && !empty($old['application_id'])
             ? '/?page=applications&edit=' . (int) $old['application_id'] . '#documents'
-            : '/?page=profile#documents';
+            : ($returnTo === 'documents' ? '/?page=documents' : '/?page=profile#documents');
         redirect($target);
     }
 
@@ -3368,6 +3402,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
+if ($currentUser) {
+    $lastSeen = strtotime((string)($currentUser['last_seen_at'] ?? '')) ?: 0;
+    if ($lastSeen < time() - 60) {
+        $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . (int) userId());
+        $currentUser['last_seen_at'] = date('Y-m-d H:i:s');
+    }
+}
 if (isSupportImpersonation()) {
     $targetId = (int) ($_SESSION['support_target_user_id'] ?? 0);
     if ($targetId !== userId() || !activeSupportGrant($db, $targetId) || !$currentUser) {
@@ -3526,7 +3567,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.2');
+$appVersion = (string) ($config['app_version'] ?? '0.14.3');
 
 ?><!doctype html>
 <html lang="de">
@@ -3902,7 +3943,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
         $adminEmails = array_map('strtolower', (array) ($config['admin_emails'] ?? ['admin@jema.business']));
         $users = dbAll(
             $db,
-            "SELECT u.id, u.email, u.status, u.first_name, u.last_name, u.created_at, u.last_login_at, u.email_verified_at,
+            "SELECT u.id, u.email, u.status, u.first_name, u.last_name, u.created_at, u.last_login_at, u.last_seen_at, u.email_verified_at,
                     (SELECT GROUP_CONCAT(r.code ORDER BY r.code)
                        FROM user_roles ur
                        JOIN roles r ON r.id=ur.role_id
@@ -3919,9 +3960,11 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
         foreach ($users as &$userRow) {
             $roleCodesForRow = array_filter(explode(',', (string) ($userRow['role_codes'] ?? '')));
             $isConfigAdminForRow = in_array(strtolower((string) $userRow['email']), $adminEmails, true);
+            $lastSeenTs = strtotime((string)($userRow['last_seen_at'] ?? '')) ?: 0;
+            $userRow['online_label'] = $lastSeenTs >= time() - 600 ? 'Online' : 'Offline';
             $userRow['full_name'] = trim((string)$userRow['first_name'].' '.(string)$userRow['last_name']);
             $userRow['usage_label'] = (int)$userRow['job_count'] . ' Jobs · ' . (int)$userRow['application_count'] . ' Bewerbungen · ' . (int)$userRow['document_count'] . ' Dokumente';
-            $userRow['access_label'] = ($isConfigAdminForRow || in_array('admin', $roleCodesForRow, true)) ? 'Admin' : 'Benutzer';
+            $userRow['access_label'] = (($isConfigAdminForRow || in_array('admin', $roleCodesForRow, true)) ? 'Admin' : 'Benutzer') . ' · ' . $userRow['online_label'];
             if (!empty($userRow['support_granted_at'])) {
                 $userRow['access_label'] .= ' · ADMIN Support frei';
             }
@@ -3983,8 +4026,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
         <section class="panel table-wrap"><div class="actions export-actions"><?= sfToolbar('admin_users', $adminUserSf, $adminUserPreserve, $adminUserSfFields) ?></div><table><thead><tr><?= sfHeader('admin_users','full_name','Benutzer',$adminUserSf,$adminUserPreserve) ?><?= sfHeader('admin_users','status','Status',$adminUserSf,$adminUserPreserve) ?><?= sfHeader('admin_users','usage_label','Nutzung',$adminUserSf,$adminUserPreserve) ?><?= sfHeader('admin_users','access_label','Zugriff',$adminUserSf,$adminUserPreserve) ?><th>Aktionen</th></tr></thead><tbody>
             <?php foreach($users as $user): $roleCodes = array_filter(explode(',', (string) ($user['role_codes'] ?? ''))); $isConfigAdmin = in_array(strtolower((string) $user['email']), $adminEmails, true); $isUserAdmin = $isConfigAdmin || in_array('admin', $roleCodes, true); $isSelf = (int) $user['id'] === realUserId(); ?>
                 <tr class="<?= $isSelf ? 'is-selected' : '' ?>">
-                    <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
-                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?></td>
+                    <td><strong><?= e(trim((string)$user['first_name'].' '.(string)$user['last_name'])) ?></strong><span class="badge <?= ($user['online_label'] ?? '') === 'Online' ? 'role-badge' : '' ?>"><?= e($user['online_label'] ?? 'Offline') ?></span><small><?= e($user['email']) ?></small><small>Registriert: <?= e(displayDateTime($user['created_at'], $currentUser)) ?></small><small><a href="/?page=admin_users&manage_user=<?= (int)$user['id'] ?>">Verwalten</a></small></td>
+                    <td><span class="badge"><?= e($user['status']) ?></span><?php if($user['email_verified_at']): ?><small>verifiziert: <?= e(displayDateTime($user['email_verified_at'], $currentUser)) ?></small><?php else: ?><small>nicht verifiziert</small><?php endif; ?><?php if((int)$user['two_factor_count'] > 0): ?><small>2FA aktiv</small><?php else: ?><small>2FA nicht aktiv</small><?php endif; ?><?php if($user['last_login_at']): ?><small>letzter Login: <?= e(displayDateTime($user['last_login_at'], $currentUser)) ?></small><?php endif; ?><?php if($user['last_seen_at']): ?><small>zuletzt aktiv: <?= e(displayDateTime($user['last_seen_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td><small><?= (int)$user['job_count'] ?> Jobs</small><small><?= (int)$user['application_count'] ?> Bewerbungen</small><small><?= (int)$user['document_count'] ?> Dokumente</small></td>
                     <td><small><?= $isUserAdmin ? 'Admin' : 'Benutzer' ?></small><?php if($isConfigAdmin): ?><small>Config-Admin</small><?php endif; ?><?php if(!empty($user['support_granted_at'])): ?><small>ADMIN Support frei seit <?= e(displayDateTime($user['support_granted_at'], $currentUser)) ?></small><?php endif; ?></td>
                     <td>
@@ -4140,7 +4183,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
             <label>Notizen zu Job-Referenzen<textarea name="preference_notes" rows="3"><?= e($preference['notes'] ?? '') ?></textarea></label>
             <button class="primary" name="action" value="save_profile">Profil speichern</button>
         </form></section>
-        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow">Stammdaten</p><h2>Dokumenten-Management</h2></div><span><?= count($profileDocuments) ?> Versionen</span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Stammdaten-Dokument</option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf Deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Stammdaten-Dokument speichern</button></form><div class="table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Aktionen</th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty">Noch keine Stammdaten-Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></div></div></section>
+        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow">Stammdaten</p><h2>Dokumenten-Management</h2></div><span><?= count($profileDocuments) ?> Versionen</span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Stammdaten-Dokument</option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf Deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Stammdaten-Dokument speichern</button></form><div class="table-wrap"><table><thead><tr><th>Dokument</th><th>Typ</th><th>Version</th><th>Aktionen</th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor">Bearbeiten</a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty">Noch keine Stammdaten-Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></div></div></section>
         <script>
         (() => {
             const region = document.getElementById('profile-region');
@@ -4331,7 +4374,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
                 <?php foreach($applicationDocuments as $doc): ?><article>
                     <div><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], $userLanguage)) ?> · <?= e(displayDateTime($doc['created_at'], $currentUser)) ?> · <?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</span></div>
                     <small><?= e($doc['scope'] === 'profile' ? 'Stammdaten · ' . $doc['original_filename'] : $doc['original_filename']) ?></small>
-                    <?php if($doc['scope'] === 'profile'): ?><form method="post" class="actions" onsubmit="return confirm('Dokument-Zuordnung entfernen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="user_document_id" value="<?= (int)$doc['id'] ?>"><button name="action" value="detach_application_document">Entfernen</button></form><?php else: ?><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form><?php endif; ?>
+                    <?php if($doc['scope'] === 'profile'): ?><form method="post" class="actions" onsubmit="return confirm('Dokument-Zuordnung entfernen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>"><input type="hidden" name="user_document_id" value="<?= (int)$doc['id'] ?>"><button name="action" value="detach_application_document">Entfernen</button></form><?php else: ?><form method="post" class="actions" onsubmit="return confirm('Bewerbungsdokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form><?php endif; ?>
                 </article><?php endforeach; ?>
                 <?php if(!$applicationDocuments): ?><p class="empty">Noch keine Bewerbungsdokumente vorhanden.</p><?php endif; ?>
             </div>
@@ -4404,11 +4447,13 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.2');
         $docSql .= $docOrder !== '' ? $docOrder . ', d.title' : ' ORDER BY d.created_at DESC, d.title';
         $documents = dbAll($db, $docSql, $docTypes, $docVals);
         $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $editDocumentId = (int) ($_GET['edit_document'] ?? 0);
+        $editDocument = $editDocumentId > 0 ? dbOne($db, "SELECT d.*, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.id=? AND d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL", 'ii', [$editDocumentId, userId()]) : null;
         ?>
         <div class="page-head"><div><p class="eyebrow">Stammdaten</p><h1>Dokumente</h1></div><span><?= count($documents) ?> Versionen</span></div>
         <div class="actions export-actions"><?= sfToolbar('documents', $docSf, $docPreserve, $docSfFields) ?><a class="button" href="/?page=export_pdf&type=documents">PDF</a></div>
-        <div class="split"><section class="panel"><h2>Dokument hochladen</h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= $v===$userLanguage?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from"></label><label>Gültig bis<input type="date" name="valid_until"></label></div><label>Beschreibung<textarea name="document_description" rows="3"></textarea></label><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button></form></section>
-        <section class="panel table-wrap"><table><thead><tr><?= sfHeader('documents','title','Dokument',$docSf,$docPreserve) ?><?= sfHeader('documents','type','Typ',$docSf,$docPreserve) ?><?= sfHeader('documents','version','Version',$docSf,$docPreserve) ?><?= sfHeader('documents','created_at','Datum',$docSf,$docPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="split"><section class="panel" id="document-editor"><h2><?= $editDocument ? 'Dokument bearbeiten' : 'Dokument hochladen' ?></h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="document_scope" value="profile"><?php if($editDocument): ?><input type="hidden" name="document_id" value="<?= (int)$editDocument['id'] ?>"><?php else: ?><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><?php endif; ?><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>" <?= (int)($editDocument['document_type_id'] ?? 0)===(int)$type['id']?'selected':'' ?>><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch" value="<?= e($editDocument['title'] ?? '') ?>"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= (string)($editDocument['language_code'] ?? $userLanguage)===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from" value="<?= e($editDocument['valid_from'] ?? '') ?>"></label><label>Gültig bis<input type="date" name="valid_until" value="<?= e($editDocument['valid_until'] ?? '') ?>"></label></div><label>Beschreibung<textarea name="document_description" rows="3"><?= e($editDocument['description'] ?? '') ?></textarea></label><?php if($editDocument): ?><div class="actions"><button class="primary" name="action" value="update_document">Änderungen speichern</button><a class="button" href="/?page=documents">Neu hochladen</a><a class="button" href="/?page=document_download&id=<?= (int)$editDocument['id'] ?>">Download</a></div><p class="meta-line">Datei ersetzen: „Neu hochladen“ wählen und das bestehende Dokument unter „Neue Version von“ auswählen.</p><?php else: ?><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button><?php endif; ?></form></section>
+        <section class="panel table-wrap"><table><thead><tr><?= sfHeader('documents','title','Dokument',$docSf,$docPreserve) ?><?= sfHeader('documents','type','Typ',$docSf,$docPreserve) ?><?= sfHeader('documents','version','Version',$docSf,$docPreserve) ?><?= sfHeader('documents','created_at','Datum',$docSf,$docPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= ((int)$doc['is_current'] ? 'is-selected ' : '') . ($editDocument && (int)$editDocument['id']===(int)$doc['id'] ? 'is-selected' : '') ?>"><td><strong><a class="record-link" href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor">Bearbeiten</a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'help'): ?>
         <div class="page-head"><div><p class="eyebrow">Support</p><h1>Hilfe</h1></div><span>In Vorbereitung</span></div>
         <section class="panel empty"><h2>Hilfe</h2><p>Dieser Bereich ist vorbereitet und wird später mit Anleitungen, Abläufen und Support-Hinweisen gefüllt.</p></section>
