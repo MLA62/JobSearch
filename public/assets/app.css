@@ -787,6 +787,39 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 }
 .platform-choice-grid span,
 .platform-choice-grid small { display: block; }
+.progress-box {
+    display: grid;
+    gap: 8px;
+    border: 1.5px solid var(--accent-border);
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    padding: 12px;
+}
+.progress-box[hidden] { display: none; }
+.progress-title {
+    font-weight: 800;
+    color: var(--accent-strong);
+}
+.progress-track {
+    height: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--field);
+}
+.progress-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), var(--accent-border));
+    transition: width .28s ease;
+}
+.progress-box p {
+    margin: 0;
+    color: var(--text-soft);
+    font-weight: 650;
+}
 .application-documents article { cursor: grab; }
 .application-documents article:active { cursor: grabbing; }
 
