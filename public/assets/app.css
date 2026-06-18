@@ -820,6 +820,13 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     color: var(--text-soft);
     font-weight: 650;
 }
+.prompt-panel textarea {
+    min-height: 320px;
+    font-family: "Cascadia Mono", "Consolas", monospace;
+    font-size: .92rem;
+    line-height: 1.45;
+    background: #f8fafc;
+}
 .application-documents article { cursor: grab; }
 .application-documents article:active { cursor: grabbing; }
 
