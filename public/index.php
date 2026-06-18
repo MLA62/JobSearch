@@ -3476,44 +3476,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'generate_platform_search') {
-        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
-        $query = trim((string)($_POST['search_query'] ?? ''));
-        if ($query === '') {
-            $query = jobPreferenceQuery($preference);
-        }
-        $location = jobPreferenceLocation($preference, $currentUser);
-        $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
-        $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
-        if ($query === '') {
-            flash('Bitte einen Suchbegriff erfassen oder im Profil gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
+        try {
+            $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+            $query = trim((string)($_POST['search_query'] ?? ''));
+            if ($query === '') {
+                $query = jobPreferenceQuery($preference);
+            }
+            $location = jobPreferenceLocation($preference, is_array($currentUser) ? $currentUser : []);
+            $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
+            $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
+            if ($query === '') {
+                flash('Bitte einen Suchbegriff erfassen oder im Profil gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
+                redirect('/?page=job_platform_search');
+            }
+            if (!$platformIds) {
+                flash('Bitte mindestens ein Portal auswählen.', 'warning');
+                redirect('/?page=job_platform_search');
+            }
+            $platformIdSql = implode(',', array_map('intval', array_unique($platformIds)));
+            $platforms = dbAll($db, "SELECT * FROM job_platforms WHERE id IN ($platformIdSql) AND is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name");
+            if (!$platforms) {
+                flash('Keine aktiven Portale gefunden.', 'warning');
+                redirect('/?page=job_platform_search');
+            }
+            $perPlatform = max(1, (int)ceil($total / count($platforms)));
+            $results = [];
+            foreach ($platforms as $platform) {
+                $results[] = [
+                    'platform_id' => (int)$platform['id'],
+                    'name' => (string)$platform['name'],
+                    'limit' => $perPlatform,
+                    'query' => $query,
+                    'location' => $location,
+                    'url' => platformSearchUrl($platform, $query, $location, $perPlatform),
+                ];
+            }
+            $_SESSION['platform_search_results'] = $results;
+            flash('Suchpaket erstellt. Öffne die Portale und importiere passende Stellen-URLs.');
+            redirect('/?page=job_platform_search#results');
+        } catch (Throwable $exception) {
+            error_log('Job platform search failed: ' . $exception->getMessage());
+            flash('Suchpaket konnte nicht erstellt werden. Der Fehler wurde protokolliert.', 'danger');
             redirect('/?page=job_platform_search');
         }
-        if (!$platformIds) {
-            flash('Bitte mindestens ein Portal auswählen.', 'warning');
-            redirect('/?page=job_platform_search');
-        }
-        $placeholders = implode(',', array_fill(0, count($platformIds), '?'));
-        $types = str_repeat('i', count($platformIds));
-        $platforms = dbAll($db, "SELECT * FROM job_platforms WHERE id IN ($placeholders) AND is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name", $types, $platformIds);
-        if (!$platforms) {
-            flash('Keine aktiven Portale gefunden.', 'warning');
-            redirect('/?page=job_platform_search');
-        }
-        $perPlatform = max(1, (int)ceil($total / count($platforms)));
-        $results = [];
-        foreach ($platforms as $platform) {
-            $results[] = [
-                'platform_id' => (int)$platform['id'],
-                'name' => (string)$platform['name'],
-                'limit' => $perPlatform,
-                'query' => $query,
-                'location' => $location,
-                'url' => platformSearchUrl($platform, $query, $location, $perPlatform),
-            ];
-        }
-        $_SESSION['platform_search_results'] = $results;
-        flash('Suchpaket erstellt. Öffne die Portale und importiere passende Stellen-URLs.');
-        redirect('/?page=job_platform_search#results');
     }
 
     if ($action === 'prepare_platform_import') {
@@ -4824,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.32');
+$appVersion = (string) ($config['app_version'] ?? '0.14.33');
 
 ?><!doctype html>
 <html lang="de">
