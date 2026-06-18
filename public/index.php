@@ -4829,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.34');
+$appVersion = (string) ($config['app_version'] ?? '0.14.35');
 
 ?><!doctype html>
 <html lang="de">
@@ -5605,11 +5605,20 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.34');
                     '- Dubletten entfernen.',
                     '- Möglichst Schweiz/Region passend priorisieren, falls im Profil genannt.',
                     '- Keine erfundenen Links.',
-                    '- Falls weniger passende Treffer vorhanden sind, weniger Links liefern und kurz begründen.',
+                    '- Falls weniger passende Treffer vorhanden sind, einfach weniger Links liefern.',
                     '',
-                    'Ausgabeformat für den Import in JeMa Jobs:',
-                    'Gib zuerst nur eine Liste mit genau einem direkten Stellenlink pro Zeile aus.',
-                    'Danach optional kurz darunter eine zweite Liste mit Titel, Firma und Ort je Link.'
+                    'Ausgabeformat zwingend:',
+                    'Antworte ausschließlich mit direkten URLs.',
+                    'Eine URL pro Zeile.',
+                    'Keine Nummerierung.',
+                    'Keine Bulletpoints.',
+                    'Kein Markdown.',
+                    'Keine Titel.',
+                    'Keine Firmen.',
+                    'Keine Erklärungen.',
+                    'Keine Einleitung.',
+                    'Kein Schlusssatz.',
+                    'Wenn kein passender Link gefunden wird, antworte mit leerer Ausgabe.'
                 ].filter((line, index, all) => line !== '' || all[index - 1] !== '');
                 prompt.value = lines.join('\n');
             };
