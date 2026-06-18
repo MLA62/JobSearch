@@ -110,6 +110,20 @@ try {
         CONSTRAINT fk_job_questions_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
         CONSTRAINT fk_job_questions_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS job_platforms (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(150) NOT NULL,
+        base_url VARCHAR(500) NULL,
+        search_url_template VARCHAR(1000) NOT NULL,
+        notes TEXT NULL,
+        sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at DATETIME NULL,
+        UNIQUE KEY uq_job_platform_name (name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    seedJobPlatforms($db);
     ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
     ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
     ensureColumn($db, 'users', 'x_url', '`x_url` VARCHAR(500) NULL', 'facebook_url');
@@ -2290,6 +2304,72 @@ function documentLanguageChoices(): array
     return ['de' => 'Deutsch', 'es' => 'Español', 'pt' => 'Português', 'en' => 'English'];
 }
 
+function defaultJobPlatforms(): array
+{
+    return [
+        ['LinkedIn Jobs','https://www.linkedin.com/jobs/','https://www.linkedin.com/jobs/search/?keywords={q}&location={location}',10],
+        ['Indeed Schweiz','https://ch.indeed.com/','https://ch.indeed.com/jobs?q={q}&l={location}',20],
+        ['Jobs.ch','https://www.jobs.ch/','https://www.jobs.ch/de/stellenangebote/?term={q}&location={location}',30],
+        ['JobScout24','https://www.jobscout24.ch/','https://www.jobscout24.ch/de/jobs/?q={q}&l={location}',40],
+        ['JobUp','https://www.jobup.ch/','https://www.jobup.ch/de/stellenangebote/?term={q}&location={location}',50],
+        ['JobCloud','https://www.jobcloud.ch/','https://www.jobcloud.ch/c/de-ch/jobs?query={q}&location={location}',60],
+        ['SwissDevJobs','https://swissdevjobs.ch/','https://swissdevjobs.ch/jobs/all/{q}',70],
+        ['ICTjobs','https://www.ictjobs.ch/','https://www.ictjobs.ch/jobs/?query={q}&location={location}',80],
+        ['Xing Jobs','https://www.xing.com/jobs','https://www.xing.com/jobs/search?keywords={q}&location={location}',90],
+        ['Monster Schweiz','https://www.monster.ch/','https://www.monster.ch/jobs/suche?q={q}&where={location}',100],
+        ['Glassdoor','https://www.glassdoor.com/','https://www.glassdoor.com/Job/jobs.htm?sc.keyword={q}&locT=C&locKeyword={location}',110],
+        ['Jooble Schweiz','https://ch.jooble.org/','https://ch.jooble.org/SearchResult?ukw={q}&rgns={location}',120],
+        ['Adzuna Schweiz','https://www.adzuna.ch/','https://www.adzuna.ch/search?q={q}&where={location}',130],
+        ['Google Jobs','https://www.google.com/search?q=jobs','https://www.google.com/search?q={q}+jobs+{location}',140],
+        ['Jobs für Macher','https://www.jobsfuermacher.ch/','https://www.jobsfuermacher.ch/jobs?query={q}&location={location}',150],
+    ];
+}
+
+function seedJobPlatforms(mysqli $db): void
+{
+    $count = dbOne($db, 'SELECT COUNT(*) c FROM job_platforms WHERE deleted_at IS NULL');
+    if ((int)($count['c'] ?? 0) > 0) {
+        return;
+    }
+    $stmt = $db->prepare('INSERT IGNORE INTO job_platforms (name, base_url, search_url_template, sort_order, is_active) VALUES (?, ?, ?, ?, 1)');
+    foreach (defaultJobPlatforms() as [$name, $baseUrl, $template, $sortOrder]) {
+        $stmt->bind_param('sssi', $name, $baseUrl, $template, $sortOrder);
+        $stmt->execute();
+    }
+}
+
+function jobPreferenceQuery(array $preference): string
+{
+    $roles = preg_split('/[\R,;]+/u', (string)($preference['desired_roles'] ?? '')) ?: [];
+    $level = trim((string)($preference['desired_level'] ?? ''));
+    $terms = array_values(array_filter(array_map('trim', $roles)));
+    if ($level !== '') {
+        $terms[] = $level;
+    }
+    return trim(implode(' ', array_slice($terms, 0, 4)));
+}
+
+function jobPreferenceLocation(array $preference, array $currentUser): string
+{
+    $locations = preg_split('/[\R,;]+/u', (string)($preference['desired_locations'] ?? '')) ?: [];
+    $location = trim((string)($locations[0] ?? ''));
+    if ($location !== '') {
+        return $location;
+    }
+    return trim((string)($currentUser['city'] ?? '') . ' ' . (string)($currentUser['region'] ?? ''));
+}
+
+function platformSearchUrl(array $platform, string $query, string $location, int $limit): string
+{
+    $template = (string)($platform['search_url_template'] ?? '');
+    return strtr($template, [
+        '{q}' => rawurlencode($query),
+        '{query}' => rawurlencode($query),
+        '{location}' => rawurlencode($location),
+        '{limit}' => (string)$limit,
+    ]);
+}
+
 function translationTargetOptions(mysqli $db, int $userId): array
 {
     return [
@@ -3338,6 +3418,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, $uid, 'create', 'cleanup_request', (int) $stmt->insert_id, null, $preview);
         flash('Cleanup-Anfrage mit Vorschau erstellt.');
         redirect('/?page=privacy');
+    }
+
+    if ($action === 'save_job_platform') {
+        if (!isAdmin($db, realUserId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $platformId = (int)($_POST['platform_id'] ?? 0);
+        $name = trim((string)($_POST['platform_name'] ?? ''));
+        $baseUrl = trim((string)($_POST['base_url'] ?? ''));
+        $template = trim((string)($_POST['search_url_template'] ?? ''));
+        $notes = trim((string)($_POST['platform_notes'] ?? ''));
+        $sortOrder = max(0, (int)($_POST['sort_order'] ?? 0));
+        $isActive = !empty($_POST['is_active']) ? 1 : 0;
+        if ($name === '' || $template === '' || !str_contains($template, '{q}')) {
+            flash('Name und Such-URL mit Platzhalter {q} sind erforderlich.', 'danger');
+            redirect('/?page=admin_job_platforms');
+        }
+        if ($baseUrl !== '' && !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            flash('Basis-URL ist ungültig.', 'danger');
+            redirect('/?page=admin_job_platforms');
+        }
+        if ($platformId > 0) {
+            $old = dbOne($db, 'SELECT * FROM job_platforms WHERE id=? AND deleted_at IS NULL', 'i', [$platformId]);
+            if (!$old) { http_response_code(404); exit('Not found'); }
+            $stmt = $db->prepare('UPDATE job_platforms SET name=?, base_url=?, search_url_template=?, notes=?, sort_order=?, is_active=? WHERE id=?');
+            $stmt->bind_param('ssssiii', $name, $baseUrl, $template, $notes, $sortOrder, $isActive, $platformId);
+            $stmt->execute();
+            audit($db, realUserId(), 'update', 'job_platform', $platformId, $old, ['name'=>$name,'is_active'=>$isActive]);
+            flash('Jobplattform gespeichert.');
+        } else {
+            $stmt = $db->prepare('INSERT INTO job_platforms (name, base_url, search_url_template, notes, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('ssssii', $name, $baseUrl, $template, $notes, $sortOrder, $isActive);
+            $stmt->execute();
+            audit($db, realUserId(), 'create', 'job_platform', (int)$stmt->insert_id, null, ['name'=>$name,'is_active'=>$isActive]);
+            flash('Jobplattform erstellt.');
+        }
+        redirect('/?page=admin_job_platforms');
+    }
+
+    if ($action === 'delete_job_platform') {
+        if (!isAdmin($db, realUserId(), $config)) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        $platformId = (int)($_POST['platform_id'] ?? 0);
+        $old = dbOne($db, 'SELECT * FROM job_platforms WHERE id=? AND deleted_at IS NULL', 'i', [$platformId]);
+        if ($old) {
+            $stmt = $db->prepare('UPDATE job_platforms SET deleted_at=NOW(), is_active=0 WHERE id=?');
+            $stmt->bind_param('i', $platformId);
+            $stmt->execute();
+            audit($db, realUserId(), 'delete', 'job_platform', $platformId, $old, null);
+            flash('Jobplattform deaktiviert.');
+        }
+        redirect('/?page=admin_job_platforms');
+    }
+
+    if ($action === 'generate_platform_search') {
+        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+        $query = jobPreferenceQuery($preference);
+        $location = jobPreferenceLocation($preference, $currentUser);
+        $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
+        $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
+        if ($query === '') {
+            flash('Bitte im Profil zuerst gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
+            redirect('/?page=job_platform_search');
+        }
+        if (!$platformIds) {
+            flash('Bitte mindestens ein Portal auswählen.', 'warning');
+            redirect('/?page=job_platform_search');
+        }
+        $placeholders = implode(',', array_fill(0, count($platformIds), '?'));
+        $types = str_repeat('i', count($platformIds));
+        $platforms = dbAll($db, "SELECT * FROM job_platforms WHERE id IN ($placeholders) AND is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name", $types, $platformIds);
+        if (!$platforms) {
+            flash('Keine aktiven Portale gefunden.', 'warning');
+            redirect('/?page=job_platform_search');
+        }
+        $perPlatform = max(1, (int)ceil($total / count($platforms)));
+        $results = [];
+        foreach ($platforms as $platform) {
+            $results[] = [
+                'platform_id' => (int)$platform['id'],
+                'name' => (string)$platform['name'],
+                'limit' => $perPlatform,
+                'query' => $query,
+                'location' => $location,
+                'url' => platformSearchUrl($platform, $query, $location, $perPlatform),
+            ];
+        }
+        $_SESSION['platform_search_results'] = $results;
+        flash('Suchpaket erstellt. Öffne die Portale und importiere passende Stellen-URLs.');
+        redirect('/?page=job_platform_search#results');
+    }
+
+    if ($action === 'prepare_platform_import') {
+        $results = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
+        $_SESSION['platform_import_payload'] = implode("\n", array_map(static fn(array $row): string => (string)($row['url'] ?? ''), $results));
+        flash('Suchlinks wurden in den Schnellimport übernommen. Prüfe die URLs und ersetze Suchseiten bei Bedarf durch konkrete Stellen-URLs.');
+        redirect('/?page=jobs#quick-import');
     }
 
     if ($action === 'preview_import') {
@@ -4641,7 +4821,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.28');
+$appVersion = (string) ($config['app_version'] ?? '0.14.29');
 
 ?><!doctype html>
 <html lang="de">
@@ -4660,10 +4840,10 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.28');
         <nav class="menubar" aria-label="Hauptmenü">
             <div class="menu-group"><button type="button" class="menu-trigger">Datei</button><div class="menu-panel"><a href="/?page=dashboard">Übersicht</a><div class="submenu"><button type="button">Stammdaten</button><div class="submenu-panel"><a href="/?page=profile">Profil</a><a href="/?page=documents">Dokumente</a><a href="/?page=translations">Übersetzungen</a></div></div><a href="/?page=privacy">Datenschutz</a><a href="/?page=audit">Log</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">CRM</button><div class="menu-panel"><a href="/?page=companies">Firmen</a><a href="/?page=contacts">Kontakte</a><a href="/?page=sharing">Freigaben</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Bewerbung</button><div class="menu-panel"><a href="/?page=jobs">Jobs</a><a href="/?page=applications">Bewerbungen</a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Bewerbung</button><div class="menu-panel"><a href="/?page=jobs">Jobs</a><a href="/?page=job_platform_search">Jobsuche</a><a href="/?page=applications">Bewerbungen</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Planung</button><div class="menu-panel"><a href="/?page=pendents">Pendent</a><a href="/?page=calendar&view=agenda">Kalender</a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Auswertung</button><div class="menu-panel"><a href="/?page=reports">Reports</a><a href="/?page=export_pdf&type=jobs">Jobs PDF</a><a href="/?page=export_pdf&type=applications">Bewerbungen PDF</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Konto</button><div class="menu-panel"><a href="/?page=profile">Profil</a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzerverwaltung</a><?php endif; ?></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger">Konto</button><div class="menu-panel"><a href="/?page=profile">Profil</a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzerverwaltung</a><a href="/?page=admin_job_platforms">Jobplattformen</a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger">Hilfe</button><div class="menu-panel menu-panel-right"><a href="/?page=help">Hilfe</a><a href="/?page=about">Über</a></div></div>
         </nav>
         <?php if($supportImpersonating): ?>
@@ -5032,6 +5212,19 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.28');
         <div class="page-head"><div><p class="eyebrow">Datenschutz</p><h1>Speicher, Exporte, Cleanup</h1></div><span><?= e(bytesLabel($usage)) ?> / <?= e(bytesLabel($quotaBytes)) ?></span></div>
         <div class="split"><section class="panel"><h2>Speicherquote</h2><p><?= e(number_format($quotaBytes > 0 ? ($usage / $quotaBytes) * 100 : 0, 1)) ?>% genutzt.</p><progress max="<?= (int)$quotaBytes ?>" value="<?= (int)$usage ?>" style="width:100%"></progress><div class="actions"><a class="button" href="/?page=export_csv&type=audit">Audit exportieren</a><a class="button" href="/?page=export_csv&type=applications">Bewerbungen exportieren</a></div></section><section class="panel"><h2>Cleanup anfragen</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Daten älter als<input type="date" name="cutoff_date" value="<?= e((new DateTimeImmutable('-6 months'))->format('Y-m-d')) ?>" required></label><button class="primary" name="action" value="request_cleanup">Vorschau erstellen und anfragen</button></form></section></div>
         <section class="panel table-wrap"><h2>Cleanup-Anfragen</h2><div class="actions export-actions"><?= sfToolbar('cleanup_requests', $cleanupSf, $cleanupPreserve, $cleanupSfFields) ?></div><table><thead><tr><?= sfHeader('cleanup_requests','cutoff_date','Stichtag',$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','status','Status',$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','preview_text','Vorschau',$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','created_at','Erstellt',$cleanupSf,$cleanupPreserve) ?></tr></thead><tbody><?php foreach($cleanupRequests as $request): ?><tr><td><?= e($request['cutoff_date']) ?></td><td><?= e($request['status']) ?></td><td><small><?= e($request['preview_text']) ?></small></td><td><?= e(displayDateTime($request['created_at'], $currentUser)) ?></td></tr><?php endforeach; ?><?php if(!$cleanupRequests): ?><tr><td colspan="4" class="empty">Noch keine Cleanup-Anfragen.</td></tr><?php endif; ?></tbody></table></section>
+    <?php elseif ($page === 'admin_job_platforms'): ?>
+        <?php
+        if (!$currentUserIsAdmin) {
+            http_response_code(403);
+            exit('Forbidden');
+        }
+        seedJobPlatforms($db);
+        $platformEditId = (int)($_GET['edit_platform'] ?? 0);
+        $platformEdit = $platformEditId > 0 ? dbOne($db, 'SELECT * FROM job_platforms WHERE id=? AND deleted_at IS NULL', 'i', [$platformEditId]) : null;
+        $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE deleted_at IS NULL ORDER BY sort_order, name');
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Administration</p><h1>Jobplattformen</h1></div><span><?= count($platformRows) ?> Portale</span></div>
+        <div class="split"><section class="panel"><h2><?= $platformEdit ? 'Jobplattform bearbeiten' : 'Jobplattform erfassen' ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="platform_id" value="<?= (int)($platformEdit['id'] ?? 0) ?>"><label>Name<input name="platform_name" value="<?= e($platformEdit['name'] ?? '') ?>" required></label><label>Basis-URL<input type="url" name="base_url" value="<?= e($platformEdit['base_url'] ?? '') ?>" placeholder="https://..."></label><label>Such-URL Vorlage<input name="search_url_template" value="<?= e($platformEdit['search_url_template'] ?? '') ?>" placeholder="https://...q={q}&location={location}" required><small>Platzhalter: {q}, {location}, {limit}</small></label><div class="two"><label>Reihenfolge<input type="number" min="0" name="sort_order" value="<?= e((string)($platformEdit['sort_order'] ?? 0)) ?>"></label><label class="check"><input type="checkbox" name="is_active" value="1" <?= !isset($platformEdit['is_active']) || (int)$platformEdit['is_active'] === 1 ? 'checked' : '' ?>> Aktiv</label></div><label>Kommentar<textarea name="platform_notes" rows="3"><?= e($platformEdit['notes'] ?? '') ?></textarea></label><div class="actions"><button class="primary" name="action" value="save_job_platform">Speichern</button><?php if($platformEdit): ?><a class="button" href="/?page=admin_job_platforms">Neu</a><?php endif; ?></div></form></section><section class="panel table-wrap"><table><thead><tr><th>Portal</th><th>Suchvorlage</th><th>Status</th><th>Aktionen</th></tr></thead><tbody><?php foreach($platformRows as $platform): ?><tr class="<?= $platformEdit && (int)$platformEdit['id']===(int)$platform['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($platform['name']) ?></strong><?php if($platform['base_url']): ?><small><a href="<?= e($platform['base_url']) ?>" target="_blank" rel="noopener"><?= e($platform['base_url']) ?></a></small><?php endif; ?><small><?= e($platform['notes']) ?></small></td><td><small><?= e($platform['search_url_template']) ?></small></td><td><span class="badge"><?= (int)$platform['is_active'] === 1 ? 'Aktiv' : 'Inaktiv' ?></span><small>Sort <?= (int)$platform['sort_order'] ?></small></td><td class="actions"><a href="/?page=admin_job_platforms&edit_platform=<?= (int)$platform['id'] ?>">Bearbeiten</a><form method="post" onsubmit="return confirm('Jobplattform deaktivieren?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="platform_id" value="<?= (int)$platform['id'] ?>"><button name="action" value="delete_job_platform">Löschen</button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
     <?php elseif ($page === 'admin_users'): ?>
         <?php
         if (!$currentUserIsAdmin) {
@@ -5339,6 +5532,23 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.28');
             syncCountry();
         })();
         </script>
+    <?php elseif ($page === 'job_platform_search'): ?>
+        <?php
+        seedJobPlatforms($db);
+        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+        $query = jobPreferenceQuery($preference);
+        $location = jobPreferenceLocation($preference, $currentUser);
+        $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
+        $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Bewerbung</p><h1>Jobsuche</h1></div><span><?= count($platformRows) ?> aktive Portale</span></div>
+        <section class="panel"><div class="section-head"><div><p class="eyebrow">Profilbasierte Suche</p><h2>Passende Jobs suchen</h2></div><a href="/?page=profile">Profilpräferenzen bearbeiten</a></div>
+            <?php if($query === ''): ?><p class="alert warning">Bitte pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“. Daraus baut die App die Portalsuchen.</p><?php else: ?><p class="meta-line">Suchbegriff: <strong><?= e($query) ?></strong><?= $location !== '' ? ' · Ort: <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
+            <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Total passende Jobs vorbereiten<input type="number" min="1" max="100" name="total_count" value="15"></label><fieldset class="check platform-choice-grid"><legend>Portale auswählen</legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" checked> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><button class="primary" name="action" value="generate_platform_search" <?= $query === '' || !$platformRows ? 'disabled' : '' ?>>Suchpaket erstellen</button></form>
+        </section>
+        <section class="panel" id="results"><div class="section-head"><div><p class="eyebrow">Bereit für Import</p><h2>Suchpaket</h2></div><?php if($searchResults): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="prepare_platform_import">In Schnellimport übernehmen</button></form><?php endif; ?></div>
+            <div class="dossier-list"><?php foreach($searchResults as $result): ?><article><strong><?= e((string)$result['name']) ?></strong><span><?= (int)$result['limit'] ?> Jobs · <?= e((string)$result['query']) ?><?= (string)$result['location'] !== '' ? ' · ' . e((string)$result['location']) : '' ?></span><a href="<?= e((string)$result['url']) ?>" target="_blank" rel="noopener"><?= e((string)$result['url']) ?></a><p class="meta-line">Öffne das Portal, wähle passende Stellen aus und importiere konkrete Stellen-URLs über den Schnellimport.</p></article><?php endforeach; ?><?php if(!$searchResults): ?><p class="empty">Noch kein Suchpaket erstellt.</p><?php endif; ?></div>
+        </section>
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $companyFilter = (int)($_GET['company_id'] ?? 0); $jobView = ($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
@@ -5364,9 +5574,11 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.28');
         $jobCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
         $jobContacts = $edit ? dbAll($db, 'SELECT c.id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, co.name company_name, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.owner_user_id=c.owner_user_id) log_count FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL AND (c.job_id=? OR c.company_id=?) ORDER BY CASE WHEN c.job_id=? THEN 0 ELSE 1 END, c.last_name, c.first_name', 'iiii', [userId(), (int)$edit['id'], (int)$edit['company_id'], (int)$edit['id']]) : [];
         $jobQuestions = $edit ? dbAll($db, 'SELECT id, question_text, answer_text, sort_order, created_at FROM job_questions WHERE owner_user_id=? AND job_id=? AND deleted_at IS NULL ORDER BY sort_order, id', 'ii', [userId(), (int)$edit['id']]) : [];
+        $platformImportPayload = (string)($_SESSION['platform_import_payload'] ?? '');
+        unset($_SESSION['platform_import_payload']);
         ?>
         <div class="page-head"><div><p class="eyebrow">Stellen-Pipeline</p><h1>Jobs</h1></div><span><?= count($jobs) ?> Treffer</span></div>
-        <section class="panel import-panel"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form></section>
+        <section class="panel import-panel" id="quick-import"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required><?= e($platformImportPayload) ?></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line">Suchlinks aus der Jobsuche übernommen. Für den besten Import auf dem Portal die konkrete Stellenanzeige öffnen und deren URL importieren.</p><?php endif; ?></section>
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>">Karten</a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>">Tabelle</a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
         <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : ($draft ? 'Import prüfen' : 'Job erfassen') ?></h2><form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">

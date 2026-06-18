@@ -773,6 +773,20 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 .doc-choice input { margin-top: 3px; }
 .doc-choice strong, .doc-choice small { display: block; }
 .doc-choice.is-attached { border-color: var(--accent-border); background: var(--accent-soft); }
+.platform-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+.platform-choice-grid label {
+    border: 1.5px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    padding: 10px;
+    align-items: flex-start;
+}
+.platform-choice-grid span,
+.platform-choice-grid small { display: block; }
 .application-documents article { cursor: grab; }
 .application-documents article:active { cursor: grabbing; }
 
