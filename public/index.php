@@ -3477,12 +3477,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'generate_platform_search') {
         $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
-        $query = jobPreferenceQuery($preference);
+        $query = trim((string)($_POST['search_query'] ?? ''));
+        if ($query === '') {
+            $query = jobPreferenceQuery($preference);
+        }
         $location = jobPreferenceLocation($preference, $currentUser);
         $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
         $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
         if ($query === '') {
-            flash('Bitte im Profil zuerst gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
+            flash('Bitte einen Suchbegriff erfassen oder im Profil gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
             redirect('/?page=job_platform_search');
         }
         if (!$platformIds) {
@@ -4821,7 +4824,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.29');
+$appVersion = (string) ($config['app_version'] ?? '0.14.30');
 
 ?><!doctype html>
 <html lang="de">
@@ -5543,8 +5546,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.29');
         ?>
         <div class="page-head"><div><p class="eyebrow">Bewerbung</p><h1>Jobsuche</h1></div><span><?= count($platformRows) ?> aktive Portale</span></div>
         <section class="panel"><div class="section-head"><div><p class="eyebrow">Profilbasierte Suche</p><h2>Passende Jobs suchen</h2></div><a href="/?page=profile">Profilpräferenzen bearbeiten</a></div>
-            <?php if($query === ''): ?><p class="alert warning">Bitte pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“. Daraus baut die App die Portalsuchen.</p><?php else: ?><p class="meta-line">Suchbegriff: <strong><?= e($query) ?></strong><?= $location !== '' ? ' · Ort: <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
-            <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Total passende Jobs vorbereiten<input type="number" min="1" max="100" name="total_count" value="15"></label><fieldset class="check platform-choice-grid"><legend>Portale auswählen</legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" checked> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><button class="primary" name="action" value="generate_platform_search" <?= $query === '' || !$platformRows ? 'disabled' : '' ?>>Suchpaket erstellen</button></form>
+            <?php if($query === ''): ?><p class="alert warning">Bitte erfasse unten einen Suchbegriff oder pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“.</p><?php else: ?><p class="meta-line">Suchbegriff aus Profil: <strong><?= e($query) ?></strong><?= $location !== '' ? ' · Ort: <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
+            <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label>Suchbegriff<input name="search_query" value="<?= e($query) ?>" placeholder="z. B. Backoffice, Administration, Kundendienst" required></label><label>Total passende Jobs vorbereiten<input type="number" min="1" max="100" name="total_count" value="15"></label><fieldset class="check platform-choice-grid"><legend>Portale auswählen</legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" checked> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><button class="primary" name="action" value="generate_platform_search" <?= !$platformRows ? 'disabled' : '' ?>>Suchpaket erstellen</button></form>
         </section>
         <section class="panel" id="results"><div class="section-head"><div><p class="eyebrow">Bereit für Import</p><h2>Suchpaket</h2></div><?php if($searchResults): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="prepare_platform_import">In Schnellimport übernehmen</button></form><?php endif; ?></div>
             <div class="dossier-list"><?php foreach($searchResults as $result): ?><article><strong><?= e((string)$result['name']) ?></strong><span><?= (int)$result['limit'] ?> Jobs · <?= e((string)$result['query']) ?><?= (string)$result['location'] !== '' ? ' · ' . e((string)$result['location']) : '' ?></span><a href="<?= e((string)$result['url']) ?>" target="_blank" rel="noopener"><?= e((string)$result['url']) ?></a><p class="meta-line">Öffne das Portal, wähle passende Stellen aus und importiere konkrete Stellen-URLs über den Schnellimport.</p></article><?php endforeach; ?><?php if(!$searchResults): ?><p class="empty">Noch kein Suchpaket erstellt.</p><?php endif; ?></div>
