@@ -4829,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.35');
+$appVersion = (string) ($config['app_version'] ?? '0.14.36');
 
 ?><!doctype html>
 <html lang="de">
@@ -5673,7 +5673,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.35');
         unset($_SESSION['platform_import_payload']);
         ?>
         <div class="page-head"><div><p class="eyebrow">Stellen-Pipeline</p><h1>Jobs</h1></div><span><?= count($jobs) ?> Treffer</span></div>
-        <section class="panel import-panel" id="quick-import"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required><?= e($platformImportPayload) ?></textarea><button class="primary" name="action" value="preview_import">Vorschlag erstellen</button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line">Suchlinks aus der Jobsuche übernommen. Für den besten Import auf dem Portal die konkrete Stellenanzeige öffnen und deren URL importieren.</p><?php endif; ?></section>
+        <section class="panel import-panel" id="quick-import"><h2>Schnellimport</h2><p>Eine Stellen-URL, kopierten E-Mail-/Ausschreibungstext oder mehrere Joblinks einfügen. Bei mehreren Links: ein Link pro Zeile. Original-PDFs werden nur mit echter Browser-Renderung abgelegt.</p><form method="post" class="import-form" data-progress-form data-progress-button-text="Vorschlag wird erstellt..." data-progress-steps="Import wird gelesen...|Links und Text werden geprüft...|Vorschlag wird vorbereitet...|Dubletten werden geprüft..."><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="preview_import"><textarea name="import_payload" rows="4" placeholder="https://…&#10;https://…&#10;oder Titel, Firma, Ort und Ausschreibungstext" required><?= e($platformImportPayload) ?></textarea><div class="progress-box" data-progress-box hidden><div class="progress-title">Vorschlag wird erstellt</div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text>Import wird gelesen...</p></div><button class="primary" type="submit" data-progress-button>Vorschlag erstellen</button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line">Suchlinks aus der Jobsuche übernommen. Für den besten Import auf dem Portal die konkrete Stellenanzeige öffnen und deren URL importieren.</p><?php endif; ?></section>
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>">Karten</a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>">Tabelle</a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
         <div class="split"><section class="panel" id="new"><h2><?= $edit ? 'Job bearbeiten' : ($draft ? 'Import prüfen' : 'Job erfassen') ?></h2><form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
@@ -6007,26 +6007,28 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.35');
             const bar = form.querySelector('[data-progress-bar]');
             const text = form.querySelector('[data-progress-text]');
             const button = form.querySelector('[data-progress-button]');
-            const steps = [
+            const steps = (form.dataset.progressSteps || '').split('|').filter(Boolean);
+            const fallbackSteps = [
                 'Portale werden vorbereitet...',
                 'Suchbegriffe werden verteilt...',
                 'Suchlinks werden erstellt...',
                 'Suchpaket wird gespeichert...'
             ];
+            const messages = steps.length ? steps : fallbackSteps;
             let progress = 18;
             let step = 0;
             if (box) box.hidden = false;
             if (button) {
                 button.disabled = true;
-                button.textContent = 'Suchpaket wird erstellt...';
+                button.textContent = form.dataset.progressButtonText || 'Suchpaket wird erstellt...';
             }
             if (bar) bar.style.width = `${progress}%`;
-            if (text) text.textContent = steps[0];
+            if (text) text.textContent = messages[0];
             window.setInterval(() => {
                 progress = Math.min(progress + 18, 92);
-                step = Math.min(step + 1, steps.length - 1);
+                step = Math.min(step + 1, messages.length - 1);
                 if (bar) bar.style.width = `${progress}%`;
-                if (text) text.textContent = steps[step];
+                if (text) text.textContent = messages[step];
             }, 450);
         });
     });
