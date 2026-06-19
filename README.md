@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.15.11`.
+Aktueller dokumentierter Stand: Version `1.15.12`.
 
 ## Lizenz
 
@@ -23,9 +23,9 @@ Siehe [LICENSE.md](LICENSE.md).
 - Klassisches Shared Hosting mit `public/index.php` als Front Controller.
 - Keine Composer-Abhaengigkeiten im produktiven Kern.
 - Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Produktive UI-Sprache in Version `1.15.11`: Deutsch Schweiz (`de-CH`).
-  Weitere Sprachen bleiben Zielarchitektur und werden erst nach der
-  DB-basierten i18n-Migration wieder freigeschaltet.
+- Produktive UI-Sprache in Version `1.15.12`: Key-basierte Einstiegsseiten
+  zeigen wieder die Sprachwahl mit Flaggen. Arbeitsseiten bleiben Deutsch
+  Schweiz (`de-CH`), bis ihre Hardcodes in DB-Keys migriert sind.
 - UI-Texte werden schrittweise in die Datenbanktabellen `ui_text_keys` und
   `ui_text_translations` migriert. Das Audit-Werkzeug
   `tools/jobsearch_i18n_audit.php` zeigt verbliebene Hardcode-Kandidaten.

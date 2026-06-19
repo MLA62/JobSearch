@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.11`
+Produktversion: `1.15.12`
 
 JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
 realen Benutzern und vertraulichen Bewerbungsdaten.
@@ -66,10 +66,10 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.11`: Die produktive UI wird voruebergehend immer in
-  Deutsch Schweiz (`de-CH`) ausgeliefert. Die anderen Sprachen bleiben als
-  Zielarchitektur dokumentiert, werden aber erst nach vollstaendiger
-  DB-i18n-Migration wieder produktiv freigeschaltet.
+- Stand Version `1.15.12`: Key-basierte Einstiegsseiten duerfen mehrsprachig
+  ausgeliefert werden und zeigen die Flaggenauswahl. Arbeitsseiten bleiben
+  Deutsch Schweiz (`de-CH`), bis ihre sichtbaren Texte in DB-Keys migriert
+  sind.
 - `tr()` muss UI-Texte primaer aus der Datenbank lesen.
 - Fehlende alte `tr()`-Fallbacks duerfen waehrend der Migration automatisch in
   der Datenbank registriert werden.

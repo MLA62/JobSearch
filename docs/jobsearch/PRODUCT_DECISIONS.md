@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.11`
+Produktversion: `1.15.12`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -43,11 +43,11 @@ aufzubauen.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.11`: Die produktive Benutzeroberflaeche ist bewusst
-  Deutsch-only geschaltet, bis die DB-basierte i18n-Architektur vollstaendig
-  umgesetzt und getestet ist. Damit werden Mischsprachen in Produktion
-  vermieden.
-- Stand Version `1.15.11`: `tr()` liest UI-Texte zuerst aus den Tabellen
+- Stand Version `1.15.12`: Key-basierte Einstiegsseiten zeigen wieder die
+  Sprachwahl mit Flaggen. Arbeitsseiten bleiben bewusst Deutsch Schweiz, bis
+  ihre Hardcodes in DB-Keys migriert sind. Damit werden Mischsprachen in
+  Produktion vermieden.
+- Stand Version `1.15.12`: `tr()` liest UI-Texte zuerst aus den Tabellen
   `ui_text_keys` und `ui_text_translations`. Fehlende bisherige `tr()`-Keys
   werden als Migrationshilfe automatisch in der Datenbank registriert.
 - Das Werkzeug `tools/jobsearch_i18n_audit.php` liefert die Arbeitsliste der

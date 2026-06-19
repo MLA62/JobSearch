@@ -228,7 +228,17 @@ function e(?string $value): string
 
 function multilingualUiEnabled(): bool
 {
+    return true;
+}
+
+function legacyHtmlTranslationEnabled(): bool
+{
     return false;
+}
+
+function pageSupportsMultilingualUi(string $page): bool
+{
+    return in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor', 'help', 'about'], true);
 }
 
 function supportedLocales(): array
@@ -1282,6 +1292,20 @@ function rememberDbUiTextFallback(string $key, string $locale, string $text): vo
     }
 }
 
+function seedDbUiTextCatalog(): void
+{
+    static $seeded = false;
+    if ($seeded) {
+        return;
+    }
+    $seeded = true;
+    foreach (translationCatalog() as $locale => $texts) {
+        foreach ($texts as $key => $text) {
+            rememberDbUiTextFallback((string) $key, (string) $locale, (string) $text);
+        }
+    }
+}
+
 function legacyUiSupplementalTranslationCatalog(): array
 {
     return [
@@ -2321,7 +2345,7 @@ function translateUiHtml(string $html, string $locale): string
 function startUiTranslationBuffer(string $locale): void
 {
     $locale = normalizeLocale($locale);
-    if ($locale === 'de-CH') {
+    if ($locale === 'de-CH' || !legacyHtmlTranslationEnabled()) {
         return;
     }
     ob_start(static fn(string $buffer): string => translateUiHtml($buffer, $locale));
@@ -7045,9 +7069,13 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.11';
+if (!pageSupportsMultilingualUi($page)) {
+    $appLocale = 'de-CH';
+}
+$codeVersion = '1.15.12';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
+seedDbUiTextCatalog();
 if ($currentUser) {
     touchUserPresence($db, realUserId());
     if (realUserId() === userId()) {
