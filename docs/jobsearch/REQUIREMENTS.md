@@ -69,6 +69,12 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 - Unterstuetzte App-Sprachen sind Deutsch Schweiz (`de-CH`), Franzoesisch
   Schweiz (`fr-CH`), English UK (`en-GB`), Brasilianisch-Portugiesisch
   (`pt-BR`) und Mexikanisch-Spanisch (`es-MX`).
+- Sichtbare UI-Texte werden nicht mehr als statische Textkataloge in PHP,
+  JavaScript, Markdown oder anderen Ressourcen-Dateien gepflegt.
+- Sichtbare UI-Texte werden ueber stabile Keys aus der Datenbank gelesen.
+- Die Datenbanktabellen fuer UI-Texte sind `ui_text_keys` und
+  `ui_text_translations`; `languages` bleibt die fuehrende Sprachtabelle.
+- Der Code darf neue sichtbare UI-Texte nur noch per Key referenzieren.
 - Vor dem Login wird die Sprache anhand der Browsersprache gewaehlt, sofern
   sie unterstuetzt ist; sonst gilt Deutsch Schweiz.
 - Beim Login gibt es eine kleine Flaggenauswahl.
