@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.15.8`.
+Aktueller dokumentierter Stand: Version `1.15.9`.
 
 ## Lizenz
 
