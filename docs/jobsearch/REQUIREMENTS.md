@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.9`
+Produktversion: `1.15.10`
 
 JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
 realen Benutzern und vertraulichen Bewerbungsdaten.
@@ -66,6 +66,10 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 
 ## Mehrsprachigkeit
 
+- Stand Version `1.15.10`: Die produktive UI wird voruebergehend immer in
+  Deutsch Schweiz (`de-CH`) ausgeliefert. Die anderen Sprachen bleiben als
+  Zielarchitektur dokumentiert, werden aber erst nach vollstaendiger
+  DB-i18n-Migration wieder produktiv freigeschaltet.
 - Unterstuetzte App-Sprachen sind Deutsch Schweiz (`de-CH`), Franzoesisch
   Schweiz (`fr-CH`), English UK (`en-GB`), Brasilianisch-Portugiesisch
   (`pt-BR`) und Mexikanisch-Spanisch (`es-MX`).

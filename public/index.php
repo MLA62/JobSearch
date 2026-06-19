@@ -193,8 +193,18 @@ function e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function multilingualUiEnabled(): bool
+{
+    return false;
+}
+
 function supportedLocales(): array
 {
+    if (!multilingualUiEnabled()) {
+        return [
+            'de-CH' => ['name' => 'Deutsch (Schweiz)', 'native' => 'Deutsch', 'code' => 'DE'],
+        ];
+    }
     return [
         'de-CH' => ['name' => 'Deutsch (Schweiz)', 'native' => 'Deutsch', 'code' => 'DE'],
         'fr-CH' => ['name' => 'Français (Suisse)', 'native' => 'Français', 'code' => 'FR'],
@@ -206,6 +216,9 @@ function supportedLocales(): array
 
 function normalizeLocale(?string $locale): string
 {
+    if (!multilingualUiEnabled()) {
+        return 'de-CH';
+    }
     $locale = strtolower(str_replace('_', '-', trim((string) $locale)));
     if ($locale === '') {
         return 'de-CH';
@@ -308,6 +321,9 @@ function languageUrl(string $locale): string
 
 function languagePickerHtml(string $activeLocale, string $modifier = ''): string
 {
+    if (!multilingualUiEnabled()) {
+        return '';
+    }
     $activeLocale = normalizeLocale($activeLocale);
     ob_start();
     ?>
@@ -1501,6 +1517,120 @@ function legacyUiQualityPatchTranslationCatalog(): array
             'Beworbener Job' => 'Emploi postulé',
             'Durchgeführte Aktivitäten' => 'Activités effectuées',
             'PDF erstellen' => 'Créer le PDF',
+            'enthält' => 'contient',
+            'Warum' => 'Pourquoi',
+            'Remote-Arbeit möglich' => 'Travail à distance possible',
+            'Lohn ist angegeben' => 'Salaire indiqué',
+            'Detaillierte Ausschreibung' => 'Annonce détaillée',
+            'Als interessant markiert' => 'Marqué comme intéressant',
+            'Noch nicht genügend Daten für eine Detailbewertung' => 'Pas encore assez de données pour une évaluation détaillée',
+            'Unbekannt' => 'Inconnu',
+            'Dauerstelle' => 'Poste fixe',
+            'Temporärstelle' => 'Poste temporaire',
+            'Noch unbekannt' => 'Pas encore connu',
+            'Unbefristet' => 'Durée indéterminée',
+            'Befristet' => 'Durée limitée',
+            'Dauer offen' => 'Durée ouverte',
+            'Zeitplan' => 'Planning',
+            'Kalender & Erinnerungen' => 'Calendrier & rappels',
+            'Arbeitswoche' => 'Semaine de travail',
+            'Arbeitswochenplan' => 'Plan de la semaine de travail',
+            'Geplant' => 'Planifié',
+            'Erledigt' => 'Terminé',
+            'Abgebrochen' => 'Annulé',
+            'Entwurf' => 'Brouillon',
+            'Bereit' => 'Prêt',
+            'Bestätigt' => 'Confirmé',
+            'Angebot' => 'Offre',
+            'Angenommen' => 'Accepté',
+            'Absage' => 'Refus',
+            'Zurückgezogen' => 'Retiré',
+            'Abgeschlossen' => 'Clos',
+            'Offen' => 'Ouvert',
+            'Interessant' => 'Intéressant',
+            'Beworben' => 'Postulé',
+            'Geschlossen' => 'Fermé',
+            'Interne Notizen' => 'Notes internes',
+            'Statusverlauf' => 'Historique du statut',
+            'Bewerbung speichern' => 'Enregistrer la candidature',
+            'Online eingereicht' => 'Déposé en ligne',
+            'E-Mail senden' => 'Envoyer l’e-mail',
+            'Betreff kopieren' => 'Copier l’objet',
+            'Begleittext kopieren' => 'Copier le texte d’accompagnement',
+            'Motivation kopieren' => 'Copier la motivation',
+            'Online-Bewerbungs-URL' => 'URL de candidature en ligne',
+            'Portal / Login-Hinweis' => 'Portail / note de connexion',
+            'Referenznummer' => 'Numéro de référence',
+            'Vermittlerfirma' => 'Entreprise intermédiaire',
+            'Direktbewerbung ohne Vermittler' => 'Candidature directe sans intermédiaire',
+            'Zuordnung speichern' => 'Enregistrer l’attribution',
+            'Nach dem Absenden auf der externen Webseite hier “Online eingereicht” klicken. Dann werden Status, Pendent und Kalender automatisch gesetzt.' => 'Après l’envoi sur le site externe, clique ici sur « Déposé en ligne ». Le statut, les éléments en suspens et le calendrier seront alors définis automatiquement.',
+            'Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.' => 'Ajoute tes propres données SMTP dans le profil pour envoyer des e-mails directement depuis l’app. Jusque-là, le brouillon est seulement journalisé.',
+            'Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.' => 'La sélection affiche uniquement les entreprises marquées comme intermédiaires possibles dans la fiche entreprise.',
+            'Profilbasierte Suche' => 'Recherche basée sur le profil',
+            'Passende Jobs suchen' => 'Rechercher des emplois correspondants',
+            'Passende Empleos suchen' => 'Rechercher des emplois correspondants',
+            'Profilpräferenzen bearbeiten' => 'Modifier les préférences du profil',
+            'Suchbegriff' => 'Terme de recherche',
+            'Bitte erfasse unten einen Suchbegriff oder pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“.' => 'Saisis ci-dessous un terme de recherche ou renseigne d’abord « Activités / rôles souhaités » dans le profil.',
+            'ChatGPT Recherche' => 'Recherche ChatGPT',
+            'Prompt für konkrete Joblinks' => 'Prompt pour des liens d’emploi concrets',
+            'Prompt kopieren' => 'Copier le prompt',
+            'Zum Schnellimport' => 'Vers l’import rapide',
+            'Ergibt sich aus Region' => 'Déduit de la région',
+            'Land' => 'Pays',
+            'Gewünschte Tätigkeiten / Rollen' => 'Activités / rôles souhaités',
+            'Gewünschte Orte / Lage' => 'Lieux / situation souhaités',
+            'Stellenarten' => 'Types de poste',
+            'Vollzeit' => 'Temps plein',
+            'Teilzeit' => 'Temps partiel',
+            'Temporär' => 'Temporaire',
+            'Befristet/Vertrag' => 'Durée limitée / contrat',
+            'Praktikum' => 'Stage',
+            'PK / Extras / Benefits' => 'Caisse de pension / extras / avantages',
+            'Ausschlüsse' => 'Exclusions',
+            'Suchpaket' => 'Paquet de recherche',
+            'Noch kein Suchpaket erstellt.' => 'Aucun paquet de recherche créé.',
+            'In ChatGPT einfügen. Die zurückgegebenen direkten Stellenlinks danach im Schnellimport einfügen.' => 'Coller dans ChatGPT. Coller ensuite les liens directs retournés dans l’import rapide.',
+            'Kontakt' => 'Contact',
+            'Firma' => 'Entreprise',
+            'Erreichbar' => 'Coordonnées',
+            'CRM-Bezug' => 'Référence CRM',
+            'Aktionen' => 'Actions',
+            'Bewerbungen' => 'Candidatures',
+            'Bewerbung' => 'Candidature',
+            'Nächster Schritt' => 'Prochaine étape',
+            'Pendent' => 'En suspens',
+            'Fällig' => 'Échéance',
+            'Kanal' => 'Canal',
+            'Status' => 'Statut',
+            'Arbeitsmodell' => 'Mode de travail',
+            'Aktualisiert' => 'Mis à jour',
+            'Ort' => 'Lieu',
+            'Titel' => 'Titre',
+            'Name' => 'Nom',
+            'Dokument' => 'Document',
+            'Datum' => 'Date',
+            'Version' => 'Version',
+            'Typ' => 'Type',
+            'Anhang' => 'Pièce jointe',
+            'Datei auswählen' => 'Choisir le fichier',
+            'Aktivität speichern' => 'Enregistrer l’activité',
+            'Ergebnis / nächster Schritt' => 'Résultat / prochaine étape',
+            'Andere' => 'Autre',
+            'outgoing' => 'sortant',
+            'incoming' => 'entrant',
+            'Stellenart' => 'Type de poste',
+            'Vertragsdauer' => 'Durée du contrat',
+            'Befristet von' => 'Limité du',
+            'Befristet bis' => 'Limité jusqu’au',
+            'Lohn' => 'Salaire',
+            'Format' => 'Format',
+            'pro Stunde' => 'par heure',
+            'pro Monat' => 'par mois',
+            'pro Jahr' => 'par an',
+            'Vor Ort' => 'Sur site',
+            'Remote' => 'Télétravail',
         ],
         'en-GB' => [
             'Konto erstellen' => 'Create account',
@@ -1542,6 +1672,120 @@ function legacyUiQualityPatchTranslationCatalog(): array
             'Beworbener Job' => 'Applied job',
             'Durchgeführte Aktivitäten' => 'Completed activities',
             'PDF erstellen' => 'Create PDF',
+            'enthält' => 'contains',
+            'Warum' => 'Why',
+            'Remote-Arbeit möglich' => 'Remote work possible',
+            'Lohn ist angegeben' => 'Salary is specified',
+            'Detaillierte Ausschreibung' => 'Detailed job posting',
+            'Als interessant markiert' => 'Marked as interesting',
+            'Noch nicht genügend Daten für eine Detailbewertung' => 'Not enough data for a detailed assessment yet',
+            'Unbekannt' => 'Unknown',
+            'Dauerstelle' => 'Permanent position',
+            'Temporärstelle' => 'Temporary position',
+            'Noch unbekannt' => 'Not known yet',
+            'Unbefristet' => 'Open-ended',
+            'Befristet' => 'Fixed-term',
+            'Dauer offen' => 'Duration open',
+            'Zeitplan' => 'Schedule',
+            'Kalender & Erinnerungen' => 'Calendar & reminders',
+            'Arbeitswoche' => 'Work week',
+            'Arbeitswochenplan' => 'Work week plan',
+            'Geplant' => 'Planned',
+            'Erledigt' => 'Completed',
+            'Abgebrochen' => 'Cancelled',
+            'Entwurf' => 'Draft',
+            'Bereit' => 'Ready',
+            'Bestätigt' => 'Confirmed',
+            'Angebot' => 'Offer',
+            'Angenommen' => 'Accepted',
+            'Absage' => 'Rejected',
+            'Zurückgezogen' => 'Withdrawn',
+            'Abgeschlossen' => 'Closed',
+            'Offen' => 'Open',
+            'Interessant' => 'Interesting',
+            'Beworben' => 'Applied',
+            'Geschlossen' => 'Closed',
+            'Interne Notizen' => 'Internal notes',
+            'Statusverlauf' => 'Status history',
+            'Bewerbung speichern' => 'Save application',
+            'Online eingereicht' => 'Submitted online',
+            'E-Mail senden' => 'Send email',
+            'Betreff kopieren' => 'Copy subject',
+            'Begleittext kopieren' => 'Copy message',
+            'Motivation kopieren' => 'Copy motivation',
+            'Online-Bewerbungs-URL' => 'Online application URL',
+            'Portal / Login-Hinweis' => 'Portal / login note',
+            'Referenznummer' => 'Reference number',
+            'Vermittlerfirma' => 'Intermediary company',
+            'Direktbewerbung ohne Vermittler' => 'Direct application without intermediary',
+            'Zuordnung speichern' => 'Save assignment',
+            'Nach dem Absenden auf der externen Webseite hier “Online eingereicht” klicken. Dann werden Status, Pendent und Kalender automatisch gesetzt.' => 'After submitting on the external website, click “Submitted online” here. Status, pending item and calendar will then be set automatically.',
+            'Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.' => 'Add your own SMTP settings in the profile to send emails directly from the app. Until then, the draft is only logged.',
+            'Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.' => 'The selection only shows companies marked as possible intermediaries in the company form.',
+            'Profilbasierte Suche' => 'Profile-based search',
+            'Passende Jobs suchen' => 'Search matching jobs',
+            'Passende Empleos suchen' => 'Search matching jobs',
+            'Profilpräferenzen bearbeiten' => 'Edit profile preferences',
+            'Suchbegriff' => 'Search term',
+            'Bitte erfasse unten einen Suchbegriff oder pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“.' => 'Enter a search term below or first maintain “Desired activities / roles” in your profile.',
+            'ChatGPT Recherche' => 'ChatGPT research',
+            'Prompt für konkrete Joblinks' => 'Prompt for concrete job links',
+            'Prompt kopieren' => 'Copy prompt',
+            'Zum Schnellimport' => 'To quick import',
+            'Ergibt sich aus Region' => 'Derived from region',
+            'Land' => 'Country',
+            'Gewünschte Tätigkeiten / Rollen' => 'Desired activities / roles',
+            'Gewünschte Orte / Lage' => 'Desired places / location',
+            'Stellenarten' => 'Job types',
+            'Vollzeit' => 'Full-time',
+            'Teilzeit' => 'Part-time',
+            'Temporär' => 'Temporary',
+            'Befristet/Vertrag' => 'Fixed-term / contract',
+            'Praktikum' => 'Internship',
+            'PK / Extras / Benefits' => 'Pension / extras / benefits',
+            'Ausschlüsse' => 'Exclusions',
+            'Suchpaket' => 'Search package',
+            'Noch kein Suchpaket erstellt.' => 'No search package created yet.',
+            'In ChatGPT einfügen. Die zurückgegebenen direkten Stellenlinks danach im Schnellimport einfügen.' => 'Paste into ChatGPT. Then paste the returned direct job links into quick import.',
+            'Kontakt' => 'Contact',
+            'Firma' => 'Company',
+            'Erreichbar' => 'Reachable',
+            'CRM-Bezug' => 'CRM reference',
+            'Aktionen' => 'Actions',
+            'Bewerbungen' => 'Applications',
+            'Bewerbung' => 'Application',
+            'Nächster Schritt' => 'Next step',
+            'Pendent' => 'Pending',
+            'Fällig' => 'Due',
+            'Kanal' => 'Channel',
+            'Status' => 'Status',
+            'Arbeitsmodell' => 'Work model',
+            'Aktualisiert' => 'Updated',
+            'Ort' => 'Location',
+            'Titel' => 'Title',
+            'Name' => 'Name',
+            'Dokument' => 'Document',
+            'Datum' => 'Date',
+            'Version' => 'Version',
+            'Typ' => 'Type',
+            'Anhang' => 'Attachment',
+            'Datei auswählen' => 'Choose file',
+            'Aktivität speichern' => 'Save activity',
+            'Ergebnis / nächster Schritt' => 'Result / next step',
+            'Andere' => 'Other',
+            'outgoing' => 'outgoing',
+            'incoming' => 'incoming',
+            'Stellenart' => 'Job type',
+            'Vertragsdauer' => 'Contract duration',
+            'Befristet von' => 'Fixed-term from',
+            'Befristet bis' => 'Fixed-term until',
+            'Lohn' => 'Salary',
+            'Format' => 'Format',
+            'pro Stunde' => 'per hour',
+            'pro Monat' => 'per month',
+            'pro Jahr' => 'per year',
+            'Vor Ort' => 'On-site',
+            'Remote' => 'Remote',
         ],
         'pt-BR' => [
             'Konto erstellen' => 'Criar conta',
@@ -1583,6 +1827,120 @@ function legacyUiQualityPatchTranslationCatalog(): array
             'Beworbener Job' => 'Vaga candidatada',
             'Durchgeführte Aktivitäten' => 'Atividades realizadas',
             'PDF erstellen' => 'Criar PDF',
+            'enthält' => 'contém',
+            'Warum' => 'Por que',
+            'Remote-Arbeit möglich' => 'Trabalho remoto possível',
+            'Lohn ist angegeben' => 'Salário informado',
+            'Detaillierte Ausschreibung' => 'Anúncio detalhado',
+            'Als interessant markiert' => 'Marcado como interessante',
+            'Noch nicht genügend Daten für eine Detailbewertung' => 'Ainda não há dados suficientes para uma avaliação detalhada',
+            'Unbekannt' => 'Desconhecido',
+            'Dauerstelle' => 'Vaga permanente',
+            'Temporärstelle' => 'Vaga temporária',
+            'Noch unbekannt' => 'Ainda desconhecido',
+            'Unbefristet' => 'Sem prazo determinado',
+            'Befristet' => 'Prazo determinado',
+            'Dauer offen' => 'Duração em aberto',
+            'Zeitplan' => 'Agenda',
+            'Kalender & Erinnerungen' => 'Calendário & lembretes',
+            'Arbeitswoche' => 'Semana de trabalho',
+            'Arbeitswochenplan' => 'Plano da semana de trabalho',
+            'Geplant' => 'Planejado',
+            'Erledigt' => 'Concluído',
+            'Abgebrochen' => 'Cancelado',
+            'Entwurf' => 'Rascunho',
+            'Bereit' => 'Pronto',
+            'Bestätigt' => 'Confirmado',
+            'Angebot' => 'Oferta',
+            'Angenommen' => 'Aceito',
+            'Absage' => 'Recusado',
+            'Zurückgezogen' => 'Retirado',
+            'Abgeschlossen' => 'Encerrado',
+            'Offen' => 'Aberto',
+            'Interessant' => 'Interessante',
+            'Beworben' => 'Candidatado',
+            'Geschlossen' => 'Fechado',
+            'Interne Notizen' => 'Notas internas',
+            'Statusverlauf' => 'Histórico de status',
+            'Bewerbung speichern' => 'Salvar candidatura',
+            'Online eingereicht' => 'Enviado on-line',
+            'E-Mail senden' => 'Enviar e-mail',
+            'Betreff kopieren' => 'Copiar assunto',
+            'Begleittext kopieren' => 'Copiar texto de acompanhamento',
+            'Motivation kopieren' => 'Copiar motivação',
+            'Online-Bewerbungs-URL' => 'URL da candidatura on-line',
+            'Portal / Login-Hinweis' => 'Portal / nota de login',
+            'Referenznummer' => 'Número de referência',
+            'Vermittlerfirma' => 'Empresa intermediária',
+            'Direktbewerbung ohne Vermittler' => 'Candidatura direta sem intermediário',
+            'Zuordnung speichern' => 'Salvar atribuição',
+            'Nach dem Absenden auf der externen Webseite hier “Online eingereicht” klicken. Dann werden Status, Pendent und Kalender automatisch gesetzt.' => 'Depois de enviar no site externo, clique aqui em “Enviado on-line”. O status, a pendência e o calendário serão definidos automaticamente.',
+            'Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.' => 'Adicione seus próprios dados SMTP no perfil para enviar e-mails diretamente pelo app. Até lá, o rascunho será apenas registrado.',
+            'Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.' => 'A seleção mostra apenas empresas marcadas como possíveis intermediárias na ficha da empresa.',
+            'Profilbasierte Suche' => 'Busca baseada no perfil',
+            'Passende Jobs suchen' => 'Buscar vagas adequadas',
+            'Passende Empleos suchen' => 'Buscar vagas adequadas',
+            'Profilpräferenzen bearbeiten' => 'Editar preferências do perfil',
+            'Suchbegriff' => 'Termo de busca',
+            'Bitte erfasse unten einen Suchbegriff oder pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“.' => 'Informe abaixo um termo de busca ou primeiro preencha “Atividades / funções desejadas” no perfil.',
+            'ChatGPT Recherche' => 'Pesquisa ChatGPT',
+            'Prompt für konkrete Joblinks' => 'Prompt para links concretos de vagas',
+            'Prompt kopieren' => 'Copiar prompt',
+            'Zum Schnellimport' => 'Para importação rápida',
+            'Ergibt sich aus Region' => 'Derivado da região',
+            'Land' => 'País',
+            'Gewünschte Tätigkeiten / Rollen' => 'Atividades / funções desejadas',
+            'Gewünschte Orte / Lage' => 'Locais / localização desejados',
+            'Stellenarten' => 'Tipos de vaga',
+            'Vollzeit' => 'Tempo integral',
+            'Teilzeit' => 'Meio período',
+            'Temporär' => 'Temporário',
+            'Befristet/Vertrag' => 'Prazo determinado / contrato',
+            'Praktikum' => 'Estágio',
+            'PK / Extras / Benefits' => 'Previdência / extras / benefícios',
+            'Ausschlüsse' => 'Exclusões',
+            'Suchpaket' => 'Pacote de busca',
+            'Noch kein Suchpaket erstellt.' => 'Nenhum pacote de busca criado ainda.',
+            'In ChatGPT einfügen. Die zurückgegebenen direkten Stellenlinks danach im Schnellimport einfügen.' => 'Cole no ChatGPT. Depois cole os links diretos de vagas retornados na importação rápida.',
+            'Kontakt' => 'Contato',
+            'Firma' => 'Empresa',
+            'Erreichbar' => 'Contato',
+            'CRM-Bezug' => 'Referência CRM',
+            'Aktionen' => 'Ações',
+            'Bewerbungen' => 'Candidaturas',
+            'Bewerbung' => 'Candidatura',
+            'Nächster Schritt' => 'Próximo passo',
+            'Pendent' => 'Pendente',
+            'Fällig' => 'Vencimento',
+            'Kanal' => 'Canal',
+            'Status' => 'Status',
+            'Arbeitsmodell' => 'Modelo de trabalho',
+            'Aktualisiert' => 'Atualizado',
+            'Ort' => 'Local',
+            'Titel' => 'Título',
+            'Name' => 'Nome',
+            'Dokument' => 'Documento',
+            'Datum' => 'Data',
+            'Version' => 'Versão',
+            'Typ' => 'Tipo',
+            'Anhang' => 'Anexo',
+            'Datei auswählen' => 'Escolher arquivo',
+            'Aktivität speichern' => 'Salvar atividade',
+            'Ergebnis / nächster Schritt' => 'Resultado / próximo passo',
+            'Andere' => 'Outro',
+            'outgoing' => 'saída',
+            'incoming' => 'entrada',
+            'Stellenart' => 'Tipo de vaga',
+            'Vertragsdauer' => 'Duração do contrato',
+            'Befristet von' => 'Prazo de',
+            'Befristet bis' => 'Prazo até',
+            'Lohn' => 'Salário',
+            'Format' => 'Formato',
+            'pro Stunde' => 'por hora',
+            'pro Monat' => 'por mês',
+            'pro Jahr' => 'por ano',
+            'Vor Ort' => 'Presencial',
+            'Remote' => 'Remoto',
         ],
         'es-MX' => [
             'Konto erstellen' => 'Crear cuenta',
@@ -1624,6 +1982,120 @@ function legacyUiQualityPatchTranslationCatalog(): array
             'Beworbener Job' => 'Empleo postulado',
             'Durchgeführte Aktivitäten' => 'Actividades realizadas',
             'PDF erstellen' => 'Crear PDF',
+            'enthält' => 'contiene',
+            'Warum' => 'Por qué',
+            'Remote-Arbeit möglich' => 'Trabajo remoto posible',
+            'Lohn ist angegeben' => 'Salario indicado',
+            'Detaillierte Ausschreibung' => 'Anuncio detallado',
+            'Als interessant markiert' => 'Marcado como interesante',
+            'Noch nicht genügend Daten für eine Detailbewertung' => 'Aún no hay datos suficientes para una evaluación detallada',
+            'Unbekannt' => 'Desconocido',
+            'Dauerstelle' => 'Empleo permanente',
+            'Temporärstelle' => 'Empleo temporal',
+            'Noch unbekannt' => 'Aún desconocido',
+            'Unbefristet' => 'Indefinido',
+            'Befristet' => 'Plazo fijo',
+            'Dauer offen' => 'Duración abierta',
+            'Zeitplan' => 'Planificación',
+            'Kalender & Erinnerungen' => 'Calendario & recordatorios',
+            'Arbeitswoche' => 'Semana laboral',
+            'Arbeitswochenplan' => 'Plan de semana laboral',
+            'Geplant' => 'Planificado',
+            'Erledigt' => 'Completado',
+            'Abgebrochen' => 'Cancelado',
+            'Entwurf' => 'Borrador',
+            'Bereit' => 'Listo',
+            'Bestätigt' => 'Confirmado',
+            'Angebot' => 'Oferta',
+            'Angenommen' => 'Aceptado',
+            'Absage' => 'Rechazado',
+            'Zurückgezogen' => 'Retirado',
+            'Abgeschlossen' => 'Cerrado',
+            'Offen' => 'Abierto',
+            'Interessant' => 'Interesante',
+            'Beworben' => 'Postulado',
+            'Geschlossen' => 'Cerrado',
+            'Interne Notizen' => 'Notas internas',
+            'Statusverlauf' => 'Historial de estado',
+            'Bewerbung speichern' => 'Guardar postulación',
+            'Online eingereicht' => 'Enviado en línea',
+            'E-Mail senden' => 'Enviar correo electrónico',
+            'Betreff kopieren' => 'Copiar asunto',
+            'Begleittext kopieren' => 'Copiar texto de acompañamiento',
+            'Motivation kopieren' => 'Copiar motivación',
+            'Online-Bewerbungs-URL' => 'URL de postulación en línea',
+            'Portal / Login-Hinweis' => 'Portal / nota de inicio de sesión',
+            'Referenznummer' => 'Número de referencia',
+            'Vermittlerfirma' => 'Empresa intermediaria',
+            'Direktbewerbung ohne Vermittler' => 'Postulación directa sin intermediario',
+            'Zuordnung speichern' => 'Guardar asignación',
+            'Nach dem Absenden auf der externen Webseite hier “Online eingereicht” klicken. Dann werden Status, Pendent und Kalender automatisch gesetzt.' => 'Después de enviar en el sitio web externo, haz clic aquí en “Enviado en línea”. El estado, los pendientes y el calendario se configurarán automáticamente.',
+            'Lege im Profil eigene SMTP-Daten an, um E-Mails direkt aus der App zu versenden. Bis dahin wird der Entwurf nur protokolliert.' => 'Configura tus propios datos SMTP en el perfil para enviar correos directamente desde la app. Hasta entonces, el borrador solo se registra.',
+            'Auswahl zeigt nur Firmen, die in der Firmenmaske als möglicher Vermittler markiert sind.' => 'La selección muestra solo empresas marcadas como posibles intermediarias en la ficha de empresa.',
+            'Profilbasierte Suche' => 'Búsqueda basada en el perfil',
+            'Passende Jobs suchen' => 'Buscar empleos adecuados',
+            'Passende Empleos suchen' => 'Buscar empleos adecuados',
+            'Profilpräferenzen bearbeiten' => 'Editar preferencias del perfil',
+            'Suchbegriff' => 'Término de búsqueda',
+            'Bitte erfasse unten einen Suchbegriff oder pflege im Profil zuerst „Gewünschte Tätigkeiten / Rollen“.' => 'Ingresa abajo un término de búsqueda o primero completa “Actividades / roles deseados” en el perfil.',
+            'ChatGPT Recherche' => 'Investigación con ChatGPT',
+            'Prompt für konkrete Joblinks' => 'Prompt para enlaces concretos de empleo',
+            'Prompt kopieren' => 'Copiar prompt',
+            'Zum Schnellimport' => 'A importación rápida',
+            'Ergibt sich aus Region' => 'Se deriva de la región',
+            'Land' => 'País',
+            'Gewünschte Tätigkeiten / Rollen' => 'Actividades / roles deseados',
+            'Gewünschte Orte / Lage' => 'Lugares / ubicación deseados',
+            'Stellenarten' => 'Tipos de empleo',
+            'Vollzeit' => 'Tiempo completo',
+            'Teilzeit' => 'Tiempo parcial',
+            'Temporär' => 'Temporal',
+            'Befristet/Vertrag' => 'Plazo fijo / contrato',
+            'Praktikum' => 'Prácticas',
+            'PK / Extras / Benefits' => 'Pensión / extras / beneficios',
+            'Ausschlüsse' => 'Exclusiones',
+            'Suchpaket' => 'Paquete de búsqueda',
+            'Noch kein Suchpaket erstellt.' => 'Aún no se ha creado ningún paquete de búsqueda.',
+            'In ChatGPT einfügen. Die zurückgegebenen direkten Stellenlinks danach im Schnellimport einfügen.' => 'Pega esto en ChatGPT. Después pega los enlaces directos de empleos devueltos en la importación rápida.',
+            'Kontakt' => 'Contacto',
+            'Firma' => 'Empresa',
+            'Erreichbar' => 'Contacto',
+            'CRM-Bezug' => 'Referencia CRM',
+            'Aktionen' => 'Acciones',
+            'Bewerbungen' => 'Postulaciones',
+            'Bewerbung' => 'Postulación',
+            'Nächster Schritt' => 'Siguiente paso',
+            'Pendent' => 'Pendiente',
+            'Fällig' => 'Vence',
+            'Kanal' => 'Canal',
+            'Status' => 'Estado',
+            'Arbeitsmodell' => 'Modelo de trabajo',
+            'Aktualisiert' => 'Actualizado',
+            'Ort' => 'Lugar',
+            'Titel' => 'Título',
+            'Name' => 'Nombre',
+            'Dokument' => 'Documento',
+            'Datum' => 'Fecha',
+            'Version' => 'Versión',
+            'Typ' => 'Tipo',
+            'Anhang' => 'Adjunto',
+            'Datei auswählen' => 'Seleccionar archivo',
+            'Aktivität speichern' => 'Guardar actividad',
+            'Ergebnis / nächster Schritt' => 'Resultado / siguiente paso',
+            'Andere' => 'Otro',
+            'outgoing' => 'saliente',
+            'incoming' => 'entrante',
+            'Stellenart' => 'Tipo de empleo',
+            'Vertragsdauer' => 'Duración del contrato',
+            'Befristet von' => 'Plazo fijo desde',
+            'Befristet bis' => 'Plazo fijo hasta',
+            'Lohn' => 'Salario',
+            'Format' => 'Formato',
+            'pro Stunde' => 'por hora',
+            'pro Monat' => 'por mes',
+            'pro Jahr' => 'por año',
+            'Vor Ort' => 'Presencial',
+            'Remote' => 'Remoto',
         ],
     ];
 }
@@ -2985,6 +3457,32 @@ function reportStatusOptions(string $base): array
 function jobStatusOptions(): array
 {
     return ['open'=>'Offen','interesting'=>'Interessant','applied'=>'Beworben','interview'=>'Interview','offer'=>'Angebot','rejected'=>'Absage','closed'=>'Geschlossen'];
+}
+
+function workplaceTypeOptions(): array
+{
+    return ['unknown'=>'Unbekannt','onsite'=>'Vor Ort','hybrid'=>'Hybrid','remote'=>'Remote'];
+}
+
+function engagementTypeOptions(): array
+{
+    return ['permanent'=>'Dauerstelle','temporary'=>'Temporärstelle'];
+}
+
+function contractTermOptions(): array
+{
+    return ['unknown'=>'Noch unbekannt','open_ended'=>'Unbefristet','fixed_term'=>'Befristet'];
+}
+
+function salaryPeriodOptions(): array
+{
+    return ['hour'=>'pro Stunde','month'=>'pro Monat','year'=>'pro Jahr'];
+}
+
+function optionLabel(array $options, mixed $value): string
+{
+    $key = (string) $value;
+    return (string) ($options[$key] ?? $key);
 }
 
 function applicationStatusOptions(): array
@@ -6429,7 +6927,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.9';
+$codeVersion = '1.15.10';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -6653,15 +7151,19 @@ if ($page === 'export_csv') {
     requireLogin();
     $type = (string) ($_GET['type'] ?? 'jobs');
     if ($type === 'applications') {
+        $applicationStatuses = applicationStatusOptions();
+        $applicationChannels = applicationChannelOptions();
         $rows = dbAll($db, 'SELECT a.id, j.title, c.name company, a.status, a.channel, a.applied_at, a.next_action, a.next_action_at FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC', 'i', [userId()]);
-        csvResponse('bewerbungen.csv', ['Job','Firma','Status','Kanal','Gesendet','Nächster Schritt','Fällig'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['status'], $r['channel'], $r['applied_at'], $r['next_action'], $r['next_action_at']], $rows));
+        csvResponse('bewerbungen.csv', ['Job','Firma','Status','Kanal','Gesendet','Nächster Schritt','Fällig'], array_map(static fn(array $r): array => [$r['title'], $r['company'], optionLabel($applicationStatuses, $r['status']), optionLabel($applicationChannels, $r['channel']), $r['applied_at'], $r['next_action'], $r['next_action_at']], $rows));
     }
     if ($type === 'audit') {
         $rows = dbAll($db, 'SELECT action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 1000', 'i', [userId()]);
         csvResponse('audit.csv', ['Aktion','Typ','Zeit'], array_map(static fn(array $r): array => [$r['action'], $r['entity_type'], $r['created_at']], $rows));
     }
+    $jobStatuses = jobStatusOptions();
+    $workplaceTypes = workplaceTypeOptions();
     $rows = dbAll($db, 'SELECT j.id, j.title, c.name company, j.location_text, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC', 'i', [userId()]);
-    csvResponse('jobs.csv', ['Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], $r['status'], $r['workplace_type'], $r['updated_at']], $rows));
+    csvResponse('jobs.csv', ['Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], optionLabel($jobStatuses, $r['status']), optionLabel($workplaceTypes, $r['workplace_type']), $r['updated_at']], $rows));
 }
 if ($page === 'export_pdf') {
     requireLogin();
@@ -6675,8 +7177,10 @@ if ($page === 'export_pdf') {
         pdfResponse('report-' . $reportId . '.pdf', (string)$report['name'], $headers, $rows);
     }
     if ($type === 'applications') {
+        $applicationStatuses = applicationStatusOptions();
+        $applicationChannels = applicationChannelOptions();
         $rows = dbAll($db, 'SELECT a.id, j.title, c.name company, a.status, a.channel, a.applied_at, a.next_action FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC', 'i', [userId()]);
-        pdfResponse('bewerbungen.pdf', 'Bewerbungen', ['Job','Firma','Status','Kanal','Gesendet','Nächster Schritt'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['status'], $r['channel'], $r['applied_at'], $r['next_action']], $rows));
+        pdfResponse('bewerbungen.pdf', 'Bewerbungen', ['Job','Firma','Status','Kanal','Gesendet','Nächster Schritt'], array_map(static fn(array $r): array => [$r['title'], $r['company'], optionLabel($applicationStatuses, $r['status']), optionLabel($applicationChannels, $r['channel']), $r['applied_at'], $r['next_action']], $rows));
     }
     if ($type === 'companies') {
         $rows = dbAll($db, 'SELECT id, name, city, phone, website, updated_at FROM companies WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY name', 'i', [userId()]);
@@ -6690,8 +7194,10 @@ if ($page === 'export_pdf') {
         $rows = dbAll($db, 'SELECT d.id, d.title, dt.code type_code, d.version, d.original_filename, d.file_size, d.created_at FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY d.created_at DESC', 'i', [userId()]);
         pdfResponse('dokumente.pdf', 'Dokumente', ['Titel','Typ','Version','Datei','Größe','Datum'], array_map(static fn(array $r): array => [$r['title'], $r['type_code'], 'v'.$r['version'], $r['original_filename'], bytesLabel((int)$r['file_size']), $r['created_at']], $rows));
     }
+    $jobStatuses = jobStatusOptions();
+    $workplaceTypes = workplaceTypeOptions();
     $rows = dbAll($db, 'SELECT j.id, j.title, c.name company, j.location_text, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC', 'i', [userId()]);
-    pdfResponse('jobs.pdf', 'Jobs', ['Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], $r['status'], $r['workplace_type'], $r['updated_at']], $rows));
+    pdfResponse('jobs.pdf', 'Jobs', ['Titel','Firma','Ort','Status','Arbeitsmodell','Aktualisiert'], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], optionLabel($jobStatuses, $r['status']), optionLabel($workplaceTypes, $r['workplace_type']), $r['updated_at']], $rows));
 }
 if ($page === 'export_ics') {
     requireLogin();

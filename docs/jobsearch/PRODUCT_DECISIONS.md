@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.9`
+Produktversion: `1.15.10`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -43,6 +43,10 @@ aufzubauen.
 
 ## Mehrsprachigkeit
 
+- Stand Version `1.15.10`: Die produktive Benutzeroberflaeche ist bewusst
+  Deutsch-only geschaltet, bis die DB-basierte i18n-Architektur vollstaendig
+  umgesetzt und getestet ist. Damit werden Mischsprachen in Produktion
+  vermieden.
 - Die App verwendet eine zentrale Sprachbibliothek in `public/index.php`.
 - Produktive Locale-Codes sind `de-CH`, `fr-CH`, `en-GB`, `pt-BR` und
   `es-MX`.
