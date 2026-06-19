@@ -43,7 +43,7 @@ try {
     try {
         $db->query('ALTER TABLE record_translations MODIFY target_language CHAR(5) NOT NULL');
     } catch (Throwable $ignored) {
-        // Table may not exist yet on older or freshly imported installations.
+        // Die Tabelle kann auf aelteren oder frisch importierten Installationen noch fehlen.
     }
     foreach ([
         'users' => 'preferred_language',
@@ -59,13 +59,13 @@ try {
                 $stmt->execute();
             }
         } catch (Throwable $ignored) {
-            // Older installations may not have every language-aware table yet.
+            // Aeltere Installationen haben noch nicht zwingend jede sprachbezogene Tabelle.
         }
     }
     try {
         $db->query("ALTER TABLE users ALTER COLUMN preferred_language SET DEFAULT 'de-CH'");
     } catch (Throwable $ignored) {
-        // Default changes are helpful, but not required for runtime correctness.
+        // Die Vorgabe hilft, ist fuer den laufenden Betrieb aber nicht zwingend.
     }
 } catch (Throwable $exception) {
     error_log('Locale migration failed: ' . $exception->getMessage());
@@ -89,7 +89,7 @@ try {
         KEY idx_user_sessions_user_active (user_id, logged_out_at, last_seen_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 } catch (Throwable $exception) {
-    // Optional runtime telemetry must not block the app.
+    // Optionale Laufzeit-Telemetrie darf die App nicht blockieren.
 }
 
 function ensureColumn(mysqli $db, string $table, string $column, string $definition, ?string $after = null): void
@@ -478,6 +478,7 @@ function translationCatalog(): array
             'nav.job_search' => 'Recherche d’emploi',
             'nav.applications' => 'Candidatures',
             'nav.planning' => 'Planification',
+            'nav.pendents' => 'En suspens',
             'nav.calendar' => 'Calendrier',
             'nav.reporting' => 'Analyse',
             'nav.reports' => 'Rapports',
@@ -487,6 +488,8 @@ function translationCatalog(): array
             'nav.help' => 'Aide',
             'nav.about' => 'À propos',
             'nav.logout' => 'Se déconnecter',
+            'support.in_environment' => '{admin} dans l’environnement de {user}',
+            'support.granted' => 'Support ADMIN autorisé',
             'support.granted_hint' => 'Les administrateurs peuvent se connecter au compte.',
             'support.stop' => 'Terminer le support',
             'context.help' => 'Aide pour cette page',
@@ -611,6 +614,8 @@ function translationCatalog(): array
             'nav.help' => 'Help',
             'nav.about' => 'About',
             'nav.logout' => 'Sign out',
+            'support.in_environment' => '{admin} in {user} environment',
+            'support.granted' => 'ADMIN support approved',
             'support.granted_hint' => 'Administrators can join the account.',
             'support.stop' => 'End support',
             'context.help' => 'Help for this page',
@@ -735,6 +740,8 @@ function translationCatalog(): array
             'nav.help' => 'Ajuda',
             'nav.about' => 'Sobre',
             'nav.logout' => 'Sair',
+            'support.in_environment' => '{admin} no ambiente de {user}',
+            'support.granted' => 'Suporte ADMIN liberado',
             'support.granted_hint' => 'Administradores podem acessar a conta.',
             'support.stop' => 'Encerrar suporte',
             'context.help' => 'Ajuda desta página',
@@ -859,6 +866,8 @@ function translationCatalog(): array
             'nav.help' => 'Ayuda',
             'nav.about' => 'Acerca de',
             'nav.logout' => 'Cerrar sesión',
+            'support.in_environment' => '{admin} en el entorno de {user}',
+            'support.granted' => 'Soporte ADMIN autorizado',
             'support.granted_hint' => 'Los administradores pueden acceder a la cuenta.',
             'support.stop' => 'Finalizar soporte',
             'context.help' => 'Ayuda de esta página',
@@ -1025,13 +1034,26 @@ function translateUiHtml(string $html, string $locale): string
     if ($locale === 'de-CH' || $html === '') {
         return $html;
     }
+    $protected = [];
+    $protect = static function (string $pattern) use (&$html, &$protected): void {
+        $html = preg_replace_callback($pattern, static function (array $match) use (&$protected): string {
+            $key = '%%JEMA_I18N_SKIP_' . count($protected) . '%%';
+            $protected[$key] = $match[0];
+            return $key;
+        }, $html) ?? $html;
+    };
+
+    // Nicht sichtbare Technik, Benutzereingaben und explizit markierte Marken/Daten nie automatisch uebersetzen.
+    $protect('/<(script|style|textarea|pre|code)\b[^>]*>.*?<\/\1>/is');
+    $protect('/<([a-z][a-z0-9:-]*)\b(?=[^>]*(?:data-i18n-skip|translate=(["\'])no\2))[^>]*>.*?<\/\1>/is');
+
     $html = preg_replace_callback('/>([^<>]+)</u', static function (array $match) use ($locale): string {
         return '>' . translateUiSegment($match[1], $locale) . '<';
     }, $html) ?? $html;
     $html = preg_replace_callback('/\b(placeholder|title|aria-label)=("|\')([^"\']*)(\2)/u', static function (array $match) use ($locale): string {
         return $match[1] . '=' . $match[2] . translateUiSegment($match[3], $locale) . $match[4];
     }, $html) ?? $html;
-    return $html;
+    return $protected ? strtr($html, $protected) : $html;
 }
 
 function startUiTranslationBuffer(string $locale): void
@@ -1068,6 +1090,26 @@ function localizedHelpTopics(string $locale): array
             'keywords' => 'search portals prompt direct links import',
         ],
         [
+            'category' => tr('help.flow.import.title', $locale),
+            'audience' => tr('nav.jobs', $locale),
+            'title' => tr('help.flow.import.title', $locale),
+            'summary' => tr('help.flow.import.text', $locale),
+            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale), tr('help.flow.apply.text', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'links' => [[tr('nav.jobs', $locale), '/?page=jobs'], [tr('dashboard.create_job', $locale), '/?page=jobs#quick-import']],
+            'keywords' => 'jobs import quick import duplicate company proposal',
+        ],
+        [
+            'category' => tr('nav.crm', $locale),
+            'audience' => tr('nav.companies', $locale),
+            'title' => tr('nav.companies', $locale),
+            'summary' => tr('help.flow.import.text', $locale),
+            'steps' => [tr('help.flow.import.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('help.quick.track.body', $locale)],
+            'links' => [[tr('nav.companies', $locale), '/?page=companies']],
+            'keywords' => 'company companies employer crm contacts reports',
+        ],
+        [
             'category' => tr('help.flow.apply.title', $locale),
             'audience' => tr('nav.applications', $locale),
             'title' => tr('help.quick.apply.title', $locale),
@@ -1076,6 +1118,26 @@ function localizedHelpTopics(string $locale): array
             'tips' => [tr('dashboard.next_body', $locale)],
             'links' => [[tr('help.quick.apply.link', $locale), '/?page=applications']],
             'keywords' => 'application online documents submission',
+        ],
+        [
+            'category' => tr('help.flow.apply.title', $locale),
+            'audience' => tr('nav.applications', $locale),
+            'title' => tr('help.flow.apply.text', $locale),
+            'summary' => tr('help.quick.apply.body', $locale),
+            'steps' => [tr('help.flow.apply.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('help.quick.track.body', $locale)],
+            'links' => [[tr('nav.applications', $locale), '/?page=applications']],
+            'keywords' => 'online application web form submit documents package',
+        ],
+        [
+            'category' => tr('nav.documents', $locale),
+            'audience' => tr('nav.documents', $locale),
+            'title' => tr('nav.documents', $locale),
+            'summary' => tr('help.flow.profile.text', $locale),
+            'steps' => [tr('help.flow.profile.text', $locale), tr('help.quick.apply.body', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('profile.app_language_hint', $locale)],
+            'links' => [[tr('nav.documents', $locale), '/?page=documents'], [tr('nav.profile', $locale), '/?page=profile#documents']],
+            'keywords' => 'documents files attachments versions profile application',
         ],
         [
             'category' => tr('help.flow.follow.title', $locale),
@@ -1098,6 +1160,46 @@ function localizedHelpTopics(string $locale): array
             'keywords' => 'dossier reports pdf documentation',
         ],
         [
+            'category' => tr('nav.crm', $locale),
+            'audience' => tr('nav.contacts', $locale),
+            'title' => tr('nav.contacts', $locale),
+            'summary' => tr('help.flow.follow.text', $locale),
+            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('dashboard.next_body', $locale)],
+            'links' => [[tr('nav.contacts', $locale), '/?page=contacts'], [tr('nav.pendents', $locale), '/?page=pendents']],
+            'keywords' => 'contacts contact log crm follow up attachment',
+        ],
+        [
+            'category' => tr('nav.planning', $locale),
+            'audience' => tr('nav.planning', $locale),
+            'title' => tr('nav.pendents', $locale) . ' / ' . tr('nav.calendar', $locale),
+            'summary' => tr('help.flow.follow.text', $locale),
+            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.status.jump', $locale) . ': ' . tr('nav.calendar', $locale)],
+            'tips' => [tr('dashboard.next_body', $locale)],
+            'links' => [[tr('nav.pendents', $locale), '/?page=pendents'], [tr('nav.calendar', $locale), '/?page=calendar']],
+            'keywords' => 'pending pendents calendar agenda reminder ics',
+        ],
+        [
+            'category' => tr('nav.reporting', $locale),
+            'audience' => tr('nav.reporting', $locale),
+            'title' => tr('nav.reports', $locale),
+            'summary' => tr('help.flow.dossier.text', $locale),
+            'steps' => [tr('help.flow.dossier.text', $locale), tr('help.quick.track.body', $locale), tr('help.license_body2', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'links' => [[tr('nav.reports', $locale), '/?page=reports']],
+            'keywords' => 'reports reporting pdf export tables filters',
+        ],
+        [
+            'category' => tr('nav.account', $locale),
+            'audience' => tr('support.admin', $locale),
+            'title' => tr('nav.admin_users', $locale),
+            'summary' => tr('support.granted_hint', $locale),
+            'steps' => [tr('support.granted', $locale), tr('support.admin', $locale), tr('support.stop', $locale)],
+            'tips' => [tr('help.license_body2', $locale)],
+            'links' => [[tr('nav.admin_users', $locale), '/?page=admin_users'], [tr('nav.admin_job_platforms', $locale), '/?page=admin_job_platforms']],
+            'keywords' => 'admin users support security two factor password',
+        ],
+        [
             'category' => tr('help.license_eyebrow', $locale),
             'audience' => tr('nav.help', $locale),
             'title' => tr('help.license_title', $locale),
@@ -1107,6 +1209,95 @@ function localizedHelpTopics(string $locale): array
             'links' => [[tr('nav.about', $locale), '/?page=about']],
             'keywords' => 'license privacy support',
         ],
+    ];
+}
+
+function localizedContextHelpTopics(string $locale): array
+{
+    $locale = normalizeLocale($locale);
+    $topics = localizedHelpTopics($locale);
+    $findTopic = static function (string $keyword) use ($topics): array {
+        foreach ($topics as $topic) {
+            if (str_contains((string) ($topic['keywords'] ?? ''), $keyword)) {
+                return $topic;
+            }
+        }
+        return $topics[0] ?? ['title' => '', 'summary' => '', 'steps' => [], 'tips' => []];
+    };
+    $fromTopic = static function (array $topic, string $linkLabel, string $href): array {
+        return [
+            'title' => (string) ($topic['title'] ?? ''),
+            'intro' => (string) ($topic['summary'] ?? ''),
+            'steps' => array_values(array_slice((array) ($topic['steps'] ?? []), 0, 4)),
+            'tips' => array_values(array_slice((array) ($topic['tips'] ?? []), 0, 2)),
+            'link' => [$linkLabel, $href],
+        ];
+    };
+    $profile = $findTopic('profile');
+    $search = $findTopic('search');
+    $apply = $findTopic('application');
+    $follow = $findTopic('follow');
+    $dossier = $findTopic('dossier');
+    $license = $findTopic('license');
+
+    return [
+        'dashboard' => [
+            'title' => tr('nav.dashboard', $locale),
+            'intro' => tr('dashboard.next_body', $locale),
+            'steps' => [tr('help.quick.track.body', $locale), tr('help.quick.search.body', $locale), tr('help.quick.apply.body', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'link' => [tr('context.all_topics', $locale), '/?page=help'],
+        ],
+        'profile' => $fromTopic($profile, tr('nav.profile', $locale), '/?page=profile'),
+        'documents' => [
+            'title' => tr('nav.documents', $locale),
+            'intro' => tr('help.flow.profile.text', $locale),
+            'steps' => [tr('help.flow.profile.text', $locale), tr('help.quick.apply.body', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('profile.app_language_hint', $locale)],
+            'link' => [tr('nav.documents', $locale), '/?page=documents'],
+        ],
+        'job_platform_search' => $fromTopic($search, tr('help.quick.search.link', $locale), '/?page=job_platform_search'),
+        'jobs' => [
+            'title' => tr('nav.jobs', $locale),
+            'intro' => tr('help.flow.import.text', $locale),
+            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale), tr('help.flow.apply.text', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'link' => [tr('nav.jobs', $locale), '/?page=jobs'],
+        ],
+        'applications' => $fromTopic($apply, tr('help.quick.apply.link', $locale), '/?page=applications'),
+        'companies' => [
+            'title' => tr('nav.companies', $locale),
+            'intro' => tr('help.flow.import.text', $locale),
+            'steps' => [tr('help.flow.import.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('help.quick.track.body', $locale)],
+            'link' => [tr('nav.companies', $locale), '/?page=companies'],
+        ],
+        'contacts' => [
+            'title' => tr('nav.contacts', $locale),
+            'intro' => tr('help.flow.follow.text', $locale),
+            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
+            'tips' => [tr('dashboard.next_body', $locale)],
+            'link' => [tr('nav.contacts', $locale), '/?page=contacts'],
+        ],
+        'pendents' => $fromTopic($follow, tr('nav.pendents', $locale), '/?page=pendents'),
+        'calendar' => $fromTopic($follow, tr('nav.calendar', $locale), '/?page=calendar&view=agenda'),
+        'reports' => $fromTopic($dossier, tr('nav.reports', $locale), '/?page=reports'),
+        'admin_users' => [
+            'title' => tr('nav.admin_users', $locale),
+            'intro' => tr('support.granted_hint', $locale),
+            'steps' => [tr('support.granted', $locale), tr('support.admin', $locale), tr('support.stop', $locale)],
+            'tips' => [tr('help.license_body2', $locale)],
+            'link' => [tr('nav.admin_users', $locale), '/?page=admin_users'],
+        ],
+        'admin_job_platforms' => [
+            'title' => tr('nav.admin_job_platforms', $locale),
+            'intro' => tr('help.flow.search.text', $locale),
+            'steps' => [tr('help.flow.search.text', $locale), tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'link' => [tr('nav.admin_job_platforms', $locale), '/?page=admin_job_platforms'],
+        ],
+        'privacy' => $fromTopic($license, tr('nav.privacy', $locale), '/?page=privacy'),
+        'sharing' => $fromTopic($license, tr('nav.sharing', $locale), '/?page=sharing'),
     ];
 }
 
@@ -1169,7 +1360,7 @@ function touchUserPresence(mysqli $db, int $userId): void
         $stmt->execute();
         $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . $userId);
     } catch (Throwable $exception) {
-        // Presence is informational and must never block productive work.
+        // Praesenzinformationen sind nur informativ und duerfen produktive Arbeit nie blockieren.
     }
 }
 
@@ -1185,7 +1376,7 @@ function endUserPresenceSession(mysqli $db, int $userId): void
         $stmt->execute();
         $db->query('UPDATE users SET last_seen_at = NOW() WHERE id = ' . $userId);
     } catch (Throwable $exception) {
-        // Logout must continue even if presence cleanup is unavailable.
+        // Abmelden muss weiterlaufen, auch wenn die Praesenzbereinigung nicht verfuegbar ist.
     }
 }
 
@@ -1468,7 +1659,7 @@ function logOutboundEmail(mysqli $db, int $userId, string $recipient, string $su
         $stmt->bind_param('issssss', $userId, $recipient, $subject, $body, $status, $sentAt, $error);
         $stmt->execute();
     } catch (Throwable) {
-        // Mail logging must never block account recovery.
+        // Mail-Protokollierung darf die Kontowiederherstellung nie blockieren.
     }
 }
 
@@ -5564,7 +5755,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.5';
+$codeVersion = '1.15.6';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -5849,99 +6040,7 @@ $bodyClasses = array_filter([
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
 $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
-$contextHelpTopics = [
-    'dashboard' => [
-        'title' => 'Übersicht',
-        'intro' => 'Die Übersicht zeigt den aktuellen Stand deiner Jobs, Bewerbungen, Pendenten und nächsten Schritte.',
-        'steps' => ['Prüfe zuerst offene Pendenten und fällige Termine.', 'Öffne neue oder interessante Jobs direkt aus den Kennzahlen.', 'Nutze die Übersicht als tägliche Startseite vor der eigentlichen Arbeit.'],
-        'tips' => ['Wenn Zahlen nicht stimmen, liegt es meist an Status, Fälligkeit oder fehlender Verknüpfung.'],
-        'link' => ['Ausführliche Hilfe öffnen', '/?page=help'],
-    ],
-    'profile' => [
-        'title' => 'Profil und Präferenzen',
-        'intro' => 'Hier pflegst du Stammdaten, Suchpräferenzen, Sprache, SMTP und Sicherheit. Diese Daten steuern Jobsuche, Matching und Bewerbungspakete.',
-        'steps' => ['Gewünschte Rollen und Orte möglichst konkret erfassen.', 'Pensum, Lohn, Arbeitsmodell und Ausschlüsse pflegen.', 'Stammdokumente aktuell halten.', '2FA aktivieren und SMTP nur mit korrekten Zugangsdaten speichern.'],
-        'tips' => ['Die Jobsuche übernimmt den Suchbegriff direkt aus den Präferenzen, kann ihn aber jederzeit überschreiben.'],
-        'link' => ['Profil-Hilfe öffnen', '/?page=help'],
-    ],
-    'documents' => [
-        'title' => 'Dokumente',
-        'intro' => 'Dokumente sind versioniert. Aktuelle Stammdokumente können später gesammelt einer Bewerbung zugeordnet werden.',
-        'steps' => ['Neue Dokumente mit sprechendem Titel und Sprache hochladen.', 'Für Ersatzdateien eine neue Version des bestehenden Dokuments erstellen.', 'Nicht benötigte Dokumente löschen oder die aktuelle Version sauber markieren.'],
-        'tips' => ['Für Onlinebewerbungen sind klare Dokumenttitel hilfreich, weil sie im temporären Ordner und im ZIP-Paket sichtbar sind.'],
-        'link' => ['Dokumenten-Hilfe öffnen', '/?page=help'],
-    ],
-    'job_platform_search' => [
-        'title' => 'Jobsuche mit ChatGPT-Prompt',
-        'intro' => 'Die App sammelt Suchparameter und erzeugt einen Prompt. ChatGPT soll daraus ausschließlich direkte Stellenlinks liefern.',
-        'steps' => ['Suchbegriff und gewünschte Anzahl prüfen.', 'Portale auswählen.', 'Prompt kopieren und in ChatGPT mit Web-Recherche einfügen.', 'Nur die zurückgegebenen URL-Zeilen in den Schnellimport übernehmen.'],
-        'tips' => ['Wenn ChatGPT Text statt Links liefert, Antwort verwerfen und denselben Prompt erneut ausführen.'],
-        'link' => ['Schnellimport öffnen', '/?page=jobs#quick-import'],
-    ],
-    'jobs' => [
-        'title' => 'Jobs und Schnellimport',
-        'intro' => 'Hier werden Stellen importiert, geprüft, bearbeitet und später in Bewerbungen überführt.',
-        'steps' => ['Direkte Stellen-URL oder mehrere Links in den Schnellimport einfügen.', 'Vorschlag erstellen und den Fortschritt abwarten.', 'Firma, Titel, Ort, Lohn, Quelle und Dublettenhinweis prüfen.', 'Job speichern oder eine Bewerbung vorbereiten.'],
-        'tips' => ['Direkte Inserat-URLs liefern deutlich bessere Ergebnisse als Suchseiten.'],
-        'link' => ['Jobs-Hilfe öffnen', '/?page=help'],
-    ],
-    'applications' => [
-        'title' => 'Bewerbungen',
-        'intro' => 'Bewerbungen bündeln Job, Kanal, Dokumente, Onlineformular, Kontaktbezug und nächste Schritte.',
-        'steps' => ['Bewerbung aus einem Job vorbereiten.', 'Dokumente gesammelt zuordnen.', 'Onlineformular oder E-Mail-Kanal pflegen.', 'Nach Einreichung den Status sauber setzen.', 'Pendent und Kontaktlog prüfen.'],
-        'tips' => ['Bei Onlinebewerbungen ist oft kein Kontakt vorhanden. Die Aktivität bleibt trotzdem über Firma, Job und Bewerbung sichtbar.'],
-        'link' => ['Bewerbungs-Hilfe öffnen', '/?page=help'],
-    ],
-    'companies' => [
-        'title' => 'Firmen',
-        'intro' => 'Firmen strukturieren Jobs, Kontakte, Bewerbungen, Dossiers und Reports.',
-        'steps' => ['Firmenname und Website prüfen.', 'Adresse, Kommentar und Vermittlungsbezug ergänzen.', 'Verknüpfte Jobs, Bewerbungen und Kontakte kontrollieren.'],
-        'tips' => ['Eine sauber gepflegte Firma verbessert Dossier, Kontaktlog und Auswertung.'],
-        'link' => ['Firmen-Hilfe öffnen', '/?page=help'],
-    ],
-    'contacts' => [
-        'title' => 'Kontakte und Kontaktlog',
-        'intro' => 'Kontakte werden nach Nachname sortiert und können Aktivitäten, Wiedervorlagen und Anhänge erhalten.',
-        'steps' => ['Kontakt öffnen oder neu erfassen.', 'Über Aktionen einen neuen Kontaktlog-Eintrag speichern.', 'Kanal, Datum, Status und Wiedervorlage setzen.', 'Anhänge direkt in der Dokumentablage verknüpfen.'],
-        'tips' => ['Das Kontaktlog ist die zentrale Chronik für Nachfassen, Telefonate, E-Mails und Gespräche.'],
-        'link' => ['Kontakt-Hilfe öffnen', '/?page=help'],
-    ],
-    'pendents' => [
-        'title' => 'Pendent',
-        'intro' => 'Pendent zeigt offene oder geplante Aufgaben aus Bewerbungen, Kontaktlog und Wiedervorlagen.',
-        'steps' => ['Nach Fälligkeit sortieren.', 'Offene Einträge zuerst bearbeiten.', 'Den Bezug öffnen und Status oder nächsten Schritt aktualisieren.'],
-        'tips' => ['Eine eingereichte Bewerbung erzeugt automatisch das Pendent "Antwort auf Bewerbung pendent".'],
-        'link' => ['Kalender öffnen', '/?page=calendar&view=agenda'],
-    ],
-    'calendar' => [
-        'title' => 'Kalender und Agenda',
-        'intro' => 'Der Kalender zeigt Aufgaben und Termine als Agenda, Tagesplan, Wochenplan oder Monatsplan.',
-        'steps' => ['Ansicht wählen.', 'Mit vor und zurück navigieren.', 'Einträge ohne Uhrzeit als Tageseinträge oben lesen.', 'Bei Bedarf ICS exportieren.'],
-        'tips' => ['Kalender und Pendent zeigen dieselben nächsten Schritte aus unterschiedlichen Blickwinkeln.'],
-        'link' => ['Pendent öffnen', '/?page=pendents'],
-    ],
-    'reports' => [
-        'title' => 'Reports',
-        'intro' => 'Reports speichern wiederkehrende Ansichten und exportieren Tabellen als PDF.',
-        'steps' => ['Basis und Ansicht wählen.', 'Spalten und Sortierung prüfen.', 'Report speichern.', 'Gespeicherte Reports anzeigen, bearbeiten oder als PDF exportieren.'],
-        'tips' => ['Reports sollen fachliche Informationen zeigen, keine technischen IDs.'],
-        'link' => ['Report-Hilfe öffnen', '/?page=help'],
-    ],
-    'admin_users' => [
-        'title' => 'Benutzerverwaltung',
-        'intro' => 'Admins verwalten Benutzerstatus, Rollen, Passwort-Reset, 2FA-Reset und Supportzugriffe.',
-        'steps' => ['Benutzer suchen.', 'Status und Rollen bewusst ändern.', 'Online-Status prüfen.', 'Passwort oder 2FA nur bei Bedarf zurücksetzen.'],
-        'tips' => ['Produktive Benutzer haben reale Daten. Administrative Eingriffe immer minimal und nachvollziehbar halten.'],
-        'link' => ['Admin-Hilfe öffnen', '/?page=help'],
-    ],
-    'admin_job_platforms' => [
-        'title' => 'Jobplattformen verwalten',
-        'intro' => 'Admins pflegen die Portale, die Benutzern für Jobsuche und Prompt-Erstellung angeboten werden.',
-        'steps' => ['Portalname, Basis-URL und Suchvorlage pflegen.', 'Nur aktive und sinnvolle Portale anzeigen.', 'Reihenfolge für die Benutzeransicht steuern.'],
-        'tips' => ['Portale sind Prioritäten für die Recherche, keine Garantie für direkte Inserat-URLs.'],
-        'link' => ['Jobsuche öffnen', '/?page=job_platform_search'],
-    ],
-];
+$contextHelpTopics = localizedContextHelpTopics($appLocale);
 $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 startUiTranslationBuffer($appLocale);
 
@@ -5956,7 +6055,7 @@ startUiTranslationBuffer($appLocale);
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
-    <a class="brand" href="/"><img src="/assets/favicon.svg" alt="" width="32" height="32"> <span>JeMa <strong>Jobs</strong></span></a>
+    <a class="brand" href="/"><img src="/assets/favicon.svg" alt="" width="32" height="32"> <span translate="no" data-i18n-skip>JeMa <strong>Jobs</strong></span></a>
     <?php if ($currentUser): ?>
         <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')"><?= e(tr('nav.menu')) ?></button>
         <nav class="menubar" aria-label="<?= e(tr('nav.menu')) ?>">
