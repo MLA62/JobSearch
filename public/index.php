@@ -5138,7 +5138,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.3';
+$codeVersion = '1.15.4';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -5553,7 +5553,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 <main class="container">
 <?php if ($flash): ?><div class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></div><?php endif; ?>
 <?php if ($contextHelp): ?>
-    <div class="context-help-bar">
+    <div class="context-help-bar" data-context-help-container>
         <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="<?= e(tr('context.help')) ?>" aria-label="<?= e(tr('context.help')) ?>">
             <span class="bulb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M9 21h6M10 17h4M8.6 14.7c-1.4-1-2.3-2.7-2.3-4.5A5.7 5.7 0 0 1 12 4.5a5.7 5.7 0 0 1 5.7 5.7c0 1.8-.9 3.5-2.3 4.5-.7.5-1.1 1.2-1.2 2H9.8c-.1-.8-.5-1.5-1.2-2Z"/></svg></span>
         </button>
@@ -6918,18 +6918,23 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
             </div>
             <div class="help-search-box">
                 <label>Hilfe durchsuchen<input id="help-search" placeholder="z. B. Onlinebewerbung, Kontaktlog, PDF, Support"></label>
+                <div class="help-search-actions">
+                    <button type="button" data-help-search-submit>Suchen</button>
+                    <button type="button" data-help-reset>Zurücksetzen</button>
+                </div>
+                <p class="help-search-status" id="help-search-status" aria-live="polite">Gib einen Begriff ein, um die Themen zu filtern. Kategorien springen zum passenden Bereich und blenden nichts aus.</p>
                 <div class="help-filter-chips" aria-label="Hilfekategorien">
-                    <?php foreach($helpCategories as $category): ?><button type="button" data-help-category="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
+                    <?php foreach($helpCategories as $category): ?><button type="button" data-help-chip="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
                 </div>
             </div>
         </section>
         <section class="help-flow" aria-label="Prozessübersicht">
-            <article><span>1</span><strong>Profil</strong><small>Präferenzen, Sicherheit, Stammdokumente</small></article>
-            <article><span>2</span><strong>Jobsuche</strong><small>Portale, ChatGPT-Prompt, Direktlinks</small></article>
-            <article><span>3</span><strong>Import</strong><small>Jobvorschlag, Dubletten, Firma</small></article>
-            <article><span>4</span><strong>Bewerbung</strong><small>Dokumente, Onlineformular, Versand</small></article>
-            <article><span>5</span><strong>Nachfassen</strong><small>Kontaktlog, Pendent, Kalender</small></article>
-            <article><span>6</span><strong>Dossier</strong><small>Dokumentation, Reports, PDF</small></article>
+            <a href="/?page=profile"><span>1</span><strong>Profil</strong><small>Präferenzen, Sicherheit, Stammdokumente</small></a>
+            <a href="/?page=job_platform_search"><span>2</span><strong>Jobsuche</strong><small>Portale, ChatGPT-Prompt, Direktlinks</small></a>
+            <a href="/?page=jobs#new"><span>3</span><strong>Import</strong><small>Jobvorschlag, Dubletten, Firma</small></a>
+            <a href="/?page=applications"><span>4</span><strong>Bewerbung</strong><small>Dokumente, Onlineformular, Versand</small></a>
+            <a href="/?page=pendents"><span>5</span><strong>Nachfassen</strong><small>Kontaktlog, Pendent, Kalender</small></a>
+            <a href="/?page=reports"><span>6</span><strong>Dossier</strong><small>Dokumentation, Reports, PDF</small></a>
         </section>
         <section class="help-quickstart panel">
             <div class="section-head"><div><p class="eyebrow">Kurzabläufe</p><h2>Die drei häufigsten Wege</h2></div></div>
@@ -6964,27 +6969,61 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
             const grid = document.getElementById('help-topics');
             const topics = Array.from(document.querySelectorAll('.help-topic'));
             const empty = document.getElementById('help-empty');
-            const chips = Array.from(document.querySelectorAll('[data-help-category]'));
-            let category = '';
+            const status = document.getElementById('help-search-status');
+            const searchSubmit = document.querySelector('[data-help-search-submit]');
+            const resetButton = document.querySelector('[data-help-reset]');
+            const chips = Array.from(document.querySelectorAll('[data-help-chip]'));
+            let highlightedCategory = '';
+            const normalize = (value) => (value || '').trim().toLocaleLowerCase('de-CH').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const visibleTopics = () => topics.filter((topic) => !topic.hidden);
+            const scrollToResults = () => {
+                const target = visibleTopics()[0] || empty || grid;
+                target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
             const apply = () => {
-                const term = (search?.value || '').trim().toLowerCase();
+                const term = normalize(search?.value || '');
                 let visible = 0;
                 topics.forEach((topic) => {
-                    const categoryMatch = category === '' || topic.dataset.helpCategory === category;
-                    const textMatch = term === '' || (topic.dataset.helpSearch || '').includes(term);
-                    const show = categoryMatch && textMatch;
+                    const textMatch = term === '' || normalize(topic.dataset.helpSearch || '').includes(term);
+                    const show = textMatch;
                     topic.hidden = !show;
+                    topic.classList.toggle('is-highlighted', show && highlightedCategory !== '' && topic.dataset.helpCategory === highlightedCategory);
                     if (show) visible++;
                 });
                 if (empty) empty.hidden = visible !== 0;
+                if (status) {
+                    const bits = [];
+                    const rawTerm = (search?.value || '').trim();
+                    if (rawTerm !== '') bits.push(`Suche: ${rawTerm}`);
+                    if (highlightedCategory !== '') bits.push(`Sprungmarke: ${highlightedCategory}`);
+                    status.textContent = `${visible} ${visible === 1 ? 'Thema' : 'Themen'} sichtbar${bits.length ? ' · ' + bits.join(' · ') : ''}.`;
+                }
             };
             search?.addEventListener('input', apply);
-            chips.forEach((chip) => chip.addEventListener('click', () => {
-                const nextCategory = chip.dataset.helpCategory || '';
-                category = category === nextCategory ? '' : nextCategory;
-                chips.forEach((item) => item.classList.toggle('is-active', category !== '' && item.dataset.helpCategory === category));
+            search?.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
                 apply();
-                grid?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                scrollToResults();
+            });
+            searchSubmit?.addEventListener('click', () => {
+                apply();
+                scrollToResults();
+            });
+            resetButton?.addEventListener('click', () => {
+                highlightedCategory = '';
+                if (search) search.value = '';
+                chips.forEach((item) => item.classList.remove('is-active'));
+                apply();
+                search?.focus();
+            });
+            chips.forEach((chip) => chip.addEventListener('click', () => {
+                const nextCategory = chip.dataset.helpChip || '';
+                highlightedCategory = highlightedCategory === nextCategory ? '' : nextCategory;
+                chips.forEach((item) => item.classList.toggle('is-active', highlightedCategory !== '' && item.dataset.helpChip === highlightedCategory));
+                apply();
+                const target = highlightedCategory === '' ? grid : topics.find((topic) => !topic.hidden && topic.dataset.helpCategory === highlightedCategory);
+                (target || grid)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }));
             apply();
         })();
@@ -7053,6 +7092,12 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
     const modal = document.querySelector('[data-context-help-modal]');
     const openButton = document.querySelector('[data-context-help-open]');
     if (!modal || !openButton) return;
+    const helpBar = document.querySelector('[data-context-help-container]');
+    const host = document.querySelector('.container > .hero, .container > .page-head, .container > .auth-card');
+    if (helpBar && host) {
+        host.classList.add('context-help-host');
+        host.appendChild(helpBar);
+    }
     const dialog = modal.querySelector('.context-help-dialog');
     const open = () => {
         modal.hidden = false;

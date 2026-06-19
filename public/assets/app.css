@@ -331,7 +331,28 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 .context-help-bar {
     display: flex;
     justify-content: flex-end;
-    margin: -4px 0 16px;
+    margin: 0;
+}
+.container > .context-help-bar {
+    display: none;
+}
+.context-help-host {
+    position: relative;
+}
+.page-head.context-help-host {
+    align-items: center;
+}
+.page-head .context-help-bar {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+.hero.context-help-host {
+    padding-right: 108px;
+}
+.hero .context-help-bar {
+    position: absolute;
+    top: 22px;
+    right: 22px;
 }
 .context-help-button {
     display: inline-grid;
@@ -1145,6 +1166,26 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     flex-wrap: wrap;
     gap: 8px;
 }
+.help-search-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.help-search-actions button {
+    min-height: 32px;
+    padding: 6px 10px;
+}
+.help-search-actions button:not(:first-child) {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--line-soft);
+}
+.help-search-status {
+    margin: -2px 0 0;
+    color: var(--muted);
+    font-size: .92rem;
+    font-weight: 700;
+}
 .help-filter-chips button {
     min-height: 32px;
     padding: 6px 10px;
@@ -1165,16 +1206,24 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     overflow-x: auto;
     padding-bottom: 4px;
 }
-.help-flow article {
+.help-flow a {
     position: relative;
     min-height: 116px;
     padding: 14px;
     border: 1.5px solid var(--line-soft);
     border-radius: var(--radius);
     background: var(--surface);
+    color: var(--text);
     box-shadow: var(--shadow);
+    text-decoration: none;
 }
-.help-flow article:not(:last-child)::after {
+.help-flow a:hover {
+    border-color: var(--accent-border);
+    background: #fff7ed;
+    color: var(--text);
+    text-decoration: none;
+}
+.help-flow a:not(:last-child)::after {
     content: ">";
     position: absolute;
     right: -12px;
@@ -1233,6 +1282,10 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     color: var(--accent-strong);
     margin-top: 4px;
 }
+.help-topic.is-highlighted {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-ring), var(--shadow);
+}
 .help-empty { margin-top: 18px; }
 
 .about-panel { font-size: 1.05rem; line-height: 1.55; }
@@ -1255,6 +1308,7 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 
 @media (max-width: 800px) {
     .hero { padding: 28px; display: block; }
+    .hero.context-help-host { padding-top: 86px; padding-right: 28px; }
     .hero .button { display: inline-flex; margin-top: 18px; }
     .stats { grid-template-columns: 1fr 1fr; }
     .split, .inner-split, .two, .three, .company-path, .contact-workspace, .application-list, .language-record, .language-add, .salary-row, .dossier-hero, .dossier-grid, .help-hero { grid-template-columns: 1fr; }
