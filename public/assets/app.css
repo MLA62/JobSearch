@@ -536,7 +536,27 @@ input[type="checkbox"], input[type="radio"] { min-height: auto; width: auto; acc
     border-radius: var(--radius-sm);
 }
 
-.check { display: flex; align-items: center; gap: 8px; padding: 9px 12px; }
+.check {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    align-items: start;
+    gap: 12px 14px;
+    padding: 14px 16px;
+}
+
+.check legend {
+    padding: 0 8px;
+}
+
+.check label {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 8px;
+    min-width: 0;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
 
 .button,
 button {

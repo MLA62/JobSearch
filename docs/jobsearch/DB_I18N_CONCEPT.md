@@ -114,7 +114,7 @@ Phase 3: Keys uebernehmen
 
 Phase 4: Legacy entfernen
 
-- Stand Version `1.15.19`: PHP- und Resource-Dateien enthalten keine
+- Stand Version `1.15.20`: PHP- und Resource-Dateien enthalten keine
   Uebersetzungswoerterbuecher mehr. Leere Kompatibilitaetsfunktionen duerfen
   nur bestehen bleiben, solange alte Aufrufstellen noch aufgeraeumt werden.
 - `public/i18n/ui_legacy.php` ist entfernt.
