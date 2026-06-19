@@ -1022,7 +1022,7 @@ function translateUiSegment(string $text, string $locale): string
     }
     $phrases = $catalog['_phrases'][$locale] ?? [];
     if ($phrases) {
-        uksort($phrases, static fn(string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+        uksort($phrases, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
         $core = strtr($core, $phrases);
     }
     return $leading . $core . $trailing;
@@ -1050,8 +1050,11 @@ function translateUiHtml(string $html, string $locale): string
     $html = preg_replace_callback('/>([^<>]+)</u', static function (array $match) use ($locale): string {
         return '>' . translateUiSegment($match[1], $locale) . '<';
     }, $html) ?? $html;
-    $html = preg_replace_callback('/\b(placeholder|title|aria-label)=("|\')([^"\']*)(\2)/u', static function (array $match) use ($locale): string {
+    $html = preg_replace_callback('/\b(placeholder|title|aria-label|data-progress-button-text|data-progress-steps)=("|\')([^"\']*)(\2)/u', static function (array $match) use ($locale): string {
         return $match[1] . '=' . $match[2] . translateUiSegment($match[3], $locale) . $match[4];
+    }, $html) ?? $html;
+    $html = preg_replace_callback('/confirm\((["\'])(.*?)(\1)\)/u', static function (array $match) use ($locale): string {
+        return 'confirm(' . $match[1] . translateUiSegment($match[2], $locale) . $match[3] . ')';
     }, $html) ?? $html;
     return $protected ? strtr($html, $protected) : $html;
 }
@@ -5755,7 +5758,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.6';
+$codeVersion = '1.15.7';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
