@@ -233,12 +233,12 @@ function multilingualUiEnabled(): bool
 
 function legacyHtmlTranslationEnabled(): bool
 {
-    return false;
+    return true;
 }
 
 function pageSupportsMultilingualUi(string $page): bool
 {
-    return in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor', 'help', 'about', 'dashboard'], true);
+    return true;
 }
 
 function supportedLocales(): array
@@ -1292,6 +1292,11 @@ function rememberDbUiTextFallback(string $key, string $locale, string $text): vo
     }
 }
 
+function legacyLiteralTextKey(string $text): string
+{
+    return 'legacy.literal.' . sha1($text);
+}
+
 function seedDbUiTextCatalog(): void
 {
     static $seeded = false;
@@ -1299,10 +1304,44 @@ function seedDbUiTextCatalog(): void
         return;
     }
     $seeded = true;
+    $seedVersion = 11514;
+    $locales = array_keys(supportedLocales());
+    try {
+        $placeholders = implode(',', array_fill(0, count($locales), '?'));
+        $types = str_repeat('s', count($locales));
+        $row = dbOne($GLOBALS['db'], "SELECT MIN(version) version FROM ui_text_cache_versions WHERE locale IN ({$placeholders})", $types, $locales);
+        if ($row && (int) ($row['version'] ?? 0) >= $seedVersion) {
+            return;
+        }
+    } catch (Throwable $exception) {
+        error_log('DB UI text seed version check failed: ' . $exception->getMessage());
+    }
     foreach (translationCatalog() as $locale => $texts) {
         foreach ($texts as $key => $text) {
             rememberDbUiTextFallback((string) $key, (string) $locale, (string) $text);
         }
+    }
+    foreach (legacyUiSeedCatalog() as $locale => $texts) {
+        if (!is_array($texts) || str_starts_with((string) $locale, '_')) {
+            continue;
+        }
+        foreach ($texts as $source => $target) {
+            if (!is_string($source) || !is_string($target) || $source === '' || str_starts_with($source, '_')) {
+                continue;
+            }
+            $key = legacyLiteralTextKey($source);
+            rememberDbUiTextFallback($key, 'de-CH', $source);
+            rememberDbUiTextFallback($key, (string) $locale, $target);
+        }
+    }
+    try {
+        foreach ($locales as $locale) {
+            $stmt = $GLOBALS['db']->prepare('INSERT INTO ui_text_cache_versions (locale, version) VALUES (?, ?) ON DUPLICATE KEY UPDATE version=VALUES(version)');
+            $stmt->bind_param('si', $locale, $seedVersion);
+            $stmt->execute();
+        }
+    } catch (Throwable $exception) {
+        error_log('DB UI text seed version update failed: ' . $exception->getMessage());
     }
 }
 
@@ -2242,7 +2281,7 @@ function legacyUiQualityPatchTranslationCatalog(): array
     ];
 }
 
-function legacyUiTranslationCatalog(): array
+function legacyUiSeedCatalog(): array
 {
     static $catalog = null;
     if ($catalog !== null) {
@@ -2260,14 +2299,56 @@ function legacyUiTranslationCatalog(): array
     return $catalog;
 }
 
+function dbLegacyUiTranslationMap(string $locale): array
+{
+    global $db;
+    static $cache = [];
+    $locale = normalizeLocale($locale);
+    if ($locale === 'de-CH') {
+        return [];
+    }
+    if (array_key_exists($locale, $cache)) {
+        return $cache[$locale];
+    }
+    $cache[$locale] = [];
+    try {
+        $rows = dbAll(
+            $db,
+            "SELECT de.text_value source_text, COALESCE(target.text_value, de.text_value) target_text
+               FROM ui_text_keys k
+               JOIN ui_text_translations de
+                 ON de.text_key_id = k.id
+                AND de.locale = 'de-CH'
+                AND de.status = 'approved'
+          LEFT JOIN ui_text_translations target
+                 ON target.text_key_id = k.id
+                AND target.locale = ?
+                AND target.status = 'approved'
+              WHERE k.is_active = 1
+                AND k.text_key LIKE 'legacy.literal.%'",
+            's',
+            [$locale]
+        );
+        foreach ($rows as $row) {
+            $source = (string) ($row['source_text'] ?? '');
+            $target = (string) ($row['target_text'] ?? '');
+            if ($source !== '' && $target !== '' && $source !== $target) {
+                $cache[$locale][$source] = $target;
+            }
+        }
+    } catch (Throwable $exception) {
+        error_log('DB legacy UI text lookup failed: ' . $exception->getMessage());
+    }
+    return $cache[$locale];
+}
+
 function translateUiSegment(string $text, string $locale): string
 {
     $locale = normalizeLocale($locale);
     if ($locale === 'de-CH') {
         return $text;
     }
-    $catalog = legacyUiTranslationCatalog();
-    $map = $catalog[$locale] ?? [];
+    $map = dbLegacyUiTranslationMap($locale);
     if (!$map) {
         return $text;
     }
@@ -2287,11 +2368,7 @@ function translateUiSegment(string $text, string $locale): string
         return $leading . $map[$core] . $trailing;
     }
 
-    $countWords = $catalog['_counts'][$locale] ?? [];
-    foreach ($countWords as $source => $target) {
-        $core = preg_replace('/(\d+)\s+' . preg_quote($source, '/') . '\b/u', '$1 ' . $target, $core) ?? $core;
-    }
-    $phrases = array_replace((array) ($catalog['_phrases'][$locale] ?? []), $map);
+    $phrases = $map;
     if ($phrases) {
         uksort($phrases, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
         foreach ($phrases as $source => $target) {
@@ -7072,7 +7149,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.13';
+$codeVersion = '1.15.14';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
