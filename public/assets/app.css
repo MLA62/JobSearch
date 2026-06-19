@@ -254,7 +254,7 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 .locale-picker {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 6px;
     align-items: center;
     margin: 0 0 18px;
 }
@@ -263,13 +263,16 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 32px;
-    padding: 3px;
+    gap: 5px;
+    min-width: 58px;
+    height: 30px;
+    padding: 3px 7px;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-sm);
     background: var(--field);
     color: var(--text);
+    font-size: .78rem;
+    font-weight: 800;
     text-decoration: none;
     box-shadow: 0 1px 2px rgba(16, 24, 40, .08);
 }
@@ -287,12 +290,18 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 }
 .locale-flag {
     display: block;
-    width: 28px;
-    height: 19px;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 15px;
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(17, 24, 39, .28);
 }
-.locale-flag-ch { width: 22px; height: 22px; }
+.locale-flag-ch { width: 18px; height: 18px; }
+.locale-code {
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+}
 .locale-label {
     position: absolute;
     width: 1px;
@@ -325,6 +334,11 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
     margin: -4px 0 16px;
 }
 .context-help-button {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
     border-color: #f59e0b;
     background: linear-gradient(180deg, #fff7ed, #ffedd5);
     color: var(--accent-strong);

@@ -196,11 +196,11 @@ function e(?string $value): string
 function supportedLocales(): array
 {
     return [
-        'de-CH' => ['name' => 'Deutsch (Schweiz)', 'native' => 'Deutsch', 'flag' => '🇨🇭'],
-        'fr-CH' => ['name' => 'Français (Suisse)', 'native' => 'Français', 'flag' => '🇨🇭'],
-        'en-GB' => ['name' => 'English (UK)', 'native' => 'English', 'flag' => '🇬🇧'],
-        'pt-BR' => ['name' => 'Português (Brasil)', 'native' => 'Português', 'flag' => '🇧🇷'],
-        'es-MX' => ['name' => 'Español (México)', 'native' => 'Español', 'flag' => '🇲🇽'],
+        'de-CH' => ['name' => 'Deutsch (Schweiz)', 'native' => 'Deutsch', 'code' => 'DE'],
+        'fr-CH' => ['name' => 'Français (Suisse)', 'native' => 'Français', 'code' => 'FR'],
+        'en-GB' => ['name' => 'English (UK)', 'native' => 'English', 'code' => 'EN'],
+        'pt-BR' => ['name' => 'Português (Brasil)', 'native' => 'Português', 'code' => 'PT'],
+        'es-MX' => ['name' => 'Español (México)', 'native' => 'Español', 'code' => 'ES'],
     ];
 }
 
@@ -270,10 +270,10 @@ function localeNativeName(string $locale): string
     return supportedLocales()[$locale]['native'] ?? supportedLocales()['de-CH']['native'];
 }
 
-function localeFlag(string $locale): string
+function localeCode(string $locale): string
 {
     $locale = normalizeLocale($locale);
-    return supportedLocales()[$locale]['flag'] ?? supportedLocales()['de-CH']['flag'];
+    return supportedLocales()[$locale]['code'] ?? supportedLocales()['de-CH']['code'];
 }
 
 function localeFlagIconHtml(string $locale): string
@@ -315,6 +315,7 @@ function languagePickerHtml(string $activeLocale, string $modifier = ''): string
         <?php foreach (supportedLocales() as $locale => $meta): ?>
             <a class="locale-option <?= $activeLocale === $locale ? 'is-active' : '' ?>" href="<?= e(languageUrl($locale)) ?>" lang="<?= e(localeHtmlLang($locale)) ?>" title="<?= e($meta['name']) ?>" aria-label="<?= e($meta['name']) ?>">
                 <?= localeFlagIconHtml($locale) ?>
+                <span class="locale-code" aria-hidden="true"><?= e((string)($meta['code'] ?? localeCode($locale))) ?></span>
                 <span class="locale-label"><?= e($meta['native']) ?></span>
             </a>
         <?php endforeach; ?>
@@ -3376,7 +3377,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Bitte bestätige zuerst deine E-Mail-Adresse.', 'warning');
             redirect('/?page=login');
         }
-        $_SESSION['locale'] = normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
+        $loginLocale = !empty($_SESSION['locale'])
+            ? normalizeLocale((string) $_SESSION['locale'])
+            : normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
+        if ($loginLocale !== normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'))) {
+            $localeStmt = $db->prepare('UPDATE users SET preferred_language=? WHERE id=?');
+            $userIdForLocale = (int) $user['id'];
+            $localeStmt->bind_param('si', $loginLocale, $userIdForLocale);
+            $localeStmt->execute();
+            $user['preferred_language'] = $loginLocale;
+        }
+        $_SESSION['locale'] = $loginLocale;
         $totp = activeTotpMethod($db, (int) $user['id']);
         if ($totp) {
             session_regenerate_id(true);
@@ -3407,7 +3418,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $pendingUserId;
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-        $_SESSION['locale'] = normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
+        $loginLocale = !empty($_SESSION['locale'])
+            ? normalizeLocale((string) $_SESSION['locale'])
+            : normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
+        if ($loginLocale !== normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'))) {
+            $localeStmt = $db->prepare('UPDATE users SET preferred_language=? WHERE id=?');
+            $localeStmt->bind_param('si', $loginLocale, $pendingUserId);
+            $localeStmt->execute();
+            $user['preferred_language'] = $loginLocale;
+        }
+        $_SESSION['locale'] = $loginLocale;
         $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . $pendingUserId);
         touchUserPresence($db, $pendingUserId);
         $stmt = $db->prepare('UPDATE two_factor_methods SET last_used_at=NOW() WHERE id=?');
@@ -5102,8 +5122,23 @@ if ($page === 'two_factor' && !empty($_SESSION['pending_2fa_user_id'])) {
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
+if ($currentUser && isset($_GET['lang'])) {
+    $requestedLocale = normalizeLocale((string) $_GET['lang']);
+    if ($requestedLocale !== normalizeLocale((string) ($currentUser['preferred_language'] ?? 'de-CH'))) {
+        try {
+            $stmt = $db->prepare('UPDATE users SET preferred_language=? WHERE id=?');
+            $uid = userId();
+            $stmt->bind_param('si', $requestedLocale, $uid);
+            $stmt->execute();
+            $currentUser['preferred_language'] = $requestedLocale;
+        } catch (Throwable $exception) {
+            error_log('Locale preference update failed: ' . $exception->getMessage());
+        }
+    }
+    $_SESSION['locale'] = $requestedLocale;
+}
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.1';
+$codeVersion = '1.15.3';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -5519,9 +5554,8 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 <?php if ($flash): ?><div class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></div><?php endif; ?>
 <?php if ($contextHelp): ?>
     <div class="context-help-bar">
-        <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="<?= e(tr('context.help')) ?>">
+        <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="<?= e(tr('context.help')) ?>" aria-label="<?= e(tr('context.help')) ?>">
             <span class="bulb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M9 21h6M10 17h4M8.6 14.7c-1.4-1-2.3-2.7-2.3-4.5A5.7 5.7 0 0 1 12 4.5a5.7 5.7 0 0 1 5.7 5.7c0 1.8-.9 3.5-2.3 4.5-.7.5-1.1 1.2-1.2 2H9.8c-.1-.8-.5-1.5-1.2-2Z"/></svg></span>
-            <span><?= e(tr('context.help')) ?></span>
         </button>
     </div>
     <div class="context-help-modal" id="context-help-modal" data-context-help-modal hidden>
@@ -6885,7 +6919,6 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
             <div class="help-search-box">
                 <label>Hilfe durchsuchen<input id="help-search" placeholder="z. B. Onlinebewerbung, Kontaktlog, PDF, Support"></label>
                 <div class="help-filter-chips" aria-label="Hilfekategorien">
-                    <button type="button" class="is-active" data-help-category="">Alle</button>
                     <?php foreach($helpCategories as $category): ?><button type="button" data-help-category="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
                 </div>
             </div>
@@ -6924,10 +6957,11 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                 </article>
             <?php endforeach; ?>
         </section>
-        <section class="panel help-empty" id="help-empty" hidden><h2>Keine Treffer</h2><p>Suche nach einem anderen Begriff oder wähle wieder „Alle“.</p></section>
+        <section class="panel help-empty" id="help-empty" hidden><h2>Keine Treffer</h2><p>Leere das Suchfeld oder wähle eine andere Kategorie.</p></section>
         <script>
         (() => {
             const search = document.getElementById('help-search');
+            const grid = document.getElementById('help-topics');
             const topics = Array.from(document.querySelectorAll('.help-topic'));
             const empty = document.getElementById('help-empty');
             const chips = Array.from(document.querySelectorAll('[data-help-category]'));
@@ -6946,9 +6980,11 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
             };
             search?.addEventListener('input', apply);
             chips.forEach((chip) => chip.addEventListener('click', () => {
-                category = chip.dataset.helpCategory || '';
-                chips.forEach((item) => item.classList.toggle('is-active', item === chip));
+                const nextCategory = chip.dataset.helpCategory || '';
+                category = category === nextCategory ? '' : nextCategory;
+                chips.forEach((item) => item.classList.toggle('is-active', category !== '' && item.dataset.helpCategory === category));
                 apply();
+                grid?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }));
             apply();
         })();
