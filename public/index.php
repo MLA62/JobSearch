@@ -4829,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.36');
+$appVersion = (string) ($config['app_version'] ?? '0.14.37');
 
 ?><!doctype html>
 <html lang="de">
@@ -5590,6 +5590,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.36');
                 }).filter(Boolean);
                 const lines = [
                     'Führe eine aktuelle Web-Recherche nach passenden offenen Stellen durch.',
+                    'WICHTIG: Deine Antwort wird automatisch in eine App importiert. Jede Zeile, die keine URL ist, ist ein Fehler.',
                     '',
                     'Suchbegriff: ' + query,
                     'Gewünschte Anzahl konkreter Joblinks: ' + total,
@@ -5602,10 +5603,14 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.36');
                     'Regeln:',
                     '- Nur aktuell offene Stellen verwenden.',
                     '- Nur direkte Links auf konkrete Stellenanzeigen liefern, keine Suchseiten, keine Firmen-Startseiten.',
+                    '- Die bevorzugten Portale sind Prioritäten, keine harte Einschränkung. Wenn dort direkte Inserat-URLs nicht zuverlässig extrahierbar sind, nutze andere öffentlich zugängliche Quellen mit direkten Stellenlinks.',
                     '- Dubletten entfernen.',
                     '- Möglichst Schweiz/Region passend priorisieren, falls im Profil genannt.',
                     '- Keine erfundenen Links.',
                     '- Falls weniger passende Treffer vorhanden sind, einfach weniger Links liefern.',
+                    '- Keine Begründung liefern, wenn nichts gefunden wird.',
+                    '- Keine Hinweise zu technischen Einschränkungen liefern.',
+                    '- Keine Sätze wie "Ich kann die Vorgabe nicht erfüllen" ausgeben.',
                     '',
                     'Ausgabeformat zwingend:',
                     'Antworte ausschließlich mit direkten URLs.',
@@ -5618,7 +5623,8 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.36');
                     'Keine Erklärungen.',
                     'Keine Einleitung.',
                     'Kein Schlusssatz.',
-                    'Wenn kein passender Link gefunden wird, antworte mit leerer Ausgabe.'
+                    'Wenn kein passender Link gefunden wird, antworte mit leerer Ausgabe.',
+                    'Prüfe vor dem Absenden: Enthält die Antwort irgendein Zeichen außerhalb von URL-Zeilen, lösche diese Zeile.'
                 ].filter((line, index, all) => line !== '' || all[index - 1] !== '');
                 prompt.value = lines.join('\n');
             };
