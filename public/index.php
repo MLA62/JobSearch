@@ -67,6 +67,39 @@ try {
     } catch (Throwable $ignored) {
         // Die Vorgabe hilft, ist fuer den laufenden Betrieb aber nicht zwingend.
     }
+    $db->query("CREATE TABLE IF NOT EXISTS ui_text_keys (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        text_key VARCHAR(190) NOT NULL,
+        namespace VARCHAR(80) NOT NULL DEFAULT 'app',
+        description VARCHAR(255) NULL,
+        default_locale CHAR(5) NOT NULL DEFAULT 'de-CH',
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_ui_text_keys_key (text_key),
+        KEY idx_ui_text_keys_namespace (namespace, is_active)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS ui_text_translations (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        text_key_id BIGINT UNSIGNED NOT NULL,
+        locale CHAR(5) NOT NULL,
+        text_value LONGTEXT NOT NULL,
+        status ENUM('draft','review','approved','archived') NOT NULL DEFAULT 'approved',
+        updated_by BIGINT UNSIGNED NULL,
+        approved_by BIGINT UNSIGNED NULL,
+        approved_at DATETIME NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_ui_text_translation (text_key_id, locale),
+        KEY idx_ui_text_translations_locale (locale, status),
+        KEY idx_ui_text_translations_key (text_key_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS ui_text_cache_versions (
+        locale CHAR(5) PRIMARY KEY,
+        version BIGINT UNSIGNED NOT NULL DEFAULT 1,
+        changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
 } catch (Throwable $exception) {
     error_log('Locale migration failed: ' . $exception->getMessage());
 }
@@ -1156,12 +1189,97 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
 {
     global $appLocale;
     $locale = normalizeLocale($locale ?? (string) ($appLocale ?? ''));
-    $catalog = translationCatalog();
-    $text = $catalog[$locale][$key] ?? $catalog['de-CH'][$key] ?? $key;
+    $text = dbUiText($key, $locale);
+    if ($text === null) {
+        $catalog = translationCatalog();
+        $text = $catalog[$locale][$key] ?? $catalog['de-CH'][$key] ?? $key;
+        rememberDbUiTextFallback($key, $locale, $text);
+    }
     foreach ($replace as $name => $value) {
         $text = str_replace('{' . $name . '}', (string) $value, $text);
     }
     return $text;
+}
+
+function dbUiText(string $key, string $locale): ?string
+{
+    global $db;
+    static $cache = [];
+    static $available = null;
+    $locale = normalizeLocale($locale);
+    if ($key === '') {
+        return null;
+    }
+    if ($available === false) {
+        return null;
+    }
+    if (!isset($cache[$locale])) {
+        $cache[$locale] = [];
+        try {
+            $rows = dbAll(
+                $db,
+                "SELECT k.text_key, t.text_value
+                   FROM ui_text_keys k
+                   JOIN ui_text_translations t ON t.text_key_id = k.id
+                  WHERE k.is_active = 1
+                    AND t.status = 'approved'
+                    AND t.locale IN (?, 'de-CH')
+                  ORDER BY CASE WHEN t.locale = ? THEN 0 ELSE 1 END",
+                'ss',
+                [$locale, $locale]
+            );
+            foreach ($rows as $row) {
+                $textKey = (string) $row['text_key'];
+                if (!array_key_exists($textKey, $cache[$locale])) {
+                    $cache[$locale][$textKey] = (string) $row['text_value'];
+                }
+            }
+            $available = true;
+        } catch (Throwable $exception) {
+            $available = false;
+            error_log('DB UI text lookup failed: ' . $exception->getMessage());
+            return null;
+        }
+    }
+    return $cache[$locale][$key] ?? null;
+}
+
+function rememberDbUiTextFallback(string $key, string $locale, string $text): void
+{
+    global $db;
+    static $remembered = [];
+    $locale = normalizeLocale($locale);
+    $cacheKey = $locale . "\0" . $key;
+    if (isset($remembered[$cacheKey]) || $key === '' || $text === '') {
+        return;
+    }
+    $remembered[$cacheKey] = true;
+    try {
+        $namespace = substr((string) (str_contains($key, '.') ? strtok($key, '.') : 'app'), 0, 80);
+        $defaultLocale = 'de-CH';
+        $stmt = $db->prepare('INSERT INTO ui_text_keys (text_key, namespace, default_locale) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE namespace=VALUES(namespace), is_active=1');
+        $stmt->bind_param('sss', $key, $namespace, $defaultLocale);
+        $stmt->execute();
+
+        $row = dbOne($db, 'SELECT id FROM ui_text_keys WHERE text_key=?', 's', [$key]);
+        if (!$row) {
+            return;
+        }
+        $keyId = (int) $row['id'];
+        $status = 'approved';
+        $stmt = $db->prepare('INSERT INTO ui_text_translations (text_key_id, locale, text_value, status) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE text_value=IF(text_value="", VALUES(text_value), text_value), status=IF(status="archived", VALUES(status), status)');
+        $stmt->bind_param('isss', $keyId, $locale, $text, $status);
+        $stmt->execute();
+        if ($locale !== 'de-CH') {
+            $germanText = translationCatalog()['de-CH'][$key] ?? $key;
+            $germanLocale = 'de-CH';
+            $stmt = $db->prepare('INSERT INTO ui_text_translations (text_key_id, locale, text_value, status) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE text_value=IF(text_value="", VALUES(text_value), text_value), status=IF(status="archived", VALUES(status), status)');
+            $stmt->bind_param('isss', $keyId, $germanLocale, $germanText, $status);
+            $stmt->execute();
+        }
+    } catch (Throwable $exception) {
+        error_log('DB UI text remember failed: ' . $exception->getMessage());
+    }
 }
 
 function legacyUiSupplementalTranslationCatalog(): array
@@ -6927,7 +7045,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.10';
+$codeVersion = '1.15.11';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
