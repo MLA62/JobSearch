@@ -269,6 +269,84 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 .page-head h1 { font-size: 2.6rem; }
 .page-head span, .company, .meta-line, .due, .filter-note { color: var(--muted); }
 .eyebrow { text-transform: uppercase; letter-spacing: 0; color: var(--brand-dark); font-size: .78rem; font-weight: 800; }
+.context-help-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin: -4px 0 16px;
+}
+.context-help-button {
+    border-color: #f59e0b;
+    background: linear-gradient(180deg, #fff7ed, #ffedd5);
+    color: var(--accent-strong);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, .28), 0 0 20px rgba(245, 158, 11, .34);
+}
+.context-help-button:hover {
+    background: linear-gradient(180deg, #fff, #fed7aa);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, .45), 0 0 28px rgba(245, 158, 11, .55);
+}
+.bulb-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: #fff7cc;
+    color: #b45309;
+    box-shadow: 0 0 12px rgba(250, 204, 21, .85), inset 0 0 8px rgba(255, 255, 255, .75);
+}
+.bulb-icon svg {
+    fill: #facc15;
+    stroke: #92400e;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.context-help-modal[hidden] { display: none; }
+.context-help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+.context-help-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .48);
+}
+.context-help-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(760px, 100%);
+    max-height: min(760px, calc(100vh - 48px));
+    overflow: auto;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 22px 60px rgba(15, 23, 42, .32);
+    padding: 24px;
+}
+.context-help-dialog:focus { outline: 3px solid var(--accent-ring); outline-offset: 2px; }
+.context-help-dialog-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+.context-help-dialog h2 { margin-bottom: 0; }
+.context-help-dialog h3 {
+    color: var(--accent-strong);
+    margin-top: 18px;
+}
+.context-help-dialog ol,
+.context-help-dialog ul {
+    padding-left: 24px;
+}
+.context-help-dialog li { margin: 7px 0; }
+.context-help-close { flex-shrink: 0; }
+.modal-open { overflow: hidden; }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 20px 0; }
 .stats strong { display: block; font-size: 2rem; }

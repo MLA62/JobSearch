@@ -4829,8 +4829,102 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '1.14.39');
+$appVersion = (string) ($config['app_version'] ?? '1.14.40');
 $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
+$contextHelpTopics = [
+    'dashboard' => [
+        'title' => 'Übersicht',
+        'intro' => 'Die Übersicht zeigt den aktuellen Stand deiner Jobs, Bewerbungen, Pendenten und nächsten Schritte.',
+        'steps' => ['Prüfe zuerst offene Pendenten und fällige Termine.', 'Öffne neue oder interessante Jobs direkt aus den Kennzahlen.', 'Nutze die Übersicht als tägliche Startseite vor der eigentlichen Arbeit.'],
+        'tips' => ['Wenn Zahlen nicht stimmen, liegt es meist an Status, Fälligkeit oder fehlender Verknüpfung.'],
+        'link' => ['Ausführliche Hilfe öffnen', '/?page=help'],
+    ],
+    'profile' => [
+        'title' => 'Profil und Präferenzen',
+        'intro' => 'Hier pflegst du Stammdaten, Suchpräferenzen, Sprache, SMTP und Sicherheit. Diese Daten steuern Jobsuche, Matching und Bewerbungspakete.',
+        'steps' => ['Gewünschte Rollen und Orte möglichst konkret erfassen.', 'Pensum, Lohn, Arbeitsmodell und Ausschlüsse pflegen.', 'Stammdokumente aktuell halten.', '2FA aktivieren und SMTP nur mit korrekten Zugangsdaten speichern.'],
+        'tips' => ['Die Jobsuche übernimmt den Suchbegriff direkt aus den Präferenzen, kann ihn aber jederzeit überschreiben.'],
+        'link' => ['Profil-Hilfe öffnen', '/?page=help'],
+    ],
+    'documents' => [
+        'title' => 'Dokumente',
+        'intro' => 'Dokumente sind versioniert. Aktuelle Stammdokumente können später gesammelt einer Bewerbung zugeordnet werden.',
+        'steps' => ['Neue Dokumente mit sprechendem Titel und Sprache hochladen.', 'Für Ersatzdateien eine neue Version des bestehenden Dokuments erstellen.', 'Nicht benötigte Dokumente löschen oder die aktuelle Version sauber markieren.'],
+        'tips' => ['Für Onlinebewerbungen sind klare Dokumenttitel hilfreich, weil sie im temporären Ordner und im ZIP-Paket sichtbar sind.'],
+        'link' => ['Dokumenten-Hilfe öffnen', '/?page=help'],
+    ],
+    'job_platform_search' => [
+        'title' => 'Jobsuche mit ChatGPT-Prompt',
+        'intro' => 'Die App sammelt Suchparameter und erzeugt einen Prompt. ChatGPT soll daraus ausschließlich direkte Stellenlinks liefern.',
+        'steps' => ['Suchbegriff und gewünschte Anzahl prüfen.', 'Portale auswählen.', 'Prompt kopieren und in ChatGPT mit Web-Recherche einfügen.', 'Nur die zurückgegebenen URL-Zeilen in den Schnellimport übernehmen.'],
+        'tips' => ['Wenn ChatGPT Text statt Links liefert, Antwort verwerfen und denselben Prompt erneut ausführen.'],
+        'link' => ['Schnellimport öffnen', '/?page=jobs#quick-import'],
+    ],
+    'jobs' => [
+        'title' => 'Jobs und Schnellimport',
+        'intro' => 'Hier werden Stellen importiert, geprüft, bearbeitet und später in Bewerbungen überführt.',
+        'steps' => ['Direkte Stellen-URL oder mehrere Links in den Schnellimport einfügen.', 'Vorschlag erstellen und den Fortschritt abwarten.', 'Firma, Titel, Ort, Lohn, Quelle und Dublettenhinweis prüfen.', 'Job speichern oder eine Bewerbung vorbereiten.'],
+        'tips' => ['Direkte Inserat-URLs liefern deutlich bessere Ergebnisse als Suchseiten.'],
+        'link' => ['Jobs-Hilfe öffnen', '/?page=help'],
+    ],
+    'applications' => [
+        'title' => 'Bewerbungen',
+        'intro' => 'Bewerbungen bündeln Job, Kanal, Dokumente, Onlineformular, Kontaktbezug und nächste Schritte.',
+        'steps' => ['Bewerbung aus einem Job vorbereiten.', 'Dokumente gesammelt zuordnen.', 'Onlineformular oder E-Mail-Kanal pflegen.', 'Nach Einreichung den Status sauber setzen.', 'Pendent und Kontaktlog prüfen.'],
+        'tips' => ['Bei Onlinebewerbungen ist oft kein Kontakt vorhanden. Die Aktivität bleibt trotzdem über Firma, Job und Bewerbung sichtbar.'],
+        'link' => ['Bewerbungs-Hilfe öffnen', '/?page=help'],
+    ],
+    'companies' => [
+        'title' => 'Firmen',
+        'intro' => 'Firmen strukturieren Jobs, Kontakte, Bewerbungen, Dossiers und Reports.',
+        'steps' => ['Firmenname und Website prüfen.', 'Adresse, Kommentar und Vermittlungsbezug ergänzen.', 'Verknüpfte Jobs, Bewerbungen und Kontakte kontrollieren.'],
+        'tips' => ['Eine sauber gepflegte Firma verbessert Dossier, Kontaktlog und Auswertung.'],
+        'link' => ['Firmen-Hilfe öffnen', '/?page=help'],
+    ],
+    'contacts' => [
+        'title' => 'Kontakte und Kontaktlog',
+        'intro' => 'Kontakte werden nach Nachname sortiert und können Aktivitäten, Wiedervorlagen und Anhänge erhalten.',
+        'steps' => ['Kontakt öffnen oder neu erfassen.', 'Über Aktionen einen neuen Kontaktlog-Eintrag speichern.', 'Kanal, Datum, Status und Wiedervorlage setzen.', 'Anhänge direkt in der Dokumentablage verknüpfen.'],
+        'tips' => ['Das Kontaktlog ist die zentrale Chronik für Nachfassen, Telefonate, E-Mails und Gespräche.'],
+        'link' => ['Kontakt-Hilfe öffnen', '/?page=help'],
+    ],
+    'pendents' => [
+        'title' => 'Pendent',
+        'intro' => 'Pendent zeigt offene oder geplante Aufgaben aus Bewerbungen, Kontaktlog und Wiedervorlagen.',
+        'steps' => ['Nach Fälligkeit sortieren.', 'Offene Einträge zuerst bearbeiten.', 'Den Bezug öffnen und Status oder nächsten Schritt aktualisieren.'],
+        'tips' => ['Eine eingereichte Bewerbung erzeugt automatisch das Pendent "Antwort auf Bewerbung pendent".'],
+        'link' => ['Kalender öffnen', '/?page=calendar&view=agenda'],
+    ],
+    'calendar' => [
+        'title' => 'Kalender und Agenda',
+        'intro' => 'Der Kalender zeigt Aufgaben und Termine als Agenda, Tagesplan, Wochenplan oder Monatsplan.',
+        'steps' => ['Ansicht wählen.', 'Mit vor und zurück navigieren.', 'Einträge ohne Uhrzeit als Tageseinträge oben lesen.', 'Bei Bedarf ICS exportieren.'],
+        'tips' => ['Kalender und Pendent zeigen dieselben nächsten Schritte aus unterschiedlichen Blickwinkeln.'],
+        'link' => ['Pendent öffnen', '/?page=pendents'],
+    ],
+    'reports' => [
+        'title' => 'Reports',
+        'intro' => 'Reports speichern wiederkehrende Ansichten und exportieren Tabellen als PDF.',
+        'steps' => ['Basis und Ansicht wählen.', 'Spalten und Sortierung prüfen.', 'Report speichern.', 'Gespeicherte Reports anzeigen, bearbeiten oder als PDF exportieren.'],
+        'tips' => ['Reports sollen fachliche Informationen zeigen, keine technischen IDs.'],
+        'link' => ['Report-Hilfe öffnen', '/?page=help'],
+    ],
+    'admin_users' => [
+        'title' => 'Benutzerverwaltung',
+        'intro' => 'Admins verwalten Benutzerstatus, Rollen, Passwort-Reset, 2FA-Reset und Supportzugriffe.',
+        'steps' => ['Benutzer suchen.', 'Status und Rollen bewusst ändern.', 'Online-Status prüfen.', 'Passwort oder 2FA nur bei Bedarf zurücksetzen.'],
+        'tips' => ['Produktive Benutzer haben reale Daten. Administrative Eingriffe immer minimal und nachvollziehbar halten.'],
+        'link' => ['Admin-Hilfe öffnen', '/?page=help'],
+    ],
+    'admin_job_platforms' => [
+        'title' => 'Jobplattformen verwalten',
+        'intro' => 'Admins pflegen die Portale, die Benutzern für Jobsuche und Prompt-Erstellung angeboten werden.',
+        'steps' => ['Portalname, Basis-URL und Suchvorlage pflegen.', 'Nur aktive und sinnvolle Portale anzeigen.', 'Reihenfolge für die Benutzeransicht steuern.'],
+        'tips' => ['Portale sind Prioritäten für die Recherche, keine Garantie für direkte Inserat-URLs.'],
+        'link' => ['Jobsuche öffnen', '/?page=job_platform_search'],
+    ],
+];
+$contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 
 ?><!doctype html>
 <html lang="de">
@@ -4868,6 +4962,29 @@ $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
 </header>
 <main class="container">
 <?php if ($flash): ?><div class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></div><?php endif; ?>
+<?php if ($contextHelp): ?>
+    <div class="context-help-bar">
+        <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="Hilfe zu dieser Seite">
+            <span class="bulb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M9 21h6M10 17h4M8.6 14.7c-1.4-1-2.3-2.7-2.3-4.5A5.7 5.7 0 0 1 12 4.5a5.7 5.7 0 0 1 5.7 5.7c0 1.8-.9 3.5-2.3 4.5-.7.5-1.1 1.2-1.2 2H9.8c-.1-.8-.5-1.5-1.2-2Z"/></svg></span>
+            <span>Hilfe zu dieser Seite</span>
+        </button>
+    </div>
+    <div class="context-help-modal" id="context-help-modal" data-context-help-modal hidden>
+        <div class="context-help-backdrop" data-context-help-close></div>
+        <section class="context-help-dialog" role="dialog" aria-modal="true" aria-labelledby="context-help-title" tabindex="-1">
+            <div class="context-help-dialog-head">
+                <div><p class="eyebrow">Hilfe</p><h2 id="context-help-title"><?= e((string)$contextHelp['title']) ?></h2></div>
+                <button type="button" class="context-help-close" data-context-help-close aria-label="Hilfe schließen">Schließen</button>
+            </div>
+            <p><?= e((string)$contextHelp['intro']) ?></p>
+            <h3>So gehst du vor</h3>
+            <ol><?php foreach((array)$contextHelp['steps'] as $step): ?><li><?= e((string)$step) ?></li><?php endforeach; ?></ol>
+            <h3>Merken</h3>
+            <ul><?php foreach((array)$contextHelp['tips'] as $tip): ?><li><?= e((string)$tip) ?></li><?php endforeach; ?></ul>
+            <?php if(!empty($contextHelp['link'])): ?><div class="actions"><a class="button primary" href="<?= e((string)$contextHelp['link'][1]) ?>"><?= e((string)$contextHelp['link'][0]) ?></a><a class="button" href="/?page=help">Alle Hilfethemen</a></div><?php endif; ?>
+        </section>
+    </div>
+<?php endif; ?>
 
 <?php if ($page === 'login' && !$currentUser): ?>
     <section class="auth-card">
@@ -6309,6 +6426,27 @@ $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
     }, true);
     window.addEventListener('resize', () => document.querySelectorAll('.sf-menu[open]').forEach(placeMenu));
     window.addEventListener('scroll', () => document.querySelectorAll('.sf-menu[open]').forEach(placeMenu), true);
+})();
+(() => {
+    const modal = document.querySelector('[data-context-help-modal]');
+    const openButton = document.querySelector('[data-context-help-open]');
+    if (!modal || !openButton) return;
+    const dialog = modal.querySelector('.context-help-dialog');
+    const open = () => {
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+        dialog?.focus();
+    };
+    const close = () => {
+        modal.hidden = true;
+        document.body.classList.remove('modal-open');
+        openButton.focus();
+    };
+    openButton.addEventListener('click', open);
+    modal.querySelectorAll('[data-context-help-close]').forEach((button) => button.addEventListener('click', close));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.hidden) close();
+    });
 })();
 (() => {
     document.querySelectorAll('form[data-progress-form]').forEach((form) => {
