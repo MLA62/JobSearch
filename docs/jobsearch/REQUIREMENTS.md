@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.0`
+Produktversion: `1.15.1`
 
 JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
 realen Benutzern und vertraulichen Bewerbungsdaten.

@@ -276,6 +276,24 @@ function localeFlag(string $locale): string
     return supportedLocales()[$locale]['flag'] ?? supportedLocales()['de-CH']['flag'];
 }
 
+function localeFlagIconHtml(string $locale): string
+{
+    $country = match (normalizeLocale($locale)) {
+        'de-CH', 'fr-CH' => 'ch',
+        'en-GB' => 'gb',
+        'pt-BR' => 'br',
+        'es-MX' => 'mx',
+        default => 'ch',
+    };
+    $icons = [
+        'ch' => '<svg class="locale-flag locale-flag-ch" viewBox="0 0 32 32" role="img" focusable="false"><rect width="32" height="32" rx="2" fill="#d52b1e"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg>',
+        'gb' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="60" height="36" fill="#012169"/><path stroke="#fff" stroke-width="7" d="M0 0l60 36M60 0L0 36"/><path stroke="#c8102e" stroke-width="4" d="M0 0l60 36M60 0L0 36"/><path stroke="#fff" stroke-width="12" d="M30 0v36M0 18h60"/><path stroke="#c8102e" stroke-width="7" d="M30 0v36M0 18h60"/></svg>',
+        'br' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="60" height="36" fill="#009b3a"/><path fill="#ffdf00" d="M30 4l25 14-25 14L5 18z"/><circle cx="30" cy="18" r="8.5" fill="#002776"/><path stroke="#fff" stroke-width="2" d="M20 17c7-3 14-3 20 1"/></svg>',
+        'mx' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="20" height="36" fill="#006847"/><rect x="20" width="20" height="36" fill="#fff"/><rect x="40" width="20" height="36" fill="#ce1126"/><circle cx="30" cy="18" r="4.2" fill="#b38e5d"/><path stroke="#006847" stroke-width="1.2" d="M27 20c2 2 5 2 7 0"/></svg>',
+    ];
+    return $icons[$country];
+}
+
 function localeHtmlLang(string $locale): string
 {
     return normalizeLocale($locale);
@@ -296,7 +314,7 @@ function languagePickerHtml(string $activeLocale, string $modifier = ''): string
     <nav class="locale-picker <?= e($modifier) ?>" aria-label="<?= e(tr('language.choose', $activeLocale)) ?>">
         <?php foreach (supportedLocales() as $locale => $meta): ?>
             <a class="locale-option <?= $activeLocale === $locale ? 'is-active' : '' ?>" href="<?= e(languageUrl($locale)) ?>" lang="<?= e(localeHtmlLang($locale)) ?>" title="<?= e($meta['name']) ?>" aria-label="<?= e($meta['name']) ?>">
-                <span class="locale-flag" aria-hidden="true"><?= e($meta['flag']) ?></span>
+                <?= localeFlagIconHtml($locale) ?>
                 <span class="locale-label"><?= e($meta['native']) ?></span>
             </a>
         <?php endforeach; ?>
@@ -5085,7 +5103,7 @@ if ($page === 'two_factor' && !empty($_SESSION['pending_2fa_user_id'])) {
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.0';
+$codeVersion = '1.15.1';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {

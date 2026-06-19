@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.0`
+Produktversion: `1.15.1`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
