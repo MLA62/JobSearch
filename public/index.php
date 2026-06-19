@@ -1304,7 +1304,7 @@ function seedDbUiTextCatalog(): void
         return;
     }
     $seeded = true;
-    $seedVersion = 11514;
+    $seedVersion = 11516;
     $locales = array_keys(supportedLocales());
     try {
         $placeholders = implode(',', array_fill(0, count($locales), '?'));
@@ -1365,6 +1365,76 @@ function legacyUiSupplementalTranslationCatalog(): array
             'Alle' => 'Tous',
             'Keine' => 'Aucun',
             'Vor' => 'Suivant',
+            'Stammdaten' => 'Données de base',
+            'Bewerbungsdaten' => 'Données de candidature',
+            'Versionen' => 'Versions',
+            'aktuell' => 'actuel',
+            'Erstellt am' => 'Créé le',
+            'Seite' => 'Page',
+            'von' => 'sur',
+            'Neues Dokument' => 'Nouveau document',
+            'Neues Stammdaten-Dokument' => 'Nouveau document de base',
+            'Neues Bewerbungsdokument' => 'Nouveau document de candidature',
+            'Noch keine Stammdaten-Dokumente vorhanden.' => 'Aucun document de base pour le moment.',
+            'Gültig ab' => 'Valable dès',
+            'Gültig bis' => 'Valable jusqu’au',
+            'Sicherheit' => 'Sécurité',
+            'Aktiv' => 'Actif',
+            'Noch nicht aktiv' => 'Pas encore actif',
+            '2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.' => 'La 2FA est active. À la prochaine connexion, le code de ton application Authenticator sera aussi demandé.',
+            '2FA deaktivieren' => 'Désactiver la 2FA',
+            '2FA wirklich deaktivieren?' => 'Vraiment désactiver la 2FA ?',
+            'Übersetzung speichern' => 'Enregistrer la traduction',
+            'Datensatz' => 'Jeu de données',
+            'Bitte auswählen' => 'Veuillez choisir',
+            'Zielsprache' => 'Langue cible',
+            'Deutsch (Schweiz)' => 'Allemand (Suisse)',
+            'Titel' => 'Titre',
+            'Übersetzung' => 'Traduction',
+            'Mit “Übersetzung vorbereiten” wird aus dem gewählten Datensatz ein fertiger Übersetzungsauftrag erstellt. Das übersetzte Ergebnis danach hier einfügen und speichern.' => '« Préparer la traduction » crée une consigne de traduction à partir du jeu de données choisi. Colle ensuite le résultat traduit ici et enregistre-le.',
+            'Übersetzung vorbereiten' => 'Préparer la traduction',
+            'Speichern' => 'Enregistrer',
+            'Gespeicherte Übersetzungen' => 'Traductions enregistrées',
+            'Noch keine Übersetzungen gespeichert.' => 'Aucune traduction enregistrée.',
+            'Speicher, Exporte, Cleanup' => 'Stockage, exports, nettoyage',
+            'Speicherplatz' => 'Espace de stockage',
+            'Storage quota' => 'Quota de stockage',
+            'genutzt.' => 'utilisé.',
+            'Audit exportieren' => 'Exporter l’audit',
+            'Bewerbungen exportieren' => 'Exporter les candidatures',
+            'Cleanup anfragen' => 'Demander le nettoyage',
+            'Daten älter als' => 'Données plus anciennes que',
+            'Vorschau erstellen und anfragen' => 'Créer l’aperçu et demander',
+            'Cleanup-Anfragen' => 'Demandes de nettoyage',
+            'Sort/Filter zurücksetzen' => 'Réinitialiser tri/filtre',
+            'Keine Feldfilter' => 'Aucun filtre de champ',
+            'Unveränderbar' => 'Non modifiable',
+            'Änderungsprotokoll' => 'Journal des modifications',
+            'Letzte 100' => '100 derniers',
+            'Nicht gewählt' => 'Non sélectionné',
+            'Website' => 'Site web',
+            'Vermittler' => 'Intermédiaire',
+            'Vermittelt:' => 'Intermédiaire pour :',
+            'Zusammenarbeit' => 'Collaboration',
+            'Freigaben' => 'Partages',
+            'Links' => 'Liens',
+            'Neue Freigabe' => 'Nouveau partage',
+            'Empfänger-E-Mail' => 'E-mail du destinataire',
+            'Aktive und frühere Links' => 'Liens actifs et précédents',
+            'Noch keine Freigaben.' => 'Aucun partage pour le moment.',
+            'Ziel' => 'Cible',
+            'Empfänger' => 'Destinataire',
+            'Ganzer Bereich' => 'Zone complète',
+            'Recht' => 'Droit',
+            'Nur ansehen' => 'Lecture seule',
+            'Download' => 'Téléchargement',
+            'Kein Download' => 'Aucun téléchargement',
+            'Ablauf' => 'Expiration',
+            'Wasserzeichen / persönliche Nachverfolgung' => 'Filigrane / suivi personnel',
+            'Freigabe erstellen' => 'Créer le partage',
+            'Aktionen' => 'Actions',
+            'aufsteigend' => 'croissant',
+            'absteigend' => 'décroissant',
             'Neue Firma' => 'Nouvelle entreprise',
             'Firma bearbeiten' => 'Modifier l’entreprise',
             'Haupttelefon' => 'Téléphone principal',
@@ -1441,6 +1511,76 @@ function legacyUiSupplementalTranslationCatalog(): array
             'Alle' => 'All',
             'Keine' => 'None',
             'Vor' => 'Next',
+            'Stammdaten' => 'Master data',
+            'Bewerbungsdaten' => 'Application data',
+            'Versionen' => 'Versions',
+            'aktuell' => 'current',
+            'Erstellt am' => 'Created on',
+            'Seite' => 'Page',
+            'von' => 'of',
+            'Neues Dokument' => 'New document',
+            'Neues Stammdaten-Dokument' => 'New master-data document',
+            'Neues Bewerbungsdokument' => 'New application document',
+            'Noch keine Stammdaten-Dokumente vorhanden.' => 'No master-data documents yet.',
+            'Gültig ab' => 'Valid from',
+            'Gültig bis' => 'Valid until',
+            'Sicherheit' => 'Security',
+            'Aktiv' => 'Active',
+            'Noch nicht aktiv' => 'Not active yet',
+            '2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.' => '2FA is active. On the next login, the code from your authenticator app will also be required.',
+            '2FA deaktivieren' => 'Disable 2FA',
+            '2FA wirklich deaktivieren?' => 'Really disable 2FA?',
+            'Übersetzung speichern' => 'Save translation',
+            'Datensatz' => 'Record',
+            'Bitte auswählen' => 'Please select',
+            'Zielsprache' => 'Target language',
+            'Deutsch (Schweiz)' => 'German (Switzerland)',
+            'Titel' => 'Title',
+            'Übersetzung' => 'Translation',
+            'Mit “Übersetzung vorbereiten” wird aus dem gewählten Datensatz ein fertiger Übersetzungsauftrag erstellt. Das übersetzte Ergebnis danach hier einfügen und speichern.' => '“Prepare translation” creates a ready translation brief from the selected record. Paste the translated result here afterwards and save it.',
+            'Übersetzung vorbereiten' => 'Prepare translation',
+            'Speichern' => 'Save',
+            'Gespeicherte Übersetzungen' => 'Saved translations',
+            'Noch keine Übersetzungen gespeichert.' => 'No translations saved yet.',
+            'Speicher, Exporte, Cleanup' => 'Storage, exports, cleanup',
+            'Speicherplatz' => 'Storage',
+            'Storage quota' => 'Storage quota',
+            'genutzt.' => 'used.',
+            'Audit exportieren' => 'Export audit',
+            'Bewerbungen exportieren' => 'Export applications',
+            'Cleanup anfragen' => 'Request cleanup',
+            'Daten älter als' => 'Data older than',
+            'Vorschau erstellen und anfragen' => 'Create preview and request',
+            'Cleanup-Anfragen' => 'Cleanup requests',
+            'Sort/Filter zurücksetzen' => 'Reset sort/filter',
+            'Keine Feldfilter' => 'No field filters',
+            'Unveränderbar' => 'Read-only',
+            'Änderungsprotokoll' => 'Change log',
+            'Letzte 100' => 'Latest 100',
+            'Nicht gewählt' => 'Not selected',
+            'Website' => 'Website',
+            'Vermittler' => 'Intermediary',
+            'Vermittelt:' => 'Intermediary for:',
+            'Zusammenarbeit' => 'Collaboration',
+            'Freigaben' => 'Shares',
+            'Links' => 'Links',
+            'Neue Freigabe' => 'New share',
+            'Empfänger-E-Mail' => 'Recipient email',
+            'Aktive und frühere Links' => 'Active and previous links',
+            'Noch keine Freigaben.' => 'No shares yet.',
+            'Ziel' => 'Target',
+            'Empfänger' => 'Recipient',
+            'Ganzer Bereich' => 'Whole area',
+            'Recht' => 'Permission',
+            'Nur ansehen' => 'View only',
+            'Download' => 'Download',
+            'Kein Download' => 'No download',
+            'Ablauf' => 'Expiry',
+            'Wasserzeichen / persönliche Nachverfolgung' => 'Watermark / personal tracking',
+            'Freigabe erstellen' => 'Create share',
+            'Aktionen' => 'Actions',
+            'aufsteigend' => 'ascending',
+            'absteigend' => 'descending',
             'Neue Firma' => 'New company',
             'Firma bearbeiten' => 'Edit company',
             'Haupttelefon' => 'Main phone',
@@ -1517,6 +1657,76 @@ function legacyUiSupplementalTranslationCatalog(): array
             'Alle' => 'Todos',
             'Keine' => 'Nenhum',
             'Vor' => 'Próximo',
+            'Stammdaten' => 'Dados principais',
+            'Bewerbungsdaten' => 'Dados da candidatura',
+            'Versionen' => 'Versões',
+            'aktuell' => 'atual',
+            'Erstellt am' => 'Criado em',
+            'Seite' => 'Página',
+            'von' => 'de',
+            'Neues Dokument' => 'Novo documento',
+            'Neues Stammdaten-Dokument' => 'Novo documento de dados principais',
+            'Neues Bewerbungsdokument' => 'Novo documento de candidatura',
+            'Noch keine Stammdaten-Dokumente vorhanden.' => 'Ainda não há documentos de dados principais.',
+            'Gültig ab' => 'Válido a partir de',
+            'Gültig bis' => 'Válido até',
+            'Sicherheit' => 'Segurança',
+            'Aktiv' => 'Ativo',
+            'Noch nicht aktiv' => 'Ainda não ativo',
+            '2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.' => 'A 2FA está ativa. No próximo login, o código do seu app autenticador também será solicitado.',
+            '2FA deaktivieren' => 'Desativar 2FA',
+            '2FA wirklich deaktivieren?' => 'Deseja realmente desativar a 2FA?',
+            'Übersetzung speichern' => 'Salvar tradução',
+            'Datensatz' => 'Registro',
+            'Bitte auswählen' => 'Selecione',
+            'Zielsprache' => 'Idioma de destino',
+            'Deutsch (Schweiz)' => 'Alemão (Suíça)',
+            'Titel' => 'Título',
+            'Übersetzung' => 'Tradução',
+            'Mit “Übersetzung vorbereiten” wird aus dem gewählten Datensatz ein fertiger Übersetzungsauftrag erstellt. Das übersetzte Ergebnis danach hier einfügen und speichern.' => '“Preparar tradução” cria uma instrução pronta de tradução a partir do registro escolhido. Depois cole aqui o resultado traduzido e salve.',
+            'Übersetzung vorbereiten' => 'Preparar tradução',
+            'Speichern' => 'Salvar',
+            'Gespeicherte Übersetzungen' => 'Traduções salvas',
+            'Noch keine Übersetzungen gespeichert.' => 'Ainda não há traduções salvas.',
+            'Speicher, Exporte, Cleanup' => 'Armazenamento, exportações, limpeza',
+            'Speicherplatz' => 'Armazenamento',
+            'Storage quota' => 'Cota de armazenamento',
+            'genutzt.' => 'usado.',
+            'Audit exportieren' => 'Exportar auditoria',
+            'Bewerbungen exportieren' => 'Exportar candidaturas',
+            'Cleanup anfragen' => 'Solicitar limpeza',
+            'Daten älter als' => 'Dados mais antigos que',
+            'Vorschau erstellen und anfragen' => 'Criar prévia e solicitar',
+            'Cleanup-Anfragen' => 'Solicitações de limpeza',
+            'Sort/Filter zurücksetzen' => 'Redefinir ordenação/filtro',
+            'Keine Feldfilter' => 'Nenhum filtro de campo',
+            'Unveränderbar' => 'Somente leitura',
+            'Änderungsprotokoll' => 'Registro de alterações',
+            'Letzte 100' => 'Últimos 100',
+            'Nicht gewählt' => 'Não selecionado',
+            'Website' => 'Site',
+            'Vermittler' => 'Intermediário',
+            'Vermittelt:' => 'Intermedeia:',
+            'Zusammenarbeit' => 'Colaboração',
+            'Freigaben' => 'Compartilhamentos',
+            'Links' => 'Links',
+            'Neue Freigabe' => 'Novo compartilhamento',
+            'Empfänger-E-Mail' => 'E-mail do destinatário',
+            'Aktive und frühere Links' => 'Links ativos e anteriores',
+            'Noch keine Freigaben.' => 'Ainda não há compartilhamentos.',
+            'Ziel' => 'Destino',
+            'Empfänger' => 'Destinatário',
+            'Ganzer Bereich' => 'Área completa',
+            'Recht' => 'Permissão',
+            'Nur ansehen' => 'Somente visualizar',
+            'Download' => 'Download',
+            'Kein Download' => 'Sem download',
+            'Ablauf' => 'Expiração',
+            'Wasserzeichen / persönliche Nachverfolgung' => 'Marca d’água / rastreamento pessoal',
+            'Freigabe erstellen' => 'Criar compartilhamento',
+            'Aktionen' => 'Ações',
+            'aufsteigend' => 'crescente',
+            'absteigend' => 'decrescente',
             'Neue Firma' => 'Nova empresa',
             'Firma bearbeiten' => 'Editar empresa',
             'Haupttelefon' => 'Telefone principal',
@@ -1593,6 +1803,76 @@ function legacyUiSupplementalTranslationCatalog(): array
             'Alle' => 'Todos',
             'Keine' => 'Ninguno',
             'Vor' => 'Siguiente',
+            'Stammdaten' => 'Datos maestros',
+            'Bewerbungsdaten' => 'Datos de postulación',
+            'Versionen' => 'Versiones',
+            'aktuell' => 'actual',
+            'Erstellt am' => 'Creado el',
+            'Seite' => 'Página',
+            'von' => 'de',
+            'Neues Dokument' => 'Nuevo documento',
+            'Neues Stammdaten-Dokument' => 'Nuevo documento de datos maestros',
+            'Neues Bewerbungsdokument' => 'Nuevo documento de postulación',
+            'Noch keine Stammdaten-Dokumente vorhanden.' => 'Aún no hay documentos de datos maestros.',
+            'Gültig ab' => 'Válido desde',
+            'Gültig bis' => 'Válido hasta',
+            'Sicherheit' => 'Seguridad',
+            'Aktiv' => 'Activo',
+            'Noch nicht aktiv' => 'Aún no activo',
+            '2FA ist aktiv. Beim nächsten Login wird zusätzlich der Code aus deiner Authenticator-App verlangt.' => 'La 2FA está activa. En el próximo inicio de sesión también se pedirá el código de tu app autenticadora.',
+            '2FA deaktivieren' => 'Desactivar 2FA',
+            '2FA wirklich deaktivieren?' => '¿Desactivar realmente la 2FA?',
+            'Übersetzung speichern' => 'Guardar traducción',
+            'Datensatz' => 'Registro',
+            'Bitte auswählen' => 'Selecciona',
+            'Zielsprache' => 'Idioma de destino',
+            'Deutsch (Schweiz)' => 'Alemán (Suiza)',
+            'Titel' => 'Título',
+            'Übersetzung' => 'Traducción',
+            'Mit “Übersetzung vorbereiten” wird aus dem gewählten Datensatz ein fertiger Übersetzungsauftrag erstellt. Das übersetzte Ergebnis danach hier einfügen und speichern.' => '“Preparar traducción” crea una instrucción de traducción lista a partir del registro elegido. Después pega aquí el resultado traducido y guárdalo.',
+            'Übersetzung vorbereiten' => 'Preparar traducción',
+            'Speichern' => 'Guardar',
+            'Gespeicherte Übersetzungen' => 'Traducciones guardadas',
+            'Noch keine Übersetzungen gespeichert.' => 'Aún no hay traducciones guardadas.',
+            'Speicher, Exporte, Cleanup' => 'Almacenamiento, exportaciones, limpieza',
+            'Speicherplatz' => 'Almacenamiento',
+            'Storage quota' => 'Cuota de almacenamiento',
+            'genutzt.' => 'usado.',
+            'Audit exportieren' => 'Exportar auditoría',
+            'Bewerbungen exportieren' => 'Exportar postulaciones',
+            'Cleanup anfragen' => 'Solicitar limpieza',
+            'Daten älter als' => 'Datos anteriores a',
+            'Vorschau erstellen und anfragen' => 'Crear vista previa y solicitar',
+            'Cleanup-Anfragen' => 'Solicitudes de limpieza',
+            'Sort/Filter zurücksetzen' => 'Restablecer ordenar/filtro',
+            'Keine Feldfilter' => 'Sin filtros de campo',
+            'Unveränderbar' => 'Solo lectura',
+            'Änderungsprotokoll' => 'Registro de cambios',
+            'Letzte 100' => 'Últimos 100',
+            'Nicht gewählt' => 'No seleccionado',
+            'Website' => 'Sitio web',
+            'Vermittler' => 'Intermediario',
+            'Vermittelt:' => 'Intermedia:',
+            'Zusammenarbeit' => 'Colaboración',
+            'Freigaben' => 'Accesos compartidos',
+            'Links' => 'Enlaces',
+            'Neue Freigabe' => 'Nuevo acceso compartido',
+            'Empfänger-E-Mail' => 'Correo electrónico del destinatario',
+            'Aktive und frühere Links' => 'Enlaces activos y anteriores',
+            'Noch keine Freigaben.' => 'Aún no hay accesos compartidos.',
+            'Ziel' => 'Destino',
+            'Empfänger' => 'Destinatario',
+            'Ganzer Bereich' => 'Área completa',
+            'Recht' => 'Permiso',
+            'Nur ansehen' => 'Solo ver',
+            'Download' => 'Descarga',
+            'Kein Download' => 'Sin descarga',
+            'Ablauf' => 'Vencimiento',
+            'Wasserzeichen / persönliche Nachverfolgung' => 'Marca de agua / seguimiento personal',
+            'Freigabe erstellen' => 'Crear acceso compartido',
+            'Aktionen' => 'Acciones',
+            'aufsteigend' => 'ascendente',
+            'absteigend' => 'descendente',
             'Neue Firma' => 'Nueva empresa',
             'Firma bearbeiten' => 'Editar empresa',
             'Haupttelefon' => 'Teléfono principal',
@@ -3217,8 +3497,21 @@ function pdfEscape(string $value): string
     return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
 }
 
+function pdfUiText(string $value, ?string $locale = null): string
+{
+    global $appLocale;
+    return translateUiSegment($value, normalizeLocale($locale ?? (string) ($appLocale ?? 'de-CH')));
+}
+
 function pdfResponse(string $filename, string $title, array $headers, array $rows): never
 {
+    global $appLocale;
+    $pdfLocale = normalizeLocale((string) ($appLocale ?? 'de-CH'));
+    $title = pdfUiText($title, $pdfLocale);
+    $headers = array_map(static fn($header): string => pdfUiText((string) $header, $pdfLocale), $headers);
+    $createdLabel = pdfUiText('Erstellt am', $pdfLocale);
+    $pageLabel = pdfUiText('Seite', $pdfLocale);
+    $ofLabel = pdfUiText('von', $pdfLocale);
     $objects = [];
     $pages = [];
     $fontObjectNo = 3;
@@ -3260,7 +3553,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
     $pageTotal = count($chunks);
     foreach ($chunks as $pageIndex => $chunk) {
         $content = "0.09 0.13 0.16 rg\nBT /F1 18 Tf {$margin} 548 Td (" . pdfEscape($title) . ") Tj ET\n";
-        $content .= "0.39 0.45 0.48 rg\nBT /F1 8 Tf {$margin} 529 Td (Erstellt am " . pdfEscape(date('d.m.Y H:i')) . " | Seite " . ($pageIndex + 1) . " von {$pageTotal}) Tj ET\n";
+        $content .= "0.39 0.45 0.48 rg\nBT /F1 8 Tf {$margin} 529 Td (" . pdfEscape($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . ($pageIndex + 1) . ' ' . $ofLabel . ' ' . $pageTotal) . ") Tj ET\n";
 
         $x = $margin;
         $headerY = $tableTop - $headerHeight;
@@ -3285,7 +3578,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
             for ($index = 0; $index < $columnCount; $index++) {
                 $width = $widths[$index] ?? ($tableWidth / $columnCount);
                 $value = is_array($row) ? ($row[$index] ?? '') : '';
-                $text = mb_strimwidth((string) $value, 0, max(4, (int) floor(($width - 10) / 4.1)), '...');
+                $text = mb_strimwidth(pdfUiText((string) $value, $pdfLocale), 0, max(4, (int) floor(($width - 10) / 4.1)), '...');
                 if ($index > 0) {
                     $content .= "0.82 0.85 0.86 RG {$x} {$rowY} m {$x} " . ($rowY + $rowHeight) . " l S\n";
                 }
@@ -3324,6 +3617,11 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
 
 function pdfTextResponse(string $filename, string $title, array $sections): never
 {
+    global $appLocale;
+    $pdfLocale = normalizeLocale((string) ($appLocale ?? 'de-CH'));
+    $title = pdfUiText($title, $pdfLocale);
+    $createdLabel = pdfUiText('Erstellt am', $pdfLocale);
+    $pageLabel = pdfUiText('Seite', $pdfLocale);
     $pageWidth = 595;
     $pageHeight = 842;
     $margin = 42;
@@ -3337,12 +3635,12 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
     $y = 792;
     $lineWidth = 96;
 
-    $newPage = function () use (&$content, &$pageContents, &$pageNo, &$y, $pageWidth, $pageHeight, $margin, $title): void {
+    $newPage = function () use (&$content, &$pageContents, &$pageNo, &$y, $pageWidth, $pageHeight, $margin, $title, $createdLabel, $pageLabel): void {
         if ($content !== '') {
             $pageContents[] = $content;
         }
         $content = "0.09 0.13 0.16 rg\nBT /F1 16 Tf {$margin} 806 Td (" . pdfEscape($title) . ") Tj ET\n";
-        $content .= "0.45 0.50 0.54 rg\nBT /F1 8 Tf {$margin} 788 Td (Erstellt am " . pdfEscape(date('d.m.Y H:i')) . " | Seite {$pageNo}) Tj ET\n";
+        $content .= "0.45 0.50 0.54 rg\nBT /F1 8 Tf {$margin} 788 Td (" . pdfEscape($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . $pageNo) . ") Tj ET\n";
         $content .= "0.78 0.81 0.84 RG 0.6 w {$margin} 778 m " . ($pageWidth - $margin) . " 778 l S\n";
         $y = 758;
         $pageNo++;
@@ -3358,9 +3656,9 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
     };
     $newPage();
     foreach ($sections as $sectionTitle => $lines) {
-        $addLine((string) $sectionTitle, 12, true);
+        $addLine(pdfUiText((string) $sectionTitle, $pdfLocale), 12, true);
         foreach ((array) $lines as $line) {
-            $parts = preg_split('/\R/u', (string) $line) ?: [''];
+            $parts = preg_split('/\R/u', pdfUiText((string) $line, $pdfLocale)) ?: [''];
             foreach ($parts as $part) {
                 $part = trim((string) $part);
                 if ($part === '') {
@@ -7149,7 +7447,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.14';
+$codeVersion = '1.15.16';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

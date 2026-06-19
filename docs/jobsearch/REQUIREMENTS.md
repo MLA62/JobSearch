@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.14`
+Produktversion: `1.15.16`
 
 JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
 realen Benutzern und vertraulichen Bewerbungsdaten.
@@ -66,9 +66,11 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.14`: UI-Texte muessen im Laufzeitpfad ueber DB-Keys
+- Stand Version `1.15.16`: UI-Texte muessen im Laufzeitpfad ueber DB-Keys
   kommen. Alte Arbeitsseiten-Phrasen werden als `legacy.literal.*` in der
   Datenbank gehalten und nicht mehr aus dem Datei-Katalog gelesen.
+- PDF-Ausgaben muessen dieselbe DB-Uebersetzung fuer Titel, Tabellenkoepfe,
+  Zeilenwerte und Standard-Metatexte verwenden.
 - `tr()` muss UI-Texte primaer aus der Datenbank lesen.
 - Fehlende alte `tr()`-Fallbacks duerfen waehrend der Migration automatisch in
   der Datenbank registriert werden.

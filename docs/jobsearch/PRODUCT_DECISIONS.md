@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.14`
+Produktversion: `1.15.16`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -43,10 +43,12 @@ aufzubauen.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.14`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
+- Stand Version `1.15.16`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
   gelesen. Auch alte Arbeitsseiten-Phrasen werden als `legacy.literal.*`
   in `ui_text_keys` und `ui_text_translations` gehalten.
-- Stand Version `1.15.14`: `tr()` liest UI-Texte zuerst aus den Tabellen
+- Stand Version `1.15.16`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
+  Zeilenwerte und Standard-Metatexte ueber dieselbe DB-Phrasenlogik.
+- Stand Version `1.15.16`: `tr()` liest UI-Texte zuerst aus den Tabellen
   `ui_text_keys` und `ui_text_translations`. Fehlende bisherige `tr()`-Keys
   werden als Migrationshilfe automatisch in der Datenbank registriert.
 - Das Werkzeug `tools/jobsearch_i18n_audit.php` liefert die Arbeitsliste der
