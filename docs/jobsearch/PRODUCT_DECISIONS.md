@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.16`
+Produktversion: `1.15.17`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -43,14 +43,15 @@ aufzubauen.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.16`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
-  gelesen. Auch alte Arbeitsseiten-Phrasen werden als `legacy.literal.*`
-  in `ui_text_keys` und `ui_text_translations` gehalten.
-- Stand Version `1.15.16`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
+- Stand Version `1.15.17`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
+  gelesen. PHP- und Resource-Dateien duerfen keine Uebersetzungswoerterbuecher
+  mehr enthalten.
+- Stand Version `1.15.17`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
   Zeilenwerte und Standard-Metatexte ueber dieselbe DB-Phrasenlogik.
-- Stand Version `1.15.16`: `tr()` liest UI-Texte zuerst aus den Tabellen
+- Stand Version `1.15.17`: `tr()` liest UI-Texte aus den Tabellen
   `ui_text_keys` und `ui_text_translations`. Fehlende bisherige `tr()`-Keys
-  werden als Migrationshilfe automatisch in der Datenbank registriert.
+  fallen sichtbar auf ihren Key zurueck und duerfen nicht mehr aus PHP-Katalogen
+  befuellt werden.
 - Das Werkzeug `tools/jobsearch_i18n_audit.php` liefert die Arbeitsliste der
   noch direkt im PHP vorhandenen sichtbaren Textkandidaten.
 - Die App verwendet eine zentrale Sprachbibliothek in `public/index.php`.

@@ -104,24 +104,22 @@ Phase 2: zentrale Runtime einfuehren
 
 - Neue Funktion `t($key, $replace = [], $locale = null)` liest aus der DB.
 - Bestehendes `tr()` wird intern auf `t()` umgeleitet.
-- Statische Kataloge bleiben nur als temporaerer Fallback fuer noch nicht
-  migrierte Keys.
+- Statische Kataloge sind kein erlaubter Runtime-Fallback.
 
 Phase 3: Keys uebernehmen
 
-- Bestehende `translationCatalog()`-Keys werden einmalig in die DB migriert.
+- Bestehende Keys muessen in der Datenbank vorhanden sein.
 - Der Code wird auf reine Key-Nutzung umgestellt.
 - Keine neuen Texte werden mehr in PHP aufgenommen.
 
 Phase 4: Legacy entfernen
 
-- `legacyUiTranslationCatalog()`
-- `legacyUiSupplementalTranslationCatalog()`
-- `legacyUiQualityPatchTranslationCatalog()`
-- `translateUiHtml()`
-- `public/i18n/ui_legacy.php`
-
-werden entfernt, sobald alle sichtbaren Texte ueber DB-Keys laufen.
+- Stand Version `1.15.17`: PHP- und Resource-Dateien enthalten keine
+  Uebersetzungswoerterbuecher mehr. Leere Kompatibilitaetsfunktionen duerfen
+  nur bestehen bleiben, solange alte Aufrufstellen noch aufgeraeumt werden.
+- `public/i18n/ui_legacy.php` ist entfernt.
+- `translateUiHtml()` darf nur DB-Inhalte aus `ui_text_keys` und
+  `ui_text_translations` verwenden.
 
 ## Qualitaetskriterien
 
