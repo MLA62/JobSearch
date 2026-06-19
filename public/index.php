@@ -4829,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '1.14.40');
+$appVersion = (string) ($config['app_version'] ?? '1.14.41');
 $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
 $contextHelpTopics = [
     'dashboard' => [
@@ -6291,6 +6291,25 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                 'links' => [['Benutzerverwaltung', '/?page=admin_users'], ['Jobplattformen', '/?page=admin_job_platforms']],
                 'keywords' => 'admin benutzer support sicherheit 2fa passwort reset jobplattform online',
             ],
+            [
+                'category' => 'Lizenz',
+                'audience' => 'Alle',
+                'title' => 'Lizenz und erlaubte Nutzung',
+                'summary' => 'JeMa Jobs ist proprietäre Produktivsoftware. Nutzung, Betrieb und Weitergabe sind nur mit ausdrücklicher Berechtigung erlaubt.',
+                'steps' => [
+                    'Die Anwendung darf nur von berechtigten Benutzern und Administratoren der freigegebenen Installation genutzt werden.',
+                    'Quellcode, Datenbankstruktur, Hilfetexte, Designs und Dokumentation dürfen ohne schriftliche Zustimmung des Rechteinhabers nicht kopiert, veröffentlicht, weitergegeben oder als eigenes Produkt verwendet werden.',
+                    'Produktive Bewerbungs-, Kontakt-, Dokument- und Benutzerdaten sind vertraulich und bleiben benutzerisoliert.',
+                    'Externe Dienste wie Jobportale, SMTP-Server oder ChatGPT sind nur im Rahmen ihrer jeweiligen Nutzungsbedingungen einzusetzen.',
+                    'Supportzugriffe durch Administratoren benötigen eine ausdrückliche Freigabe des betroffenen Benutzers.',
+                ],
+                'tips' => [
+                    'Kurzform: Alle Rechte vorbehalten. Kein Open Source, keine Weitergabe, keine Fremdnutzung ohne Erlaubnis.',
+                    'Die ausführliche Projektdokumentation enthält zusätzlich eine LICENSE.md mit der gleichen Lizenzposition.',
+                ],
+                'links' => [['Über JeMa Jobs', '/?page=about']],
+                'keywords' => 'lizenz license proprietär nutzung rechte copyright vertraulich datenschutz weitergabe',
+            ],
         ];
         $helpCategories = array_values(array_unique(array_map(static fn(array $topic): string => $topic['category'], $helpTopics)));
         ?>
@@ -6324,6 +6343,11 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                 <article><h3>Online bewerben</h3><p>Bewerbung vorbereiten -> Dokumente zuordnen -> Webformular öffnen -> Einreichung protokollieren.</p><a href="/?page=applications">Zu Bewerbungen</a></article>
                 <article><h3>Nachverfolgen</h3><p>Kontaktlog pflegen -> Wiedervorlage setzen -> Pendent und Kalender prüfen -> Dossier aktuell halten.</p><a href="/?page=reminders">Zu Pendent</a></article>
             </div>
+        </section>
+        <section class="panel license-panel">
+            <div class="section-head"><div><p class="eyebrow">Lizenz</p><h2>Proprietäre Lizenz</h2></div><span>Alle Rechte vorbehalten</span></div>
+            <p>JeMa Jobs ist proprietäre Produktivsoftware. Die Nutzung ist ausschließlich berechtigten Benutzern und Administratoren der freigegebenen Installation gestattet. Quellcode, Datenbankstruktur, Oberflächen, Hilfetexte, Designs und Dokumentation dürfen ohne schriftliche Zustimmung des Rechteinhabers nicht kopiert, veröffentlicht, weitergegeben, weiterverkauft oder als Grundlage für ein eigenes Produkt verwendet werden.</p>
+            <p>Produktive Daten bleiben vertraulich und benutzerisoliert. Administratorischer Supportzugriff ist nur mit ausdrücklicher Freigabe des betroffenen Benutzers zulässig.</p>
         </section>
         <section class="help-grid" id="help-topics">
             <?php foreach($helpTopics as $index => $topic): ?>

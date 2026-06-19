@@ -1,49 +1,189 @@
-# JeMa Jobs CRM - Initial Scope
+# JeMa Jobs - Anforderungen
 
-## Hosting
+Stand: 2026-06-19
 
-- Public URL: `https://jobs.jema.business`
-- PHP: 8.4
-- Database: MariaDB 10.6
-- Database name requested: `kerubina_JeMaJobs`
-- Database encoding: application tables use `utf8mb4`, independent of the
-  server's legacy `latin1` default.
-- Deployment target and credentials are intentionally not stored in Git.
+Produktversion: `1.14.41`
 
-## Product requirements
+JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
+realen Benutzern und vertraulichen Bewerbungsdaten.
 
-- Responsive web application for desktop, mobile portrait and mobile landscape.
-- Multiple users with role-based access and isolated user-owned CRM data.
-- Login plus 2FA through email, TOTP authenticator or WebAuthn/security key.
-- UI languages: German, English, Spanish and Portuguese.
-- CRUD-first CRM for user profiles, documents, preferences, companies, jobs,
-  contacts, communication logs and applications.
-- Job records may be imported from external sources, subject to source terms,
-  robots rules, copyright and applicable privacy law.
-- Applications include cover letter files, email subject/body and attachments.
-- Saved list/report generator with selectable columns, filters and sorting.
-- Table, list, card/preview and day/week/month calendar presentations.
-- PDF/file generation for reports and email attachments.
-- Audit logging for security-relevant and data-changing operations.
+## Grundsaetze
 
-## Security requirements
+- Alle produktiven Benutzerdaten sind vertraulich.
+- Benutzer sehen nur ihre eigenen CRM-, Bewerbungs-, Dokument- und
+  Kalenderdaten.
+- Administrative Eingriffe muessen minimal, nachvollziehbar und auditiert sein.
+- Jede produktive Aenderung muss lokal geprueft, per FTPS deployed und nach
+  Moeglichkeit nach GitHub synchronisiert werden.
+- Die sichtbare Versionsnummer wird im Footer angezeigt und muss bei
+  produktiven Aenderungen erhoeht werden.
+- Die Anwendung ist proprietaer. Alle Rechte sind vorbehalten.
 
-- Passwords use PHP `password_hash()` with Argon2id where available.
-- 2FA secrets and source/API credentials are encrypted at application level.
-- Authentication and reset tokens are stored only as hashes.
-- Uploaded documents live outside `public_html` and are downloaded through an
-  authorization-checked PHP endpoint.
-- Every query for owned CRM data is scoped to the authenticated user unless an
-  explicit shared-access record grants access.
-- Use CSRF protection, secure/HttpOnly/SameSite cookies, output escaping,
-  prepared statements, rate limiting and login lockout.
-- Production secrets belong in a server-side `.env` file excluded from Git.
+## Plattform
 
-## Implementation phases
+- Webanwendung unter `https://jobs.jema.business`.
+- PHP 8.1+.
+- MariaDB 10.6.
+- UTF-8/`utf8mb4` fuer Anwendungstabellen.
+- Responsive Layout fuer Desktop, Tablet und Mobile.
+- Keine clientseitige Abhaengigkeit fuer kritische Sicherheitsentscheidungen.
 
-1. Bootstrap, environment config, migrations, authentication, roles and 2FA.
-2. CRUD for profile documents, preferences, companies, jobs and contacts.
-3. Applications, contact history, calendar and email workflow.
-4. Saved lists/reports, PDF generation and exports.
-5. Controlled job import connectors, matching, hardening and deployment.
+## Identitaet und Sicherheit
 
+- Benutzer koennen sich registrieren und anmelden.
+- Passwoerter werden mit `password_hash()` gespeichert.
+- Passwort-Reset ist vorhanden.
+- Wenn SMTP aktiv ist, werden interne E-Mails wie Registrierung und Reset per
+  E-Mail verschickt.
+- Wenn E-Mail-Versand nicht moeglich ist, muss der Ablauf sichtbar und
+  kontrolliert bleiben.
+- TOTP-2FA kann im Profil aktiviert werden.
+- Aktivierte TOTP-2FA muss beim Login zwingend geprueft werden.
+- Admins koennen fuer Benutzer Passwort und 2FA zuruecksetzen.
+- Benutzer koennen ADMIN Support explizit freigeben und jederzeit widerrufen.
+- Waehrend ADMIN Support muessen Benutzer- und Admin-Umgebung farblich
+  markiert sein.
+- Admins sehen in der Benutzerverwaltung, wer aktuell online ist.
+
+## Benutzerprofil
+
+- Profil enthaelt Name, E-Mail, Telefon, Adresse, Region, Zeitzone und Sprache.
+- Profil enthaelt Social Links: LinkedIn, Facebook, X und andere.
+- Profil enthaelt Sprachkenntnisse.
+- Profil enthaelt Suchpraeferenzen:
+  - Rollen/Taetigkeiten
+  - Orte/Regionen
+  - Arbeitsmodell
+  - Stellenarten
+  - Pensum
+  - Lohn
+  - Level/Lage
+  - Benefits
+  - Ausschluesse
+  - Reiseanteil
+  - Verfuegbarkeit
+- Benutzer koennen eigene SMTP-Einstellungen pflegen.
+
+## Dokumente
+
+- Stammdokumente werden versioniert verwaltet.
+- Bewerbungsdokumente koennen einer Bewerbung zugeordnet werden.
+- Dokumente haben Typ, Titel, Sprache, Beschreibung, Version und Datei.
+- Benutzer koennen Dokumente bearbeiten, ersetzen, herunterladen und loeschen.
+- Bei Bewerbungen koennen mehrere Stammdokumente gesammelt zugeordnet werden.
+- Fuer Onlinebewerbungen muessen Drag-and-drop-Download, temporaerer Ordner und
+  Portalpaket ZIP unterstuetzt werden.
+
+## Firmen und Kontakte
+
+- Firmen koennen manuell erfasst oder beim Jobimport automatisch erzeugt werden.
+- Firmen haben Kommentar- und Verknuepfungsinformationen.
+- Kontakte gehoeren zu Firmen und optional zu Jobs oder Bewerbungen.
+- Kontakte muessen nach Nachname sortiert sein.
+- Kontakte haben ein Kontaktlog.
+- Kontaktlog-Eintraege enthalten:
+  - Kanal: E-Mail, extern, vor Ort, Telefon, Video Call, WhatsApp, SMS, andere
+  - Richtung
+  - Datum/Uhrzeit
+  - Wiedervorlage Datum/Uhrzeit
+  - Betreff
+  - Status: geplant, offen, erledigt, abgebrochen
+  - mehrzeilige Mitteilung
+  - Ergebnis/naechster Schritt
+  - Anhaenge ueber Dokumentablage
+- Bewerbungsereignisse muessen im Kontaktlog sichtbar werden, auch wenn kein
+  klassischer Ansprechpartner vorhanden ist.
+
+## Jobs und Jobsuche
+
+- Jobs koennen manuell erfasst, aus einer URL importiert oder aus Text
+  vorgeschlagen werden.
+- Der Schnellimport akzeptiert eine URL, mehrere URLs oder kopierten
+  Ausschreibungstext.
+- Beim Klick auf `Vorschlag erstellen` muss Fortschritt sichtbar sein.
+- Jobdaten enthalten Firma, Titel, Ort, Arbeitsmodell, Stellenart,
+  Vertragsdauer, Lohn, Status, Quell-URL, Beschreibung, Kommentar,
+  Original-PDF-Status und Fragen.
+- Quell-URL ist klickbar.
+- ID-Werte duerfen in Benutzerlisten und Reports nicht als fachliche Information
+  erscheinen.
+- Der Admin pflegt eine Liste von Jobplattformen.
+- Benutzer koennen auf Basis ihrer Profilpraeferenzen einen
+  ChatGPT-Rechercheprompt erstellen.
+- Der Prompt muss direkte Stellenlinks verlangen:
+  - eine URL pro Zeile
+  - keine Nummerierung
+  - kein Markdown
+  - keine Erklaerungen
+  - keine erfundenen Links
+- Von ChatGPT gelieferte Direktlinks werden im Schnellimport verarbeitet.
+
+## Bewerbungen
+
+- Aus einem Job kann eine Bewerbung vorbereitet werden.
+- Bewerbungen unterstuetzen Onlinebewerbung, E-Mail-Bewerbung und andere Kanaele.
+- Onlinebewerbungen benoetigen Webformular-URL, Portalhinweise,
+  Referenznummer, Notizen und Kopieren-Buttons.
+- Viele Bewerbungen erfolgen direkt in Formularen der Firmen; der Workflow muss
+  darauf optimiert sein.
+- Nach Einreichung einer Bewerbung muss automatisch entstehen:
+  - Kontaktlog-Aktivitaet
+  - Kalender-/Agenda-Sichtbarkeit
+  - Pendent mit Text `Antwort auf Bewerbung pendent`
+  - Zeitpunkt der Einreichung als Bezugszeitpunkt
+- Bewerbungspakete muessen Dokumente fuer externen Upload bereitstellen.
+- Bewerbungsdossier muss alle relevanten Informationen zusammenfassen:
+  Firma, Kontakte, Job, Bewerbung, Dokumente, Fragen und Aktivitaeten.
+
+## Pendent und Kalender
+
+- `Pendent` ist die zentrale Aufgabenliste.
+- Daten koennen gefiltert und sortiert werden.
+- Kalender bietet:
+  - Agenda als Tabelle
+  - Tagesplan mit Uhrzeitachse
+  - Arbeitswochen-/Wochenplan als Matrix
+  - Monatsplan als Monatsmatrix
+  - Kalenderwochenanzeige
+  - Tageseintraege ohne Uhrzeit oben
+  - ICS-Export je Ansicht
+- Ereignisse muessen anklickbar sein.
+
+## Reports und Tabellen
+
+- Wo Daten als Karten erscheinen, muss eine Tabellenansicht moeglich sein, wenn
+  es fachlich sinnvoll ist.
+- Tabellen koennen sortiert und gefiltert werden.
+- Sort/Filter-Zustand bleibt session- und darstellungsuebergreifend erhalten.
+- Dropdown-Felder nutzen Filter mit Mehrfachauswahl.
+- Tabellen koennen als PDF exportiert werden.
+- Reports koennen gespeichert, angezeigt, bearbeitet, geloescht und exportiert
+  werden.
+- Reports muessen grafisch sauber sein: gebaenderte Zeilen, Rahmen und
+  Spaltenlinien.
+
+## Hilfe
+
+- Zentrale Hilfe mit Suche, Kategorien und Prozessuebersicht.
+- Kontextuelle Hilfe auf sinnvollen Seiten ueber leuchtende Gluebirne.
+- Hilfetext erscheint modal und kann per Button, Hintergrundklick oder Escape
+  geschlossen werden.
+- Hilfe enthaelt eine Lizenzsektion.
+- Hilfe muss produktiv formuliert sein und darf nicht auf einen Prototyp
+  verweisen.
+
+## Admin
+
+- Admins verwalten Benutzer, Rollen, Status, Passwort, 2FA und Support.
+- Admins verwalten Jobplattformen.
+- Admins duerfen sich nur mit expliziter Benutzerfreigabe in eine Umgebung
+  einklinken.
+- Admins sehen, welche Umgebung sie gerade benutzen.
+- Adminhandlungen muessen auditiert werden.
+
+## Nicht-Ziele im aktuellen Stand
+
+- Vollautomatisches Scraping von Jobportalen ohne erlaubte Schnittstelle.
+- Speicherung von Klartext-Passwoertern.
+- Open-Source-Weitergabe.
+- Direkter Browserzugriff auf Dokumentdateien ohne Autorisierungspruefung.

@@ -1,61 +1,120 @@
 # JeMa Jobs
 
-Responsive, multilingual job-search CRM for `jobs.jema.business`.
+JeMa Jobs ist ein produktives, privates Job-CRM fuer `https://jobs.jema.business`.
+Die Anwendung verwaltet den kompletten Bewerbungsprozess von der Profilpflege
+ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
+Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
+Nachverfolgung.
 
-## Target platform
+Aktueller dokumentierter Stand: Version `1.14.41`.
 
-- PHP 8.1+ (production currently runs PHP 8.1)
-- MariaDB 10.6
-- Desktop, mobile portrait and mobile landscape
-- Languages: German, English, Spanish and Portuguese
+## Lizenz
 
-## Database setup
+JeMa Jobs ist proprietaere Software. Alle Rechte sind vorbehalten.
+Nutzung, Betrieb, Weitergabe, Vervielfaeltigung oder Ableitung sind nur mit
+ausdruecklicher Berechtigung erlaubt.
 
-The requested database name is `kerubina_JeMaJobs`.
+Siehe [LICENSE.md](LICENSE.md).
 
-Preferred cPanel workflow:
+## Zielplattform
 
-1. Create database `JeMaJobs` in cPanel MySQL Databases.
-2. Create a dedicated database user and assign it to the database.
-3. Select `kerubina_JeMaJobs` in phpMyAdmin.
-4. Import `sql/jobsearch/01_schema.sql`.
-5. Import `sql/jobsearch/02_views.sql`.
+- PHP 8.1+; die produktive Domain wurde mit PHP 8.1.x beobachtet.
+- MariaDB 10.6.
+- Klassisches Shared Hosting mit `public/index.php` als Front Controller.
+- Keine Composer-Abhaengigkeiten im produktiven Kern.
+- Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
+- Primaere UI-Sprache: Deutsch.
+- Weitere Daten-/Dokumentsprachen: Deutsch, Englisch, Spanisch, Portugiesisch.
 
-If phpMyAdmin grants `CREATE DATABASE`, `sql/jobsearch/00_create_database.sql`
-can be used before steps 4 and 5.
+## Repository-Struktur
 
-## Included design
+```text
+public/
+  index.php              Zentrale produktive Anwendung
+  assets/app.css         Globales Windows-11-nahes Design
+  assets/favicon.svg     App-Icon
+  assets/qrcode.min.js   QR-Code-Bibliothek fuer TOTP
+  assets/totp-qr.js      TOTP-QR-Initialisierung
+  config.example.php     Beispiel fuer serverseitige Konfiguration
 
-- Multi-user authentication, roles and 2FA metadata
-- User profiles, preferences and versioned documents
-- Companies, jobs, contacts and contact history
-- Applications, cover letters, email drafts and attachments
-- Job-source/import tracking
-- Saved list/report definitions with columns, filters and sorting
-- Calendar day/week/month data source
-- Generated PDF/export metadata
-- Audit trail
+sql/jobsearch/
+  00_create_database.sql Optionale Datenbankanlage
+  01_schema.sql          Basis-Schema
+  02_views.sql           Reporting-Views
 
-See `docs/jobsearch/REQUIREMENTS.md` and
-`docs/jobsearch/DEPLOYMENT.md` for the captured requirements and deployment
-prerequisites.
+deploy/
+  installer/             Einmaliger Web-Installer fuer Hosts ohne SSH
+  render-pending-job-pdfs.php
+  extract-document-texts.php
 
-## Prototype
+docs/
+  jobsearch/REQUIREMENTS.md
+  jobsearch/PRODUCT_DECISIONS.md
+  jobsearch/DEPLOYMENT.md
+  rendered-job-pdf-migration-2026-06-16.md
+```
 
-The `public/` directory contains a responsive PHP prototype with registration,
-login, private company/job CRUD, assisted import from job URLs or pasted
-email/job-ad text, filters, duplicate warnings, a transparent starter match
-score, application workflow with status history, follow-up dates, contacts,
-contact logs, intermediary-company relationships, profile editing and an
-immutable audit-log display.
+## Produktumfang
 
-During the entire prototype phase, outbound email is disabled. Stored email
-subjects and bodies are drafts for manual copy/paste only.
-Copy `public/config.example.php` to `public/config.php` only on the target
-server and fill in secrets there.
+Der aktuelle produktive Kern umfasst:
 
-## Security
+- Registrierung, Login, Passwort-Reset, TOTP-2FA und Admin-Reset fuer Passwort
+  und 2FA.
+- Benutzerverwaltung mit Online-Status und Rollen.
+- Explizit freigegebener ADMIN Support mit farblich markierter Umgebung.
+- Benutzerprofile mit Kontaktdaten, Social Links, Sprachkenntnissen,
+  Suchpraeferenzen, SMTP-Einstellungen und Sicherheitsbereich.
+- Versionierte Stammdokumente und bewerbungsspezifische Dokumente.
+- Firmen mit Kommentaren, Beziehungen, Vermittlungsbezug und Verknuepfungen.
+- Kontakte mit Nachname-Sortierung, Kontaktlog, Wiedervorlage und Anhaengen.
+- Jobs mit Schnellimport aus URLs oder Text, Lohn, Quelle, Kommentar,
+  Original-PDF-Status, Fragen und Dublettenhinweis.
+- Admin-gepflegte Jobplattformen und benutzerseitige ChatGPT-Rechercheprompts
+  fuer direkte Stellenlinks.
+- Bewerbungen mit Onlinebewerbungsfluss, E-Mail-Fluss, Dokumentzuordnung,
+  Portalpaket, temporaerem Dokumentordner, Einreichungsprotokoll und Pendent.
+- Pendent-Zentrale und Kalender mit Agenda, Tages-, Wochen- und Monatsmatrix
+  sowie ICS-Export.
+- Reports mit Tabellenansicht, Filtern, Sortierung, Speicherung und PDF-Export.
+- Bewerbungsdossier als Webseite mit PDF-Moeglichkeit.
+- Zentrale Hilfe mit Suche, Prozessgrafik, Lizenzsektion und kontextuellen
+  Gluebirnen-Hilfen als modale Popups.
+- Audit-Log, Cleanup-Vorschau und private Datenisolation pro Benutzer.
 
-Do not commit credentials. Production secrets belong in a server-side `.env`
-file outside the public document root. Any password disclosed in chat or another
-shared channel must be rotated before deployment.
+## Wiederaufbau aus diesem Repository
+
+1. Eine leere MariaDB-Datenbank `kerubina_JeMaJobs` bereitstellen.
+2. `sql/jobsearch/01_schema.sql` importieren.
+3. `sql/jobsearch/02_views.sql` importieren.
+4. `public/config.example.php` auf dem Zielserver als `public/config.php`
+   kopieren und echte Werte eintragen.
+5. `public/` als Webroot oder in den bestehenden Webroot deployen.
+6. Schreibrechte fuer `public/storage/` sicherstellen, wenn Uploads und
+   temporare Bewerbungsunterlagen im Webroot-Layout genutzt werden.
+7. Die Domain per HTTPS ausliefern.
+8. Login, Registrierung, Passwort-Reset, Profil, Dokumentupload, Schnellimport
+   und Hilfe testen.
+9. Optional Worker fuer Original-PDFs und Dokumenttextextraktion per Cron
+   aktivieren.
+
+Die Anwendung fuehrt mehrere rueckwaertskompatible Runtime-Migrationen in
+`public/index.php` aus. Fuer einen reproduzierbaren Neuaufbau sollte trotzdem
+das SQL-Schema aktuell gehalten und importiert werden.
+
+## Produktiver Betrieb
+
+- Keine Secrets in Git speichern.
+- FTP-/FTPS-, Datenbank-, SMTP- und App-Schluessel nur serverseitig pflegen.
+- Produktive Benutzerdaten sind real und vertraulich.
+- Aenderungen an Login, 2FA, Passwort-Reset, Dokumenten, Bewerbungen,
+  Supportzugriff und Adminfunktionen vor Deployment immer linten und live
+  pruefen.
+- Sichtbare Version im Footer muss bei Aenderungen erhoeht werden.
+
+## Dokumentation
+
+- [Anforderungen](docs/jobsearch/REQUIREMENTS.md)
+- [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md)
+- [Deployment](docs/jobsearch/DEPLOYMENT.md)
+- [Historische PDF-Migration](docs/rendered-job-pdf-migration-2026-06-16.md)
+- [Lizenz](LICENSE.md)

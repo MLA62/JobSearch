@@ -1,120 +1,207 @@
-# Deployment prerequisites
+# JeMa Jobs - Deployment
 
-## Database setup
+Stand: 2026-06-19
 
-1. In cPanel, create database `JeMaJobs`. cPanel should prefix it as
-   `kerubina_JeMaJobs`.
-2. Create a dedicated database user with a newly generated strong password.
-3. Assign that user to the database with the privileges required by migrations
-   and normal application use.
-4. In phpMyAdmin select `kerubina_JeMaJobs`, then import:
-   - `sql/jobsearch/01_schema.sql`
-   - `sql/jobsearch/02_views.sql`
-5. Use `sql/jobsearch/00_create_database.sql` only if cPanel/phpMyAdmin grants
-   the account `CREATE DATABASE` permission.
+Produktversion: `1.14.41`
 
-## Access still required for deployment
+Dieses Dokument beschreibt, wie JeMa Jobs produktiv oder in einer neuen
+Umgebung wieder aufgebaut wird. Secrets werden absichtlich nicht dokumentiert.
 
-- SFTP/SSH access is strongly preferred over FTP/FTPS. Required details are
-  hostname, port, username and authentication method. A restricted SSH key is
-  preferred to a password.
-- Confirm the actual document root. The supplied paths refer to both
-  `/public_html/jobs.jema.business` and `/home/kerubina/jobs.jema.business/`.
-- Database username and a newly generated database password.
-- Optional central SMTP fallback for system-owned flows. Normal outbound mail
-  is configured per user in the profile.
-- cPanel cron capability for queued email, reminders and job imports.
-- Confirmation that PHP CLI is available and whether Composer can run on the
-  server. If not, vendor dependencies must be built locally and uploaded.
-- Chromium, Google Chrome or another Chromium-compatible browser must be
-  available to the PHP CLI for original job PDF rendering. Configure its path as
-  `job_pdf_browser_path` in `public/config.php` if auto-detection is not enough.
-- TLS must be active for the final domain before login or file upload testing.
+## Zielumgebung
 
-Never commit FTP, database, SMTP, API or application secrets to Git.
+- Domain: `https://jobs.jema.business`
+- PHP: 8.1+; produktiv wurde PHP 8.1.x beobachtet.
+- Datenbank: MariaDB 10.6.
+- Webroot enthaelt `index.php`, `assets/` und `storage/`.
+- Deployment erfolgt aktuell per explizitem FTPS auf Port 21.
+- FTP/FTPS-Server: `ftp.kerubina.net`.
+- FTP/FTPS-Benutzer, Passwort, Datenbankpasswort, SMTP-Passwoerter und
+  `app_key` gehoeren nicht in Git.
 
-## SMTP configuration
+## Lokale Voraussetzungen
 
-Users configure their own SMTP host, port, encryption mode, username, password
-and sender address in the profile. Passwords are encrypted with `app_key`
-before storage.
+- Git.
+- PHP CLI fuer Syntaxchecks.
+- `curl.exe` oder ein anderer FTPS-faehiger Client.
+- Zugriff auf das Repository `MLA62/JobSearch`.
 
-Set these values in `public/config.php` only when a central fallback account
-should be active for flows where no user SMTP can exist yet:
+Empfohlene Checks vor jedem Deployment:
 
-```php
-'mail_from' => 'admin@jobs.jema.business',
-'mail_from_name' => 'JeMa Jobs',
-'smtp_enabled' => true,
-'smtp_host' => 'smtp.example.com',
-'smtp_port' => 587,
-'smtp_encryption' => 'tls',
-'smtp_username' => 'admin@jobs.jema.business',
-'smtp_password' => 'replace-on-server',
+```powershell
+php -l public/index.php
+git diff --check
+git status --short --branch
 ```
 
-Supported `smtp_encryption` values are `tls`, `ssl` and `none`. While a user
-has no active SMTP details, password reset links remain visible in the
-prototype UI and user-owned outbound email is kept as a draft.
+Auf der lokalen Windows-Installation kann PHP auch ueber den installierten
+Winget-Pfad laufen, falls `php` nicht im PATH liegt.
 
-The FTP password supplied during initial planning was exposed in conversation
-and must be replaced before it is used for deployment. Prefer SFTP/SSH with a
-restricted key; otherwise use explicit FTPS with a newly generated password.
+## Datenbank-Neuaufbau
 
-## One-time web installer
+1. In cPanel eine Datenbank `JeMaJobs` erstellen. Der produktive Name ist
+   erwartungsgemaess `kerubina_JeMaJobs`.
+2. Dedizierten Datenbankbenutzer mit starkem Passwort erstellen.
+3. Benutzer der Datenbank zuweisen.
+4. In phpMyAdmin `kerubina_JeMaJobs` auswaehlen.
+5. Importieren:
+   - `sql/jobsearch/01_schema.sql`
+   - `sql/jobsearch/02_views.sql`
+6. `sql/jobsearch/00_create_database.sql` nur verwenden, wenn die Umgebung
+   `CREATE DATABASE` erlaubt.
 
-When SSH is unavailable, `deploy/installer/install.php` can apply the schema
-through a short-lived FTPS deployment. It accepts POST requests only, requires
-a random installation token, blocks direct access to SQL/config files, removes
-its runtime configuration after success and writes a lock file. Delete the
-entire installer directory from the server immediately after verification.
+Hinweis: `public/index.php` enthaelt zusaetzliche rueckwaertskompatible
+Runtime-Migrationen fuer produktive Weiterentwicklung. Ein Neuaufbau sollte
+trotzdem mit dem SQL-Schema beginnen.
 
-## Original job PDF worker
+## Konfiguration
 
-New jobs imported with a source URL are saved with `original_pdf_status =
-pending`. A server-side worker renders those source pages with a headless browser
-and attaches the resulting PDF as `Originale Stellenausschreibung`.
+Auf dem Zielserver:
 
-Run manually from the project root:
+1. `public/config.example.php` nach `public/config.php` kopieren.
+2. Werte setzen:
+
+```php
+'app_name' => 'JeMa Jobs',
+'app_url' => 'https://jobs.jema.business',
+'app_version' => '1.14.41',
+'app_key' => '64-random-hex-characters',
+'admin_emails' => ['admin@jema.business'],
+'db_host' => 'localhost',
+'db_port' => 3306,
+'db_name' => 'kerubina_JeMaJobs',
+'db_user' => 'server-specific-user',
+'db_password' => 'server-secret',
+```
+
+3. Optional zentralen SMTP-Fallback setzen. Normale Benutzer-E-Mails laufen
+   ueber die SMTP-Einstellungen des jeweiligen Benutzers im Profil.
+4. `config.php` niemals committen.
+5. `app_key` nach Produktivstart nicht wechseln, sonst koennen verschluesselte
+   SMTP-Secrets nicht mehr entschluesselt werden.
+
+## Dateien deployen
+
+Produktiv relevante Dateien:
+
+- `public/index.php` -> `index.php`
+- `public/assets/app.css` -> `assets/app.css`
+- `public/assets/favicon.svg` -> `assets/favicon.svg`
+- `public/assets/qrcode.min.js` -> `assets/qrcode.min.js`
+- `public/assets/totp-qr.js` -> `assets/totp-qr.js`
+- `deploy/` nur, wenn Worker oder Installer benoetigt werden.
+- `sql/` nicht in den oeffentlichen Webroot deployen.
+- `docs/` und Markdown-Dateien sind Projektdokumentation, nicht zwingend Teil
+  des Webroots.
+
+Beispiel mit Platzhaltern:
+
+```powershell
+curl.exe -k --ssl-reqd --ftp-pasv --user "FTP_USER:FTP_PASSWORD" -T "public/index.php" "ftp://ftp.kerubina.net/index.php"
+curl.exe -k --ssl-reqd --ftp-pasv --user "FTP_USER:FTP_PASSWORD" -T "public/assets/app.css" "ftp://ftp.kerubina.net/assets/app.css"
+```
+
+Keine echten Zugangsdaten in Shell-History, Chat, Markdown oder Git speichern.
+
+## Live-Checks nach Deployment
+
+```powershell
+curl.exe -k -L -s -o NUL -w "%{http_code} %{size_download} %{url_effective}\n" "https://jobs.jema.business/?page=login"
+curl.exe -k -L -s "https://jobs.jema.business/?page=login" | Select-String -Pattern "app.css?v=|footer"
+```
+
+Erwartung:
+
+- HTTP `200`.
+- HTML ist nicht leer.
+- Footer zeigt die aktuelle Version.
+- Geschuetzte Seiten leiten ohne HTTP 500 zum Login.
+
+Nach manueller Anmeldung sollten stichprobenartig geprueft werden:
+
+- Dashboard
+- Hilfe mit Gluebirnen-Kontext-Hilfe
+- Profil
+- Jobsuche
+- Schnellimport
+- Bewerbungen
+- Dokumente
+- Pendent/Kalender
+- Admin-Benutzerverwaltung
+
+## Worker
+
+### Original-PDFs fuer Jobs
+
+Jobs mit Quell-URL koennen serverseitig als Original-PDF gerendert werden.
 
 ```sh
 php deploy/render-pending-job-pdfs.php --limit=5
 ```
 
-Recommended cron shape once PHP CLI and Chromium are confirmed:
+Cron-Beispiel:
 
 ```sh
 */10 * * * * cd /home/kerubina/jobs.jema.business && php deploy/render-pending-job-pdfs.php --limit=5 >> var/log/job-pdf-render.log 2>&1
 ```
 
-Use `--dry-run` to list pending jobs without rendering. Use
-`--browser=/path/to/chrome` or `job_pdf_browser_path` in `public/config.php`
-when the browser is not in a standard location.
+Chromium oder ein kompatibler Browser muss verfuegbar sein. Falls Autodetektion
+nicht reicht, `job_pdf_browser_path` in `public/config.php` setzen.
 
-## Document text worker
-
-Uploaded text and PDF documents are marked for text extraction. Run the worker
-manually from the project root:
+### Dokumenttextextraktion
 
 ```sh
 php deploy/extract-document-texts.php --limit=20
 ```
 
-Recommended cron shape once PHP CLI and `pdftotext` are confirmed:
+Cron-Beispiel:
 
 ```sh
 */15 * * * * cd /home/kerubina/jobs.jema.business && php deploy/extract-document-texts.php --limit=20 >> var/log/document-texts.log 2>&1
 ```
 
-Plain text files are read directly. PDFs require Poppler's `pdftotext`; other
-formats are marked as skipped until a richer Office/OCR pipeline is available.
+PDF-Text benoetigt Poppler/`pdftotext`.
 
-### Installation record
+## Einmaliger Web-Installer
 
-- Installed on: 2026-06-15
-- Database: `kerubina_JeMaJobs`
-- Result: 31 base tables and 4 reporting views
-- Installer runtime configuration removed automatically after success
-- Temporary installer directory removed after verification
-- PHP observed through the domain: 8.1.34 (different from the 8.4.21 value
-  previously shown in the hosting control panel)
+Wenn kein SSH verfuegbar ist, kann `deploy/installer/install.php` temporaer
+genutzt werden.
+
+Regeln:
+
+- Nur kurzfristig deployen.
+- Zufallstoken verwenden.
+- Nach Erfolg komplett vom Server entfernen.
+- SQL- und Config-Dateien nicht offen im Webroot belassen.
+
+## Rollback
+
+1. Vor Deployment die zuletzt funktionierende `index.php` und `app.css`
+   sichern oder den letzten Git-Commit kennen.
+2. Bei HTTP 500 sofort vorherige Datei per FTPS zurueckspielen.
+3. Live-Check ausfuehren.
+4. Danach Ursache lokal beheben, linten und erneut deployen.
+
+Keine destruktiven Datenbank-Rollbacks ohne explizite Sicherung und Freigabe.
+
+## GitHub-Synchronisation
+
+Nach erfolgreichem Live-Deployment:
+
+```powershell
+git status --short --branch
+git add <geaenderte-dateien>
+git commit -m "Beschreibende Nachricht"
+git push origin main
+git status --short --branch
+```
+
+Arbeitsbaum und GitHub sollen nach produktiven Aenderungen synchron sein.
+
+## Installationsnotizen
+
+- Erstinstallation: 2026-06-15.
+- Datenbank: `kerubina_JeMaJobs`.
+- Urspruenglicher Import: 31 Basistabellen und 4 Reporting-Views.
+- Runtime-Migrationen haben seitdem weitere Tabellen und Spalten ergaenzt,
+  unter anderem User Sessions, Support Grants, SMTP Settings, Jobplattformen,
+  Jobfragen, Kontaktlog-Anhaenge, Sharing, Uebersetzungen und Cleanup.

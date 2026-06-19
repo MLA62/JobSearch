@@ -1,125 +1,163 @@
-# JeMa Jobs - Product Decisions
+# JeMa Jobs - Produktentscheidungen
 
-Status: 2026-06-15
+Stand: 2026-06-19
 
-## Identity and access
+Produktversion: `1.14.41`
 
-- Public registration with one-hour email verification.
-- Administrator approval is required after email verification.
-- 2FA is mandatory for every user.
-- Primary 2FA methods: WebAuthn/security key or TOTP authenticator.
-- Email codes are recovery-only and expire after 10 minutes for guest access.
-- Initial administrator: Markus Lauber, German UI, `admin@jema.business`.
-- Users maintain their own SMTP settings in the profile. Password reset,
-  shares and application email use the owner's active SMTP configuration.
-- A configured central SMTP account is only a fallback for system-owned flows
-  where no user SMTP exists yet, such as initial registration verification.
-- During the open test phase, newly registered test users are activated
-  immediately and may log in without email verification or administrator
-  approval. The verification and approval flow remains a later hardening step.
-- Password reset tokens are stored hashed and expire after one hour. With an
-  active SMTP setup on the target account the reset link is sent by email;
-  otherwise it is shown directly after request for prototype testing.
-- TOTP 2FA can be activated in the profile. Activated accounts must enter the
-  authenticator code during login; administrators can reset a user's 2FA setup.
-- Registration creates a verification token when SMTP is active. Without SMTP
-  configuration the open test phase keeps new accounts directly verified.
-- A user can explicitly grant ADMIN Support from the profile. While granted, an
-  administrator can enter the user's environment; both sessions show a distinct
-  header color and the grant can be revoked by the user at any time.
+Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
+Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
+aufzubauen.
 
-## Privacy and sharing
+## Produktstatus
 
-- All user data is private and visible only to its creator by default.
-- Guest links can target a record, folder/list, or complete user area.
-- Guest permissions are read-only or read/write, with recipient email and expiry.
-- Guest email verification and browser/device binding are mandatory.
-- Owners can revoke individual guest device sessions.
-- Write access permits create and edit but never delete.
-- Guest changes save directly and can be restored through version history.
-- Download policy per guest link: none, original, PDF, or both.
-- Optional PDF/image watermarking is enabled by default for new guest links.
-- Only owners can create bulk exports; guests may download permitted individual files.
+- JeMa Jobs ist produktiv.
+- Es existieren reale produktive Benutzer.
+- Aenderungen muessen rueckwaertskompatibel und datenbewusst erfolgen.
+- Der Begriff `Prototyp` darf in der Benutzeroberflaeche nicht mehr verwendet
+  werden.
+- Sichtbare Versionen beginnen nicht mit `0.`.
 
-## History, deletion and storage
+## Lizenzmodell
 
-- Audit log, trace-back, record versions and complete file versions are immutable.
-- They are retained without limit until account deletion.
-- Users can restore their own or guest changes; restoration creates another log entry.
-- Account deletion is immediate after password and 2FA confirmation.
-- A complete ZIP export can be requested before deletion and remains for 24 hours.
-- Audit exports include CSV and PDF.
-- General exports support CSV, Excel and PDF, filtered/current view or complete data.
-- Default storage quota is 5 GB per user; increases require administrator approval.
-- Warnings are sent at 80% and 95% usage.
-- Administrators see usage and requests but not private file contents.
-- User-requested cleanup defaults to data older than six months and requires full
-  administrator approval or rejection. Audit/trace-back, active applications,
-  future events, current documents and active guest shares are excluded.
-- Cleanup preview is mandatory; approved cleanup runs without a second confirmation.
-- Cleanup report is available in app, email and PDF for 24 hours.
+- JeMa Jobs ist proprietaere Software.
+- Alle Rechte bleiben beim Rechteinhaber.
+- Keine Open-Source-Lizenz.
+- Keine Weitergabe, Veroeffentlichung, Vervielfaeltigung oder abgeleitete
+  Nutzung ohne ausdrueckliche schriftliche Erlaubnis.
+- Die Hilfe enthaelt eine kurze Lizenzsektion.
+- Das Repository enthaelt `LICENSE.md` als kanonische Lizenznotiz.
 
-## CRM and organization
+## UI- und Designentscheidungen
 
-- Extensive CRUD for profiles, documents, preferences, companies, jobs, contacts,
-  contact logs and applications.
-- Hierarchical folders and lists with manual/name/date/change sorting, colors,
-  icons and favorites.
-- Records may appear in multiple folders/lists without duplication.
-- Global full-text search covers CRM data, notes, logs and document contents.
-- PDF/Office extraction and OCR support German, English, Spanish and Portuguese.
-- OCR text can be corrected with immutable version history.
-- CVs, references and certificates yield confirmation-required suggestions for
-  profile data, skills, employers, education and periods.
+- Orientierung am Microsoft-Windows-11-Stil mit hoeherem Kontrast als die
+  Minimalvorgaben.
+- Akzentfarbe ist Orange, nicht Blau.
+- Eingabefelder haben sichtbaren Hintergrund und klare Raender.
+- Aktive Auswahlen und selektierte Datensaetze muessen deutlich erkennbar sein.
+- Tabellenlinien, Rahmen und Zeilentrennung muessen konsequent sichtbar sein.
+- Kartenansichten werden dort, wo sinnvoll, durch Tabellenansichten ergaenzt.
+- Technische IDs werden nicht in fachlichen Listen oder Reports angezeigt.
+- Kontext-Hilfe erscheint ueber eine leuchtende Gluebirne und ein modales
+  Popup.
+- Die Topnavigation verwendet Windows-nahe Menuegruppen mit Pulldowns.
 
-## Jobs, imports and matching
+## Identitaet, Login und Support
 
-- External sources: job portals, company career pages, pasted job URLs and pasted
-  email/job-ad text. RSS is excluded.
-- Default sources: jobs.ch, jobup.ch, Job-Room/RAV, JobScout24, Indeed Switzerland,
-  LinkedIn Jobs, publicjobs.ch, SwissDevJobs, myScience and eFinancialCareers.
-- Sources and search URLs are editable/removable; reset restores defaults.
-- Automatic collection is enabled only through permitted APIs or explicit permission.
-- Blue-collar and unskilled jobs are shown only after activating the relevant filter.
-- Duplicate/similar postings across portals are detected and can be consolidated.
-- Matching considers skills, experience, preferences, location, salary, workload,
-  work model and benefits with user-adjustable weights and multiple profiles.
-- All jobs are shown by default; minimum-score filtering is opt-in.
-- Match explanations show positive, missing, conflicting and uncertain factors.
-- Requirements can be marked irrelevant for personal scoring.
-- Learning from favorites, rejections, applications and ratings is on by default,
-  confirmation-based, disableable and resettable.
+- Registrierung ist erlaubt.
+- Benutzer koennen sich anmelden und ihr Passwort zuruecksetzen.
+- TOTP-2FA ist im Profil verfuegbar.
+- Aktivierte 2FA muss beim Login erzwungen werden.
+- Admins koennen Benutzer loeschen, Passwoerter zuruecksetzen und 2FA
+  zuruecksetzen.
+- Benutzer koennen ADMIN Support explizit freigeben.
+- Admins duerfen nur mit aktiver Freigabe in eine Benutzerumgebung wechseln.
+- Waehrend Support ist die Kopfzeile farblich anders.
+- Der Admin sieht, in welcher Umgebung er arbeitet.
+- Benutzer koennen die Freigabe jederzeit widerrufen.
 
-## Language and translation
+## E-Mail
 
-- UI languages: German, English, Spanish and Portuguese.
-- Browser translation is offered first in lists and then for full job details.
-- Original, translation and side-by-side views are available.
-- Company, contact, product and place names remain unchanged.
-- Browser-translated text can be pasted and stored per language.
-- Stored translations are versioned, correctable and visible through guest links.
+- Benutzer pflegen eigene SMTP-Einstellungen im Profil.
+- Benutzerbezogene E-Mails werden ueber die SMTP-Konfiguration des jeweiligen
+  Benutzers verschickt.
+- Zentrale SMTP-Konfiguration ist nur Fallback fuer systemeigene Flows.
+- Interne E-Mails wie Registrierung oder Passwort-Reset duerfen verschickt
+  werden, sofern SMTP aktiv ist.
+- SMTP-Passwoerter werden verschluesselt gespeichert.
 
-## Notifications
+## Datenisolation und Sicherheit
 
-- Reminders use in-app, email and browser notifications.
-- Default quiet hours are 22:00-07:00 in the user's timezone.
-- Held notifications are sent together at 07:00.
-- Users can change timezone, quiet hours and channels.
+- Jeder Benutzer besitzt seine eigenen Firmen, Jobs, Kontakte, Bewerbungen,
+  Dokumente, Reports und Kalenderdaten.
+- Abfragen muessen immer auf den authentifizierten Benutzer scoped sein, ausser
+  es gibt eine explizite Freigabe.
+- Admin Support ist eine kontrollierte Ausnahme mit Auditpflicht.
+- Audit-Log ist unveraenderbar.
+- Produktionsdaten duerfen nicht durch Test- oder Migrationslogik geloescht
+  oder ueberschrieben werden.
 
-## Prototype scope
+## Jobsuche und Import
 
-The first deployed prototype includes responsive login/registration, strict private
-ownership checks, dashboard, company and job CRUD, assisted import from job URLs or
-pasted email/job-ad text, search/status/blue-collar filters, duplicate warnings, a
-transparent starter match score, application creation from jobs, editable application
-status, channel, online application URL, portal/login hint without passwords,
-reference number, email and cover-letter text, follow-up dates,
-employer/intermediary company relationships, primary contacts, contact logs,
-immutable status history and immutable audit-log display.
-Guest sharing now has owner-managed links, target scoping, expiry/revocation,
-download policy and a guest view. The current prototype keeps guest device
-tracking lightweight and prepares email/device verification for SMTP hardening.
-Reports, calendar reminders, manual translations, storage quota visibility,
-cleanup requests and CSV exports are available as first workflow surfaces.
-Deeper OCR/document intelligence, scheduled portal imports, WebAuthn and fully
-automated report/PDF generation remain next hardening phases.
+- Vollautomatisches Scraping externer Jobportale ist nicht der Standardweg.
+- Der robuste Standardweg ist:
+  1. Profilpraeferenzen pflegen.
+  2. In der App einen ChatGPT-Rechercheprompt erzeugen.
+  3. ChatGPT mit Web-Recherche direkte Stellenlinks liefern lassen.
+  4. Eine unformatierte Linkliste in den Schnellimport einfuegen.
+  5. Jobvorschlaege pruefen und speichern.
+- Der Prompt verlangt ausschliesslich Direkt-URLs, eine URL pro Zeile, ohne
+  Markdown, Nummerierung, Titel oder Erklaerungen.
+- Admins pflegen die Liste der Jobplattformen.
+- Jobplattformen sind Prioritaeten fuer die Recherche, keine Garantie fuer
+  direkte Inserat-URLs.
+- Schnellimport zeigt beim Erstellen eines Vorschlags einen Fortschrittsbalken.
+
+## Bewerbungen
+
+- Onlinebewerbung ist der wichtigste Zielprozess, weil viele Firmen eigene
+  Formulare nutzen.
+- Eine Bewerbung kann ohne konkreten Kontakt existieren.
+- Unterlagen muessen fuer Webformulare leicht bereitgestellt werden:
+  Drag-and-drop, temporaerer Ordner, ZIP-Paket, Download.
+- Nach Einreichung einer Bewerbung wird automatisch protokolliert:
+  - Kontaktlog-Aktivitaet
+  - Pendent `Antwort auf Bewerbung pendent`
+  - Zeitpunkt der Einreichung
+  - Sichtbarkeit in Agenda/Kalender
+- Bei E-Mail-Bewerbungen werden Unterlagen als Attachments behandelt, sofern
+  sie zugeordnet sind.
+
+## Firmen, Kontakte und Kontaktlog
+
+- Firmen koennen automatisch aus Importen entstehen.
+- Firmen, Personen und Jobs haben Kommentarfelder.
+- Kontakte werden immer nach Nachname sortiert.
+- Das Kontaktlog gehoert direkt zu Kontakten und ist auch aus Bewerbungen
+  sichtbar.
+- Kontaktlog-Eintraege koennen Kanaele, Zeitpunkte, Wiedervorlagen, Status,
+  Mitteilung und Anhaenge enthalten.
+
+## Kalender und Pendent
+
+- Der Begriff lautet `Pendent`, nicht `Offene Schritte`.
+- Agenda ist tabellarisch.
+- Tages-, Wochen- und Monatsansichten sind Matrixansichten, keine einfachen
+  Listen.
+- Eintraege ohne Uhrzeit werden als Tageseintraege oben angezeigt.
+- ICS-Export ist pro Ansicht verfuegbar.
+
+## Dokumente und Dossier
+
+- Dokumente sind versioniert.
+- Stammdokumente und bewerbungsspezifische Dokumente werden unterschieden.
+- Bewerbungsdossier fasst Firma, Kontakte, Job, Bewerbung, Fragen, Dokumente
+  und Aktivitaeten zusammen.
+- Dossier kann als Webseite angezeigt und als PDF genutzt werden.
+
+## Reports, Tabellen, Sortierung und Filter
+
+- Tabellen haben Sort- und Filtersteuerung pro Feld.
+- Dropdown-basierte Felder bieten Mehrfachauswahlfilter.
+- Filter und Sortierung bleiben innerhalb der Session und ueber Ansichten
+  hinweg erhalten.
+- PDF-Reports muessen optisch lesbar sein: Rahmen, Spaltenlinien,
+  gebaenderte Zeilen.
+
+## Hilfe
+
+- Zentrale Hilfe ist eine produktive Wissensbasis.
+- Die Hilfe hat Suche, Kategorien, Prozessgrafik, Kurzablaeufe und ausfuehrliche
+  Themen.
+- Kontext-Hilfe wird dort angezeigt, wo sie den Arbeitsfluss direkt verbessert.
+- Kontext-Hilfe nutzt eine leuchtende Gluebirne und ein modales Popup.
+- Die Hilfe enthaelt eine Lizenzsektion.
+
+## Deployment-Entscheidungen
+
+- Produktive Deployments erfolgen aktuell per explizitem FTPS.
+- Secrets werden nicht in Git gespeichert.
+- Vor jedem Deployment:
+  - `php -l public/index.php`
+  - `git diff --check`
+  - gezielte Live-HTTP-Pruefung
+- Nach Deployment werden GitHub und lokale Arbeitskopie synchron gehalten.
