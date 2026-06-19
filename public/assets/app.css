@@ -479,6 +479,9 @@ input:disabled, select:disabled, textarea:disabled {
     cursor: not-allowed;
 }
 input[type="checkbox"], input[type="radio"] { min-height: auto; width: auto; accent-color: var(--accent); box-shadow: none; }
+input[type="date"] {
+    min-inline-size: 0;
+}
 
 .file-picker {
     display: grid;
@@ -1382,6 +1385,27 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 }
 
 @media (max-width: 640px) {
+    .panel,
+    .auth-card,
+    .job-card,
+    .application-card {
+        overflow: hidden;
+    }
+
+    label,
+    input,
+    select,
+    textarea {
+        min-inline-size: 0;
+        inline-size: 100%;
+        max-inline-size: 100%;
+    }
+
+    input[type="date"] {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
     .totp-setup { grid-template-columns: 1fr; }
     .totp-qr { width: 140px; }
 }
