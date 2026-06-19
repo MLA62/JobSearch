@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.14.41`.
+Aktueller dokumentierter Stand: Version `1.15.0`.
 
 ## Lizenz
 
@@ -23,8 +23,11 @@ Siehe [LICENSE.md](LICENSE.md).
 - Klassisches Shared Hosting mit `public/index.php` als Front Controller.
 - Keine Composer-Abhaengigkeiten im produktiven Kern.
 - Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Primaere UI-Sprache: Deutsch.
-- Weitere Daten-/Dokumentsprachen: Deutsch, Englisch, Spanisch, Portugiesisch.
+- App-Sprachen: Deutsch Schweiz (`de-CH`), Franzoesisch Schweiz (`fr-CH`),
+  English UK (`en-GB`), Brasilianisch-Portugiesisch (`pt-BR`) und
+  Mexikanisch-Spanisch (`es-MX`).
+- Standardsprache ist die Browsersprache, falls unterstuetzt, sonst Deutsch
+  Schweiz; eingeloggte Benutzer koennen die Sprache im Profil festlegen.
 
 ## Repository-Struktur
 

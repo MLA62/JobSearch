@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.14.41`
+Produktversion: `1.15.0`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -40,6 +40,16 @@ aufzubauen.
 - Kontext-Hilfe erscheint ueber eine leuchtende Gluebirne und ein modales
   Popup.
 - Die Topnavigation verwendet Windows-nahe Menuegruppen mit Pulldowns.
+
+## Mehrsprachigkeit
+
+- Die App verwendet eine zentrale Sprachbibliothek in `public/index.php`.
+- Produktive Locale-Codes sind `de-CH`, `fr-CH`, `en-GB`, `pt-BR` und
+  `es-MX`.
+- Veraltete Werte `de`, `fr`, `en`, `pt` und `es` werden per
+  Runtime-Migration auf die produktiven Locale-Codes normalisiert.
+- Login und Registrierung zeigen eine kompakte Flaggenauswahl; im Profil
+  wird die App- und Dokumentensprache als Stammdatum gepflegt.
 
 ## Identitaet, Login und Support
 

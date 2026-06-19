@@ -14,17 +14,18 @@ CREATE TABLE languages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO languages (code, name, native_name, sort_order) VALUES
-('de', 'German', 'Deutsch', 10),
-('en', 'English', 'English', 20),
-('es', 'Spanish', 'Español', 30),
-('pt', 'Portuguese', 'Português', 40);
+('de-CH', 'German (Switzerland)', 'Deutsch (Schweiz)', 10),
+('fr-CH', 'French (Switzerland)', 'Français (Suisse)', 20),
+('en-GB', 'English (United Kingdom)', 'English (UK)', 30),
+('pt-BR', 'Portuguese (Brazil)', 'Português (Brasil)', 40),
+('es-MX', 'Spanish (Mexico)', 'Español (México)', 50);
 
 CREATE TABLE users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(254) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     status ENUM('invited','active','locked','disabled') NOT NULL DEFAULT 'invited',
-    preferred_language CHAR(5) NOT NULL DEFAULT 'de',
+    preferred_language CHAR(5) NOT NULL DEFAULT 'de-CH',
     timezone VARCHAR(64) NOT NULL DEFAULT 'Europe/Zurich',
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,

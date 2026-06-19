@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.14.41`
+Produktversion: `1.15.0`
 
 Dieses Dokument beschreibt, wie JeMa Jobs produktiv oder in einer neuen
 Umgebung wieder aufgebaut wird. Secrets werden absichtlich nicht dokumentiert.
@@ -63,7 +63,7 @@ Auf dem Zielserver:
 ```php
 'app_name' => 'JeMa Jobs',
 'app_url' => 'https://jobs.jema.business',
-'app_version' => '1.14.41',
+'app_version' => '1.15.0',
 'app_key' => '64-random-hex-characters',
 'admin_emails' => ['admin@jema.business'],
 'db_host' => 'localhost',

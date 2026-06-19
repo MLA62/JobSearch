@@ -32,6 +32,46 @@ try {
 }
 
 try {
+    $db->query("INSERT INTO languages (code, name, native_name, is_active, sort_order) VALUES
+        ('de-CH', 'German (Switzerland)', 'Deutsch (Schweiz)', 1, 10),
+        ('fr-CH', 'French (Switzerland)', 'Français (Suisse)', 1, 20),
+        ('en-GB', 'English (United Kingdom)', 'English (UK)', 1, 30),
+        ('pt-BR', 'Portuguese (Brazil)', 'Português (Brasil)', 1, 40),
+        ('es-MX', 'Spanish (Mexico)', 'Español (México)', 1, 50)
+        ON DUPLICATE KEY UPDATE name=VALUES(name), native_name=VALUES(native_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
+    $localeMappings = ['de' => 'de-CH', 'fr' => 'fr-CH', 'en' => 'en-GB', 'es' => 'es-MX', 'pt' => 'pt-BR'];
+    try {
+        $db->query('ALTER TABLE record_translations MODIFY target_language CHAR(5) NOT NULL');
+    } catch (Throwable $ignored) {
+        // Table may not exist yet on older or freshly imported installations.
+    }
+    foreach ([
+        'users' => 'preferred_language',
+        'contacts' => 'preferred_language',
+        'user_documents' => 'language_code',
+        'document_templates' => 'language_code',
+        'record_translations' => 'target_language',
+    ] as $table => $column) {
+        try {
+            foreach ($localeMappings as $oldLocale => $newLocale) {
+                $stmt = $db->prepare("UPDATE `{$table}` SET `{$column}`=? WHERE `{$column}`=?");
+                $stmt->bind_param('ss', $newLocale, $oldLocale);
+                $stmt->execute();
+            }
+        } catch (Throwable $ignored) {
+            // Older installations may not have every language-aware table yet.
+        }
+    }
+    try {
+        $db->query("ALTER TABLE users ALTER COLUMN preferred_language SET DEFAULT 'de-CH'");
+    } catch (Throwable $ignored) {
+        // Default changes are helpful, but not required for runtime correctness.
+    }
+} catch (Throwable $exception) {
+    error_log('Locale migration failed: ' . $exception->getMessage());
+}
+
+try {
     $column = $db->query("SHOW COLUMNS FROM users LIKE 'last_seen_at'")->fetch_assoc();
     if (!$column) {
         $db->query('ALTER TABLE users ADD COLUMN last_seen_at DATETIME NULL AFTER last_login_at');
@@ -151,6 +191,478 @@ try {
 function e(?string $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function supportedLocales(): array
+{
+    return [
+        'de-CH' => ['name' => 'Deutsch (Schweiz)', 'native' => 'Deutsch', 'flag' => '🇨🇭'],
+        'fr-CH' => ['name' => 'Français (Suisse)', 'native' => 'Français', 'flag' => '🇨🇭'],
+        'en-GB' => ['name' => 'English (UK)', 'native' => 'English', 'flag' => '🇬🇧'],
+        'pt-BR' => ['name' => 'Português (Brasil)', 'native' => 'Português', 'flag' => '🇧🇷'],
+        'es-MX' => ['name' => 'Español (México)', 'native' => 'Español', 'flag' => '🇲🇽'],
+    ];
+}
+
+function normalizeLocale(?string $locale): string
+{
+    $locale = strtolower(str_replace('_', '-', trim((string) $locale)));
+    if ($locale === '') {
+        return 'de-CH';
+    }
+    $aliases = [
+        'de' => 'de-CH',
+        'de-ch' => 'de-CH',
+        'de-de' => 'de-CH',
+        'de-at' => 'de-CH',
+        'fr' => 'fr-CH',
+        'fr-ch' => 'fr-CH',
+        'fr-fr' => 'fr-CH',
+        'en' => 'en-GB',
+        'en-gb' => 'en-GB',
+        'en-us' => 'en-GB',
+        'pt' => 'pt-BR',
+        'pt-br' => 'pt-BR',
+        'pt-pt' => 'pt-BR',
+        'es' => 'es-MX',
+        'es-mx' => 'es-MX',
+        'es-es' => 'es-MX',
+    ];
+    if (isset($aliases[$locale])) {
+        return $aliases[$locale];
+    }
+    $language = explode('-', $locale, 2)[0];
+    return $aliases[$language] ?? 'de-CH';
+}
+
+function browserLocale(): string
+{
+    $header = (string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
+    foreach (explode(',', $header) as $entry) {
+        $locale = trim(explode(';', $entry, 2)[0]);
+        if ($locale !== '') {
+            return normalizeLocale($locale);
+        }
+    }
+    return 'de-CH';
+}
+
+function currentLocale(?array $currentUser = null): string
+{
+    if ($currentUser && !empty($currentUser['preferred_language'])) {
+        return normalizeLocale((string) $currentUser['preferred_language']);
+    }
+    if (!empty($_SESSION['locale'])) {
+        return normalizeLocale((string) $_SESSION['locale']);
+    }
+    return browserLocale();
+}
+
+function localeName(string $locale): string
+{
+    $locale = normalizeLocale($locale);
+    return supportedLocales()[$locale]['name'] ?? supportedLocales()['de-CH']['name'];
+}
+
+function localeNativeName(string $locale): string
+{
+    $locale = normalizeLocale($locale);
+    return supportedLocales()[$locale]['native'] ?? supportedLocales()['de-CH']['native'];
+}
+
+function localeFlag(string $locale): string
+{
+    $locale = normalizeLocale($locale);
+    return supportedLocales()[$locale]['flag'] ?? supportedLocales()['de-CH']['flag'];
+}
+
+function localeHtmlLang(string $locale): string
+{
+    return normalizeLocale($locale);
+}
+
+function languageUrl(string $locale): string
+{
+    $params = $_GET;
+    $params['lang'] = normalizeLocale($locale);
+    return '/?' . http_build_query($params);
+}
+
+function languagePickerHtml(string $activeLocale, string $modifier = ''): string
+{
+    $activeLocale = normalizeLocale($activeLocale);
+    ob_start();
+    ?>
+    <nav class="locale-picker <?= e($modifier) ?>" aria-label="<?= e(tr('language.choose', $activeLocale)) ?>">
+        <?php foreach (supportedLocales() as $locale => $meta): ?>
+            <a class="locale-option <?= $activeLocale === $locale ? 'is-active' : '' ?>" href="<?= e(languageUrl($locale)) ?>" lang="<?= e(localeHtmlLang($locale)) ?>" title="<?= e($meta['name']) ?>" aria-label="<?= e($meta['name']) ?>">
+                <span class="locale-flag" aria-hidden="true"><?= e($meta['flag']) ?></span>
+                <span class="locale-label"><?= e($meta['native']) ?></span>
+            </a>
+        <?php endforeach; ?>
+    </nav>
+    <?php
+    return trim((string) ob_get_clean());
+}
+
+function translationCatalog(): array
+{
+    $de = [
+        'language.choose' => 'Sprache wählen',
+        'nav.menu' => 'Menü',
+        'nav.file' => 'Datei',
+        'nav.dashboard' => 'Übersicht',
+        'nav.master_data' => 'Stammdaten',
+        'nav.profile' => 'Profil',
+        'nav.documents' => 'Dokumente',
+        'nav.translations' => 'Übersetzungen',
+        'nav.privacy' => 'Datenschutz',
+        'nav.audit' => 'Log',
+        'nav.crm' => 'CRM',
+        'nav.companies' => 'Firmen',
+        'nav.contacts' => 'Kontakte',
+        'nav.sharing' => 'Freigaben',
+        'nav.application' => 'Bewerbung',
+        'nav.jobs' => 'Jobs',
+        'nav.job_search' => 'Jobsuche',
+        'nav.applications' => 'Bewerbungen',
+        'nav.planning' => 'Planung',
+        'nav.pendents' => 'Pendent',
+        'nav.calendar' => 'Kalender',
+        'nav.reporting' => 'Auswertung',
+        'nav.reports' => 'Reports',
+        'nav.jobs_pdf' => 'Jobs PDF',
+        'nav.applications_pdf' => 'Bewerbungen PDF',
+        'nav.account' => 'Konto',
+        'nav.admin_users' => 'Benutzerverwaltung',
+        'nav.admin_job_platforms' => 'Jobplattformen',
+        'nav.help' => 'Hilfe',
+        'nav.about' => 'Über',
+        'nav.logout' => 'Abmelden',
+        'support.admin' => 'ADMIN Support',
+        'support.in_environment' => '{admin} in Umgebung {user}',
+        'support.granted' => 'ADMIN Support freigegeben',
+        'support.granted_hint' => 'Administratoren können sich einklinken.',
+        'support.stop' => 'Support beenden',
+        'context.help' => 'Hilfe zu dieser Seite',
+        'context.close' => 'Schließen',
+        'context.how_to' => 'So gehst du vor',
+        'context.remember' => 'Merken',
+        'context.all_topics' => 'Alle Hilfethemen',
+        'auth.welcome_back' => 'Willkommen zurück',
+        'auth.login_title' => 'Anmelden',
+        'auth.email' => 'E-Mail',
+        'auth.password' => 'Passwort',
+        'auth.login_button' => 'Anmelden',
+        'auth.no_account' => 'Noch kein Konto?',
+        'auth.register_link' => 'Registrieren',
+        'auth.forgot_password' => 'Passwort vergessen?',
+        'auth.security' => 'Sicherheit',
+        'auth.two_factor_title' => '2FA-Code',
+        'auth.two_factor_intro' => 'Gib den 6-stelligen Code aus deiner Authenticator-App ein.',
+        'auth.authenticator_code' => 'Authenticator-Code',
+        'auth.confirm' => 'Bestätigen',
+        'auth.back_to_login' => 'Zur Anmeldung',
+        'auth.account' => 'Konto',
+        'auth.forgot_title' => 'Passwort vergessen',
+        'auth.create_reset_link' => 'Link erstellen',
+        'auth.new_password_title' => 'Neues Passwort',
+        'auth.new_password' => 'Neues Passwort',
+        'auth.repeat_password' => 'Passwort wiederholen',
+        'auth.change_password' => 'Passwort ändern',
+        'auth.private_job_crm' => 'Privates Job-CRM',
+        'auth.create_account' => 'Konto erstellen',
+        'auth.first_name' => 'Vorname',
+        'auth.last_name' => 'Nachname',
+        'auth.create_account_button' => 'Registrieren',
+        'auth.language_notice' => 'Die Sprache wird aus deinem Browser übernommen und kann hier geändert werden.',
+        'profile.app_language' => 'App- und Dokumentensprache',
+        'profile.app_language_hint' => 'Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.',
+        'common.not_selected' => 'Nicht gewählt',
+        'footer.private' => 'Private Daten bleiben benutzerisoliert',
+    ];
+    return [
+        'de-CH' => $de,
+        'fr-CH' => array_replace($de, [
+            'language.choose' => 'Choisir la langue',
+            'nav.menu' => 'Menu',
+            'nav.file' => 'Fichier',
+            'nav.dashboard' => 'Vue d’ensemble',
+            'nav.master_data' => 'Données de base',
+            'nav.profile' => 'Profil',
+            'nav.documents' => 'Documents',
+            'nav.translations' => 'Traductions',
+            'nav.privacy' => 'Protection des données',
+            'nav.audit' => 'Journal',
+            'nav.companies' => 'Entreprises',
+            'nav.contacts' => 'Contacts',
+            'nav.sharing' => 'Partages',
+            'nav.application' => 'Candidature',
+            'nav.jobs' => 'Emplois',
+            'nav.job_search' => 'Recherche d’emploi',
+            'nav.applications' => 'Candidatures',
+            'nav.planning' => 'Planification',
+            'nav.calendar' => 'Calendrier',
+            'nav.reporting' => 'Analyse',
+            'nav.reports' => 'Rapports',
+            'nav.account' => 'Compte',
+            'nav.admin_users' => 'Gestion des utilisateurs',
+            'nav.admin_job_platforms' => 'Plateformes emploi',
+            'nav.help' => 'Aide',
+            'nav.about' => 'À propos',
+            'nav.logout' => 'Se déconnecter',
+            'support.granted_hint' => 'Les administrateurs peuvent se connecter au compte.',
+            'support.stop' => 'Terminer le support',
+            'context.help' => 'Aide pour cette page',
+            'context.close' => 'Fermer',
+            'context.how_to' => 'Procédure',
+            'context.remember' => 'À retenir',
+            'context.all_topics' => 'Tous les sujets d’aide',
+            'auth.welcome_back' => 'Bon retour',
+            'auth.login_title' => 'Connexion',
+            'auth.password' => 'Mot de passe',
+            'auth.login_button' => 'Se connecter',
+            'auth.no_account' => 'Pas encore de compte ?',
+            'auth.register_link' => 'S’inscrire',
+            'auth.forgot_password' => 'Mot de passe oublié ?',
+            'auth.security' => 'Sécurité',
+            'auth.two_factor_title' => 'Code 2FA',
+            'auth.two_factor_intro' => 'Saisis le code à 6 chiffres de ton application Authenticator.',
+            'auth.authenticator_code' => 'Code Authenticator',
+            'auth.confirm' => 'Confirmer',
+            'auth.back_to_login' => 'Retour à la connexion',
+            'auth.account' => 'Compte',
+            'auth.forgot_title' => 'Mot de passe oublié',
+            'auth.create_reset_link' => 'Créer le lien',
+            'auth.new_password_title' => 'Nouveau mot de passe',
+            'auth.new_password' => 'Nouveau mot de passe',
+            'auth.repeat_password' => 'Répéter le mot de passe',
+            'auth.change_password' => 'Modifier le mot de passe',
+            'auth.private_job_crm' => 'CRM privé de recherche d’emploi',
+            'auth.create_account' => 'Créer un compte',
+            'auth.first_name' => 'Prénom',
+            'auth.last_name' => 'Nom',
+            'auth.create_account_button' => 'S’inscrire',
+            'auth.language_notice' => 'La langue est reprise du navigateur et peut être changée ici.',
+            'profile.app_language' => 'Langue de l’app et des documents',
+            'profile.app_language_hint' => 'Définit les textes de l’app, les libellés des documents, les prompts et les nouveaux documents.',
+            'common.not_selected' => 'Non sélectionné',
+            'footer.private' => 'Les données privées restent isolées par utilisateur',
+        ]),
+        'en-GB' => array_replace($de, [
+            'language.choose' => 'Choose language',
+            'nav.menu' => 'Menu',
+            'nav.file' => 'File',
+            'nav.dashboard' => 'Overview',
+            'nav.master_data' => 'Master data',
+            'nav.profile' => 'Profile',
+            'nav.documents' => 'Documents',
+            'nav.translations' => 'Translations',
+            'nav.privacy' => 'Privacy',
+            'nav.audit' => 'Log',
+            'nav.companies' => 'Companies',
+            'nav.contacts' => 'Contacts',
+            'nav.sharing' => 'Shares',
+            'nav.application' => 'Application',
+            'nav.jobs' => 'Jobs',
+            'nav.job_search' => 'Job search',
+            'nav.applications' => 'Applications',
+            'nav.planning' => 'Planning',
+            'nav.pendents' => 'Pending',
+            'nav.calendar' => 'Calendar',
+            'nav.reporting' => 'Analysis',
+            'nav.reports' => 'Reports',
+            'nav.account' => 'Account',
+            'nav.admin_users' => 'User management',
+            'nav.admin_job_platforms' => 'Job platforms',
+            'nav.help' => 'Help',
+            'nav.about' => 'About',
+            'nav.logout' => 'Sign out',
+            'support.granted_hint' => 'Administrators can join the account.',
+            'support.stop' => 'End support',
+            'context.help' => 'Help for this page',
+            'context.close' => 'Close',
+            'context.how_to' => 'How to proceed',
+            'context.remember' => 'Remember',
+            'context.all_topics' => 'All help topics',
+            'auth.welcome_back' => 'Welcome back',
+            'auth.login_title' => 'Sign in',
+            'auth.password' => 'Password',
+            'auth.login_button' => 'Sign in',
+            'auth.no_account' => 'No account yet?',
+            'auth.register_link' => 'Register',
+            'auth.forgot_password' => 'Forgot password?',
+            'auth.security' => 'Security',
+            'auth.two_factor_title' => '2FA code',
+            'auth.two_factor_intro' => 'Enter the 6-digit code from your authenticator app.',
+            'auth.authenticator_code' => 'Authenticator code',
+            'auth.confirm' => 'Confirm',
+            'auth.back_to_login' => 'Back to sign in',
+            'auth.account' => 'Account',
+            'auth.forgot_title' => 'Forgot password',
+            'auth.create_reset_link' => 'Create link',
+            'auth.new_password_title' => 'New password',
+            'auth.new_password' => 'New password',
+            'auth.repeat_password' => 'Repeat password',
+            'auth.change_password' => 'Change password',
+            'auth.private_job_crm' => 'Private job CRM',
+            'auth.create_account' => 'Create account',
+            'auth.first_name' => 'First name',
+            'auth.last_name' => 'Last name',
+            'auth.create_account_button' => 'Register',
+            'auth.language_notice' => 'The language is taken from your browser and can be changed here.',
+            'profile.app_language' => 'App and document language',
+            'profile.app_language_hint' => 'Controls app text, document type labels, prompts and new documents.',
+            'common.not_selected' => 'Not selected',
+            'footer.private' => 'Private data remains isolated per user',
+        ]),
+        'pt-BR' => array_replace($de, [
+            'language.choose' => 'Escolher idioma',
+            'nav.menu' => 'Menu',
+            'nav.file' => 'Arquivo',
+            'nav.dashboard' => 'Visão geral',
+            'nav.master_data' => 'Dados principais',
+            'nav.profile' => 'Perfil',
+            'nav.documents' => 'Documentos',
+            'nav.translations' => 'Traduções',
+            'nav.privacy' => 'Privacidade',
+            'nav.audit' => 'Registro',
+            'nav.companies' => 'Empresas',
+            'nav.contacts' => 'Contatos',
+            'nav.sharing' => 'Compartilhamentos',
+            'nav.application' => 'Candidatura',
+            'nav.jobs' => 'Vagas',
+            'nav.job_search' => 'Busca de vagas',
+            'nav.applications' => 'Candidaturas',
+            'nav.planning' => 'Planejamento',
+            'nav.pendents' => 'Pendências',
+            'nav.calendar' => 'Calendário',
+            'nav.reporting' => 'Análise',
+            'nav.reports' => 'Relatórios',
+            'nav.account' => 'Conta',
+            'nav.admin_users' => 'Gestão de usuários',
+            'nav.admin_job_platforms' => 'Plataformas de vagas',
+            'nav.help' => 'Ajuda',
+            'nav.about' => 'Sobre',
+            'nav.logout' => 'Sair',
+            'support.granted_hint' => 'Administradores podem acessar a conta.',
+            'support.stop' => 'Encerrar suporte',
+            'context.help' => 'Ajuda desta página',
+            'context.close' => 'Fechar',
+            'context.how_to' => 'Como proceder',
+            'context.remember' => 'Lembrar',
+            'context.all_topics' => 'Todos os tópicos de ajuda',
+            'auth.welcome_back' => 'Bem-vindo de volta',
+            'auth.login_title' => 'Entrar',
+            'auth.password' => 'Senha',
+            'auth.login_button' => 'Entrar',
+            'auth.no_account' => 'Ainda não tem conta?',
+            'auth.register_link' => 'Registrar',
+            'auth.forgot_password' => 'Esqueceu a senha?',
+            'auth.security' => 'Segurança',
+            'auth.two_factor_title' => 'Código 2FA',
+            'auth.two_factor_intro' => 'Digite o código de 6 dígitos do aplicativo autenticador.',
+            'auth.authenticator_code' => 'Código do autenticador',
+            'auth.confirm' => 'Confirmar',
+            'auth.back_to_login' => 'Voltar para o login',
+            'auth.account' => 'Conta',
+            'auth.forgot_title' => 'Esqueceu a senha',
+            'auth.create_reset_link' => 'Criar link',
+            'auth.new_password_title' => 'Nova senha',
+            'auth.new_password' => 'Nova senha',
+            'auth.repeat_password' => 'Repetir senha',
+            'auth.change_password' => 'Alterar senha',
+            'auth.private_job_crm' => 'CRM privado de vagas',
+            'auth.create_account' => 'Criar conta',
+            'auth.first_name' => 'Nome',
+            'auth.last_name' => 'Sobrenome',
+            'auth.create_account_button' => 'Registrar',
+            'auth.language_notice' => 'O idioma vem do navegador e pode ser alterado aqui.',
+            'profile.app_language' => 'Idioma do app e dos documentos',
+            'profile.app_language_hint' => 'Controla textos do app, rótulos dos documentos, prompts e novos documentos.',
+            'common.not_selected' => 'Não selecionado',
+            'footer.private' => 'Dados privados permanecem isolados por usuário',
+        ]),
+        'es-MX' => array_replace($de, [
+            'language.choose' => 'Elegir idioma',
+            'nav.menu' => 'Menú',
+            'nav.file' => 'Archivo',
+            'nav.dashboard' => 'Resumen',
+            'nav.master_data' => 'Datos maestros',
+            'nav.profile' => 'Perfil',
+            'nav.documents' => 'Documentos',
+            'nav.translations' => 'Traducciones',
+            'nav.privacy' => 'Privacidad',
+            'nav.audit' => 'Registro',
+            'nav.companies' => 'Empresas',
+            'nav.contacts' => 'Contactos',
+            'nav.sharing' => 'Compartidos',
+            'nav.application' => 'Postulación',
+            'nav.jobs' => 'Empleos',
+            'nav.job_search' => 'Búsqueda de empleo',
+            'nav.applications' => 'Postulaciones',
+            'nav.planning' => 'Planificación',
+            'nav.pendents' => 'Pendientes',
+            'nav.calendar' => 'Calendario',
+            'nav.reporting' => 'Análisis',
+            'nav.reports' => 'Reportes',
+            'nav.account' => 'Cuenta',
+            'nav.admin_users' => 'Gestión de usuarios',
+            'nav.admin_job_platforms' => 'Plataformas de empleo',
+            'nav.help' => 'Ayuda',
+            'nav.about' => 'Acerca de',
+            'nav.logout' => 'Cerrar sesión',
+            'support.granted_hint' => 'Los administradores pueden acceder a la cuenta.',
+            'support.stop' => 'Finalizar soporte',
+            'context.help' => 'Ayuda de esta página',
+            'context.close' => 'Cerrar',
+            'context.how_to' => 'Cómo proceder',
+            'context.remember' => 'Recordar',
+            'context.all_topics' => 'Todos los temas de ayuda',
+            'auth.welcome_back' => 'Bienvenido de nuevo',
+            'auth.login_title' => 'Iniciar sesión',
+            'auth.password' => 'Contraseña',
+            'auth.login_button' => 'Iniciar sesión',
+            'auth.no_account' => '¿Aún no tienes cuenta?',
+            'auth.register_link' => 'Registrarse',
+            'auth.forgot_password' => '¿Olvidaste tu contraseña?',
+            'auth.security' => 'Seguridad',
+            'auth.two_factor_title' => 'Código 2FA',
+            'auth.two_factor_intro' => 'Ingresa el código de 6 dígitos de tu app autenticadora.',
+            'auth.authenticator_code' => 'Código de autenticador',
+            'auth.confirm' => 'Confirmar',
+            'auth.back_to_login' => 'Volver al inicio de sesión',
+            'auth.account' => 'Cuenta',
+            'auth.forgot_title' => 'Olvidé mi contraseña',
+            'auth.create_reset_link' => 'Crear enlace',
+            'auth.new_password_title' => 'Nueva contraseña',
+            'auth.new_password' => 'Nueva contraseña',
+            'auth.repeat_password' => 'Repetir contraseña',
+            'auth.change_password' => 'Cambiar contraseña',
+            'auth.private_job_crm' => 'CRM privado de empleo',
+            'auth.create_account' => 'Crear cuenta',
+            'auth.first_name' => 'Nombre',
+            'auth.last_name' => 'Apellido',
+            'auth.create_account_button' => 'Registrarse',
+            'auth.language_notice' => 'El idioma se toma del navegador y puede cambiarse aquí.',
+            'profile.app_language' => 'Idioma de la app y documentos',
+            'profile.app_language_hint' => 'Controla textos de la app, etiquetas de documentos, prompts y nuevos documentos.',
+            'common.not_selected' => 'No seleccionado',
+            'footer.private' => 'Los datos privados quedan aislados por usuario',
+        ]),
+    ];
+}
+
+function tr(string $key, ?string $locale = null, array $replace = []): string
+{
+    global $appLocale;
+    $locale = normalizeLocale($locale ?? (string) ($appLocale ?? ''));
+    $catalog = translationCatalog();
+    $text = $catalog[$locale][$key] ?? $catalog['de-CH'][$key] ?? $key;
+    foreach ($replace as $name => $value) {
+        $text = str_replace('{' . $name . '}', (string) $value, $text);
+    }
+    return $text;
 }
 
 function redirect(string $path = '/'): never
@@ -1822,7 +2334,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
         '2. einen kurzen professionellen E-Mail-Begleittext',
         '3. ein individuelles Motivationsschreiben',
         '',
-        'Sprache/Ton: ' . (documentLanguageChoices()[$currentUser['preferred_language'] ?? 'de'] ?? 'Deutsch') . ', professionell, klar, natürlich, nicht übertrieben.',
+        'Sprache/Ton: ' . (documentLanguageChoices()[normalizeLocale((string)($currentUser['preferred_language'] ?? 'de-CH'))] ?? 'Deutsch (Schweiz)') . ', professionell, klar, natürlich, nicht übertrieben.',
         'Bitte keine Fakten erfinden. Wenn eine Information fehlt, formuliere neutral oder markiere sie als Platzhalter.',
         '',
         '=== Bewerberprofil ===',
@@ -1892,7 +2404,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
     $lines[] = '';
     $lines[] = '=== Zugeordnete Dokumente ===';
     foreach ($documents as $document) {
-        $lines[] = ($document['scope'] === 'profile' ? 'Stammdaten' : 'Bewerbungsdaten') . ' · ' . documentTypeLabel((string)$document['type_code'], (string)($currentUser['preferred_language'] ?? 'de')) . ' · ' . $document['title'] . ' · v' . $document['version'] . ' · ' . $document['original_filename'];
+        $lines[] = ($document['scope'] === 'profile' ? 'Stammdaten' : 'Bewerbungsdaten') . ' · ' . documentTypeLabel((string)$document['type_code'], (string)($currentUser['preferred_language'] ?? 'de-CH')) . ' · ' . $document['title'] . ' · v' . $document['version'] . ' · ' . $document['original_filename'];
     }
     if (!$documents) {
         $lines[] = 'keine Dokumente zugeordnet';
@@ -2230,10 +2742,10 @@ function europeanLanguageChoices(): array
     ];
 }
 
-function documentTypeLabel(string $code, string $language = 'de'): string
+function documentTypeLabel(string $code, string $language = 'de-CH'): string
 {
     $labels = [
-        'de' => [
+        'de-CH' => [
             'cv' => 'Lebenslauf',
             'certificate' => 'Zeugnis / Zertifikat',
             'reference_letter' => 'Referenzschreiben',
@@ -2242,7 +2754,16 @@ function documentTypeLabel(string $code, string $language = 'de'): string
             'portfolio' => 'Portfolio / Arbeitsprobe',
             'other' => 'Sonstiges',
         ],
-        'en' => [
+        'fr-CH' => [
+            'cv' => 'CV',
+            'certificate' => 'Certificat / attestation',
+            'reference_letter' => 'Lettre de référence',
+            'diploma' => 'Diplôme / formation',
+            'cover_letter' => 'Lettre de motivation',
+            'portfolio' => 'Portfolio / échantillon de travail',
+            'other' => 'Autre',
+        ],
+        'en-GB' => [
             'cv' => 'CV',
             'certificate' => 'Certificate / testimonial',
             'reference_letter' => 'Reference letter',
@@ -2251,7 +2772,7 @@ function documentTypeLabel(string $code, string $language = 'de'): string
             'portfolio' => 'Portfolio / work sample',
             'other' => 'Other',
         ],
-        'es' => [
+        'es-MX' => [
             'cv' => 'Currículum',
             'certificate' => 'Certificado / referencia laboral',
             'reference_letter' => 'Carta de referencia',
@@ -2260,7 +2781,7 @@ function documentTypeLabel(string $code, string $language = 'de'): string
             'portfolio' => 'Portafolio / muestra de trabajo',
             'other' => 'Otro',
         ],
-        'pt' => [
+        'pt-BR' => [
             'cv' => 'Currículo',
             'certificate' => 'Certificado / declaração',
             'reference_letter' => 'Carta de referência',
@@ -2270,7 +2791,7 @@ function documentTypeLabel(string $code, string $language = 'de'): string
             'other' => 'Outro',
         ],
     ];
-    $language = isset($labels[$language]) ? $language : 'de';
+    $language = normalizeLocale($language);
     return $labels[$language][$code] ?? $labels[$language]['other'];
 }
 
@@ -2286,7 +2807,7 @@ function documentPurposeForType(string $code): string
     };
 }
 
-function documentPurposeLabel(string $purpose, string $language = 'de'): string
+function documentPurposeLabel(string $purpose, string $language = 'de-CH'): string
 {
     $code = match ($purpose) {
         'cv' => 'cv',
@@ -2301,7 +2822,11 @@ function documentPurposeLabel(string $purpose, string $language = 'de'): string
 
 function documentLanguageChoices(): array
 {
-    return ['de' => 'Deutsch', 'es' => 'Español', 'pt' => 'Português', 'en' => 'English'];
+    $choices = [];
+    foreach (supportedLocales() as $code => $locale) {
+        $choices[$code] = $locale['name'];
+    }
+    return $choices;
 }
 
 function defaultJobPlatforms(): array
@@ -2758,6 +3283,9 @@ function contactLogTimelineHtml(array $logs, array $attachments, array $channels
 
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
+if (isset($_GET['lang'])) {
+    $_SESSION['locale'] = normalizeLocale((string) $_GET['lang']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -2767,6 +3295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $first = trim((string) $_POST['first_name']);
         $last = trim((string) $_POST['last_name']);
         $password = (string) $_POST['password'];
+        $preferredLanguage = normalizeLocale((string) ($_POST['preferred_language'] ?? currentLocale(null)));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 10 || $first === '' || $last === '') {
             flash('Bitte gültige Daten und mindestens 10 Passwortzeichen eingeben.', 'danger');
             redirect('/?page=register');
@@ -2775,10 +3304,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $emailNeedsVerification = outboundEmailEnabled($config);
             $stmt = $db->prepare(
                 "INSERT INTO users (email, password_hash, status, preferred_language, first_name, last_name, email_verified_at) "
-                . "VALUES (?, ?, 'active', 'de', ?, ?, " . ($emailNeedsVerification ? 'NULL' : 'NOW()') . ")"
+                . "VALUES (?, ?, 'active', ?, ?, ?, " . ($emailNeedsVerification ? 'NULL' : 'NOW()') . ")"
             );
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt->bind_param('ssss', $email, $hash, $first, $last);
+            $stmt->bind_param('sssss', $email, $hash, $preferredLanguage, $first, $last);
             $stmt->execute();
             $newUserId = (int) $stmt->insert_id;
             audit($db, $newUserId, 'create', 'user', $newUserId, null, ['email' => $email]);
@@ -2829,6 +3358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Bitte bestätige zuerst deine E-Mail-Adresse.', 'warning');
             redirect('/?page=login');
         }
+        $_SESSION['locale'] = normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
         $totp = activeTotpMethod($db, (int) $user['id']);
         if ($totp) {
             session_regenerate_id(true);
@@ -2859,6 +3389,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $pendingUserId;
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+        $_SESSION['locale'] = normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
         $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . $pendingUserId);
         touchUserPresence($db, $pendingUserId);
         $stmt = $db->prepare('UPDATE two_factor_methods SET last_used_at=NOW() WHERE id=?');
@@ -3277,7 +3808,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $entityType = in_array($_POST['entity_type'] ?? '', ['company','job','contact','application','document'], true) ? (string) $_POST['entity_type'] : '';
             $entityId = max(0, (int) ($_POST['entity_id'] ?? 0));
         }
-        $targetLanguage = in_array($_POST['target_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['target_language'] : 'de';
+        $targetLanguage = normalizeLocale((string) ($_POST['target_language'] ?? 'de-CH'));
         $title = trim((string) ($_POST['translation_title'] ?? '')) ?: null;
         $body = trim((string) ($_POST['translation_body'] ?? ''));
         $uid = userId();
@@ -3300,7 +3831,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'prepare_translation') {
         $target = (string) ($_POST['translation_target'] ?? '');
-        $targetLanguage = in_array($_POST['target_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['target_language'] : 'de';
+        $targetLanguage = normalizeLocale((string) ($_POST['target_language'] ?? 'de-CH'));
         if (!preg_match('/^(company|job|contact|application|document):(\d+)$/', $target, $matches)) {
             flash('Bitte zuerst einen Datensatz auswählen.', 'danger');
             redirect('/?page=translations');
@@ -3592,9 +4123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $storedUser = dbOne($db, 'SELECT first_name,last_name,preferred_language,timezone,phone,mobile,linkedin_url,facebook_url,x_url,other_profile_url,city,region,country_code FROM users WHERE id=?', 'i', [$uid]);
         $first = trim((string) ($_POST['first_name'] ?? ''));
         $last = trim((string) ($_POST['last_name'] ?? ''));
-        $language = array_key_exists((string) ($_POST['preferred_language'] ?? ''), documentLanguageChoices())
-            ? (string) $_POST['preferred_language']
-            : (string) ($storedUser['preferred_language'] ?? 'de');
+        $language = normalizeLocale((string) ($_POST['preferred_language'] ?? ($storedUser['preferred_language'] ?? 'de-CH')));
         $validTimezones = array_keys(array_merge(...array_values(timezoneChoices())));
         $timezone = in_array($_POST['timezone'] ?? '', $validTimezones, true) ? (string) $_POST['timezone'] : 'Europe/Zurich';
         $phone = trim((string) ($_POST['phone'] ?? '')) ?: null;
@@ -3750,7 +4279,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $replaceId = (int) ($_POST['replace_document_id'] ?? 0);
         $documentTypeId = (int) ($_POST['document_type_id'] ?? 0);
-        $languageCode = array_key_exists((string) ($_POST['document_language'] ?? ''), documentLanguageChoices()) ? (string) $_POST['document_language'] : null;
+        $documentLanguageInput = trim((string) ($_POST['document_language'] ?? ''));
+        $languageCode = $documentLanguageInput !== '' ? normalizeLocale($documentLanguageInput) : null;
         $title = trim((string) ($_POST['document_title'] ?? ''));
         $description = trim((string) ($_POST['document_description'] ?? '')) ?: null;
         $validFrom = trim((string) ($_POST['valid_from'] ?? '')) ?: null;
@@ -3832,7 +4362,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['document_id'] ?? 0);
         $uid = userId();
         $documentTypeId = (int) ($_POST['document_type_id'] ?? 0);
-        $languageCode = array_key_exists((string) ($_POST['document_language'] ?? ''), documentLanguageChoices()) ? (string) $_POST['document_language'] : null;
+        $documentLanguageInput = trim((string) ($_POST['document_language'] ?? ''));
+        $languageCode = $documentLanguageInput !== '' ? normalizeLocale($documentLanguageInput) : null;
         $title = trim((string) ($_POST['document_title'] ?? ''));
         $description = trim((string) ($_POST['document_description'] ?? '')) ?: null;
         $validFrom = trim((string) ($_POST['valid_from'] ?? '')) ?: null;
@@ -4171,7 +4702,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim((string) ($_POST['phone'] ?? ''));
         $mobile = trim((string) ($_POST['mobile'] ?? ''));
         $linkedin = trim((string) ($_POST['linkedin_url'] ?? ''));
-        $language = in_array($_POST['preferred_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['preferred_language'] : null;
+        $languageInput = trim((string) ($_POST['preferred_language'] ?? ''));
+        $language = $languageInput !== '' ? normalizeLocale($languageInput) : null;
         $notes = trim((string) ($_POST['contact_notes'] ?? ''));
         if ($firstName === '' || $lastName === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) {
             flash('Vorname, Nachname und eine gültige E-Mail-Adresse sind erforderlich.', 'danger');
@@ -4217,7 +4749,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim((string) ($_POST['phone'] ?? ''));
         $mobile = trim((string) ($_POST['mobile'] ?? ''));
         $linkedin = trim((string) ($_POST['linkedin_url'] ?? ''));
-        $language = in_array($_POST['preferred_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['preferred_language'] : null;
+        $languageInput = trim((string) ($_POST['preferred_language'] ?? ''));
+        $language = $languageInput !== '' ? normalizeLocale($languageInput) : null;
         $notes = trim((string) ($_POST['contact_notes'] ?? ''));
         if ($firstName === '' || $lastName === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) {
             flash('Vorname, Nachname und eine gültige E-Mail-Adresse sind erforderlich.', 'danger');
@@ -4245,7 +4778,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim((string) ($_POST['phone'] ?? ''));
         $mobile = trim((string) ($_POST['mobile'] ?? ''));
         $linkedin = trim((string) ($_POST['linkedin_url'] ?? ''));
-        $language = in_array($_POST['preferred_language'] ?? '', ['de','en','es','pt'], true) ? (string) $_POST['preferred_language'] : null;
+        $languageInput = trim((string) ($_POST['preferred_language'] ?? ''));
+        $language = $languageInput !== '' ? normalizeLocale($languageInput) : null;
         $notes = trim((string) ($_POST['contact_notes'] ?? ''));
         $uid = userId();
         $old = dbOne($db, 'SELECT id, company_id, first_name, last_name, email FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contactId, $uid]);
@@ -4550,6 +5084,10 @@ if ($page === 'two_factor' && !empty($_SESSION['pending_2fa_user_id'])) {
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
 $currentUserIsAdmin = $currentUser ? isAdmin($db, realUserId(), $config) : false;
+$appLocale = currentLocale($currentUser ?: null);
+$codeVersion = '1.15.0';
+$configuredVersion = (string) ($config['app_version'] ?? '');
+$appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
     touchUserPresence($db, realUserId());
     if (realUserId() === userId()) {
@@ -4635,7 +5173,7 @@ if ($page === 'application_dossier') {
     $contactLogChannels = contactLogChannelOptions();
     $contactLogStatuses = contactLogStatusOptions();
     ?><!doctype html>
-    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '1.14.39')) ?>"></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow">Bewerbungsdokumentation</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form">Zur Bewerbung</a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf">PDF erstellen</a></div>
@@ -4647,7 +5185,7 @@ if ($page === 'application_dossier') {
         <section class="panel"><h2>Jobbeschreibung</h2><div class="dossier-text"><?= nl2br(e((string)$application['job_description'])) ?></div></section>
         <section class="panel"><h2>Kontakte in dieser Firma</h2><div class="dossier-list"><?php foreach($dossier['contacts'] as $contact): ?><article><strong><?= e(trim((string)$contact['first_name'] . ' ' . (string)$contact['last_name'])) ?></strong><span><?= e((string)$contact['company_name']) ?> · <?= e(trim((string)$contact['position'] . ' ' . (string)$contact['department'])) ?></span><small><?= e(trim((string)$contact['email'] . ' ' . (string)$contact['phone'] . ' ' . (string)$contact['mobile'])) ?></small><?php if($contact['linkedin_url']): ?><a href="<?= e((string)$contact['linkedin_url']) ?>" target="_blank" rel="noopener">LinkedIn</a><?php endif; ?><p><?= nl2br(e((string)$contact['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['contacts']): ?><p class="empty">Keine Kontakte erfasst.</p><?php endif; ?></div></section>
         <section class="panel"><h2>Fragen</h2><div class="dossier-list"><?php foreach($dossier['questions'] as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['questions']): ?><p class="empty">Noch keine Fragen beim Job erfasst.</p><?php endif; ?></div></section>
-        <section class="panel"><h2>Eingereichte Dokumente</h2><div class="dossier-list"><?php foreach($dossier['documents'] as $doc): ?><article><strong><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e((string)$doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], (string)($currentUser['preferred_language'] ?? 'de'))) ?> · <?= e((string)$doc['original_filename']) ?> · <?= e(bytesLabel((int)$doc['file_size'])) ?></span><div class="dossier-document-text"><?= trim((string)($doc['document_text'] ?? '')) !== '' ? nl2br(e((string)$doc['document_text'])) : '<p class="empty">Kein extrahierter Dokumentinhalt vorhanden.</p>' ?></div></article><?php endforeach; ?><?php if(!$dossier['documents']): ?><p class="empty">Keine Dokumente zugeordnet.</p><?php endif; ?></div></section>
+        <section class="panel"><h2>Eingereichte Dokumente</h2><div class="dossier-list"><?php foreach($dossier['documents'] as $doc): ?><article><strong><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e((string)$doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], (string)($currentUser['preferred_language'] ?? 'de-CH'))) ?> · <?= e((string)$doc['original_filename']) ?> · <?= e(bytesLabel((int)$doc['file_size'])) ?></span><div class="dossier-document-text"><?= trim((string)($doc['document_text'] ?? '')) !== '' ? nl2br(e((string)$doc['document_text'])) : '<p class="empty">Kein extrahierter Dokumentinhalt vorhanden.</p>' ?></div></article><?php endforeach; ?><?php if(!$dossier['documents']): ?><p class="empty">Keine Dokumente zugeordnet.</p><?php endif; ?></div></section>
         <section class="panel"><h2>Aktivitäten</h2><div class="log-timeline"><?php foreach($dossier['history'] as $entry): ?><article><strong>Status: <?= e((string)$entry['old_status']) ?> → <?= e((string)$entry['new_status']) ?></strong><span><?= e(displayDateTime((string)$entry['changed_at'], $currentUser)) ?></span><p><?= e((string)$entry['comment']) ?></p></article><?php endforeach; ?><?php foreach($dossier['contact_logs'] as $entry): ?><article class="log-status-<?= e((string)$entry['status']) ?>"><strong><?= e((string)$entry['subject']) ?></strong><span><?= e(displayDateTime((string)$entry['occurred_at'], $currentUser)) ?> · <?= e($contactLogChannels[(string)$entry['channel']] ?? (string)$entry['channel']) ?> · <?= e($contactLogStatuses[(string)$entry['status']] ?? (string)$entry['status']) ?></span><small><?= e(trim((string)$entry['first_name'] . ' ' . (string)$entry['last_name'])) ?> · <?= e((string)$entry['company_name']) ?></small><p><?= nl2br(e((string)$entry['body'])) ?></p><?php if($entry['outcome']): ?><small>Ergebnis: <?= e((string)$entry['outcome']) ?></small><?php endif; ?></article><?php endforeach; ?><?php foreach($dossier['calendar_events'] as $entry): ?><article><strong>Kalender: <?= e((string)$entry['title']) ?></strong><span><?= e(displayDateTime((string)$entry['starts_at'], $currentUser)) ?> · <?= e((string)$entry['status']) ?></span><p><?= nl2br(e((string)$entry['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['history'] && !$dossier['contact_logs'] && !$dossier['calendar_events']): ?><p class="empty">Noch keine Aktivitäten vorhanden.</p><?php endif; ?></div></section>
     </main></body></html><?php
     exit;
@@ -4698,7 +5236,7 @@ if ($page === 'application_documents_temp') {
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
     ?><!doctype html>
-    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '1.14.39')) ?>"></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container"><section class="panel"><p class="eyebrow">Temporärer Unterlagenordner</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line">Dieser App-Ordner ist temporär und wird nach ca. 60 Minuten ungültig. Die Dateien liegen als Kopien bereit.</p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents">Zur Bewerbung</a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>">Als ZIP herunterladen</a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -4829,7 +5367,6 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '1.14.41');
 $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
 $contextHelpTopics = [
     'dashboard' => [
@@ -4927,7 +5464,7 @@ $contextHelpTopics = [
 $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 
 ?><!doctype html>
-<html lang="de">
+<html lang="<?= e(localeHtmlLang($appLocale)) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4939,24 +5476,24 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
     <a class="brand" href="/"><img src="/assets/favicon.svg" alt="" width="32" height="32"> <span>JeMa <strong>Jobs</strong></span></a>
     <?php if ($currentUser): ?>
-        <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')">Menü</button>
-        <nav class="menubar" aria-label="Hauptmenü">
-            <div class="menu-group"><button type="button" class="menu-trigger">Datei</button><div class="menu-panel"><a href="/?page=dashboard">Übersicht</a><div class="submenu"><button type="button">Stammdaten</button><div class="submenu-panel"><a href="/?page=profile">Profil</a><a href="/?page=documents">Dokumente</a><a href="/?page=translations">Übersetzungen</a></div></div><a href="/?page=privacy">Datenschutz</a><a href="/?page=audit">Log</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">CRM</button><div class="menu-panel"><a href="/?page=companies">Firmen</a><a href="/?page=contacts">Kontakte</a><a href="/?page=sharing">Freigaben</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Bewerbung</button><div class="menu-panel"><a href="/?page=jobs">Jobs</a><a href="/?page=job_platform_search">Jobsuche</a><a href="/?page=applications">Bewerbungen</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Planung</button><div class="menu-panel"><a href="/?page=pendents">Pendent</a><a href="/?page=calendar&view=agenda">Kalender</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Auswertung</button><div class="menu-panel"><a href="/?page=reports">Reports</a><a href="/?page=export_pdf&type=jobs">Jobs PDF</a><a href="/?page=export_pdf&type=applications">Bewerbungen PDF</a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Konto</button><div class="menu-panel"><a href="/?page=profile">Profil</a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users">Benutzerverwaltung</a><a href="/?page=admin_job_platforms">Jobplattformen</a><?php endif; ?></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger">Hilfe</button><div class="menu-panel menu-panel-right"><a href="/?page=help">Hilfe</a><a href="/?page=about">Über</a></div></div>
+        <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')"><?= e(tr('nav.menu')) ?></button>
+        <nav class="menubar" aria-label="<?= e(tr('nav.menu')) ?>">
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.file')) ?></button><div class="menu-panel"><a href="/?page=dashboard"><?= e(tr('nav.dashboard')) ?></a><div class="submenu"><button type="button"><?= e(tr('nav.master_data')) ?></button><div class="submenu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><a href="/?page=documents"><?= e(tr('nav.documents')) ?></a><a href="/?page=translations"><?= e(tr('nav.translations')) ?></a></div></div><a href="/?page=privacy"><?= e(tr('nav.privacy')) ?></a><a href="/?page=audit"><?= e(tr('nav.audit')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.crm')) ?></button><div class="menu-panel"><a href="/?page=companies"><?= e(tr('nav.companies')) ?></a><a href="/?page=contacts"><?= e(tr('nav.contacts')) ?></a><a href="/?page=sharing"><?= e(tr('nav.sharing')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=pendents"><?= e(tr('nav.pendents')) ?></a><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><?php endif; ?></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.help')) ?></button><div class="menu-panel menu-panel-right"><a href="/?page=help"><?= e(tr('nav.help')) ?></a><a href="/?page=about"><?= e(tr('nav.about')) ?></a></div></div>
         </nav>
         <?php if($supportImpersonating): ?>
-            <div class="support-context"><strong>ADMIN Support</strong><span><?= e((string)($_SESSION['support_admin_name'] ?? 'Admin')) ?> in Umgebung <?= e((string)($_SESSION['support_target_name'] ?? userLabel($currentUser))) ?></span></div>
+            <div class="support-context"><strong><?= e(tr('support.admin')) ?></strong><span><?= e(tr('support.in_environment', null, ['admin' => (string)($_SESSION['support_admin_name'] ?? 'Admin'), 'user' => (string)($_SESSION['support_target_name'] ?? userLabel($currentUser))])) ?></span></div>
         <?php elseif($supportGrant): ?>
-            <div class="support-context"><strong>ADMIN Support freigegeben</strong><span>Administratoren können sich einklinken.</span></div>
+            <div class="support-context"><strong><?= e(tr('support.granted')) ?></strong><span><?= e(tr('support.granted_hint')) ?></span></div>
         <?php endif; ?>
         <div class="topbar-actions">
-            <?php if($supportImpersonating): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="stop_admin_support">Support beenden</button></form><?php endif; ?>
-            <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout">Abmelden</button></form>
+            <?php if($supportImpersonating): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="stop_admin_support"><?= e(tr('support.stop')) ?></button></form><?php endif; ?>
+            <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="logout"><?= e(tr('nav.logout')) ?></button></form>
         </div>
     <?php endif; ?>
 </header>
@@ -4964,59 +5501,62 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 <?php if ($flash): ?><div class="alert <?= e($flash['type']) ?>"><?= e($flash['message']) ?></div><?php endif; ?>
 <?php if ($contextHelp): ?>
     <div class="context-help-bar">
-        <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="Hilfe zu dieser Seite">
+        <button type="button" class="context-help-button" data-context-help-open aria-haspopup="dialog" aria-controls="context-help-modal" title="<?= e(tr('context.help')) ?>">
             <span class="bulb-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M9 21h6M10 17h4M8.6 14.7c-1.4-1-2.3-2.7-2.3-4.5A5.7 5.7 0 0 1 12 4.5a5.7 5.7 0 0 1 5.7 5.7c0 1.8-.9 3.5-2.3 4.5-.7.5-1.1 1.2-1.2 2H9.8c-.1-.8-.5-1.5-1.2-2Z"/></svg></span>
-            <span>Hilfe zu dieser Seite</span>
+            <span><?= e(tr('context.help')) ?></span>
         </button>
     </div>
     <div class="context-help-modal" id="context-help-modal" data-context-help-modal hidden>
         <div class="context-help-backdrop" data-context-help-close></div>
         <section class="context-help-dialog" role="dialog" aria-modal="true" aria-labelledby="context-help-title" tabindex="-1">
             <div class="context-help-dialog-head">
-                <div><p class="eyebrow">Hilfe</p><h2 id="context-help-title"><?= e((string)$contextHelp['title']) ?></h2></div>
-                <button type="button" class="context-help-close" data-context-help-close aria-label="Hilfe schließen">Schließen</button>
+                <div><p class="eyebrow"><?= e(tr('nav.help')) ?></p><h2 id="context-help-title"><?= e((string)$contextHelp['title']) ?></h2></div>
+                <button type="button" class="context-help-close" data-context-help-close aria-label="<?= e(tr('context.close')) ?>"><?= e(tr('context.close')) ?></button>
             </div>
             <p><?= e((string)$contextHelp['intro']) ?></p>
-            <h3>So gehst du vor</h3>
+            <h3><?= e(tr('context.how_to')) ?></h3>
             <ol><?php foreach((array)$contextHelp['steps'] as $step): ?><li><?= e((string)$step) ?></li><?php endforeach; ?></ol>
-            <h3>Merken</h3>
+            <h3><?= e(tr('context.remember')) ?></h3>
             <ul><?php foreach((array)$contextHelp['tips'] as $tip): ?><li><?= e((string)$tip) ?></li><?php endforeach; ?></ul>
-            <?php if(!empty($contextHelp['link'])): ?><div class="actions"><a class="button primary" href="<?= e((string)$contextHelp['link'][1]) ?>"><?= e((string)$contextHelp['link'][0]) ?></a><a class="button" href="/?page=help">Alle Hilfethemen</a></div><?php endif; ?>
+            <?php if(!empty($contextHelp['link'])): ?><div class="actions"><a class="button primary" href="<?= e((string)$contextHelp['link'][1]) ?>"><?= e((string)$contextHelp['link'][0]) ?></a><a class="button" href="/?page=help"><?= e(tr('context.all_topics')) ?></a></div><?php endif; ?>
         </section>
     </div>
 <?php endif; ?>
 
 <?php if ($page === 'login' && !$currentUser): ?>
     <section class="auth-card">
-        <p class="eyebrow">Willkommen zurück</p><h1>Anmelden</h1>
+        <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
+        <p class="eyebrow"><?= e(tr('auth.welcome_back')) ?></p><h1><?= e(tr('auth.login_title')) ?></h1>
         <?php if(!empty($_SESSION['email_verify_notice'])): ?>
             <div class="alert warning"><?= e($_SESSION['email_verify_notice']) ?></div>
             <?php unset($_SESSION['email_verify_notice'], $_SESSION['email_verify_link']); ?>
         <?php endif; ?>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-            <label>E-Mail<input type="email" name="email" required></label>
-            <label>Passwort<input type="password" name="password" required></label>
-            <button class="primary" name="action" value="login">Anmelden</button>
+            <label><?= e(tr('auth.email')) ?><input type="email" name="email" required></label>
+            <label><?= e(tr('auth.password')) ?><input type="password" name="password" required></label>
+            <button class="primary" name="action" value="login"><?= e(tr('auth.login_button')) ?></button>
         </form>
-        <p>Noch kein Konto? <a href="/?page=register">Registrieren</a></p>
-        <p><a href="/?page=forgot_password">Passwort vergessen?</a></p>
+        <p><?= e(tr('auth.no_account')) ?> <a href="/?page=register"><?= e(tr('auth.register_link')) ?></a></p>
+        <p><a href="/?page=forgot_password"><?= e(tr('auth.forgot_password')) ?></a></p>
     </section>
 <?php elseif ($page === 'two_factor' && !$currentUser): ?>
     <?php if (empty($_SESSION['pending_2fa_user_id'])) { redirect('/?page=login'); } ?>
     <section class="auth-card">
-        <p class="eyebrow">Sicherheit</p><h1>2FA-Code</h1>
-        <p class="meta-line">Gib den 6-stelligen Code aus deiner Authenticator-App ein.</p>
+        <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
+        <p class="eyebrow"><?= e(tr('auth.security')) ?></p><h1><?= e(tr('auth.two_factor_title')) ?></h1>
+        <p class="meta-line"><?= e(tr('auth.two_factor_intro')) ?></p>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-            <label>Authenticator-Code<input name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
-            <button class="primary" name="action" value="verify_two_factor">Bestätigen</button>
+            <label><?= e(tr('auth.authenticator_code')) ?><input name="totp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
+            <button class="primary" name="action" value="verify_two_factor"><?= e(tr('auth.confirm')) ?></button>
         </form>
-        <p><a href="/?page=login">Zur Anmeldung</a></p>
+        <p><a href="/?page=login"><?= e(tr('auth.back_to_login')) ?></a></p>
     </section>
 <?php elseif ($page === 'forgot_password' && !$currentUser): ?>
     <section class="auth-card">
-        <p class="eyebrow">Konto</p><h1>Passwort vergessen</h1>
+        <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
+        <p class="eyebrow"><?= e(tr('auth.account')) ?></p><h1><?= e(tr('auth.forgot_title')) ?></h1>
         <?php if(!empty($_SESSION['password_reset_link'])): ?>
             <div class="alert warning"><strong>Testphase:</strong> E-Mail-Versand ist deaktiviert. Nutze diesen Link einmalig: <a href="<?= e($_SESSION['password_reset_link']) ?>">Passwort zurücksetzen</a><input value="<?= e($_SESSION['password_reset_link']) ?>" readonly onclick="this.select()"></div>
         <?php elseif(!empty($_SESSION['password_reset_notice'])): ?>
@@ -5024,35 +5564,39 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
         <?php endif; ?>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-            <label>E-Mail<input type="email" name="email" required></label>
-            <button class="primary" name="action" value="request_password_reset">Link erstellen</button>
+            <label><?= e(tr('auth.email')) ?><input type="email" name="email" required></label>
+            <button class="primary" name="action" value="request_password_reset"><?= e(tr('auth.create_reset_link')) ?></button>
         </form>
-        <p><a href="/?page=login">Zur Anmeldung</a></p>
+        <p><a href="/?page=login"><?= e(tr('auth.back_to_login')) ?></a></p>
     </section>
 <?php elseif ($page === 'reset_password' && !$currentUser): ?>
     <?php $resetToken = trim((string) ($_GET['token'] ?? '')); ?>
     <section class="auth-card">
-        <p class="eyebrow">Konto</p><h1>Neues Passwort</h1>
+        <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
+        <p class="eyebrow"><?= e(tr('auth.account')) ?></p><h1><?= e(tr('auth.new_password_title')) ?></h1>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <input type="hidden" name="token" value="<?= e($resetToken) ?>">
-            <label>Neues Passwort<input type="password" name="password" minlength="10" required></label>
-            <label>Passwort wiederholen<input type="password" name="password_confirm" minlength="10" required></label>
-            <button class="primary" name="action" value="reset_password">Passwort ändern</button>
+            <label><?= e(tr('auth.new_password')) ?><input type="password" name="password" minlength="10" required></label>
+            <label><?= e(tr('auth.repeat_password')) ?><input type="password" name="password_confirm" minlength="10" required></label>
+            <button class="primary" name="action" value="reset_password"><?= e(tr('auth.change_password')) ?></button>
         </form>
-        <p><a href="/?page=login">Zur Anmeldung</a></p>
+        <p><a href="/?page=login"><?= e(tr('auth.back_to_login')) ?></a></p>
     </section>
 <?php elseif ($page === 'register' && !$currentUser): ?>
     <section class="auth-card">
-        <p class="eyebrow">Privates Job-CRM</p><h1>Konto erstellen</h1>
+        <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
+        <p class="eyebrow"><?= e(tr('auth.private_job_crm')) ?></p><h1><?= e(tr('auth.create_account')) ?></h1>
+        <p class="meta-line"><?= e(tr('auth.language_notice')) ?></p>
         <form method="post" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-            <div class="two"><label>Vorname<input name="first_name" required></label><label>Nachname<input name="last_name" required></label></div>
-            <label>E-Mail<input type="email" name="email" required></label>
-            <label>Passwort<input type="password" name="password" minlength="10" required></label>
-            <button class="primary" name="action" value="register">Registrieren</button>
+            <input type="hidden" name="preferred_language" value="<?= e($appLocale) ?>">
+            <div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div>
+            <label><?= e(tr('auth.email')) ?><input type="email" name="email" required></label>
+            <label><?= e(tr('auth.password')) ?><input type="password" name="password" minlength="10" required></label>
+            <button class="primary" name="action" value="register"><?= e(tr('auth.create_account_button')) ?></button>
         </form>
-        <p><a href="/?page=login">Zur Anmeldung</a></p>
+        <p><a href="/?page=login"><?= e(tr('auth.back_to_login')) ?></a></p>
     </section>
 <?php elseif ($page === 'guest'): ?>
     <?php
@@ -5505,7 +6049,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
         $profileDocumentTypes = documentTypesForScope($documentTypes, 'profile');
         $profileDocuments = dbAll($db, "SELECT d.*, dt.code type_code, dt.name_key type_name FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.deleted_at IS NULL ORDER BY d.is_current DESC, d.title, d.version DESC", 'i', [userId()]);
         $profileCurrency = currencyForCountry($currentUser['country_code'] ?? 'CH');
-        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $userLanguage = normalizeLocale((string) ($currentUser['preferred_language'] ?? 'de-CH'));
         $languageChoices = europeanLanguageChoices();
         $totpMethod = activeTotpMethod($db, userId());
         if (!$totpMethod && empty($_SESSION['totp_setup_secret'])) {
@@ -5577,7 +6121,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
             <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
             <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Login-E-Mail. Der Versand läuft über deine SMTP-Einstellungen.</small></label>
-            <label>App- und Dokumentensprache<select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small>Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.</small></label>
+            <label><?= e(tr('profile.app_language')) ?><select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small><?= e(tr('profile.app_language_hint')) ?></small></label>
             <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
             <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
             <div class="two"><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($currentUser['linkedin_url'] ?? '') ?>" placeholder="https://www.linkedin.com/in/..."></label><label>Facebook<input type="url" name="facebook_url" value="<?= e($currentUser['facebook_url'] ?? '') ?>" placeholder="https://www.facebook.com/..."></label></div>
@@ -5812,7 +6356,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
             <label>Quell-URL<input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener">Quell-URL öffnen</a></small><?php endif; ?></label><label>Beschreibung<textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label>Kommentar<textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> Als separate Stelle speichern</label><?php endif; ?><button class="primary" name="action" value="save_job">Speichern</button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application">Bewerbung vorbereiten</button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>">Bewerbungen anzeigen</a></form><?php endif; ?></section>
-        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow">Kontakte</p><h2>Kontakte zur Stelle</h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>">Alle Firmenkontakte</a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label>Vorname<input name="first_name" required></label><label>Nachname<input name="last_name" required></label></div><div class="two"><label>Funktion<input name="position"></label><label>Abteilung<input name="department"></label></div><label>E-Mail<input type="email" name="contact_email"></label><div class="two"><label>Telefon<input name="phone"></label><label>Mobil<input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Kommentar<textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact">Kontakt speichern</button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · Stelle' : ' · Firma' ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Kontakt-Log</a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty">Noch keine Kontakte zur Firma oder Stelle.</p><?php endif; ?></div></div></section><?php endif; ?>
+        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow">Kontakte</p><h2>Kontakte zur Stelle</h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>">Alle Firmenkontakte</a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label>Vorname<input name="first_name" required></label><label>Nachname<input name="last_name" required></label></div><div class="two"><label>Funktion<input name="position"></label><label>Abteilung<input name="department"></label></div><label>E-Mail<input type="email" name="contact_email"></label><div class="two"><label>Telefon<input name="phone"></label><label>Mobil<input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label>Kommentar<textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact">Kontakt speichern</button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · Stelle' : ' · Firma' ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Kontakt-Log</a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty">Noch keine Kontakte zur Firma oder Stelle.</p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow">Vorbereitung</p><h2>Fragen zur Bewerbung</h2></div><span><?= count($jobQuestions) ?> Fragen</span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label>Frage<textarea name="question_text" rows="3" required placeholder="z. B. Welche Schwerpunkte hat die Rolle im ersten Monat?"></textarea></label><label>Antwort / Vorbereitung<textarea name="answer_text" rows="4" placeholder="Notizen, vorbereitete Antwort, Stichworte"></textarea></label><label>Reihenfolge<input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question">Frage speichern</button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('Frage löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question">Löschen</button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty">Noch keine Fragen erfasst.</p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title','Titel',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company','Firma',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location','Ort',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status','Status',$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match','Match',$jobSf,$jobPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e($job['status']) ?><small><?= e($job['engagement_type']) ?> · <?= e($job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small>Lohn: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application">Bewerbung vorbereiten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty">Keine Treffer.</td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= $job['engagement_type']==='temporary'?'Temporärstelle':'Dauerstelle' ?> · <?= ['open_ended'=>'unbefristet','fixed_term'=>'befristet','unknown'=>'Dauer offen'][$job['contract_term']] ?? 'Dauer offen' ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line">Lohn: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary>Warum <?= $score ?>%?</summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application">Bewerbung vorbereiten</button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>">Bewerbungen</a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>">Original-PDF</a><?php endif; ?><form method="post" onsubmit="return confirm('Job löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job">Löschen</button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty">Noch keine passenden Jobs vorhanden.</div><?php endif; ?></section><?php endif; ?></div>
     <?php elseif ($page === 'applications'): ?>
@@ -5843,7 +6387,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
         $attachedDocumentIds = array_flip(array_map('intval', array_column($applicationDocuments, 'id')));
         $applicationProfileDocuments = $applicationEdit ? dbAll($db, "SELECT d.id, d.title, d.version, d.original_filename, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL ORDER BY d.title, d.version DESC", 'i', [userId()]) : [];
         $intermediaryCompanies = $applicationEdit ? array_values(array_filter($companies, static fn (array $company): bool => !empty($company['is_intermediary']) && (int)$company['id'] !== (int)$applicationEdit['company_id'])) : [];
-        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $userLanguage = normalizeLocale((string) ($currentUser['preferred_language'] ?? 'de-CH'));
         $nextActionChoices = applicationNextActionChoices();
         $coverLetterPrompt = '';
         if ($applicationEdit && trim((string)($applicationEdit['cover_letter_text'] ?? '')) === '') {
@@ -5992,7 +6536,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                     <label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email'] ?? '') ?>"></label>
                     <div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone'] ?? '') ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile'] ?? '') ?>"></label></div>
                     <label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url'] ?? '') ?>"></label>
-                    <label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+                    <label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label>
                     <label>Kommentar<textarea name="contact_notes" rows="3"><?= e($contactEdit['notes'] ?? '') ?></textarea></label>
                     <label class="check"><input type="checkbox" name="set_primary" value="1" <?= !$applicationEdit['primary_contact_id'] || (int)$applicationEdit['primary_contact_id']===(int)($contactEdit['id']??0)?'checked':'' ?>> Als Hauptkontakt der Bewerbung verwenden</label>
                     <button class="primary" name="action" value="save_contact">Kontakt speichern</button>
@@ -6028,12 +6572,12 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
         <div class="page-head"><div><p class="eyebrow">CRM</p><h1>Kontakte</h1></div><span><?= count($contactRows) ?> Einträge</span></div>
         <div class="actions export-actions"><?= sfToolbar('contacts', $contactSf, ['page'=>'contacts', 'company_id'=>$contactCompanyFilter ?: ''], $contactSfFields) ?><a class="button" href="/?page=export_pdf&type=contacts">PDF</a></div>
         <?php if($contactCompany): ?><p class="filter-note">Kontakte bei <a href="/?page=companies&edit=<?= (int)$contactCompany['id'] ?>"><?= e($contactCompany['name']) ?></a> · <a href="/?page=contacts">Alle Kontakte anzeigen</a></p><?php endif; ?>
-        <div class="<?= $contactEdit ? 'split' : 'full-width' ?>"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(['de'=>'Deutsch','en'=>'English','es'=>'Español','pt'=>'Português'] as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Kommentar<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('contacts','name','Kontakt',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','company','Firma',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','reachable','Erreichbar',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','crm','CRM-Bezug',$contactSf,$contactPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Neuer Eintrag</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
+        <div class="<?= $contactEdit ? 'split' : 'full-width' ?>"><?php if($contactEdit): ?><section class="panel"><h2>Kontakt bearbeiten</h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label>Firma<select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label>Vorname<input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label>Funktion<input name="position" value="<?= e($contactEdit['position']) ?>"></label><label>Abteilung<input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label>E-Mail<input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label>Telefon<input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label>Sprache<select name="preferred_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label>Kommentar<textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global">Kontakt speichern</button><a class="button" href="/?page=contacts">Schließen</a></div></form><hr><h2 id="contact-log">Kontakt-Log</h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('contacts','name','Kontakt',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','company','Firma',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','reachable','Erreichbar',$contactSf,$contactPreserve) ?><?= sfHeader('contacts','crm','CRM-Bezug',$contactSf,$contactPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= (int)$contact['open_log_count'] ?> offen/geplant · <?= (int)$contact['log_count'] ?> total</span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: 'Job öffnen') ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log">Bewerbung / Aktivitäten</a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>">Bearbeiten</a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log">Neuer Eintrag</a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty">Noch keine Kontakte vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
         $profileDocumentTypes = documentTypesForScope($documentTypes, 'profile');
-        $userLanguage = (string) ($currentUser['preferred_language'] ?? 'de');
+        $userLanguage = normalizeLocale((string) ($currentUser['preferred_language'] ?? 'de-CH'));
         $documentTypeChoices = [];
         foreach ($profileDocumentTypes as $type) {
             $documentTypeChoices[(string)$type['code']] = documentTypeLabel((string)$type['code'], $userLanguage);
@@ -6418,7 +6962,7 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
     <?php endif; ?>
 <?php endif; ?>
 </main>
-<footer>JeMa Jobs · Version <?= e($appDisplayVersion) ?> · Private Daten bleiben benutzerisoliert</footer>
+<footer>JeMa Jobs · Version <?= e($appDisplayVersion) ?> · <?= e(tr('footer.private')) ?></footer>
 <script src="/assets/qrcode.min.js" defer></script>
 <script src="/assets/totp-qr.js" defer></script>
 <script>
