@@ -297,11 +297,7 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
     box-shadow: 0 0 0 1px rgba(17, 24, 39, .28);
 }
 .locale-flag-ch { width: 18px; height: 18px; }
-.locale-code {
-    min-width: 18px;
-    text-align: center;
-    line-height: 1;
-}
+.locale-code,
 .locale-label {
     position: absolute;
     width: 1px;

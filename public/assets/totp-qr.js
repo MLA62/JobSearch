@@ -2,7 +2,7 @@
   function renderQr(target) {
     var text = target.getAttribute('data-qr-text') || '';
     if (!text || typeof qrcode !== 'function') {
-      target.textContent = 'QR-Code konnte nicht erzeugt werden.';
+      target.textContent = target.getAttribute('data-qr-error') || 'QR code unavailable.';
       return;
     }
 

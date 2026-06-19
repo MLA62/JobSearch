@@ -249,11 +249,11 @@ function browserLocale(): string
 
 function currentLocale(?array $currentUser = null): string
 {
-    if ($currentUser && !empty($currentUser['preferred_language'])) {
-        return normalizeLocale((string) $currentUser['preferred_language']);
-    }
     if (!empty($_SESSION['locale'])) {
         return normalizeLocale((string) $_SESSION['locale']);
+    }
+    if ($currentUser && !empty($currentUser['preferred_language'])) {
+        return normalizeLocale((string) $currentUser['preferred_language']);
     }
     return browserLocale();
 }
@@ -397,6 +397,40 @@ function translationCatalog(): array
         'auth.language_notice' => 'Die Sprache wird aus deinem Browser übernommen und kann hier geändert werden.',
         'profile.app_language' => 'App- und Dokumentensprache',
         'profile.app_language_hint' => 'Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.',
+        'profile.support_status_granted' => 'Freigegeben',
+        'profile.support_status_not_granted' => 'Nicht freigegeben',
+        'profile.support_blocked_during_session' => 'Diese Umgebung wird gerade im ADMIN Support verwendet. Änderungen an der Freigabe sind währenddessen gesperrt.',
+        'profile.support_granted_since' => 'Du hast ADMIN Support seit {date} freigegeben. Ein Administrator kann sich wie du in deine Umgebung einklinken, bis du widerrufst.',
+        'profile.support_revoke_confirm' => 'ADMIN Support wirklich widerrufen?',
+        'profile.support_revoke' => 'ADMIN Support widerrufen',
+        'profile.support_intro' => 'Erlaube ADMIN Support nur, wenn ein Administrator deine Umgebung 1:1 sehen und bedienen soll. Du kannst die Freigabe jederzeit widerrufen.',
+        'profile.support_allow' => 'ADMIN Support erlauben',
+        'profile.email_section' => 'E-Mail',
+        'profile.smtp_title' => 'Eigener SMTP-Versand',
+        'profile.smtp_active' => 'Aktiv',
+        'profile.smtp_inactive' => 'Nicht aktiv',
+        'profile.smtp_host' => 'SMTP-Host',
+        'profile.smtp_encryption' => 'Verschlüsselung',
+        'profile.smtp_encryption_none' => 'Keine',
+        'profile.smtp_username' => 'SMTP-Benutzer',
+        'profile.smtp_password' => 'SMTP-Passwort',
+        'profile.smtp_password_keep' => 'Leer lassen = unverändert',
+        'profile.smtp_from_email' => 'Absender-E-Mail',
+        'profile.smtp_from_name' => 'Absender-Name',
+        'profile.smtp_enable' => 'SMTP für meinen Versand aktivieren',
+        'profile.smtp_save' => 'SMTP speichern',
+        'profile.smtp_save_test' => 'Speichern & testen',
+        'profile.smtp_hint' => 'Passwort-Reset, Freigaben und Bewerbungs-E-Mails werden über diese SMTP-Daten verschickt, sobald sie aktiv sind.',
+        'profile.login_email_hint' => 'Login-E-Mail. Der Versand läuft über deine SMTP-Einstellungen.',
+        'profile.qr_label' => 'QR-Code für Authenticator-App',
+        'profile.qr_error' => 'QR-Code konnte nicht erzeugt werden.',
+        'profile.timezone' => 'Zeitzone',
+        'profile.phone' => 'Telefon',
+        'profile.mobile' => 'Mobil',
+        'profile.other_profile' => 'Andere',
+        'profile.city' => 'Ort',
+        'profile.region' => 'Region',
+        'profile.country' => 'Land',
         'common.not_selected' => 'Nicht gewählt',
         'dashboard.greeting' => 'Guten Tag, {name}',
         'dashboard.title' => 'Deine Jobs. Dein Prozess.',
@@ -525,6 +559,40 @@ function translationCatalog(): array
             'auth.language_notice' => 'La langue est reprise du navigateur et peut être changée ici.',
             'profile.app_language' => 'Langue de l’app et des documents',
             'profile.app_language_hint' => 'Définit les textes de l’app, les libellés des documents, les prompts et les nouveaux documents.',
+            'profile.support_status_granted' => 'Autorisé',
+            'profile.support_status_not_granted' => 'Non autorisé',
+            'profile.support_blocked_during_session' => 'Cet environnement est actuellement utilisé en support ADMIN. Les modifications de l’autorisation sont bloquées pendant ce temps.',
+            'profile.support_granted_since' => 'Tu as autorisé le support ADMIN depuis {date}. Un administrateur peut se connecter à ton environnement comme toi jusqu’à révocation.',
+            'profile.support_revoke_confirm' => 'Révoquer vraiment le support ADMIN ?',
+            'profile.support_revoke' => 'Révoquer le support ADMIN',
+            'profile.support_intro' => 'Autorise le support ADMIN uniquement si un administrateur doit voir et utiliser ton environnement 1:1. Tu peux révoquer l’autorisation à tout moment.',
+            'profile.support_allow' => 'Autoriser le support ADMIN',
+            'profile.email_section' => 'E-mail',
+            'profile.smtp_title' => 'Envoi SMTP personnel',
+            'profile.smtp_active' => 'Actif',
+            'profile.smtp_inactive' => 'Inactif',
+            'profile.smtp_host' => 'Hôte SMTP',
+            'profile.smtp_encryption' => 'Chiffrement',
+            'profile.smtp_encryption_none' => 'Aucun',
+            'profile.smtp_username' => 'Utilisateur SMTP',
+            'profile.smtp_password' => 'Mot de passe SMTP',
+            'profile.smtp_password_keep' => 'Laisser vide = inchangé',
+            'profile.smtp_from_email' => 'E-mail d’expéditeur',
+            'profile.smtp_from_name' => 'Nom d’expéditeur',
+            'profile.smtp_enable' => 'Activer SMTP pour mes envois',
+            'profile.smtp_save' => 'Enregistrer SMTP',
+            'profile.smtp_save_test' => 'Enregistrer et tester',
+            'profile.smtp_hint' => 'Les réinitialisations de mot de passe, autorisations et e-mails de candidature sont envoyés via ces données SMTP dès qu’elles sont actives.',
+            'profile.login_email_hint' => 'E-mail de login. L’envoi passe par tes paramètres SMTP.',
+            'profile.qr_label' => 'QR code pour app Authenticator',
+            'profile.qr_error' => 'Le QR code n’a pas pu être généré.',
+            'profile.timezone' => 'Fuseau horaire',
+            'profile.phone' => 'Téléphone',
+            'profile.mobile' => 'Mobile',
+            'profile.other_profile' => 'Autre',
+            'profile.city' => 'Lieu',
+            'profile.region' => 'Région',
+            'profile.country' => 'Pays',
             'common.not_selected' => 'Non sélectionné',
             'dashboard.greeting' => 'Bonjour, {name}',
             'dashboard.title' => 'Tes emplois. Ton processus.',
@@ -651,6 +719,40 @@ function translationCatalog(): array
             'auth.language_notice' => 'The language is taken from your browser and can be changed here.',
             'profile.app_language' => 'App and document language',
             'profile.app_language_hint' => 'Controls app text, document type labels, prompts and new documents.',
+            'profile.support_status_granted' => 'Approved',
+            'profile.support_status_not_granted' => 'Not approved',
+            'profile.support_blocked_during_session' => 'This environment is currently being used in ADMIN support. Changes to the approval are locked during this time.',
+            'profile.support_granted_since' => 'You have approved ADMIN support since {date}. An administrator can join your environment as you until you revoke it.',
+            'profile.support_revoke_confirm' => 'Really revoke ADMIN support?',
+            'profile.support_revoke' => 'Revoke ADMIN support',
+            'profile.support_intro' => 'Allow ADMIN support only if an administrator should see and operate your environment 1:1. You can revoke approval at any time.',
+            'profile.support_allow' => 'Allow ADMIN support',
+            'profile.email_section' => 'Email',
+            'profile.smtp_title' => 'Own SMTP sending',
+            'profile.smtp_active' => 'Active',
+            'profile.smtp_inactive' => 'Not active',
+            'profile.smtp_host' => 'SMTP host',
+            'profile.smtp_encryption' => 'Encryption',
+            'profile.smtp_encryption_none' => 'None',
+            'profile.smtp_username' => 'SMTP user',
+            'profile.smtp_password' => 'SMTP password',
+            'profile.smtp_password_keep' => 'Leave empty = unchanged',
+            'profile.smtp_from_email' => 'Sender email',
+            'profile.smtp_from_name' => 'Sender name',
+            'profile.smtp_enable' => 'Enable SMTP for my sending',
+            'profile.smtp_save' => 'Save SMTP',
+            'profile.smtp_save_test' => 'Save and test',
+            'profile.smtp_hint' => 'Password resets, approvals and application emails are sent through these SMTP settings once active.',
+            'profile.login_email_hint' => 'Login email. Sending uses your SMTP settings.',
+            'profile.qr_label' => 'QR code for authenticator app',
+            'profile.qr_error' => 'The QR code could not be generated.',
+            'profile.timezone' => 'Time zone',
+            'profile.phone' => 'Phone',
+            'profile.mobile' => 'Mobile',
+            'profile.other_profile' => 'Other',
+            'profile.city' => 'Location',
+            'profile.region' => 'Region',
+            'profile.country' => 'Country',
             'common.not_selected' => 'Not selected',
             'dashboard.greeting' => 'Good day, {name}',
             'dashboard.title' => 'Your jobs. Your process.',
@@ -777,6 +879,40 @@ function translationCatalog(): array
             'auth.language_notice' => 'O idioma vem do navegador e pode ser alterado aqui.',
             'profile.app_language' => 'Idioma do app e dos documentos',
             'profile.app_language_hint' => 'Controla textos do app, rótulos dos documentos, prompts e novos documentos.',
+            'profile.support_status_granted' => 'Liberado',
+            'profile.support_status_not_granted' => 'Não liberado',
+            'profile.support_blocked_during_session' => 'Este ambiente está sendo usado no suporte ADMIN. Alterações na autorização ficam bloqueadas durante esse período.',
+            'profile.support_granted_since' => 'Você liberou o suporte ADMIN desde {date}. Um administrador pode entrar no seu ambiente como você até você revogar.',
+            'profile.support_revoke_confirm' => 'Revogar mesmo o suporte ADMIN?',
+            'profile.support_revoke' => 'Revogar suporte ADMIN',
+            'profile.support_intro' => 'Permita o suporte ADMIN apenas se um administrador deve ver e operar seu ambiente 1:1. Você pode revogar a liberação a qualquer momento.',
+            'profile.support_allow' => 'Permitir suporte ADMIN',
+            'profile.email_section' => 'E-mail',
+            'profile.smtp_title' => 'Envio SMTP próprio',
+            'profile.smtp_active' => 'Ativo',
+            'profile.smtp_inactive' => 'Não ativo',
+            'profile.smtp_host' => 'Servidor SMTP',
+            'profile.smtp_encryption' => 'Criptografia',
+            'profile.smtp_encryption_none' => 'Nenhuma',
+            'profile.smtp_username' => 'Usuário SMTP',
+            'profile.smtp_password' => 'Senha SMTP',
+            'profile.smtp_password_keep' => 'Deixar vazio = sem alteração',
+            'profile.smtp_from_email' => 'E-mail do remetente',
+            'profile.smtp_from_name' => 'Nome do remetente',
+            'profile.smtp_enable' => 'Ativar SMTP para meus envios',
+            'profile.smtp_save' => 'Salvar SMTP',
+            'profile.smtp_save_test' => 'Salvar e testar',
+            'profile.smtp_hint' => 'Redefinições de senha, autorizações e e-mails de candidatura são enviados por estes dados SMTP quando ativos.',
+            'profile.login_email_hint' => 'E-mail de login. O envio usa suas configurações SMTP.',
+            'profile.qr_label' => 'QR code para app autenticador',
+            'profile.qr_error' => 'Não foi possível gerar o QR code.',
+            'profile.timezone' => 'Fuso horário',
+            'profile.phone' => 'Telefone',
+            'profile.mobile' => 'Celular',
+            'profile.other_profile' => 'Outro',
+            'profile.city' => 'Local',
+            'profile.region' => 'Região',
+            'profile.country' => 'País',
             'common.not_selected' => 'Não selecionado',
             'dashboard.greeting' => 'Bom dia, {name}',
             'dashboard.title' => 'Suas vagas. Seu processo.',
@@ -903,6 +1039,40 @@ function translationCatalog(): array
             'auth.language_notice' => 'El idioma se toma del navegador y puede cambiarse aquí.',
             'profile.app_language' => 'Idioma de la app y documentos',
             'profile.app_language_hint' => 'Controla textos de la app, etiquetas de documentos, prompts y nuevos documentos.',
+            'profile.support_status_granted' => 'Autorizado',
+            'profile.support_status_not_granted' => 'No autorizado',
+            'profile.support_blocked_during_session' => 'Este entorno se está usando en soporte ADMIN. Los cambios en la autorización quedan bloqueados mientras tanto.',
+            'profile.support_granted_since' => 'Has autorizado el soporte ADMIN desde {date}. Un administrador puede entrar a tu entorno como tú hasta que lo revoques.',
+            'profile.support_revoke_confirm' => '¿Revocar realmente el soporte ADMIN?',
+            'profile.support_revoke' => 'Revocar soporte ADMIN',
+            'profile.support_intro' => 'Permite el soporte ADMIN solo si un administrador debe ver y operar tu entorno 1:1. Puedes revocar la autorización en cualquier momento.',
+            'profile.support_allow' => 'Permitir soporte ADMIN',
+            'profile.email_section' => 'Correo',
+            'profile.smtp_title' => 'Envío SMTP propio',
+            'profile.smtp_active' => 'Activo',
+            'profile.smtp_inactive' => 'No activo',
+            'profile.smtp_host' => 'Servidor SMTP',
+            'profile.smtp_encryption' => 'Cifrado',
+            'profile.smtp_encryption_none' => 'Ninguno',
+            'profile.smtp_username' => 'Usuario SMTP',
+            'profile.smtp_password' => 'Contraseña SMTP',
+            'profile.smtp_password_keep' => 'Dejar vacío = sin cambios',
+            'profile.smtp_from_email' => 'Correo remitente',
+            'profile.smtp_from_name' => 'Nombre remitente',
+            'profile.smtp_enable' => 'Activar SMTP para mis envíos',
+            'profile.smtp_save' => 'Guardar SMTP',
+            'profile.smtp_save_test' => 'Guardar y probar',
+            'profile.smtp_hint' => 'Restablecimientos de contraseña, autorizaciones y correos de postulación se envían con estos datos SMTP cuando estén activos.',
+            'profile.login_email_hint' => 'Correo de login. El envío usa tus ajustes SMTP.',
+            'profile.qr_label' => 'Código QR para app autenticadora',
+            'profile.qr_error' => 'No se pudo generar el código QR.',
+            'profile.timezone' => 'Zona horaria',
+            'profile.phone' => 'Teléfono',
+            'profile.mobile' => 'Móvil',
+            'profile.other_profile' => 'Otro',
+            'profile.city' => 'Lugar',
+            'profile.region' => 'Región',
+            'profile.country' => 'País',
             'common.not_selected' => 'No seleccionado',
             'dashboard.greeting' => 'Buen día, {name}',
             'dashboard.title' => 'Tus empleos. Tu proceso.',
@@ -4884,6 +5054,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $savedLanguageSkills[$code] = $level;
         }
         $_SESSION['user_name'] = $first . ' ' . $last;
+        $_SESSION['locale'] = $language;
         audit($db, $uid, 'update', 'profile', $uid, $old, ['first_name'=>$first,'last_name'=>$last,'preferred_language'=>$language,'timezone'=>$timezone,'language_skills'=>$savedLanguageSkills]);
         flash('Profil gespeichert.');
         redirect('/?page=profile');
@@ -5758,7 +5929,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.7';
+$codeVersion = '1.15.8';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -6651,7 +6822,7 @@ startUiTranslationBuffer($appLocale);
             <?php else: ?>
                 <p class="meta-line">Scanne den QR-Code mit einer Authenticator-App und bestätige danach den 6-stelligen Code.</p>
                 <div class="totp-setup">
-                    <div class="totp-qr" data-qr-text="<?= e($totpSetupUri) ?>" aria-label="QR-Code für Authenticator-App"></div>
+                    <div class="totp-qr" data-qr-text="<?= e($totpSetupUri) ?>" data-qr-error="<?= e(tr('profile.qr_error')) ?>" aria-label="<?= e(tr('profile.qr_label')) ?>"></div>
                     <div class="stack">
                         <label>Setup-Schlüssel<input value="<?= e($totpSetupSecret) ?>" readonly onclick="this.select()"></label>
                         <details class="totp-manual">
@@ -6668,48 +6839,48 @@ startUiTranslationBuffer($appLocale);
             <?php endif; ?>
         </section>
         <section class="panel" id="support-access">
-            <div class="section-head"><div><p class="eyebrow">Support</p><h2>ADMIN Support</h2></div><span><?= $supportGrant ? 'Freigegeben' : 'Nicht freigegeben' ?></span></div>
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('support.admin')) ?></p><h2><?= e(tr('support.admin')) ?></h2></div><span><?= e($supportGrant ? tr('profile.support_status_granted') : tr('profile.support_status_not_granted')) ?></span></div>
             <?php if($supportImpersonating): ?>
-                <p class="alert warning">Diese Umgebung wird gerade im ADMIN Support verwendet. Änderungen an der Freigabe sind währenddessen gesperrt.</p>
+                <p class="alert warning"><?= e(tr('profile.support_blocked_during_session')) ?></p>
             <?php elseif($supportGrant): ?>
-                <p class="meta-line">Du hast ADMIN Support seit <?= e(displayDateTime((string)$supportGrant['granted_at'], $currentUser)) ?> freigegeben. Ein Administrator kann sich wie du in deine Umgebung einklinken, bis du widerrufst.</p>
-                <form method="post" onsubmit="return confirm('ADMIN Support wirklich widerrufen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="revoke_admin_support">ADMIN Support widerrufen</button></form>
+                <p class="meta-line"><?= e(tr('profile.support_granted_since', null, ['date' => displayDateTime((string)$supportGrant['granted_at'], $currentUser)])) ?></p>
+                <form method="post" onsubmit="return confirm('<?= e(tr('profile.support_revoke_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button name="action" value="revoke_admin_support"><?= e(tr('profile.support_revoke')) ?></button></form>
             <?php else: ?>
-                <p class="meta-line">Erlaube ADMIN Support nur, wenn ein Administrator deine Umgebung 1:1 sehen und bedienen soll. Du kannst die Freigabe jederzeit widerrufen.</p>
-                <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="grant_admin_support">ADMIN Support erlauben</button></form>
+                <p class="meta-line"><?= e(tr('profile.support_intro')) ?></p>
+                <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="grant_admin_support"><?= e(tr('profile.support_allow')) ?></button></form>
             <?php endif; ?>
         </section>
         <section class="panel" id="smtp">
-            <div class="section-head"><div><p class="eyebrow">E-Mail</p><h2>Eigener SMTP-Versand</h2></div><span><?= !empty($smtpSettings['is_active']) ? 'Aktiv' : 'Nicht aktiv' ?></span></div>
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('profile.email_section')) ?></p><h2><?= e(tr('profile.smtp_title')) ?></h2></div><span><?= e(!empty($smtpSettings['is_active']) ? tr('profile.smtp_active') : tr('profile.smtp_inactive')) ?></span></div>
             <form method="post" class="stack">
                 <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
                 <div class="three">
-                    <label>SMTP-Host<input name="smtp_host" value="<?= e($smtpSettings['smtp_host'] ?? '') ?>" placeholder="smtp.example.com" required></label>
+                    <label><?= e(tr('profile.smtp_host')) ?><input name="smtp_host" value="<?= e($smtpSettings['smtp_host'] ?? '') ?>" placeholder="smtp.example.com" required></label>
                     <label>Port<input type="number" min="1" max="65535" name="smtp_port" value="<?= e((string)($smtpSettings['smtp_port'] ?? 587)) ?>" required></label>
-                    <label>Verschlüsselung<select name="smtp_encryption"><?php foreach(['tls'=>'STARTTLS','ssl'=>'SSL/TLS','none'=>'Keine'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['smtp_encryption'] ?? 'tls')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+                    <label><?= e(tr('profile.smtp_encryption')) ?><select name="smtp_encryption"><?php foreach(['tls'=>'STARTTLS','ssl'=>'SSL/TLS','none'=>tr('profile.smtp_encryption_none')] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['smtp_encryption'] ?? 'tls')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
                 </div>
                 <div class="two">
-                    <label>SMTP-Benutzer<input name="smtp_username" value="<?= e($smtpSettings['smtp_username'] ?? '') ?>" autocomplete="username"></label>
-                    <label>SMTP-Passwort<input type="password" name="smtp_password" autocomplete="new-password" placeholder="<?= empty($smtpSettings) ? '' : 'Leer lassen = unverändert' ?>"></label>
+                    <label><?= e(tr('profile.smtp_username')) ?><input name="smtp_username" value="<?= e($smtpSettings['smtp_username'] ?? '') ?>" autocomplete="username"></label>
+                    <label><?= e(tr('profile.smtp_password')) ?><input type="password" name="smtp_password" autocomplete="new-password" placeholder="<?= empty($smtpSettings) ? '' : e(tr('profile.smtp_password_keep')) ?>"></label>
                 </div>
                 <div class="two">
-                    <label>Absender-E-Mail<input type="email" name="from_email" value="<?= e($smtpSettings['from_email'] ?? $currentUser['email']) ?>" required></label>
-                    <label>Absender-Name<input name="from_name" value="<?= e($smtpSettings['from_name'] ?? trim((string)$currentUser['first_name'] . ' ' . (string)$currentUser['last_name'])) ?>"></label>
+                    <label><?= e(tr('profile.smtp_from_email')) ?><input type="email" name="from_email" value="<?= e($smtpSettings['from_email'] ?? $currentUser['email']) ?>" required></label>
+                    <label><?= e(tr('profile.smtp_from_name')) ?><input name="from_name" value="<?= e($smtpSettings['from_name'] ?? trim((string)$currentUser['first_name'] . ' ' . (string)$currentUser['last_name'])) ?>"></label>
                 </div>
-                <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> SMTP für meinen Versand aktivieren</label>
-                <div class="actions"><button class="primary" name="action" value="save_smtp_settings">SMTP speichern</button><button name="action" value="test_smtp_settings">Speichern & testen</button></div>
-                <p class="meta-line">Passwort-Reset, Freigaben und Bewerbungs-E-Mails werden über diese SMTP-Daten verschickt, sobald sie aktiv sind.</p>
+                <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> <?= e(tr('profile.smtp_enable')) ?></label>
+                <div class="actions"><button class="primary" name="action" value="save_smtp_settings"><?= e(tr('profile.smtp_save')) ?></button><button name="action" value="test_smtp_settings"><?= e(tr('profile.smtp_save_test')) ?></button></div>
+                <p class="meta-line"><?= e(tr('profile.smtp_hint')) ?></p>
             </form>
         </section>
         <section class="panel"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-            <div class="two"><label>Vorname<input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label>Nachname<input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
-            <label>E-Mail<input value="<?= e($currentUser['email']) ?>" disabled><small>Login-E-Mail. Der Versand läuft über deine SMTP-Einstellungen.</small></label>
+            <div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" value="<?= e($currentUser['first_name']) ?>" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" value="<?= e($currentUser['last_name']) ?>" required></label></div>
+            <label><?= e(tr('auth.email')) ?><input value="<?= e($currentUser['email']) ?>" disabled><small><?= e(tr('profile.login_email_hint')) ?></small></label>
             <label><?= e(tr('profile.app_language')) ?><select name="preferred_language"><?php foreach(documentLanguageChoices() as $code=>$label): ?><option value="<?= e($code) ?>" <?= $userLanguage===$code?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select><small><?= e(tr('profile.app_language_hint')) ?></small></label>
-            <label>Zeitzone<select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
-            <div class="two"><label>Telefon<input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label>Mobil<input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
+            <label><?= e(tr('profile.timezone')) ?><select name="timezone"><?php foreach(timezoneChoices() as $continent=>$zones): ?><optgroup label="<?= e($continent) ?>"><?php foreach($zones as $zone=>$label): ?><option value="<?= e($zone) ?>" <?= $currentUser['timezone']===$zone?'selected':'' ?>><?= e($label) ?> (<?= e($zone) ?>)</option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label>
+            <div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone" value="<?= e($currentUser['phone']) ?>"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile" value="<?= e($currentUser['mobile']) ?>"></label></div>
             <div class="two"><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($currentUser['linkedin_url'] ?? '') ?>" placeholder="https://www.linkedin.com/in/..."></label><label>Facebook<input type="url" name="facebook_url" value="<?= e($currentUser['facebook_url'] ?? '') ?>" placeholder="https://www.facebook.com/..."></label></div>
-            <div class="two"><label>X<input type="url" name="x_url" value="<?= e($currentUser['x_url'] ?? '') ?>" placeholder="https://x.com/..."></label><label>Andere<input type="url" name="other_profile_url" value="<?= e($currentUser['other_profile_url'] ?? '') ?>" placeholder="https://..."></label></div>
-            <div class="three"><label>Ort<input name="city" value="<?= e($currentUser['city']) ?>"></label><label>Region<select name="region_key" id="profile-region"><option value="">Nicht gewählt</option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label>Land<output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
+            <div class="two"><label>X<input type="url" name="x_url" value="<?= e($currentUser['x_url'] ?? '') ?>" placeholder="https://x.com/..."></label><label><?= e(tr('profile.other_profile')) ?><input type="url" name="other_profile_url" value="<?= e($currentUser['other_profile_url'] ?? '') ?>" placeholder="https://..."></label></div>
+            <div class="three"><label><?= e(tr('profile.city')) ?><input name="city" value="<?= e($currentUser['city']) ?>"></label><label><?= e(tr('profile.region')) ?><select name="region_key" id="profile-region"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = $currentUser['region']===$region && $currentUser['country_code']===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" data-currency="<?= e(currencyForCountry($countryCode)) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label><?= e(tr('profile.country')) ?><output id="profile-country-display" class="readonly-value"><?= e(countryChoices()[$currentUser['country_code']] ?? '') ?></output></label></div>
             <div class="history"><h3>Sprachkenntnisse</h3><p class="meta-line">Sprachrekords einzeln hinzufügen. Jede Sprache darf nur einmal vorkommen; mindestens eine Sprache muss C2 Muttersprache sein.</p></div>
             <div class="language-records">
                 <?php $languageRecordIndex = 0; foreach($languageSkills as $code=>$level): ?>
