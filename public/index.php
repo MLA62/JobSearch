@@ -398,6 +398,63 @@ function translationCatalog(): array
         'profile.app_language' => 'App- und Dokumentensprache',
         'profile.app_language_hint' => 'Steuert App-Texte, Dokumenttyp-Bezeichnungen, Prompts und neue Dokumente.',
         'common.not_selected' => 'Nicht gewählt',
+        'dashboard.greeting' => 'Guten Tag, {name}',
+        'dashboard.title' => 'Deine Jobs. Dein Prozess.',
+        'dashboard.subtitle' => 'Privat, strukturiert und auf allen Geräten nutzbar.',
+        'dashboard.create_job' => 'Job erfassen',
+        'dashboard.stats.jobs' => 'Jobs',
+        'dashboard.stats.companies' => 'Firmen',
+        'dashboard.stats.applications' => 'Bewerbungen',
+        'dashboard.stats.pendents' => 'Pendent',
+        'dashboard.next_title' => 'Nächste Schritte',
+        'dashboard.next_body' => 'Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Die App berechnet einen transparenten Basis-Match und erkennt mögliche Dubletten.',
+        'help.topic_count' => '{count} Themen',
+        'help.hero_eyebrow' => 'Produktivhilfe',
+        'help.hero_title' => 'Von der Jobsuche bis zur dokumentierten Bewerbung',
+        'help.hero_intro' => 'Diese Hilfe erklärt die wichtigsten Arbeitsabläufe in JeMa Jobs. Sie ist bewusst handlungsorientiert: erst tun, dann prüfen, dann dokumentieren.',
+        'help.search_label' => 'Hilfe durchsuchen',
+        'help.search_placeholder' => 'z. B. Onlinebewerbung, Kontaktlog, PDF, Support',
+        'help.search_button' => 'Suchen',
+        'help.reset_button' => 'Zurücksetzen',
+        'help.search_status_initial' => 'Gib einen Begriff ein, um die Themen zu filtern. Kategorien springen zum passenden Bereich und blenden nichts aus.',
+        'help.status.topic' => 'Thema',
+        'help.status.topics' => 'Themen',
+        'help.status.visible' => 'sichtbar',
+        'help.status.search' => 'Suche',
+        'help.status.jump' => 'Sprungmarke',
+        'help.flow_label' => 'Prozessübersicht',
+        'help.flow.profile.title' => 'Profil',
+        'help.flow.profile.text' => 'Präferenzen, Sicherheit, Stammdokumente',
+        'help.flow.search.title' => 'Jobsuche',
+        'help.flow.search.text' => 'Portale, ChatGPT-Prompt, Direktlinks',
+        'help.flow.import.title' => 'Import',
+        'help.flow.import.text' => 'Jobvorschlag, Dubletten, Firma',
+        'help.flow.apply.title' => 'Bewerbung',
+        'help.flow.apply.text' => 'Dokumente, Onlineformular, Versand',
+        'help.flow.follow.title' => 'Nachfassen',
+        'help.flow.follow.text' => 'Kontaktlog, Pendent, Kalender',
+        'help.flow.dossier.title' => 'Dossier',
+        'help.flow.dossier.text' => 'Dokumentation, Reports, PDF',
+        'help.quick_eyebrow' => 'Kurzabläufe',
+        'help.quick_title' => 'Die drei häufigsten Wege',
+        'help.quick.search.title' => 'Neue Stelle finden',
+        'help.quick.search.body' => 'Profil pflegen -> Jobsuche öffnen -> Prompt kopieren -> Direktlinks im Schnellimport verarbeiten.',
+        'help.quick.search.link' => 'Zur Jobsuche',
+        'help.quick.apply.title' => 'Online bewerben',
+        'help.quick.apply.body' => 'Bewerbung vorbereiten -> Dokumente zuordnen -> Webformular öffnen -> Einreichung protokollieren.',
+        'help.quick.apply.link' => 'Zu Bewerbungen',
+        'help.quick.track.title' => 'Nachverfolgen',
+        'help.quick.track.body' => 'Kontaktlog pflegen -> Wiedervorlage setzen -> Pendent und Kalender prüfen -> Dossier aktuell halten.',
+        'help.quick.track.link' => 'Zu Pendent',
+        'help.license_eyebrow' => 'Lizenz',
+        'help.license_title' => 'Proprietäre Lizenz',
+        'help.license_badge' => 'Alle Rechte vorbehalten',
+        'help.license_body1' => 'JeMa Jobs ist proprietäre Produktivsoftware. Die Nutzung ist ausschließlich berechtigten Benutzern und Administratoren der freigegebenen Installation gestattet. Quellcode, Datenbankstruktur, Oberflächen, Hilfetexte, Designs und Dokumentation dürfen ohne schriftliche Zustimmung des Rechteinhabers nicht kopiert, veröffentlicht, weitergegeben, weiterverkauft oder als Grundlage für ein eigenes Produkt verwendet werden.',
+        'help.license_body2' => 'Produktive Daten bleiben vertraulich und benutzerisoliert. Administratorischer Supportzugriff ist nur mit ausdrücklicher Freigabe des betroffenen Benutzers zulässig.',
+        'help.steps_title' => 'So gehst du vor',
+        'help.tips_title' => 'Merken',
+        'help.empty_title' => 'Keine Treffer',
+        'help.empty_hint' => 'Leere das Suchfeld oder wähle eine andere Kategorie.',
         'footer.private' => 'Private Daten bleiben benutzerisoliert',
     ];
     return [
@@ -466,6 +523,63 @@ function translationCatalog(): array
             'profile.app_language' => 'Langue de l’app et des documents',
             'profile.app_language_hint' => 'Définit les textes de l’app, les libellés des documents, les prompts et les nouveaux documents.',
             'common.not_selected' => 'Non sélectionné',
+            'dashboard.greeting' => 'Bonjour, {name}',
+            'dashboard.title' => 'Tes emplois. Ton processus.',
+            'dashboard.subtitle' => 'Privé, structuré et utilisable sur tous les appareils.',
+            'dashboard.create_job' => 'Saisir un emploi',
+            'dashboard.stats.jobs' => 'Emplois',
+            'dashboard.stats.companies' => 'Entreprises',
+            'dashboard.stats.applications' => 'Candidatures',
+            'dashboard.stats.pendents' => 'En suspens',
+            'dashboard.next_title' => 'Prochaines étapes',
+            'dashboard.next_body' => 'Saisis d’abord une entreprise, puis les postes correspondants. Dans « Saisir un emploi », l’import rapide d’un ou plusieurs postes à la fois est aussi possible; l’entreprise est créée automatiquement si nécessaire. L’app calcule une correspondance de base transparente et détecte les doublons possibles.',
+            'help.topic_count' => '{count} sujets',
+            'help.hero_eyebrow' => 'Aide productive',
+            'help.hero_title' => 'De la recherche d’emploi à la candidature documentée',
+            'help.hero_intro' => 'Cette aide explique les principaux flux de travail dans JeMa Jobs. Elle est volontairement orientée action: faire, vérifier, documenter.',
+            'help.search_label' => 'Rechercher dans l’aide',
+            'help.search_placeholder' => 'p. ex. candidature en ligne, journal de contact, PDF, support',
+            'help.search_button' => 'Rechercher',
+            'help.reset_button' => 'Réinitialiser',
+            'help.search_status_initial' => 'Saisis un terme pour filtrer les sujets. Les catégories servent de repères et ne masquent rien.',
+            'help.status.topic' => 'sujet',
+            'help.status.topics' => 'sujets',
+            'help.status.visible' => 'visibles',
+            'help.status.search' => 'Recherche',
+            'help.status.jump' => 'Repère',
+            'help.flow_label' => 'Vue du processus',
+            'help.flow.profile.title' => 'Profil',
+            'help.flow.profile.text' => 'Préférences, sécurité, documents de base',
+            'help.flow.search.title' => 'Recherche',
+            'help.flow.search.text' => 'Portails, prompt ChatGPT, liens directs',
+            'help.flow.import.title' => 'Import',
+            'help.flow.import.text' => 'Proposition, doublons, entreprise',
+            'help.flow.apply.title' => 'Candidature',
+            'help.flow.apply.text' => 'Documents, formulaire en ligne, envoi',
+            'help.flow.follow.title' => 'Suivi',
+            'help.flow.follow.text' => 'Journal de contact, suspens, calendrier',
+            'help.flow.dossier.title' => 'Dossier',
+            'help.flow.dossier.text' => 'Documentation, rapports, PDF',
+            'help.quick_eyebrow' => 'Flux rapides',
+            'help.quick_title' => 'Les trois chemins les plus fréquents',
+            'help.quick.search.title' => 'Trouver un nouveau poste',
+            'help.quick.search.body' => 'Compléter le profil -> ouvrir la recherche -> copier le prompt -> traiter les liens directs dans l’import rapide.',
+            'help.quick.search.link' => 'Vers la recherche',
+            'help.quick.apply.title' => 'Postuler en ligne',
+            'help.quick.apply.body' => 'Préparer la candidature -> associer les documents -> ouvrir le formulaire web -> consigner l’envoi.',
+            'help.quick.apply.link' => 'Vers les candidatures',
+            'help.quick.track.title' => 'Assurer le suivi',
+            'help.quick.track.body' => 'Tenir le journal de contact -> fixer un rappel -> vérifier les suspens et le calendrier -> garder le dossier à jour.',
+            'help.quick.track.link' => 'Vers les suspens',
+            'help.license_eyebrow' => 'Licence',
+            'help.license_title' => 'Licence propriétaire',
+            'help.license_badge' => 'Tous droits réservés',
+            'help.license_body1' => 'JeMa Jobs est un logiciel productif propriétaire. Son utilisation est réservée aux utilisateurs et administrateurs autorisés de l’installation validée. Le code source, la structure de base de données, les interfaces, les textes d’aide, les designs et la documentation ne peuvent pas être copiés, publiés, transmis, revendus ni utilisés comme base d’un autre produit sans accord écrit du titulaire des droits.',
+            'help.license_body2' => 'Les données productives restent confidentielles et isolées par utilisateur. L’accès administratif de support nécessite l’autorisation explicite de l’utilisateur concerné.',
+            'help.steps_title' => 'Procédure',
+            'help.tips_title' => 'À retenir',
+            'help.empty_title' => 'Aucun résultat',
+            'help.empty_hint' => 'Vide le champ de recherche ou choisis une autre catégorie.',
             'footer.private' => 'Les données privées restent isolées par utilisateur',
         ]),
         'en-GB' => array_replace($de, [
@@ -533,6 +647,63 @@ function translationCatalog(): array
             'profile.app_language' => 'App and document language',
             'profile.app_language_hint' => 'Controls app text, document type labels, prompts and new documents.',
             'common.not_selected' => 'Not selected',
+            'dashboard.greeting' => 'Good day, {name}',
+            'dashboard.title' => 'Your jobs. Your process.',
+            'dashboard.subtitle' => 'Private, structured and usable on every device.',
+            'dashboard.create_job' => 'Add job',
+            'dashboard.stats.jobs' => 'Jobs',
+            'dashboard.stats.companies' => 'Companies',
+            'dashboard.stats.applications' => 'Applications',
+            'dashboard.stats.pendents' => 'Pending',
+            'dashboard.next_title' => 'Next steps',
+            'dashboard.next_body' => 'Start by recording a company and then the matching jobs. “Add job” also supports quick import of one or several jobs at once; the company is created automatically when needed. The app calculates a transparent base match and detects possible duplicates.',
+            'help.topic_count' => '{count} topics',
+            'help.hero_eyebrow' => 'Production help',
+            'help.hero_title' => 'From job search to documented application',
+            'help.hero_intro' => 'This help explains the most important workflows in JeMa Jobs. It is action-oriented: do it, check it, document it.',
+            'help.search_label' => 'Search help',
+            'help.search_placeholder' => 'e.g. online application, contact log, PDF, support',
+            'help.search_button' => 'Search',
+            'help.reset_button' => 'Reset',
+            'help.search_status_initial' => 'Enter a term to filter topics. Categories jump to the matching area and do not hide anything.',
+            'help.status.topic' => 'topic',
+            'help.status.topics' => 'topics',
+            'help.status.visible' => 'visible',
+            'help.status.search' => 'Search',
+            'help.status.jump' => 'Jump mark',
+            'help.flow_label' => 'Process overview',
+            'help.flow.profile.title' => 'Profile',
+            'help.flow.profile.text' => 'Preferences, security, base documents',
+            'help.flow.search.title' => 'Search',
+            'help.flow.search.text' => 'Portals, ChatGPT prompt, direct links',
+            'help.flow.import.title' => 'Import',
+            'help.flow.import.text' => 'Job proposal, duplicates, company',
+            'help.flow.apply.title' => 'Application',
+            'help.flow.apply.text' => 'Documents, online form, submission',
+            'help.flow.follow.title' => 'Follow-up',
+            'help.flow.follow.text' => 'Contact log, pending items, calendar',
+            'help.flow.dossier.title' => 'Dossier',
+            'help.flow.dossier.text' => 'Documentation, reports, PDF',
+            'help.quick_eyebrow' => 'Quick workflows',
+            'help.quick_title' => 'The three most common paths',
+            'help.quick.search.title' => 'Find a new job',
+            'help.quick.search.body' => 'Maintain profile -> open job search -> copy prompt -> process direct links in quick import.',
+            'help.quick.search.link' => 'Go to job search',
+            'help.quick.apply.title' => 'Apply online',
+            'help.quick.apply.body' => 'Prepare application -> assign documents -> open web form -> record submission.',
+            'help.quick.apply.link' => 'Go to applications',
+            'help.quick.track.title' => 'Track follow-up',
+            'help.quick.track.body' => 'Maintain contact log -> set follow-up -> check pending items and calendar -> keep dossier current.',
+            'help.quick.track.link' => 'Go to pending',
+            'help.license_eyebrow' => 'Licence',
+            'help.license_title' => 'Proprietary licence',
+            'help.license_badge' => 'All rights reserved',
+            'help.license_body1' => 'JeMa Jobs is proprietary production software. Use is limited to authorised users and administrators of the approved installation. Source code, database structure, interfaces, help text, designs and documentation may not be copied, published, shared, resold or used as the basis for another product without written permission from the rights holder.',
+            'help.license_body2' => 'Production data remains confidential and isolated per user. Administrative support access requires explicit approval from the affected user.',
+            'help.steps_title' => 'How to proceed',
+            'help.tips_title' => 'Remember',
+            'help.empty_title' => 'No results',
+            'help.empty_hint' => 'Clear the search field or choose another category.',
             'footer.private' => 'Private data remains isolated per user',
         ]),
         'pt-BR' => array_replace($de, [
@@ -600,6 +771,63 @@ function translationCatalog(): array
             'profile.app_language' => 'Idioma do app e dos documentos',
             'profile.app_language_hint' => 'Controla textos do app, rótulos dos documentos, prompts e novos documentos.',
             'common.not_selected' => 'Não selecionado',
+            'dashboard.greeting' => 'Bom dia, {name}',
+            'dashboard.title' => 'Suas vagas. Seu processo.',
+            'dashboard.subtitle' => 'Privado, estruturado e utilizável em todos os dispositivos.',
+            'dashboard.create_job' => 'Cadastrar vaga',
+            'dashboard.stats.jobs' => 'Vagas',
+            'dashboard.stats.companies' => 'Empresas',
+            'dashboard.stats.applications' => 'Candidaturas',
+            'dashboard.stats.pendents' => 'Pendências',
+            'dashboard.next_title' => 'Próximos passos',
+            'dashboard.next_body' => 'Primeiro cadastre uma empresa e depois as vagas correspondentes. Em “Cadastrar vaga” também é possível importar rapidamente uma ou várias vagas ao mesmo tempo; se necessário, a empresa é criada automaticamente. O app calcula uma correspondência base transparente e detecta possíveis duplicidades.',
+            'help.topic_count' => '{count} tópicos',
+            'help.hero_eyebrow' => 'Ajuda de produção',
+            'help.hero_title' => 'Da busca de vagas à candidatura documentada',
+            'help.hero_intro' => 'Esta ajuda explica os fluxos de trabalho mais importantes no JeMa Jobs. Ela é orientada à ação: fazer, verificar e documentar.',
+            'help.search_label' => 'Pesquisar na ajuda',
+            'help.search_placeholder' => 'ex.: candidatura online, registro de contato, PDF, suporte',
+            'help.search_button' => 'Pesquisar',
+            'help.reset_button' => 'Redefinir',
+            'help.search_status_initial' => 'Digite um termo para filtrar os tópicos. As categorias saltam para a área correspondente e não ocultam nada.',
+            'help.status.topic' => 'tópico',
+            'help.status.topics' => 'tópicos',
+            'help.status.visible' => 'visíveis',
+            'help.status.search' => 'Pesquisa',
+            'help.status.jump' => 'Marcador',
+            'help.flow_label' => 'Visão do processo',
+            'help.flow.profile.title' => 'Perfil',
+            'help.flow.profile.text' => 'Preferências, segurança, documentos base',
+            'help.flow.search.title' => 'Busca',
+            'help.flow.search.text' => 'Portais, prompt do ChatGPT, links diretos',
+            'help.flow.import.title' => 'Importação',
+            'help.flow.import.text' => 'Proposta de vaga, duplicidades, empresa',
+            'help.flow.apply.title' => 'Candidatura',
+            'help.flow.apply.text' => 'Documentos, formulário online, envio',
+            'help.flow.follow.title' => 'Acompanhamento',
+            'help.flow.follow.text' => 'Registro de contato, pendências, calendário',
+            'help.flow.dossier.title' => 'Dossiê',
+            'help.flow.dossier.text' => 'Documentação, relatórios, PDF',
+            'help.quick_eyebrow' => 'Fluxos rápidos',
+            'help.quick_title' => 'Os três caminhos mais frequentes',
+            'help.quick.search.title' => 'Encontrar uma nova vaga',
+            'help.quick.search.body' => 'Atualizar perfil -> abrir busca de vagas -> copiar prompt -> processar links diretos na importação rápida.',
+            'help.quick.search.link' => 'Ir para busca',
+            'help.quick.apply.title' => 'Candidatar-se online',
+            'help.quick.apply.body' => 'Preparar candidatura -> associar documentos -> abrir formulário web -> registrar envio.',
+            'help.quick.apply.link' => 'Ir para candidaturas',
+            'help.quick.track.title' => 'Acompanhar',
+            'help.quick.track.body' => 'Manter registro de contato -> definir retorno -> verificar pendências e calendário -> manter dossiê atualizado.',
+            'help.quick.track.link' => 'Ir para pendências',
+            'help.license_eyebrow' => 'Licença',
+            'help.license_title' => 'Licença proprietária',
+            'help.license_badge' => 'Todos os direitos reservados',
+            'help.license_body1' => 'JeMa Jobs é software produtivo proprietário. O uso é permitido apenas a usuários e administradores autorizados da instalação liberada. Código-fonte, estrutura de banco de dados, interfaces, textos de ajuda, designs e documentação não podem ser copiados, publicados, compartilhados, revendidos ou usados como base para outro produto sem autorização escrita do titular dos direitos.',
+            'help.license_body2' => 'Dados produtivos permanecem confidenciais e isolados por usuário. O acesso administrativo de suporte exige liberação explícita do usuário afetado.',
+            'help.steps_title' => 'Como proceder',
+            'help.tips_title' => 'Lembrar',
+            'help.empty_title' => 'Nenhum resultado',
+            'help.empty_hint' => 'Limpe o campo de busca ou escolha outra categoria.',
             'footer.private' => 'Dados privados permanecem isolados por usuário',
         ]),
         'es-MX' => array_replace($de, [
@@ -667,6 +895,63 @@ function translationCatalog(): array
             'profile.app_language' => 'Idioma de la app y documentos',
             'profile.app_language_hint' => 'Controla textos de la app, etiquetas de documentos, prompts y nuevos documentos.',
             'common.not_selected' => 'No seleccionado',
+            'dashboard.greeting' => 'Buen día, {name}',
+            'dashboard.title' => 'Tus empleos. Tu proceso.',
+            'dashboard.subtitle' => 'Privado, estructurado y usable en todos tus dispositivos.',
+            'dashboard.create_job' => 'Registrar empleo',
+            'dashboard.stats.jobs' => 'Empleos',
+            'dashboard.stats.companies' => 'Empresas',
+            'dashboard.stats.applications' => 'Postulaciones',
+            'dashboard.stats.pendents' => 'Pendientes',
+            'dashboard.next_title' => 'Siguientes pasos',
+            'dashboard.next_body' => 'Primero registra una empresa y después los puestos adecuados. En “Registrar empleo” también puedes hacer una importación rápida de uno o varios puestos a la vez; si hace falta, la empresa se crea automáticamente. La app calcula una coincidencia base transparente y detecta posibles duplicados.',
+            'help.topic_count' => '{count} temas',
+            'help.hero_eyebrow' => 'Ayuda productiva',
+            'help.hero_title' => 'De la búsqueda de empleo a la postulación documentada',
+            'help.hero_intro' => 'Esta ayuda explica los flujos de trabajo principales en JeMa Jobs. Está orientada a la acción: hacer, verificar y documentar.',
+            'help.search_label' => 'Buscar en la ayuda',
+            'help.search_placeholder' => 'p. ej. postulación en línea, registro de contacto, PDF, soporte',
+            'help.search_button' => 'Buscar',
+            'help.reset_button' => 'Restablecer',
+            'help.search_status_initial' => 'Escribe un término para filtrar los temas. Las categorías saltan al área correspondiente y no ocultan nada.',
+            'help.status.topic' => 'tema',
+            'help.status.topics' => 'temas',
+            'help.status.visible' => 'visibles',
+            'help.status.search' => 'Búsqueda',
+            'help.status.jump' => 'Marcador',
+            'help.flow_label' => 'Resumen del proceso',
+            'help.flow.profile.title' => 'Perfil',
+            'help.flow.profile.text' => 'Preferencias, seguridad, documentos base',
+            'help.flow.search.title' => 'Búsqueda',
+            'help.flow.search.text' => 'Portales, prompt de ChatGPT, enlaces directos',
+            'help.flow.import.title' => 'Importación',
+            'help.flow.import.text' => 'Propuesta de empleo, duplicados, empresa',
+            'help.flow.apply.title' => 'Postulación',
+            'help.flow.apply.text' => 'Documentos, formulario en línea, envío',
+            'help.flow.follow.title' => 'Seguimiento',
+            'help.flow.follow.text' => 'Registro de contacto, pendientes, calendario',
+            'help.flow.dossier.title' => 'Expediente',
+            'help.flow.dossier.text' => 'Documentación, reportes, PDF',
+            'help.quick_eyebrow' => 'Flujos rápidos',
+            'help.quick_title' => 'Los tres caminos más frecuentes',
+            'help.quick.search.title' => 'Encontrar un nuevo puesto',
+            'help.quick.search.body' => 'Completa el perfil -> abre la búsqueda -> copia el prompt -> procesa enlaces directos en la importación rápida.',
+            'help.quick.search.link' => 'Ir a búsqueda',
+            'help.quick.apply.title' => 'Postular en línea',
+            'help.quick.apply.body' => 'Preparar postulación -> asignar documentos -> abrir formulario web -> registrar el envío.',
+            'help.quick.apply.link' => 'Ir a postulaciones',
+            'help.quick.track.title' => 'Dar seguimiento',
+            'help.quick.track.body' => 'Registrar contacto -> programar seguimiento -> revisar pendientes y calendario -> mantener el expediente al día.',
+            'help.quick.track.link' => 'Ir a pendientes',
+            'help.license_eyebrow' => 'Licencia',
+            'help.license_title' => 'Licencia propietaria',
+            'help.license_badge' => 'Todos los derechos reservados',
+            'help.license_body1' => 'JeMa Jobs es software productivo propietario. Su uso está permitido únicamente a usuarios y administradores autorizados de la instalación habilitada. El código fuente, la estructura de base de datos, las interfaces, los textos de ayuda, los diseños y la documentación no pueden copiarse, publicarse, compartirse, revenderse ni utilizarse como base de otro producto sin autorización escrita del titular de derechos.',
+            'help.license_body2' => 'Los datos productivos son confidenciales y permanecen aislados por usuario. El acceso administrativo de soporte solo se permite con autorización explícita del usuario afectado.',
+            'help.steps_title' => 'Cómo proceder',
+            'help.tips_title' => 'Recordar',
+            'help.empty_title' => 'Sin resultados',
+            'help.empty_hint' => 'Borra el campo de búsqueda o elige otra categoría.',
             'footer.private' => 'Los datos privados quedan aislados por usuario',
         ]),
     ];
@@ -682,6 +967,147 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
         $text = str_replace('{' . $name . '}', (string) $value, $text);
     }
     return $text;
+}
+
+function legacyUiTranslationCatalog(): array
+{
+    static $catalog = null;
+    if ($catalog !== null) {
+        return $catalog;
+    }
+    $path = __DIR__ . '/i18n/ui_legacy.php';
+    $catalog = is_file($path) ? (require $path) : [];
+    return is_array($catalog) ? $catalog : [];
+}
+
+function translateUiSegment(string $text, string $locale): string
+{
+    $locale = normalizeLocale($locale);
+    if ($locale === 'de-CH') {
+        return $text;
+    }
+    $catalog = legacyUiTranslationCatalog();
+    $map = $catalog[$locale] ?? [];
+    if (!$map) {
+        return $text;
+    }
+    $leading = '';
+    $trailing = '';
+    if (preg_match('/^\s+/u', $text, $match)) {
+        $leading = $match[0];
+    }
+    if (preg_match('/\s+$/u', $text, $match)) {
+        $trailing = $match[0];
+    }
+    $core = trim($text);
+    if ($core === '') {
+        return $text;
+    }
+    if (isset($map[$core])) {
+        return $leading . $map[$core] . $trailing;
+    }
+
+    $countWords = $catalog['_counts'][$locale] ?? [];
+    foreach ($countWords as $source => $target) {
+        $core = preg_replace('/(\d+)\s+' . preg_quote($source, '/') . '\b/u', '$1 ' . $target, $core) ?? $core;
+    }
+    $phrases = $catalog['_phrases'][$locale] ?? [];
+    if ($phrases) {
+        uksort($phrases, static fn(string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+        $core = strtr($core, $phrases);
+    }
+    return $leading . $core . $trailing;
+}
+
+function translateUiHtml(string $html, string $locale): string
+{
+    $locale = normalizeLocale($locale);
+    if ($locale === 'de-CH' || $html === '') {
+        return $html;
+    }
+    $html = preg_replace_callback('/>([^<>]+)</u', static function (array $match) use ($locale): string {
+        return '>' . translateUiSegment($match[1], $locale) . '<';
+    }, $html) ?? $html;
+    $html = preg_replace_callback('/\b(placeholder|title|aria-label)=("|\')([^"\']*)(\2)/u', static function (array $match) use ($locale): string {
+        return $match[1] . '=' . $match[2] . translateUiSegment($match[3], $locale) . $match[4];
+    }, $html) ?? $html;
+    return $html;
+}
+
+function startUiTranslationBuffer(string $locale): void
+{
+    $locale = normalizeLocale($locale);
+    if ($locale === 'de-CH') {
+        return;
+    }
+    ob_start(static fn(string $buffer): string => translateUiHtml($buffer, $locale));
+}
+
+function localizedHelpTopics(string $locale): array
+{
+    $locale = normalizeLocale($locale);
+    return [
+        [
+            'category' => tr('help.flow.profile.title', $locale),
+            'audience' => tr('nav.account', $locale),
+            'title' => tr('help.flow.profile.title', $locale),
+            'summary' => tr('help.flow.profile.text', $locale),
+            'steps' => [tr('profile.app_language_hint', $locale), tr('help.quick.search.body', $locale), tr('help.flow.profile.text', $locale)],
+            'tips' => [tr('help.hero_intro', $locale)],
+            'links' => [[tr('nav.profile', $locale), '/?page=profile'], [tr('nav.documents', $locale), '/?page=documents']],
+            'keywords' => 'profile documents preferences security',
+        ],
+        [
+            'category' => tr('help.flow.search.title', $locale),
+            'audience' => tr('nav.application', $locale),
+            'title' => tr('help.quick.search.title', $locale),
+            'summary' => tr('help.flow.search.text', $locale),
+            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.search.text', $locale), tr('help.flow.import.text', $locale)],
+            'tips' => [tr('help.search_status_initial', $locale)],
+            'links' => [[tr('help.quick.search.link', $locale), '/?page=job_platform_search'], [tr('dashboard.create_job', $locale), '/?page=jobs#quick-import']],
+            'keywords' => 'search portals prompt direct links import',
+        ],
+        [
+            'category' => tr('help.flow.apply.title', $locale),
+            'audience' => tr('nav.applications', $locale),
+            'title' => tr('help.quick.apply.title', $locale),
+            'summary' => tr('help.flow.apply.text', $locale),
+            'steps' => [tr('help.quick.apply.body', $locale), tr('help.flow.apply.text', $locale), tr('help.flow.follow.text', $locale)],
+            'tips' => [tr('dashboard.next_body', $locale)],
+            'links' => [[tr('help.quick.apply.link', $locale), '/?page=applications']],
+            'keywords' => 'application online documents submission',
+        ],
+        [
+            'category' => tr('help.flow.follow.title', $locale),
+            'audience' => tr('nav.planning', $locale),
+            'title' => tr('help.quick.track.title', $locale),
+            'summary' => tr('help.flow.follow.text', $locale),
+            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale)],
+            'tips' => [tr('help.status.jump', $locale) . ': ' . tr('help.flow.follow.title', $locale)],
+            'links' => [[tr('help.quick.track.link', $locale), '/?page=pendents'], [tr('nav.calendar', $locale), '/?page=calendar']],
+            'keywords' => 'follow up pending calendar contact log',
+        ],
+        [
+            'category' => tr('help.flow.dossier.title', $locale),
+            'audience' => tr('nav.reporting', $locale),
+            'title' => tr('help.flow.dossier.title', $locale),
+            'summary' => tr('help.flow.dossier.text', $locale),
+            'steps' => [tr('help.flow.dossier.text', $locale), tr('help.license_body2', $locale)],
+            'tips' => [tr('help.quick.track.body', $locale)],
+            'links' => [[tr('nav.reports', $locale), '/?page=reports'], [tr('nav.applications', $locale), '/?page=applications']],
+            'keywords' => 'dossier reports pdf documentation',
+        ],
+        [
+            'category' => tr('help.license_eyebrow', $locale),
+            'audience' => tr('nav.help', $locale),
+            'title' => tr('help.license_title', $locale),
+            'summary' => tr('help.license_body1', $locale),
+            'steps' => [tr('help.license_body1', $locale), tr('help.license_body2', $locale)],
+            'tips' => [tr('help.license_badge', $locale)],
+            'links' => [[tr('nav.about', $locale), '/?page=about']],
+            'keywords' => 'license privacy support',
+        ],
+    ];
 }
 
 function redirect(string $path = '/'): never
@@ -5138,7 +5564,7 @@ if ($currentUser && isset($_GET['lang'])) {
     $_SESSION['locale'] = $requestedLocale;
 }
 $appLocale = currentLocale($currentUser ?: null);
-$codeVersion = '1.15.4';
+$codeVersion = '1.15.5';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 if ($currentUser) {
@@ -5225,6 +5651,7 @@ if ($page === 'application_dossier') {
     $channelLabels = applicationChannelOptions();
     $contactLogChannels = contactLogChannelOptions();
     $contactLogStatuses = contactLogStatusOptions();
+    startUiTranslationBuffer($appLocale);
     ?><!doctype html>
     <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container dossier-page">
@@ -5288,6 +5715,7 @@ if ($page === 'application_documents_temp') {
         flash('Keine Bewerbungsdokumente für einen temporären Ordner vorhanden.', 'warning');
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
+    startUiTranslationBuffer($appLocale);
     ?><!doctype html>
     <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container"><section class="panel"><p class="eyebrow">Temporärer Unterlagenordner</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line">Dieser App-Ordner ist temporär und wird nach ca. 60 Minuten ungültig. Die Dateien liegen als Kopien bereit.</p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents">Zur Bewerbung</a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>">Als ZIP herunterladen</a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
@@ -5515,6 +5943,7 @@ $contextHelpTopics = [
     ],
 ];
 $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
+startUiTranslationBuffer($appLocale);
 
 ?><!doctype html>
 <html lang="<?= e(localeHtmlLang($appLocale)) ?>">
@@ -5702,14 +6131,14 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
 <?php else: requireLogin(); ?>
     <?php if ($page === 'dashboard'): 
         $stats = [
-            ['label' => 'Jobs', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
-            ['label' => 'Firmen', 'value' => count($companies), 'href' => '/?page=companies'],
-            ['label' => 'Bewerbungen', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
-            ['label' => 'Pendent', 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND next_action_at IS NOT NULL AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=pendents'],
+            ['label' => tr('dashboard.stats.jobs'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
+            ['label' => tr('dashboard.stats.companies'), 'value' => count($companies), 'href' => '/?page=companies'],
+            ['label' => tr('dashboard.stats.applications'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
+            ['label' => tr('dashboard.stats.pendents'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND next_action_at IS NOT NULL AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=pendents'],
         ]; ?>
-        <div class="hero"><div><p class="eyebrow">Guten Tag, <?= e($currentUser['first_name']) ?></p><h1>Deine Jobs. Dein Prozess.</h1><p>Privat, strukturiert und auf allen Geräten nutzbar.</p></div><a class="button primary" href="/?page=jobs#new">Job erfassen</a></div>
+        <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
-        <section class="panel"><h2>Nächste Schritte</h2><p>Erfasse zuerst eine Firma und danach passende Stellen. Bei „Job erfassen“ ist auch ein Schnellimport von einer oder mehreren Stellen gleichzeitig möglich; die Firma wird bei Bedarf automatisch erzeugt. Die App berechnet einen transparenten Basis-Match und erkennt mögliche Dubletten.</p></section>
+        <section class="panel"><h2><?= e(tr('dashboard.next_title')) ?></h2><p><?= e(tr('dashboard.next_body')) ?></p></section>
     <?php elseif ($page === 'pendents'): ?>
         <?php
         $pendentSfFields = [
@@ -6907,64 +7336,74 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                 'keywords' => 'lizenz license proprietär nutzung rechte copyright vertraulich datenschutz weitergabe',
             ],
         ];
+        if (normalizeLocale($appLocale) !== 'de-CH') {
+            $helpTopics = localizedHelpTopics($appLocale);
+        }
         $helpCategories = array_values(array_unique(array_map(static fn(array $topic): string => $topic['category'], $helpTopics)));
         ?>
-        <div class="page-head"><div><p class="eyebrow">Support</p><h1>Hilfe</h1></div><span><?= count($helpTopics) ?> Themen</span></div>
+        <div class="page-head"><div><p class="eyebrow">Support</p><h1><?= e(tr('nav.help')) ?></h1></div><span><?= e(tr('help.topic_count', null, ['count' => count($helpTopics)])) ?></span></div>
         <section class="panel help-hero">
             <div>
-                <p class="eyebrow">Produktivhilfe</p>
-                <h2>Von der Jobsuche bis zur dokumentierten Bewerbung</h2>
-                <p>Diese Hilfe erklärt die wichtigsten Arbeitsabläufe in JeMa Jobs. Sie ist bewusst handlungsorientiert: erst tun, dann prüfen, dann dokumentieren.</p>
+                <p class="eyebrow"><?= e(tr('help.hero_eyebrow')) ?></p>
+                <h2><?= e(tr('help.hero_title')) ?></h2>
+                <p><?= e(tr('help.hero_intro')) ?></p>
             </div>
             <div class="help-search-box">
-                <label>Hilfe durchsuchen<input id="help-search" placeholder="z. B. Onlinebewerbung, Kontaktlog, PDF, Support"></label>
+                <label><?= e(tr('help.search_label')) ?><input id="help-search" placeholder="<?= e(tr('help.search_placeholder')) ?>"></label>
                 <div class="help-search-actions">
-                    <button type="button" data-help-search-submit>Suchen</button>
-                    <button type="button" data-help-reset>Zurücksetzen</button>
+                    <button type="button" data-help-search-submit><?= e(tr('help.search_button')) ?></button>
+                    <button type="button" data-help-reset><?= e(tr('help.reset_button')) ?></button>
                 </div>
-                <p class="help-search-status" id="help-search-status" aria-live="polite">Gib einen Begriff ein, um die Themen zu filtern. Kategorien springen zum passenden Bereich und blenden nichts aus.</p>
+                <p class="help-search-status" id="help-search-status" aria-live="polite"><?= e(tr('help.search_status_initial')) ?></p>
                 <div class="help-filter-chips" aria-label="Hilfekategorien">
                     <?php foreach($helpCategories as $category): ?><button type="button" data-help-chip="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
                 </div>
             </div>
         </section>
-        <section class="help-flow" aria-label="Prozessübersicht">
-            <a href="/?page=profile"><span>1</span><strong>Profil</strong><small>Präferenzen, Sicherheit, Stammdokumente</small></a>
-            <a href="/?page=job_platform_search"><span>2</span><strong>Jobsuche</strong><small>Portale, ChatGPT-Prompt, Direktlinks</small></a>
-            <a href="/?page=jobs#new"><span>3</span><strong>Import</strong><small>Jobvorschlag, Dubletten, Firma</small></a>
-            <a href="/?page=applications"><span>4</span><strong>Bewerbung</strong><small>Dokumente, Onlineformular, Versand</small></a>
-            <a href="/?page=pendents"><span>5</span><strong>Nachfassen</strong><small>Kontaktlog, Pendent, Kalender</small></a>
-            <a href="/?page=reports"><span>6</span><strong>Dossier</strong><small>Dokumentation, Reports, PDF</small></a>
+        <section class="help-flow" aria-label="<?= e(tr('help.flow_label')) ?>">
+            <a href="/?page=profile"><span>1</span><strong><?= e(tr('help.flow.profile.title')) ?></strong><small><?= e(tr('help.flow.profile.text')) ?></small></a>
+            <a href="/?page=job_platform_search"><span>2</span><strong><?= e(tr('help.flow.search.title')) ?></strong><small><?= e(tr('help.flow.search.text')) ?></small></a>
+            <a href="/?page=jobs#new"><span>3</span><strong><?= e(tr('help.flow.import.title')) ?></strong><small><?= e(tr('help.flow.import.text')) ?></small></a>
+            <a href="/?page=applications"><span>4</span><strong><?= e(tr('help.flow.apply.title')) ?></strong><small><?= e(tr('help.flow.apply.text')) ?></small></a>
+            <a href="/?page=pendents"><span>5</span><strong><?= e(tr('help.flow.follow.title')) ?></strong><small><?= e(tr('help.flow.follow.text')) ?></small></a>
+            <a href="/?page=reports"><span>6</span><strong><?= e(tr('help.flow.dossier.title')) ?></strong><small><?= e(tr('help.flow.dossier.text')) ?></small></a>
         </section>
         <section class="help-quickstart panel">
-            <div class="section-head"><div><p class="eyebrow">Kurzabläufe</p><h2>Die drei häufigsten Wege</h2></div></div>
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('help.quick_eyebrow')) ?></p><h2><?= e(tr('help.quick_title')) ?></h2></div></div>
             <div class="three">
-                <article><h3>Neue Stelle finden</h3><p>Profil pflegen -> Jobsuche öffnen -> Prompt kopieren -> Direktlinks im Schnellimport verarbeiten.</p><a href="/?page=job_platform_search">Zur Jobsuche</a></article>
-                <article><h3>Online bewerben</h3><p>Bewerbung vorbereiten -> Dokumente zuordnen -> Webformular öffnen -> Einreichung protokollieren.</p><a href="/?page=applications">Zu Bewerbungen</a></article>
-                <article><h3>Nachverfolgen</h3><p>Kontaktlog pflegen -> Wiedervorlage setzen -> Pendent und Kalender prüfen -> Dossier aktuell halten.</p><a href="/?page=reminders">Zu Pendent</a></article>
+                <article><h3><?= e(tr('help.quick.search.title')) ?></h3><p><?= e(tr('help.quick.search.body')) ?></p><a href="/?page=job_platform_search"><?= e(tr('help.quick.search.link')) ?></a></article>
+                <article><h3><?= e(tr('help.quick.apply.title')) ?></h3><p><?= e(tr('help.quick.apply.body')) ?></p><a href="/?page=applications"><?= e(tr('help.quick.apply.link')) ?></a></article>
+                <article><h3><?= e(tr('help.quick.track.title')) ?></h3><p><?= e(tr('help.quick.track.body')) ?></p><a href="/?page=reminders"><?= e(tr('help.quick.track.link')) ?></a></article>
             </div>
         </section>
         <section class="panel license-panel">
-            <div class="section-head"><div><p class="eyebrow">Lizenz</p><h2>Proprietäre Lizenz</h2></div><span>Alle Rechte vorbehalten</span></div>
-            <p>JeMa Jobs ist proprietäre Produktivsoftware. Die Nutzung ist ausschließlich berechtigten Benutzern und Administratoren der freigegebenen Installation gestattet. Quellcode, Datenbankstruktur, Oberflächen, Hilfetexte, Designs und Dokumentation dürfen ohne schriftliche Zustimmung des Rechteinhabers nicht kopiert, veröffentlicht, weitergegeben, weiterverkauft oder als Grundlage für ein eigenes Produkt verwendet werden.</p>
-            <p>Produktive Daten bleiben vertraulich und benutzerisoliert. Administratorischer Supportzugriff ist nur mit ausdrücklicher Freigabe des betroffenen Benutzers zulässig.</p>
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('help.license_eyebrow')) ?></p><h2><?= e(tr('help.license_title')) ?></h2></div><span><?= e(tr('help.license_badge')) ?></span></div>
+            <p><?= e(tr('help.license_body1')) ?></p>
+            <p><?= e(tr('help.license_body2')) ?></p>
         </section>
         <section class="help-grid" id="help-topics">
             <?php foreach($helpTopics as $index => $topic): ?>
                 <article class="panel help-topic" data-help-category="<?= e($topic['category']) ?>" data-help-search="<?= e(mb_strtolower($topic['category'].' '.$topic['audience'].' '.$topic['title'].' '.$topic['summary'].' '.$topic['keywords'])) ?>">
                     <div class="help-topic-head"><span><?= (int)$index + 1 ?></span><div><small><?= e($topic['category']) ?> · <?= e($topic['audience']) ?></small><h2><?= e($topic['title']) ?></h2></div></div>
                     <p><?= e($topic['summary']) ?></p>
-                    <h3>So gehst du vor</h3>
+                    <h3><?= e(tr('help.steps_title')) ?></h3>
                     <ol><?php foreach($topic['steps'] as $step): ?><li><?= e($step) ?></li><?php endforeach; ?></ol>
-                    <h3>Merken</h3>
+                    <h3><?= e(tr('help.tips_title')) ?></h3>
                     <ul><?php foreach($topic['tips'] as $tip): ?><li><?= e($tip) ?></li><?php endforeach; ?></ul>
                     <div class="actions"><?php foreach($topic['links'] as $link): ?><a class="button" href="<?= e($link[1]) ?>"><?= e($link[0]) ?></a><?php endforeach; ?></div>
                 </article>
             <?php endforeach; ?>
         </section>
-        <section class="panel help-empty" id="help-empty" hidden><h2>Keine Treffer</h2><p>Leere das Suchfeld oder wähle eine andere Kategorie.</p></section>
+        <section class="panel help-empty" id="help-empty" hidden><h2><?= e(tr('help.empty_title')) ?></h2><p><?= e(tr('help.empty_hint')) ?></p></section>
         <script>
         (() => {
+            const labels = {
+                topic: <?= json_encode(tr('help.status.topic'), JSON_UNESCAPED_UNICODE) ?>,
+                topics: <?= json_encode(tr('help.status.topics'), JSON_UNESCAPED_UNICODE) ?>,
+                visible: <?= json_encode(tr('help.status.visible'), JSON_UNESCAPED_UNICODE) ?>,
+                search: <?= json_encode(tr('help.status.search'), JSON_UNESCAPED_UNICODE) ?>,
+                jump: <?= json_encode(tr('help.status.jump'), JSON_UNESCAPED_UNICODE) ?>
+            };
             const search = document.getElementById('help-search');
             const grid = document.getElementById('help-topics');
             const topics = Array.from(document.querySelectorAll('.help-topic'));
@@ -6994,9 +7433,9 @@ $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
                 if (status) {
                     const bits = [];
                     const rawTerm = (search?.value || '').trim();
-                    if (rawTerm !== '') bits.push(`Suche: ${rawTerm}`);
-                    if (highlightedCategory !== '') bits.push(`Sprungmarke: ${highlightedCategory}`);
-                    status.textContent = `${visible} ${visible === 1 ? 'Thema' : 'Themen'} sichtbar${bits.length ? ' · ' + bits.join(' · ') : ''}.`;
+                    if (rawTerm !== '') bits.push(`${labels.search}: ${rawTerm}`);
+                    if (highlightedCategory !== '') bits.push(`${labels.jump}: ${highlightedCategory}`);
+                    status.textContent = `${visible} ${visible === 1 ? labels.topic : labels.topics} ${labels.visible}${bits.length ? ' · ' + bits.join(' · ') : ''}.`;
                 }
             };
             search?.addEventListener('input', apply);
