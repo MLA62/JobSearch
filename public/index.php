@@ -238,7 +238,7 @@ function legacyHtmlTranslationEnabled(): bool
 
 function pageSupportsMultilingualUi(string $page): bool
 {
-    return in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor', 'help', 'about'], true);
+    return in_array($page, ['login', 'register', 'forgot_password', 'reset_password', 'two_factor', 'help', 'about', 'dashboard'], true);
 }
 
 function supportedLocales(): array
@@ -7072,7 +7072,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.12';
+$codeVersion = '1.15.13';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

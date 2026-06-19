@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.12`
+Produktversion: `1.15.13`
 
 JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
 realen Benutzern und vertraulichen Bewerbungsdaten.
@@ -66,7 +66,8 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.12`: Key-basierte Einstiegsseiten duerfen mehrsprachig
+- Stand Version `1.15.13`: Key-basierte Einstiegsseiten und die Uebersicht
+  nach dem Login duerfen mehrsprachig
   ausgeliefert werden und zeigen die Flaggenauswahl. Arbeitsseiten bleiben
   Deutsch Schweiz (`de-CH`), bis ihre sichtbaren Texte in DB-Keys migriert
   sind.
