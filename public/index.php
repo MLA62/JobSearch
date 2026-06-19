@@ -4829,7 +4829,7 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.37');
+$appVersion = (string) ($config['app_version'] ?? '0.14.38');
 
 ?><!doctype html>
 <html lang="de">
@@ -5941,8 +5941,314 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.37');
         <div class="split"><section class="panel" id="document-editor"><h2><?= $editDocument ? 'Dokument bearbeiten' : 'Dokument hochladen' ?></h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="document_scope" value="profile"><?php if($editDocument): ?><input type="hidden" name="document_id" value="<?= (int)$editDocument['id'] ?>"><?php else: ?><label>Neue Version von<select name="replace_document_id"><option value="0">Neues Dokument</option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><?php endif; ?><label>Dokumenttyp<select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>" <?= (int)($editDocument['document_type_id'] ?? 0)===(int)$type['id']?'selected':'' ?>><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label>Titel<input name="document_title" required placeholder="z. B. Lebenslauf deutsch" value="<?= e($editDocument['title'] ?? '') ?>"></label><label>Sprache<select name="document_language"><option value="">Nicht gewählt</option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= $v ?>" <?= (string)($editDocument['language_code'] ?? $userLanguage)===$v?'selected':'' ?>><?= $l ?></option><?php endforeach; ?></select></label><div class="two"><label>Gültig ab<input type="date" name="valid_from" value="<?= e($editDocument['valid_from'] ?? '') ?>"></label><label>Gültig bis<input type="date" name="valid_until" value="<?= e($editDocument['valid_until'] ?? '') ?>"></label></div><label>Beschreibung<textarea name="document_description" rows="3"><?= e($editDocument['description'] ?? '') ?></textarea></label><?php if($editDocument): ?><div class="actions"><button class="primary" name="action" value="update_document">Änderungen speichern</button><a class="button" href="/?page=documents">Neu hochladen</a><a class="button" href="/?page=document_download&id=<?= (int)$editDocument['id'] ?>">Download</a></div><p class="meta-line">Datei ersetzen: „Neu hochladen“ wählen und das bestehende Dokument unter „Neue Version von“ auswählen.</p><?php else: ?><label>Datei<input type="file" name="user_document" required></label><button class="primary" name="action" value="upload_document">Speichern</button><?php endif; ?></form></section>
         <section class="panel table-wrap"><table><thead><tr><?= sfHeader('documents','title','Dokument',$docSf,$docPreserve) ?><?= sfHeader('documents','type','Typ',$docSf,$docPreserve) ?><?= sfHeader('documents','version','Version',$docSf,$docPreserve) ?><?= sfHeader('documents','created_at','Datum',$docSf,$docPreserve) ?><th>Aktionen</th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= ((int)$doc['is_current'] ? 'is-selected ' : '') . ($editDocument && (int)$editDocument['id']===(int)$doc['id'] ? 'is-selected' : '') ?>"><td><strong><a class="record-link" href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · aktuell' : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor">Bearbeiten</a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>">Download</a><form method="post" onsubmit="return confirm('Dokument löschen?')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document">Löschen</button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="5" class="empty">Noch keine Dokumente vorhanden.</td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'help'): ?>
-        <div class="page-head"><div><p class="eyebrow">Support</p><h1>Hilfe</h1></div><span>In Vorbereitung</span></div>
-        <section class="panel empty"><h2>Hilfe</h2><p>Dieser Bereich ist vorbereitet und wird später mit Anleitungen, Abläufen und Support-Hinweisen gefüllt.</p></section>
+        <?php
+        $helpTopics = [
+            [
+                'category' => 'Start',
+                'audience' => 'Benutzer',
+                'title' => 'Erste Einrichtung des Profils',
+                'summary' => 'Das Profil ist die Grundlage für Jobsuche, Matching, Dokumente, Bewerbungspakete und spätere Auswertungen.',
+                'steps' => [
+                    'Öffne Konto -> Profil und erfasse Name, Kontaktdaten, Region und Zeitzone.',
+                    'Pflege gewünschte Tätigkeiten, Zielregionen, Pensum, Lohn, Arbeitsmodell, Stellenarten und Ausschlüsse.',
+                    'Lade Stammdokumente wie Lebenslauf, Zeugnisse, Diplome und Referenzen hoch.',
+                    'Aktiviere bei Bedarf 2FA im Sicherheitsbereich des Profils.',
+                    'Prüfe unter Bewerbung -> Jobsuche, ob der Suchbegriff sinnvoll aus dem Profil abgeleitet wird.',
+                ],
+                'tips' => [
+                    'Je konkreter die gewünschten Rollen und Orte sind, desto besser werden Suchprompt und Matching.',
+                    'Dokumente sollten sprechende Titel haben, zum Beispiel "Lebenslauf Deutsch" statt nur "CV".',
+                ],
+                'links' => [['Profil öffnen', '/?page=profile'], ['Dokumente öffnen', '/?page=documents']],
+                'keywords' => 'profil stammdaten präferenzen 2fa dokumente setup einrichtung',
+            ],
+            [
+                'category' => 'Jobsuche',
+                'audience' => 'Benutzer',
+                'title' => 'Jobplattformen und ChatGPT-Jobsuche',
+                'summary' => 'Die App sammelt Suchparameter und erzeugt einen Prompt, mit dem ChatGPT direkte Stellenlinks recherchieren kann.',
+                'steps' => [
+                    'Öffne Bewerbung -> Jobsuche.',
+                    'Prüfe Suchbegriff, Anzahl und ausgewählte Portale.',
+                    'Kopiere den erzeugten ChatGPT-Rechercheprompt.',
+                    'Füge den Prompt in ChatGPT mit Web-Recherche ein.',
+                    'Kopiere ausschließlich die zurückgegebenen Direktlinks, eine URL pro Zeile.',
+                    'Füge diese Links im Schnellimport ein und erstelle daraus Jobvorschläge.',
+                ],
+                'tips' => [
+                    'Die Portale sind Prioritäten. Wenn ein Portal keine Direktlinks liefert, sind andere öffentliche Direktlinks erlaubt.',
+                    'Die App erwartet direkte Stellenanzeigen, keine Suchseiten und keine Firmen-Homepages.',
+                ],
+                'links' => [['Jobsuche öffnen', '/?page=job_platform_search'], ['Schnellimport öffnen', '/?page=jobs#quick-import']],
+                'keywords' => 'jobsuche jobplattformen chatgpt prompt recherche direktlinks url import',
+            ],
+            [
+                'category' => 'Jobs',
+                'audience' => 'Benutzer',
+                'title' => 'Jobs per Schnellimport erfassen',
+                'summary' => 'Der Schnellimport verarbeitet einzelne Stellen-URLs, mehrere Links oder kopierten Ausschreibungstext.',
+                'steps' => [
+                    'Öffne Bewerbung -> Jobs.',
+                    'Füge im Schnellimport eine URL, mehrere URLs oder Ausschreibungstext ein.',
+                    'Klicke Vorschlag erstellen und warte auf den Fortschrittsbalken.',
+                    'Prüfe Titel, Firma, Ort, Beschreibung, Lohn, Quelle und Dublettenhinweis.',
+                    'Speichere den Job oder passe die Felder vor dem Speichern an.',
+                ],
+                'tips' => [
+                    'Bei mehreren URLs muss jede URL auf einer eigenen Zeile stehen.',
+                    'Für gute Ergebnisse immer die konkrete Inserat-URL importieren.',
+                ],
+                'links' => [['Jobs öffnen', '/?page=jobs']],
+                'keywords' => 'schnellimport job erfassen url link ausschreibung vorschlag dublette',
+            ],
+            [
+                'category' => 'CRM',
+                'audience' => 'Benutzer',
+                'title' => 'Firmen automatisch oder manuell erfassen',
+                'summary' => 'Firmen können direkt erfasst oder beim Jobimport automatisch erzeugt werden.',
+                'steps' => [
+                    'Beim Jobimport legt die App eine fehlende Firma bei Bedarf automatisch an.',
+                    'Öffne CRM -> Firmen, wenn du Adresse, Website, Kommentar oder Vermittlungsbezug ergänzen willst.',
+                    'Nutze Firmenkommentare für interne Hinweise, die nicht in Bewerbungsunterlagen gehören.',
+                    'Prüfe Verknüpfungen zu Jobs, Bewerbungen und Kontakten.',
+                ],
+                'tips' => [
+                    'Firmen sollten sauber benannt werden, weil sie später Reports, Dossiers und Kontaktlogs strukturieren.',
+                    'Vermittlerfirmen und Arbeitgeber können getrennt geführt werden.',
+                ],
+                'links' => [['Firmen öffnen', '/?page=companies']],
+                'keywords' => 'firma firmen arbeitgeber vermittler automatisch manuell kommentar crm',
+            ],
+            [
+                'category' => 'Bewerbung',
+                'audience' => 'Benutzer',
+                'title' => 'Bewerbung vorbereiten',
+                'summary' => 'Aus einem Job wird eine Bewerbung mit Kanal, Dokumenten, Online-URL, Kontaktbezug und nächsten Schritten.',
+                'steps' => [
+                    'Öffne einen Job und klicke Bewerbung vorbereiten.',
+                    'Prüfe Kanal, Status, Online-Bewerbungs-URL, Portalhinweis und Referenz.',
+                    'Ordne Stammdokumente gesammelt zu.',
+                    'Lade falls nötig bewerbungsspezifische Dokumente hoch.',
+                    'Nutze Kopieren-Buttons für Webformularfelder.',
+                    'Speichere die Bewerbung, bevor du sie als eingereicht markierst.',
+                ],
+                'tips' => [
+                    'Bei Onlinebewerbungen ist meist kein Kontakt vorhanden. Dann steht das Webformular im Zentrum.',
+                    'Dokumente können für Onlinebewerbungen per Drag & Drop oder über Portalpaket genutzt werden.',
+                ],
+                'links' => [['Bewerbungen öffnen', '/?page=applications'], ['Jobs öffnen', '/?page=jobs']],
+                'keywords' => 'bewerbung vorbereiten online webformular dokumente portalpaket status kanal',
+            ],
+            [
+                'category' => 'Bewerbung',
+                'audience' => 'Benutzer',
+                'title' => 'Onlinebewerbung durchführen',
+                'summary' => 'Die App bereitet alles vor, die eigentliche Einreichung erfolgt häufig im Formular der Firma.',
+                'steps' => [
+                    'Öffne die Bewerbung und nutze Webformular öffnen.',
+                    'Kopiere benötigte Texte und Hinweise mit den Kopieren-Buttons.',
+                    'Nutze Temporärer Ordner oder Portalpaket ZIP für Upload-Unterlagen.',
+                    'Fülle das externe Formular der Firma aus.',
+                    'Markiere die Bewerbung in der App als eingereicht.',
+                    'Die App protokolliert die Einreichung im Kontaktlog und setzt ein Pendent "Antwort auf Bewerbung pendent".',
+                ],
+                'tips' => [
+                    'Nach dem Absenden ist der Zeitpunkt der Einreichung wichtig. Er steuert Pendent, Agenda und Dokumentation.',
+                    'Wenn es keinen Kontakt gibt, wird die Aktivität trotzdem über Firma, Job und Bewerbung sichtbar.',
+                ],
+                'links' => [['Bewerbungen öffnen', '/?page=applications'], ['Pendent öffnen', '/?page=reminders']],
+                'keywords' => 'onlinebewerbung webformular einreichen abschicken pendent kontaktlog portalpaket drag drop',
+            ],
+            [
+                'category' => 'Dokumente',
+                'audience' => 'Benutzer',
+                'title' => 'Dokumente auswählen und zuordnen',
+                'summary' => 'Stammdokumente leben im Profil, bewerbungsspezifische Dokumente direkt in der Bewerbung.',
+                'steps' => [
+                    'Lade allgemeine Dokumente unter Profil oder Dokumente hoch.',
+                    'Öffne eine Bewerbung und markiere mehrere Stammdokumente gleichzeitig.',
+                    'Klicke Dokumente zuordnen.',
+                    'Für individuelle Anschreiben oder spezifische Anhänge lade ein Bewerbungsdokument hoch.',
+                    'Für Onlineformulare nutze Drag & Drop, Download, temporären Ordner oder ZIP-Paket.',
+                ],
+                'tips' => [
+                    'Eine neue Version ersetzt nicht die Historie, sondern markiert die neue Datei als aktuell.',
+                    'Dokumenttitel und Sprache helfen später beim Dossier und beim Upload.',
+                ],
+                'links' => [['Dokumente öffnen', '/?page=documents'], ['Profil öffnen', '/?page=profile#documents']],
+                'keywords' => 'dokumente lebenslauf zeugnis version zuordnen stammdaten bewerbungsdokument',
+            ],
+            [
+                'category' => 'Dossier',
+                'audience' => 'Benutzer',
+                'title' => 'Bewerbungsdossier erstellen',
+                'summary' => 'Das Dossier bündelt Firma, Kontakte, Job, Bewerbung, Dokumente, Fragen und Aktivitäten auf einer Webseite.',
+                'steps' => [
+                    'Öffne die gewünschte Bewerbung.',
+                    'Prüfe, ob Dokumente, Fragen und Kontaktaktivitäten vollständig sind.',
+                    'Öffne das Bewerbungsdossier.',
+                    'Kontrolliere Firma, Job, Bewerbung, Dokumentliste und Dokumentinhalte.',
+                    'Erstelle bei Bedarf ein PDF der Dokumentation.',
+                ],
+                'tips' => [
+                    'Das Dossier ist deine mitnehmbare Dokumentation für Gespräche, RAV, Coaching oder eigene Nachverfolgung.',
+                    'Aktivitäten werden besonders wertvoll, wenn Betreff, Zeitpunkt und Status sauber gepflegt sind.',
+                ],
+                'links' => [['Bewerbungen öffnen', '/?page=applications']],
+                'keywords' => 'dossier dokumentation pdf bewerbungsdokumentation firma job kontakte aktivitäten',
+            ],
+            [
+                'category' => 'CRM',
+                'audience' => 'Benutzer',
+                'title' => 'Kontaktlog und Wiedervorlagen',
+                'summary' => 'Das Kontaktlog dokumentiert E-Mail, Telefon, Vor-Ort-Termine, Video Calls, WhatsApp, SMS und andere Aktivitäten.',
+                'steps' => [
+                    'Öffne CRM -> Kontakte und wähle einen Kontakt.',
+                    'Nutze Neuer Eintrag für eine Aktivität.',
+                    'Wähle Kanal, Richtung, Status, Datum/Uhrzeit und optional Wiedervorlage.',
+                    'Erfasse Betreff, Mitteilung, Ergebnis und bei Bedarf einen Anhang.',
+                    'Offene oder geplante Wiedervorlagen erscheinen in Pendent und Kalender.',
+                ],
+                'tips' => [
+                    'Auch Aktivitäten ohne direkten Ansprechpartner können über Bewerbung, Job und Firma nachvollzogen werden.',
+                    'Anhänge gehören in die Dokumentablage und bleiben dadurch strukturiert wiederauffindbar.',
+                ],
+                'links' => [['Kontakte öffnen', '/?page=contacts'], ['Pendent öffnen', '/?page=reminders']],
+                'keywords' => 'kontaktlog aktivität wiedervorlage email telefon whatsapp sms anhang kontakt',
+            ],
+            [
+                'category' => 'Planung',
+                'audience' => 'Benutzer',
+                'title' => 'Pendent und Kalender',
+                'summary' => 'Pendent ist die operative Aufgabenliste; Kalender zeigt Agenda, Tagesplan, Wochenplan und Monatsplan.',
+                'steps' => [
+                    'Öffne Planung -> Pendent für die aktuelle Aufgabenliste.',
+                    'Sortiere und filtere nach Fälligkeit, Bereich, Status oder Bezug.',
+                    'Öffne Planung -> Kalender für Agenda, Tages-, Wochen- oder Monatsansicht.',
+                    'Nutze die Navigation vor/zurück und den ICS-Export für externe Kalender.',
+                    'Termine ohne Uhrzeit erscheinen als Tageseinträge oben.',
+                ],
+                'tips' => [
+                    'Eine eingereichte Bewerbung erzeugt automatisch "Antwort auf Bewerbung pendent".',
+                    'Kalender und Pendent sind keine separaten Welten; sie zeigen dieselben nächsten Schritte aus unterschiedlichen Blickwinkeln.',
+                ],
+                'links' => [['Pendent öffnen', '/?page=reminders'], ['Kalender öffnen', '/?page=calendar']],
+                'keywords' => 'pendent kalender agenda tagesplan wochenplan monatsplan ics erinnerung fällig',
+            ],
+            [
+                'category' => 'Auswertung',
+                'audience' => 'Benutzer',
+                'title' => 'Reports speichern und exportieren',
+                'summary' => 'Reports speichern wiederkehrende Listenansichten und können als formatierte PDF-Ausgabe exportiert werden.',
+                'steps' => [
+                    'Öffne Auswertung -> Reports.',
+                    'Wähle Basis, Ansicht und Spalten.',
+                    'Speichere den Report mit einem sprechenden Namen.',
+                    'Öffne gespeicherte Reports zum Anzeigen oder Bearbeiten.',
+                    'Exportiere Tabellen bei Bedarf als PDF.',
+                ],
+                'tips' => [
+                    'Reports enthalten keine technischen IDs, sondern fachliche Angaben.',
+                    'Sortierung und Filter sollen die Arbeitsfrage beantworten, zum Beispiel offene Bewerbungen oder nächste Kontakte.',
+                ],
+                'links' => [['Reports öffnen', '/?page=reports']],
+                'keywords' => 'reports auswertung pdf speichern bearbeiten export tabellen filter sortierung',
+            ],
+            [
+                'category' => 'Admin',
+                'audience' => 'Admin',
+                'title' => 'Admin: Benutzer, Support und Sicherheit',
+                'summary' => 'Administratoren verwalten Benutzer, Jobplattformen und Supportzugriffe, aber produktive Benutzerdaten bleiben geschützt.',
+                'steps' => [
+                    'Öffne Konto -> Benutzerverwaltung für Benutzerstatus, Rollen, Passwort-Reset und 2FA-Reset.',
+                    'Prüfe in der Benutzerverwaltung, wer aktuell online ist.',
+                    'Supportzugriff ist nur möglich, wenn der Benutzer ADMIN Support ausdrücklich freigegeben hat.',
+                    'Während Support ist die Umgebung farblich markiert und der Admin sieht, in wessen Umgebung er arbeitet.',
+                    'Jobplattformen werden unter Konto -> Jobplattformen gepflegt.',
+                ],
+                'tips' => [
+                    'Produktionsdaten sind real. Administrative Änderungen immer bewusst und möglichst minimal vornehmen.',
+                    'Support beenden, sobald die Arbeit im Benutzerkonto erledigt ist.',
+                ],
+                'links' => [['Benutzerverwaltung', '/?page=admin_users'], ['Jobplattformen', '/?page=admin_job_platforms']],
+                'keywords' => 'admin benutzer support sicherheit 2fa passwort reset jobplattform online',
+            ],
+        ];
+        $helpCategories = array_values(array_unique(array_map(static fn(array $topic): string => $topic['category'], $helpTopics)));
+        ?>
+        <div class="page-head"><div><p class="eyebrow">Support</p><h1>Hilfe</h1></div><span><?= count($helpTopics) ?> Themen</span></div>
+        <section class="panel help-hero">
+            <div>
+                <p class="eyebrow">Produktivhilfe</p>
+                <h2>Von der Jobsuche bis zur dokumentierten Bewerbung</h2>
+                <p>Diese Hilfe erklärt die wichtigsten Arbeitsabläufe in JeMa Jobs. Sie ist bewusst handlungsorientiert: erst tun, dann prüfen, dann dokumentieren.</p>
+            </div>
+            <div class="help-search-box">
+                <label>Hilfe durchsuchen<input id="help-search" placeholder="z. B. Onlinebewerbung, Kontaktlog, PDF, Support"></label>
+                <div class="help-filter-chips" aria-label="Hilfekategorien">
+                    <button type="button" class="is-active" data-help-category="">Alle</button>
+                    <?php foreach($helpCategories as $category): ?><button type="button" data-help-category="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+        <section class="help-flow" aria-label="Prozessübersicht">
+            <article><span>1</span><strong>Profil</strong><small>Präferenzen, Sicherheit, Stammdokumente</small></article>
+            <article><span>2</span><strong>Jobsuche</strong><small>Portale, ChatGPT-Prompt, Direktlinks</small></article>
+            <article><span>3</span><strong>Import</strong><small>Jobvorschlag, Dubletten, Firma</small></article>
+            <article><span>4</span><strong>Bewerbung</strong><small>Dokumente, Onlineformular, Versand</small></article>
+            <article><span>5</span><strong>Nachfassen</strong><small>Kontaktlog, Pendent, Kalender</small></article>
+            <article><span>6</span><strong>Dossier</strong><small>Dokumentation, Reports, PDF</small></article>
+        </section>
+        <section class="help-quickstart panel">
+            <div class="section-head"><div><p class="eyebrow">Kurzabläufe</p><h2>Die drei häufigsten Wege</h2></div></div>
+            <div class="three">
+                <article><h3>Neue Stelle finden</h3><p>Profil pflegen -> Jobsuche öffnen -> Prompt kopieren -> Direktlinks im Schnellimport verarbeiten.</p><a href="/?page=job_platform_search">Zur Jobsuche</a></article>
+                <article><h3>Online bewerben</h3><p>Bewerbung vorbereiten -> Dokumente zuordnen -> Webformular öffnen -> Einreichung protokollieren.</p><a href="/?page=applications">Zu Bewerbungen</a></article>
+                <article><h3>Nachverfolgen</h3><p>Kontaktlog pflegen -> Wiedervorlage setzen -> Pendent und Kalender prüfen -> Dossier aktuell halten.</p><a href="/?page=reminders">Zu Pendent</a></article>
+            </div>
+        </section>
+        <section class="help-grid" id="help-topics">
+            <?php foreach($helpTopics as $index => $topic): ?>
+                <article class="panel help-topic" data-help-category="<?= e($topic['category']) ?>" data-help-search="<?= e(mb_strtolower($topic['category'].' '.$topic['audience'].' '.$topic['title'].' '.$topic['summary'].' '.$topic['keywords'])) ?>">
+                    <div class="help-topic-head"><span><?= (int)$index + 1 ?></span><div><small><?= e($topic['category']) ?> · <?= e($topic['audience']) ?></small><h2><?= e($topic['title']) ?></h2></div></div>
+                    <p><?= e($topic['summary']) ?></p>
+                    <h3>So gehst du vor</h3>
+                    <ol><?php foreach($topic['steps'] as $step): ?><li><?= e($step) ?></li><?php endforeach; ?></ol>
+                    <h3>Merken</h3>
+                    <ul><?php foreach($topic['tips'] as $tip): ?><li><?= e($tip) ?></li><?php endforeach; ?></ul>
+                    <div class="actions"><?php foreach($topic['links'] as $link): ?><a class="button" href="<?= e($link[1]) ?>"><?= e($link[0]) ?></a><?php endforeach; ?></div>
+                </article>
+            <?php endforeach; ?>
+        </section>
+        <section class="panel help-empty" id="help-empty" hidden><h2>Keine Treffer</h2><p>Suche nach einem anderen Begriff oder wähle wieder „Alle“.</p></section>
+        <script>
+        (() => {
+            const search = document.getElementById('help-search');
+            const topics = Array.from(document.querySelectorAll('.help-topic'));
+            const empty = document.getElementById('help-empty');
+            const chips = Array.from(document.querySelectorAll('[data-help-category]'));
+            let category = '';
+            const apply = () => {
+                const term = (search?.value || '').trim().toLowerCase();
+                let visible = 0;
+                topics.forEach((topic) => {
+                    const categoryMatch = category === '' || topic.dataset.helpCategory === category;
+                    const textMatch = term === '' || (topic.dataset.helpSearch || '').includes(term);
+                    const show = categoryMatch && textMatch;
+                    topic.hidden = !show;
+                    if (show) visible++;
+                });
+                if (empty) empty.hidden = visible !== 0;
+            };
+            search?.addEventListener('input', apply);
+            chips.forEach((chip) => chip.addEventListener('click', () => {
+                category = chip.dataset.helpCategory || '';
+                chips.forEach((item) => item.classList.toggle('is-active', item === chip));
+                apply();
+            }));
+            apply();
+        })();
+        </script>
     <?php elseif ($page === 'about'): ?>
         <div class="page-head"><div><p class="eyebrow">Über</p><h1>JeMa Jobs</h1></div><span><?= e($config['app_name'] ?? 'JeMa Jobs') ?></span></div>
         <section class="panel about-panel">
