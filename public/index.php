@@ -4635,7 +4635,7 @@ if ($page === 'application_dossier') {
     $contactLogChannels = contactLogChannelOptions();
     $contactLogStatuses = contactLogStatusOptions();
     ?><!doctype html>
-    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '0.14.27')) ?>"></head>
+    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bewerbungsdokumentation</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '1.14.39')) ?>"></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow">Bewerbungsdokumentation</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form">Zur Bewerbung</a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf">PDF erstellen</a></div>
@@ -4698,7 +4698,7 @@ if ($page === 'application_documents_temp') {
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
     ?><!doctype html>
-    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '0.14.13')) ?>"></head>
+    <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Temporärer Unterlagenordner</title><link rel="stylesheet" href="/assets/app.css?v=<?= e((string) ($config['app_version'] ?? '1.14.39')) ?>"></head>
     <body><main class="container"><section class="panel"><p class="eyebrow">Temporärer Unterlagenordner</p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line">Dieser App-Ordner ist temporär und wird nach ca. 60 Minuten ungültig. Die Dateien liegen als Kopien bereit.</p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents">Zur Bewerbung</a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>">Als ZIP herunterladen</a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -4829,7 +4829,8 @@ $bodyClasses = array_filter([
     $supportGrant ? 'support-granted' : '',
     $supportImpersonating ? 'support-impersonating' : '',
 ]);
-$appVersion = (string) ($config['app_version'] ?? '0.14.38');
+$appVersion = (string) ($config['app_version'] ?? '1.14.39');
+$appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
 
 ?><!doctype html>
 <html lang="de">
@@ -6252,7 +6253,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.38');
     <?php elseif ($page === 'about'): ?>
         <div class="page-head"><div><p class="eyebrow">Über</p><h1>JeMa Jobs</h1></div><span><?= e($config['app_name'] ?? 'JeMa Jobs') ?></span></div>
         <section class="panel about-panel">
-            <p class="version-number">Version <?= e($appVersion) ?></p>
+            <p class="version-number">Version <?= e($appDisplayVersion) ?></p>
             <h2>Privates Job-CRM</h2>
             <p>JeMa Jobs unterstützt die strukturierte Verwaltung von Firmen, Kontakten, Stellen, Bewerbungen, Pendenten, Dokumenten, Reports, Kalenderterminen und Freigaben. Die Daten bleiben benutzerisoliert; administrative Support-Zugriffe benötigen eine ausdrückliche Freigabe des jeweiligen Benutzers.</p>
             <div class="two">
@@ -6276,7 +6277,7 @@ $appVersion = (string) ($config['app_version'] ?? '0.14.38');
     <?php endif; ?>
 <?php endif; ?>
 </main>
-<footer>JeMa Jobs · Produktivbetrieb · Private Daten bleiben benutzerisoliert</footer>
+<footer>JeMa Jobs · Version <?= e($appDisplayVersion) ?> · Private Daten bleiben benutzerisoliert</footer>
 <script src="/assets/qrcode.min.js" defer></script>
 <script src="/assets/totp-qr.js" defer></script>
 <script>
