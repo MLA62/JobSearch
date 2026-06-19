@@ -480,6 +480,53 @@ input:disabled, select:disabled, textarea:disabled {
 }
 input[type="checkbox"], input[type="radio"] { min-height: auto; width: auto; accent-color: var(--accent); box-shadow: none; }
 
+.file-picker {
+    display: grid;
+    gap: 8px;
+}
+
+.file-picker input[type="file"] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.file-picker-button,
+.file-picker-name {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    border: 1.5px solid var(--line);
+    border-bottom-color: var(--line-strong);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.file-picker-button {
+    justify-content: center;
+    width: fit-content;
+    background: linear-gradient(180deg, #fff, #eef2f7);
+    color: var(--accent);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.file-picker-button:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+}
+
+.file-picker-name {
+    width: 100%;
+    background: var(--field);
+    color: var(--muted);
+}
+
 .check,
 .language-record,
 .language-add,

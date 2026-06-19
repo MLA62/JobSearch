@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.15.18`.
+Aktueller dokumentierter Stand: Version `1.15.19`.
 
 ## Lizenz
 
@@ -23,7 +23,7 @@ Siehe [LICENSE.md](LICENSE.md).
 - Klassisches Shared Hosting mit `public/index.php` als Front Controller.
 - Keine Composer-Abhaengigkeiten im produktiven Kern.
 - Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Produktive UI-Sprache in Version `1.15.18`: UI-Texte muessen aus
+- Produktive UI-Sprache in Version `1.15.19`: UI-Texte muessen aus
   `ui_text_keys` und `ui_text_translations` kommen. PHP- und Resource-Dateien
   enthalten keine Uebersetzungswoerterbuecher mehr.
 - UI-Texte werden schrittweise in die Datenbanktabellen `ui_text_keys` und
