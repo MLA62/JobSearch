@@ -1392,6 +1392,11 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
         overflow: hidden;
     }
 
+    .panel.table-wrap {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     label,
     input,
     select,

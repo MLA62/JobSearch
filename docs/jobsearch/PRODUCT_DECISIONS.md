@@ -2,7 +2,7 @@
 
 Stand: 2026-06-19
 
-Produktversion: `1.15.21`
+Produktversion: `1.15.22`
 
 Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
 Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
@@ -43,12 +43,12 @@ aufzubauen.
 
 ## Mehrsprachigkeit
 
-- Stand Version `1.15.21`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
+- Stand Version `1.15.22`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
   gelesen. PHP- und Resource-Dateien duerfen keine Uebersetzungswoerterbuecher
   mehr enthalten.
-- Stand Version `1.15.21`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
+- Stand Version `1.15.22`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
   Zeilenwerte und Standard-Metatexte ueber dieselbe DB-Phrasenlogik.
-- Stand Version `1.15.21`: `tr()` liest UI-Texte aus den Tabellen
+- Stand Version `1.15.22`: `tr()` liest UI-Texte aus den Tabellen
   `ui_text_keys` und `ui_text_translations`. Fehlende bisherige `tr()`-Keys
   fallen sichtbar auf ihren Key zurueck und duerfen nicht mehr aus PHP-Katalogen
   befuellt werden.
