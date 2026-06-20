@@ -1448,6 +1448,31 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
         max-height: min(430px, calc(100vh - var(--sf-menu-top, 140px) - 18px));
     }
 
+    .file-picker {
+        cursor: pointer;
+    }
+
+    .file-picker input[type="file"] {
+        position: static;
+        inline-size: 100%;
+        block-size: auto;
+        overflow: visible;
+        clip: auto;
+        clip-path: none;
+        white-space: normal;
+        min-height: 46px;
+        padding: 9px 10px;
+        border: 1.5px solid var(--line);
+        border-bottom-color: var(--line-strong);
+        border-radius: 6px;
+        background: var(--field);
+        color: var(--text);
+    }
+
+    .file-picker-button {
+        display: none;
+    }
+
     .table-wrap {
         max-width: 100%;
         overflow-x: auto;
