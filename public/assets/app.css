@@ -1397,6 +1397,11 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
         -webkit-overflow-scrolling: touch;
     }
 
+    .panel.calendar-panel {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     label,
     input,
     select,
@@ -1444,6 +1449,14 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 
     table {
         min-width: 620px;
+    }
+
+    .time-grid {
+        min-width: max(var(--matrix-min, 980px), 680px);
+    }
+
+    .month-grid {
+        min-width: 900px;
     }
 
     .totp-setup { grid-template-columns: 1fr; }
