@@ -1441,6 +1441,13 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
         flex-wrap: wrap;
     }
 
+    .sf-form {
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: min(430px, calc(100vh - var(--sf-menu-top, 140px) - 18px));
+    }
+
     .table-wrap {
         max-width: 100%;
         overflow-x: auto;
