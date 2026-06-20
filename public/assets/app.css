@@ -1411,6 +1411,41 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
         appearance: none;
     }
 
+    .check,
+    .platform-choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .check label,
+    .platform-choice-grid label,
+    .doc-choice {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .check label span,
+    .platform-choice-grid span,
+    .doc-choice strong,
+    .doc-choice small {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .sf-toolbar {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 620px;
+    }
+
     .totp-setup { grid-template-columns: 1fr; }
     .totp-qr { width: 140px; }
 }
