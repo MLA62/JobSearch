@@ -2886,6 +2886,33 @@ function publicHttpUrl(string $url): bool
     return true;
 }
 
+function extractImportUrls(string $payload): array
+{
+    $payload = html_entity_decode($payload, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    preg_match_all('~https?://[^\s<>"\'\]\)]+~iu', $payload, $matches);
+    $urls = [];
+    foreach ($matches[0] ?? [] as $url) {
+        $url = rtrim((string) $url, ".,;:!?)]}\r\n\t ");
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            $urls[$url] = $url;
+        }
+    }
+    return array_values($urls);
+}
+
+function importPayloadIsUrlOnly(string $payload, array $urls): bool
+{
+    if (!$urls) {
+        return false;
+    }
+    $rest = html_entity_decode($payload, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    foreach ($urls as $url) {
+        $rest = str_replace($url, '', $rest);
+    }
+    $rest = trim((string) preg_replace('/[\s\[\]\(\),.;:!?\-_|]+/u', '', $rest));
+    return $rest === '';
+}
+
 function findJobPosting(mixed $value): ?array
 {
     if (!is_array($value)) {
@@ -2912,7 +2939,8 @@ function importFromUrl(string $url): array
     $curl = curl_init($url);
     curl_setopt_array($curl, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_TIMEOUT => 15,
         CURLOPT_USERAGENT => 'JeMaJobs/0.1 (+https://jobs.jema.business)',
@@ -2924,6 +2952,9 @@ function importFromUrl(string $url): array
     $finalUrl = (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
     $error = curl_error($curl);
     curl_close($curl);
+    if ($finalUrl !== '' && !publicHttpUrl($finalUrl)) {
+        throw new RuntimeException('Die Weiterleitung der URL ist aus Sicherheitsgründen nicht erlaubt.');
+    }
     if (!is_string($html) || $status >= 400 || strlen($html) > 5_000_000) {
         throw new RuntimeException($error ?: 'Die Stellenanzeige konnte nicht gelesen werden.');
     }
@@ -4466,14 +4497,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Bitte eine Stellen-URL oder den Ausschreibungstext einfügen.', 'danger');
             redirect('/?page=jobs');
         }
-        $importLines = array_values(array_filter(array_map('trim', preg_split('/\R/u', $payload))));
-        if (count($importLines) > 1) {
+        $importUrls = extractImportUrls($payload);
+        if (count($importUrls) > 1) {
             $created = 0; $skipped = 0; $failed = 0; $uid = userId();
-            foreach ($importLines as $line) {
+            foreach ($importUrls as $sourceUrl) {
                 try {
-                    $draft = filter_var($line, FILTER_VALIDATE_URL) ? importFromUrl($line) : importFromText($line);
-                    $sourceUrl = filter_var($line, FILTER_VALIDATE_URL) ? $line : (string) ($draft['source_url'] ?? '');
-                    if ($sourceUrl !== '' && dbOne($db, 'SELECT id FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl])) {
+                    $draft = importFromUrl($sourceUrl);
+                    $sourceUrl = (string) ($draft['source_url'] ?? $sourceUrl);
+                    if (dbOne($db, 'SELECT id FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl])) {
                         $skipped++;
                         continue;
                     }
@@ -4491,7 +4522,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $title = trim((string) ($draft['title'] ?? '')) ?: 'Job aus Import';
                     $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
-                    $description = trim((string) ($draft['description'] ?? $line));
+                    $description = trim((string) ($draft['description'] ?? $sourceUrl));
                     $status = 'open'; $workplace = 'unknown'; $engagement = 'permanent'; $term = 'unknown';
                     $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
                     $pdfRequestedAt = $sourceUrl !== '' ? date('Y-m-d H:i:s') : null;
@@ -4509,8 +4540,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=jobs');
         }
         try {
-            $_SESSION['import_draft'] = filter_var($payload, FILTER_VALIDATE_URL)
-                ? importFromUrl($payload)
+            $_SESSION['import_draft'] = count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)
+                ? importFromUrl($importUrls[0])
                 : importFromText($payload);
             flash('Import gelesen. Bitte Vorschlag prüfen und speichern.');
         } catch (Throwable $exception) {
@@ -5503,7 +5534,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.28';
+$codeVersion = '1.15.29';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
