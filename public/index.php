@@ -236,6 +236,147 @@ function filePickerHtml(string $name, bool $required = true): string
         . '</label>';
 }
 
+function cascadeExec(mysqli $db, string $sql, string $types = '', array $values = []): void
+{
+    try {
+        if ($types === '') {
+            $db->query($sql);
+            return;
+        }
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param($types, ...$values);
+        $stmt->execute();
+    } catch (Throwable $exception) {
+        error_log('Cascade cleanup skipped: ' . $exception->getMessage() . ' SQL=' . $sql);
+    }
+}
+
+function cleanupReportCascade(mysqli $db, int $ownerUserId, int $reportId): void
+{
+    cascadeExec($db, 'DELETE FROM saved_report_columns WHERE report_id=?', 'i', [$reportId]);
+    cascadeExec($db, 'DELETE FROM saved_report_filters WHERE report_id=?', 'i', [$reportId]);
+    cascadeExec($db, 'DELETE FROM saved_report_sorts WHERE report_id=?', 'i', [$reportId]);
+    cascadeExec($db, "UPDATE guest_shares SET revoked_at=COALESCE(revoked_at, NOW()) WHERE owner_user_id=? AND target_type='report' AND target_id=?", 'ii', [$ownerUserId, $reportId]);
+}
+
+function cleanupTranslationCascade(mysqli $db, int $ownerUserId, string $entityType, int $entityId): void
+{
+    cascadeExec($db, 'DELETE FROM record_translations WHERE owner_user_id=? AND entity_type=? AND entity_id=?', 'isi', [$ownerUserId, $entityType, $entityId]);
+}
+
+function cleanupShareCascade(mysqli $db, int $ownerUserId, string $targetType, int $targetId): void
+{
+    cascadeExec($db, 'UPDATE guest_shares SET revoked_at=COALESCE(revoked_at, NOW()) WHERE owner_user_id=? AND target_type=? AND target_id=?', 'isi', [$ownerUserId, $targetType, $targetId]);
+}
+
+function cleanupDocumentCascade(mysqli $db, int $ownerUserId, int $documentId): void
+{
+    cascadeExec($db, 'DELETE FROM application_documents WHERE user_document_id=?', 'i', [$documentId]);
+    cascadeExec($db, 'DELETE FROM contact_log_documents WHERE user_document_id=?', 'i', [$documentId]);
+    cascadeExec($db, 'DELETE FROM document_texts WHERE user_document_id=?', 'i', [$documentId]);
+    cleanupTranslationCascade($db, $ownerUserId, 'document', $documentId);
+    cleanupShareCascade($db, $ownerUserId, 'document', $documentId);
+}
+
+function cleanupContactLogCascade(mysqli $db, int $ownerUserId, int $logId): void
+{
+    cascadeExec($db, 'UPDATE user_documents d JOIN contact_log_documents cld ON cld.user_document_id=d.id SET d.deleted_at=COALESCE(d.deleted_at, NOW()), d.is_current=0 WHERE cld.contact_log_id=? AND d.user_id=?', 'ii', [$logId, $ownerUserId]);
+    cascadeExec($db, 'DELETE FROM contact_log_documents WHERE contact_log_id=?', 'i', [$logId]);
+}
+
+function cleanupContactCascade(mysqli $db, int $ownerUserId, int $contactId): void
+{
+    foreach (dbAll($db, 'SELECT id FROM contact_logs WHERE owner_user_id=? AND contact_id=?', 'ii', [$ownerUserId, $contactId]) as $log) {
+        cleanupContactLogCascade($db, $ownerUserId, (int) $log['id']);
+    }
+    cascadeExec($db, 'DELETE FROM contact_logs WHERE owner_user_id=? AND contact_id=?', 'ii', [$ownerUserId, $contactId]);
+    cascadeExec($db, 'UPDATE applications SET primary_contact_id=NULL WHERE user_id=? AND primary_contact_id=?', 'ii', [$ownerUserId, $contactId]);
+    cleanupTranslationCascade($db, $ownerUserId, 'contact', $contactId);
+    cleanupShareCascade($db, $ownerUserId, 'contact', $contactId);
+}
+
+function cleanupApplicationCascade(mysqli $db, int $ownerUserId, int $applicationId): void
+{
+    foreach (dbAll($db, 'SELECT id FROM user_documents WHERE user_id=? AND scope="application" AND application_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $applicationId]) as $document) {
+        cleanupDocumentCascade($db, $ownerUserId, (int) $document['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contact_logs WHERE owner_user_id=? AND application_id=?', 'ii', [$ownerUserId, $applicationId]) as $log) {
+        cleanupContactLogCascade($db, $ownerUserId, (int) $log['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contacts WHERE owner_user_id=? AND application_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $applicationId]) as $contact) {
+        cleanupContactCascade($db, $ownerUserId, (int) $contact['id']);
+    }
+    cascadeExec($db, 'DELETE FROM application_documents WHERE application_id=?', 'i', [$applicationId]);
+    cascadeExec($db, 'UPDATE user_documents SET deleted_at=COALESCE(deleted_at, NOW()), is_current=0 WHERE user_id=? AND scope="application" AND application_id=?', 'ii', [$ownerUserId, $applicationId]);
+    cascadeExec($db, 'DELETE FROM contact_logs WHERE owner_user_id=? AND application_id=?', 'ii', [$ownerUserId, $applicationId]);
+    cascadeExec($db, 'DELETE FROM calendar_events WHERE owner_user_id=? AND application_id=?', 'ii', [$ownerUserId, $applicationId]);
+    cascadeExec($db, 'DELETE FROM application_status_history WHERE application_id=?', 'i', [$applicationId]);
+    cleanupTranslationCascade($db, $ownerUserId, 'application', $applicationId);
+    cleanupShareCascade($db, $ownerUserId, 'application', $applicationId);
+}
+
+function cleanupJobCascade(mysqli $db, int $ownerUserId, int $jobId): void
+{
+    foreach (dbAll($db, 'SELECT id FROM applications WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $jobId]) as $application) {
+        cleanupApplicationCascade($db, $ownerUserId, (int) $application['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contacts WHERE owner_user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $jobId]) as $contact) {
+        cleanupContactCascade($db, $ownerUserId, (int) $contact['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM user_documents WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $jobId]) as $document) {
+        cleanupDocumentCascade($db, $ownerUserId, (int) $document['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contact_logs WHERE owner_user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]) as $log) {
+        cleanupContactLogCascade($db, $ownerUserId, (int) $log['id']);
+    }
+    cascadeExec($db, 'UPDATE applications SET deleted_at=COALESCE(deleted_at, NOW()) WHERE user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]);
+    cascadeExec($db, 'UPDATE contacts SET deleted_at=COALESCE(deleted_at, NOW()) WHERE owner_user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]);
+    cascadeExec($db, 'UPDATE job_questions SET deleted_at=COALESCE(deleted_at, NOW()) WHERE owner_user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]);
+    cascadeExec($db, 'UPDATE user_documents SET deleted_at=COALESCE(deleted_at, NOW()), is_current=0 WHERE user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]);
+    cascadeExec($db, 'DELETE FROM contact_logs WHERE owner_user_id=? AND job_id=?', 'ii', [$ownerUserId, $jobId]);
+    cleanupTranslationCascade($db, $ownerUserId, 'job', $jobId);
+    cleanupShareCascade($db, $ownerUserId, 'job', $jobId);
+}
+
+function cleanupCompanyCascade(mysqli $db, int $ownerUserId, int $companyId): void
+{
+    foreach (dbAll($db, 'SELECT id FROM jobs WHERE owner_user_id=? AND company_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $companyId]) as $job) {
+        cleanupJobCascade($db, $ownerUserId, (int) $job['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contacts WHERE owner_user_id=? AND company_id=? AND deleted_at IS NULL', 'ii', [$ownerUserId, $companyId]) as $contact) {
+        cleanupContactCascade($db, $ownerUserId, (int) $contact['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM contact_logs WHERE owner_user_id=? AND company_id=?', 'ii', [$ownerUserId, $companyId]) as $log) {
+        cleanupContactLogCascade($db, $ownerUserId, (int) $log['id']);
+    }
+    cascadeExec($db, 'UPDATE jobs SET deleted_at=COALESCE(deleted_at, NOW()) WHERE owner_user_id=? AND company_id=?', 'ii', [$ownerUserId, $companyId]);
+    cascadeExec($db, 'UPDATE contacts SET deleted_at=COALESCE(deleted_at, NOW()) WHERE owner_user_id=? AND company_id=?', 'ii', [$ownerUserId, $companyId]);
+    cascadeExec($db, 'UPDATE applications SET intermediary_company_id=NULL WHERE user_id=? AND intermediary_company_id=?', 'ii', [$ownerUserId, $companyId]);
+    cascadeExec($db, 'UPDATE company_relationships SET deleted_at=COALESCE(deleted_at, NOW()) WHERE owner_user_id=? AND (intermediary_company_id=? OR client_company_id=?)', 'iii', [$ownerUserId, $companyId, $companyId]);
+    cascadeExec($db, 'DELETE FROM contact_logs WHERE owner_user_id=? AND company_id=?', 'ii', [$ownerUserId, $companyId]);
+    cleanupTranslationCascade($db, $ownerUserId, 'company', $companyId);
+    cleanupShareCascade($db, $ownerUserId, 'company', $companyId);
+}
+
+function cleanupUserCascade(mysqli $db, int $targetUserId): void
+{
+    cascadeExec($db, 'UPDATE user_sessions SET logged_out_at=COALESCE(logged_out_at, NOW()) WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'DELETE FROM auth_tokens WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'DELETE FROM two_factor_methods WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'DELETE FROM user_roles WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'UPDATE support_grants SET revoked_at=COALESCE(revoked_at, NOW()) WHERE user_id=? OR admin_user_id=?', 'ii', [$targetUserId, $targetUserId]);
+    cascadeExec($db, 'UPDATE guest_shares SET revoked_at=COALESCE(revoked_at, NOW()) WHERE owner_user_id=?', 'i', [$targetUserId]);
+    foreach (dbAll($db, 'SELECT id FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$targetUserId]) as $company) {
+        cleanupCompanyCascade($db, $targetUserId, (int) $company['id']);
+    }
+    foreach (dbAll($db, 'SELECT id FROM user_documents WHERE user_id=? AND deleted_at IS NULL', 'i', [$targetUserId]) as $document) {
+        cleanupDocumentCascade($db, $targetUserId, (int) $document['id']);
+    }
+    cascadeExec($db, 'UPDATE user_documents SET deleted_at=COALESCE(deleted_at, NOW()), is_current=0 WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'UPDATE user_preferences SET is_active=0 WHERE user_id=?', 'i', [$targetUserId]);
+    cascadeExec($db, 'DELETE FROM record_translations WHERE owner_user_id=?', 'i', [$targetUserId]);
+}
+
 function multilingualUiEnabled(): bool
 {
     return true;
@@ -3924,6 +4065,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Ein Config-Admin kann hier nicht gelöscht werden.', 'warning');
             redirect('/?page=admin_users');
         }
+        cleanupUserCascade($db, $targetUserId);
         $stmt = $db->prepare('UPDATE users SET deleted_at=NOW(), status="disabled" WHERE id=?');
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
@@ -4181,6 +4323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old = dbOne($db, 'SELECT id, name, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$id, userId()]);
         if ($old) {
             $uid = userId();
+            cleanupReportCascade($db, $uid, $id);
             $stmt = $db->prepare('DELETE FROM saved_reports WHERE id=? AND owner_user_id=?');
             $stmt->bind_param('ii', $id, $uid);
             $stmt->execute();
@@ -4645,11 +4788,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $old = dbOne($db, 'SELECT id,title,version,scope,application_id FROM user_documents WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
         if ($old) {
+            cleanupDocumentCascade($db, $uid, $id);
             $stmt = $db->prepare('UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE id=? AND user_id=?');
             $stmt->bind_param('ii', $id, $uid);
-            $stmt->execute();
-            $stmt = $db->prepare('DELETE FROM application_documents WHERE user_document_id=?');
-            $stmt->bind_param('i', $id);
             $stmt->execute();
             audit($db, $uid, 'delete', 'user_document', $id, $old, null);
             flash('Dokument gelöscht.');
@@ -4747,8 +4888,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) $_POST['id'];
         $old = dbOne($db, 'SELECT * FROM companies WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
         if ($old) {
+            $uid = userId();
+            cleanupCompanyCascade($db, $uid, $id);
             $stmt = $db->prepare('UPDATE companies SET deleted_at = NOW() WHERE id = ? AND owner_user_id = ?');
-            $uid = userId(); $stmt->bind_param('ii', $id, $uid); $stmt->execute();
+            $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'company', $id, $old, null);
         }
         flash('Firma gelöscht.');
@@ -4843,11 +4986,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) $_POST['id'];
         $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, source_url, SUBSTRING(description,1,65535) description FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
         if ($old) {
+            $uid = userId();
+            cleanupJobCascade($db, $uid, $id);
             $stmt = $db->prepare('UPDATE jobs SET deleted_at = NOW() WHERE id = ? AND owner_user_id = ?');
-            $uid = userId(); $stmt->bind_param('ii', $id, $uid); $stmt->execute();
-            $stmt = $db->prepare("UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE user_id=? AND scope='application' AND job_id=? AND deleted_at IS NULL");
-            $stmt->bind_param('ii', $uid, $id);
-            $stmt->execute();
+            $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'job', $id, $old, null);
         }
         flash('Job gelöscht.');
@@ -5129,6 +5271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $old = dbOne($db, 'SELECT id, contact_id, application_id, subject, status FROM contact_logs WHERE id=? AND owner_user_id=?', 'ii', [$logId, $uid]);
         if ($old) {
+            cleanupContactLogCascade($db, $uid, $logId);
             $stmt = $db->prepare('DELETE FROM contact_logs WHERE id=? AND owner_user_id=?');
             $stmt->bind_param('ii', $logId, $uid);
             $stmt->execute();
@@ -5322,12 +5465,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) ($_POST['id'] ?? 0);
         $old = dbOne($db, 'SELECT id, job_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
         if ($old) {
-            $stmt = $db->prepare('UPDATE applications SET deleted_at=NOW() WHERE id=? AND user_id=?');
             $uid = userId();
+            cleanupApplicationCascade($db, $uid, $id);
+            $stmt = $db->prepare('UPDATE applications SET deleted_at=NOW() WHERE id=? AND user_id=?');
             $stmt->bind_param('ii', $id, $uid);
-            $stmt->execute();
-            $stmt = $db->prepare("UPDATE user_documents SET deleted_at=NOW(), is_current=0 WHERE user_id=? AND scope='application' AND application_id=? AND deleted_at IS NULL");
-            $stmt->bind_param('ii', $uid, $id);
             $stmt->execute();
             audit($db, $uid, 'delete', 'application', $id, $old, null);
         }
@@ -5361,7 +5502,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.26';
+$codeVersion = '1.15.27';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
