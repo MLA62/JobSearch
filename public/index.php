@@ -213,8 +213,9 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
     modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
-    $db->query("UPDATE applications SET next_action='Antwort auf Bewerbung pendent', next_action_at=COALESCE(applied_at, next_action_at, NOW()) WHERE status='sent' AND deleted_at IS NULL AND (next_action IS NULL OR next_action='' OR next_action='Eingang bestätigen lassen' OR next_action<>'Antwort auf Bewerbung pendent' OR (applied_at IS NOT NULL AND (next_action_at IS NULL OR next_action_at<>applied_at)) OR (applied_at IS NULL AND next_action_at IS NULL))");
-    foreach (dbAll($db, "SELECT a.id, a.user_id FROM applications a WHERE a.status='sent' AND a.deleted_at IS NULL AND a.primary_contact_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM contact_logs l WHERE l.owner_user_id=a.user_id AND l.application_id=a.id AND l.contact_id=a.primary_contact_id AND l.subject='Bewerbung eingereicht') LIMIT 200") as $submittedApplication) {
+    $db->query("UPDATE applications a SET a.next_action=NULL, a.next_action_at=NULL WHERE a.status IN ('rejected','withdrawn','closed') AND a.deleted_at IS NULL AND (a.next_action IS NOT NULL OR a.next_action_at IS NOT NULL)");
+    $db->query("UPDATE applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL SET a.next_action='Antwort auf Bewerbung pendent', a.next_action_at=COALESCE(a.applied_at, a.next_action_at, NOW()) WHERE a.status='sent' AND a.deleted_at IS NULL AND (a.next_action IS NULL OR a.next_action='' OR a.next_action='Eingang bestätigen lassen' OR a.next_action<>'Antwort auf Bewerbung pendent' OR (a.applied_at IS NOT NULL AND (a.next_action_at IS NULL OR a.next_action_at<>a.applied_at)) OR (a.applied_at IS NULL AND a.next_action_at IS NULL))");
+    foreach (dbAll($db, "SELECT a.id, a.user_id FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.status='sent' AND a.deleted_at IS NULL AND a.primary_contact_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM contact_logs l WHERE l.owner_user_id=a.user_id AND l.application_id=a.id AND l.contact_id=a.primary_contact_id AND l.subject='Bewerbung eingereicht') LIMIT 200") as $submittedApplication) {
         ensureSubmittedApplicationContactLog($db, (int) $submittedApplication['user_id'], (int) $submittedApplication['id']);
     }
 } catch (Throwable $exception) {
@@ -5502,7 +5503,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.27';
+$codeVersion = '1.15.28';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -5989,7 +5990,7 @@ startUiTranslationBuffer($appLocale);
             ['label' => tr('dashboard.stats.jobs'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
             ['label' => tr('dashboard.stats.companies'), 'value' => count($companies), 'href' => '/?page=companies'],
             ['label' => tr('dashboard.stats.applications'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
-            ['label' => tr('dashboard.stats.pendents'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND next_action_at IS NOT NULL AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=pendents'],
+            ['label' => tr('dashboard.stats.pendents'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.next_action_at IS NOT NULL AND a.deleted_at IS NULL AND a.status NOT IN ('rejected','withdrawn','closed')", 'i', [userId()])['c'], 'href' => '/?page=pendents'],
         ]; ?>
         <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
@@ -6014,14 +6015,14 @@ startUiTranslationBuffer($appLocale);
         $todayStart = $now->setTime(0, 0)->format('Y-m-d H:i:s');
         $pendents = [];
         $nextActionLabels = applicationNextActionOptions();
-        foreach (dbAll($db, 'SELECT a.id, a.status, a.next_action title, a.next_action_at due_at, j.title job_title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL', 'i', [userId()]) as $row) {
+        foreach (dbAll($db, "SELECT a.id, a.status, a.next_action title, a.next_action_at due_at, j.title job_title, c.name company FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL AND a.status NOT IN ('rejected','withdrawn','closed')", 'i', [userId()]) as $row) {
             $pendentTitle = (string)($row['title'] ?: tr('nav.pendents'));
             $pendents[] = ['type'=>$pendentTypes['application'],'status'=>applicationStatusOptions()[(string)$row['status']] ?? (string)$row['status'],'title'=>$nextActionLabels[$pendentTitle] ?? $pendentTitle,'due_at'=>(string)$row['due_at'],'ref'=>$row['job_title'].' · '.$row['company'],'href'=>'/?page=applications&edit='.(int)$row['id'].'#application-form'];
         }
-        foreach (dbAll($db, 'SELECT l.id, l.contact_id, l.status, l.subject title, l.follow_up_at due_at, c.first_name, c.last_name, co.name company FROM contact_logs l JOIN contacts c ON c.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND l.follow_up_at IS NOT NULL AND l.status IN ("open","planned")', 'i', [userId()]) as $row) {
+        foreach (dbAll($db, 'SELECT l.id, l.contact_id, l.status, l.subject title, l.follow_up_at due_at, c.first_name, c.last_name, co.name company FROM contact_logs l JOIN contacts c ON c.id=l.contact_id AND c.deleted_at IS NULL JOIN companies co ON co.id=l.company_id AND co.deleted_at IS NULL WHERE l.owner_user_id=? AND l.follow_up_at IS NOT NULL AND l.status IN ("open","planned")', 'i', [userId()]) as $row) {
             $pendents[] = ['type'=>$pendentTypes['contact'],'status'=>contactLogStatusOptions()[(string)$row['status']] ?? (string)$row['status'],'title'=>(string)($row['title'] ?: tr('contact_log.follow_up')),'due_at'=>(string)$row['due_at'],'ref'=>trim($row['first_name'].' '.$row['last_name'].' · '.$row['company']),'href'=>'/?page=contacts&edit_contact='.(int)$row['contact_id'].'#contact-log'];
         }
-        foreach (dbAll($db, 'SELECT ce.id, ce.title, ce.event_type, ce.status, ce.starts_at due_at, ce.application_id, j.title job_title, c.name company FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? AND ce.status="planned"', 'i', [userId()]) as $row) {
+        foreach (dbAll($db, 'SELECT ce.id, ce.title, ce.event_type, ce.status, ce.starts_at due_at, ce.application_id, j.title job_title, c.name company FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE ce.owner_user_id=? AND ce.status="planned" AND (ce.application_id IS NULL OR a.id IS NOT NULL)', 'i', [userId()]) as $row) {
             $pendents[] = ['type'=>$pendentTypes['calendar'],'status'=>calendarEventTypeOptions()[(string)$row['event_type']] ?? (string)$row['event_type'],'title'=>(string)$row['title'],'due_at'=>(string)$row['due_at'],'ref'=>trim((string)($row['job_title'] ?? '').' · '.(string)($row['company'] ?? ''), ' ·'),'href'=>!empty($row['application_id'])?'/?page=applications&edit='.(int)$row['application_id'].'#application-form':'/?page=calendar'];
         }
         $pendents = sfApplyRows($pendents, $pendentSf, $pendentSfFields);
