@@ -2931,6 +2931,109 @@ function findJobPosting(mixed $value): ?array
     return null;
 }
 
+function importMetaContent(DOMXPath $xpath, string $selector): string
+{
+    $node = $xpath->query($selector)->item(0);
+    return plainText((string) ($node?->nodeValue ?? ''));
+}
+
+function importJobLocation(array $job): string
+{
+    $locations = $job['jobLocation'] ?? [];
+    if (isset($locations['address'])) {
+        $locations = [$locations];
+    }
+    foreach ((array) $locations as $location) {
+        $address = is_array($location) ? ($location['address'] ?? []) : [];
+        if (!is_array($address)) {
+            continue;
+        }
+        foreach (['addressLocality', 'addressRegion', 'addressCountry'] as $field) {
+            $value = plainText((string) ($address[$field] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+    }
+    return '';
+}
+
+function importCleanTitle(string $title): string
+{
+    $title = plainText($title);
+    $title = (string) preg_replace('~\s+-\s+(?:Annonce sur jobs\.ch|Stellenangebot bei .+? - jobs\.ch|Offre d\'emploi chez .+? - jobup\.ch|Job at .+? - jobs\.ch)\s*$~iu', '', $title);
+    $title = (string) preg_replace('~\s+-\s+(?:jobs\.ch|jobup\.ch)\s*$~iu', '', $title);
+    return trim($title);
+}
+
+function importCompanyFromText(string $text): string
+{
+    $text = plainText($text);
+    $patterns = [
+        '~\b(?:Stellenangebot bei|Offre d\'emploi chez|Job at)\s+(.+?)\s+-\s+(?:jobs\.ch|jobup\.ch)\b~iu',
+        '~^(?:.+?)\s+-\s+(?:Stellenangebot bei|Offre d\'emploi chez|Job at)\s+(.+?)\s+-\s+(?:jobs\.ch|jobup\.ch)\b~iu',
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $text, $match)) {
+            return trim(plainText((string) ($match[1] ?? '')));
+        }
+    }
+    return '';
+}
+
+function importVisibleCompany(DOMXPath $xpath): string
+{
+    $queries = [
+        '//h1[@data-cy="vacancy-title"]/preceding::*[contains(concat(" ", normalize-space(@class), " "), " notranslate ")][1]',
+    ];
+    foreach ($queries as $query) {
+        foreach ($xpath->query($query) ?: [] as $node) {
+            $value = plainText((string) $node->textContent);
+            if ($value !== '' && !preg_match('~^(Employeur non divulgué|Arbeitgeber nicht sichtbar|Confidential employer)$~iu', $value)) {
+                return $value;
+            }
+        }
+    }
+    return '';
+}
+
+function importUpsertCompany(mysqli $db, int $uid, string $companyName): int
+{
+    $company = dbOne($db, 'SELECT id FROM companies WHERE owner_user_id=? AND name=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $companyName]);
+    if ($company) {
+        return (int) $company['id'];
+    }
+    $empty = '';
+    $stmt = $db->prepare('INSERT INTO companies (owner_user_id, name, city, website) VALUES (?, ?, ?, ?)');
+    $stmt->bind_param('isss', $uid, $companyName, $empty, $empty);
+    $stmt->execute();
+    $companyId = (int) $stmt->insert_id;
+    audit($db, $uid, 'create', 'company', $companyId, null, ['name' => $companyName]);
+    return $companyId;
+}
+
+function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool
+{
+    $title = trim((string) ($draft['title'] ?? ''));
+    if ($title === '') {
+        return false;
+    }
+    $fallbackCompany = tr('jobs.new_company_from_import');
+    $currentTitle = trim((string) ($existing['title'] ?? ''));
+    $currentCompany = trim((string) ($existing['company_name'] ?? ''));
+    if ($currentTitle !== '' && $currentTitle !== 'Job aus Import' && $currentCompany !== $fallbackCompany) {
+        return false;
+    }
+    $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
+    $description = trim((string) ($draft['description'] ?? ''));
+    $stmt = $db->prepare('UPDATE jobs SET title=?, company_id=?, location_text=IF(?="", location_text, ?), description=IF(?="", description, ?) WHERE id=? AND owner_user_id=?');
+    $jobId = (int) $existing['id'];
+    $stmt->bind_param('sissssii', $title, $companyId, $location, $location, $description, $description, $jobId, $uid);
+    $stmt->execute();
+    audit($db, $uid, 'update', 'job', $jobId, $existing, ['title' => $title, 'company_id' => $companyId]);
+    return true;
+}
+
 function importFromUrl(string $url): array
 {
     if (!publicHttpUrl($url) || !function_exists('curl_init')) {
@@ -2974,18 +3077,21 @@ function importFromUrl(string $url): array
         }
     }
 
-    $title = plainText((string) ($job['title'] ?? ''));
+    $title = importCleanTitle((string) ($job['title'] ?? ''));
     $company = plainText((string) ($job['hiringOrganization']['name'] ?? ''));
     $description = plainText((string) ($job['description'] ?? ''));
-    $location = plainText((string) ($job['jobLocation']['address']['addressLocality'] ?? ''));
+    $location = $job ? importJobLocation($job) : '';
 
+    $ogTitle = importMetaContent($xpath, '//meta[@property="og:title"]/@content');
+    $metaDescription = importMetaContent($xpath, '//meta[@name="description"]/@content');
     if ($title === '') {
-        $node = $xpath->query('//meta[@property="og:title"]/@content')->item(0) ?: $xpath->query('//title')->item(0);
-        $title = plainText((string) ($node?->nodeValue ?? ''));
+        $title = importCleanTitle($ogTitle ?: importMetaContent($xpath, '//title'));
+    }
+    if ($company === '') {
+        $company = importCompanyFromText($ogTitle) ?: importCompanyFromText($metaDescription) ?: importVisibleCompany($xpath);
     }
     if ($description === '') {
-        $node = $xpath->query('//meta[@name="description"]/@content')->item(0);
-        $description = plainText((string) ($node?->nodeValue ?? ''));
+        $description = $metaDescription;
     }
     return compact('title', 'company', 'location', 'description') + ['source_url' => $finalUrl ?: $url];
 }
@@ -4504,23 +4610,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $draft = importFromUrl($sourceUrl);
                     $sourceUrl = (string) ($draft['source_url'] ?? $sourceUrl);
-                    if (dbOne($db, 'SELECT id FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl])) {
-                        $skipped++;
+                    $title = trim((string) ($draft['title'] ?? ''));
+                    if ($title === '') {
+                        $failed++;
                         continue;
                     }
                     $companyName = trim((string) ($draft['company'] ?? '')) ?: tr('jobs.new_company_from_import');
-                    $company = dbOne($db, 'SELECT id FROM companies WHERE owner_user_id=? AND name=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $companyName]);
-                    if ($company) {
-                        $companyId = (int) $company['id'];
-                    } else {
-                        $empty = '';
-                        $stmt = $db->prepare('INSERT INTO companies (owner_user_id, name, city, website) VALUES (?, ?, ?, ?)');
-                        $stmt->bind_param('isss', $uid, $companyName, $empty, $empty);
-                        $stmt->execute();
-                        $companyId = (int) $stmt->insert_id;
-                        audit($db, $uid, 'create', 'company', $companyId, null, ['name' => $companyName]);
+                    $companyId = importUpsertCompany($db, $uid, $companyName);
+                    $existing = dbOne($db, 'SELECT j.id,j.title,c.name AS company_name FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.source_url=? AND j.deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
+                    if ($existing) {
+                        importRepairExistingJob($db, $uid, $existing, $draft, $companyId);
+                        $skipped++;
+                        continue;
                     }
-                    $title = trim((string) ($draft['title'] ?? '')) ?: 'Job aus Import';
                     $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
                     $description = trim((string) ($draft['description'] ?? $sourceUrl));
                     $status = 'open'; $workplace = 'unknown'; $engagement = 'permanent'; $term = 'unknown';
@@ -5534,7 +5636,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.29';
+$codeVersion = '1.15.30';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
