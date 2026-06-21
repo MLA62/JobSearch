@@ -2937,9 +2937,19 @@ function importMetaContent(DOMXPath $xpath, string $selector): string
     return plainText((string) ($node?->nodeValue ?? ''));
 }
 
+function importHtmlMatch(string $html, array $patterns): string
+{
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $html, $match)) {
+            return plainText(html_entity_decode(strip_tags((string) ($match[1] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        }
+    }
+    return '';
+}
+
 function importDetailPathPattern(): string
 {
-    return '~/(?:vacancies/detail|emplois/detail|stellenangebote/detail|offres-emplois/detail|detail)/~iu';
+    return '~/(?:vacancies/detail|emplois/detail|stellenangebote/detail|offres-emplois/detail|detail|jobs/view)/~iu';
 }
 
 function importUrlLooksLikeDetail(string $url): bool
@@ -3035,10 +3045,31 @@ function importJobLocation(array $job): string
     return '';
 }
 
+function importHiringOrganization(array $job): string
+{
+    $organizations = $job['hiringOrganization'] ?? [];
+    if (isset($organizations['name'])) {
+        $organizations = [$organizations];
+    }
+    foreach ((array) $organizations as $organization) {
+        if (!is_array($organization)) {
+            continue;
+        }
+        $name = plainText((string) ($organization['name'] ?? ''));
+        if ($name !== '') {
+            return $name;
+        }
+    }
+    return '';
+}
+
 function importCleanTitle(string $title): string
 {
     $title = plainText($title);
     $title = (string) preg_replace('~\s+-\s+(?:Annonce sur jobs\.ch|Stellenangebot bei .+? - jobs\.ch|Offre d\'emploi chez .+? - jobup\.ch|Job at .+? - jobs\.ch)\s*$~iu', '', $title);
+    $title = (string) preg_replace('~^(.+?\d{1,3}\s*%)\p{Lu}.*$~u', '$1', $title);
+    $title = (string) preg_replace('~^(.+?)\s+in\s+.+?\s+\|\s+LinkedIn$~iu', '$1', $title);
+    $title = (string) preg_replace('~^.+?\s+sucht\s+(.+?)$~iu', '$1', $title);
     $title = (string) preg_replace('~\s+-\s+(?:jobs\.ch|jobup\.ch)\s*$~iu', '', $title);
     return trim($title);
 }
@@ -3049,6 +3080,7 @@ function importCompanyFromText(string $text): string
     $patterns = [
         '~\b(?:Stellenangebot bei|Offre d\'emploi chez|Job at)\s+(.+?)\s+-\s+(?:jobs\.ch|jobup\.ch)\b~iu',
         '~^(?:.+?)\s+-\s+(?:Stellenangebot bei|Offre d\'emploi chez|Job at)\s+(.+?)\s+-\s+(?:jobs\.ch|jobup\.ch)\b~iu',
+        '~^(.+?)\s+sucht\s+.+?\s+\|\s+LinkedIn$~iu',
     ];
     foreach ($patterns as $pattern) {
         if (preg_match($pattern, $text, $match)) {
@@ -3084,7 +3116,8 @@ function importLooksLikeJobDetail(string $url, ?array $job, DOMXPath $xpath): bo
         return false;
     }
     return importMetaContent($xpath, '//h1[@data-cy="vacancy-title"]') !== ''
-        || importMetaContent($xpath, '//meta[@property="og:title"]/@content') !== '';
+        || importMetaContent($xpath, '//meta[@property="og:title"]/@content') !== ''
+        || importMetaContent($xpath, '//h1[contains(@class, "top-card-layout__title")]') !== '';
 }
 
 function importUpsertCompany(mysqli $db, int $uid, string $companyName): int
@@ -3168,24 +3201,29 @@ function importFromUrl(string $url): array
     }
 
     $title = importCleanTitle((string) ($job['title'] ?? ''));
-    $company = plainText((string) ($job['hiringOrganization']['name'] ?? ''));
+    $company = $job ? importHiringOrganization($job) : '';
     $description = plainText((string) ($job['description'] ?? ''));
     $location = $job ? importJobLocation($job) : '';
 
     if (!importLooksLikeJobDetail($finalUrl ?: $url, $job, $xpath)) {
         throw new RuntimeException('Die URL ist keine einzelne Stellenanzeige.');
     }
-    $visibleTitle = importMetaContent($xpath, '//h1[@data-cy="vacancy-title"]');
+    $visibleTitle = importMetaContent($xpath, '//h1[@data-cy="vacancy-title"]')
+        ?: importHtmlMatch($html, ['~<h1[^>]+top-card-layout__title[^>]*>(.*?)</h1>~is']);
     $ogTitle = importMetaContent($xpath, '//meta[@property="og:title"]/@content');
     $metaDescription = importMetaContent($xpath, '//meta[@name="description"]/@content');
     if ($title === '') {
-        $title = importCleanTitle($visibleTitle ?: ($ogTitle ?: importMetaContent($xpath, '//title')));
+        $title = importCleanTitle($visibleTitle ?: ($ogTitle ?: importHtmlMatch($html, ['~<title[^>]*>(.*?)</title>~is'])));
     }
     if (preg_match('~^\d+\s+.+\s+Jobs$~iu', $title)) {
         throw new RuntimeException('Die URL zeigt eine Ergebnisliste, keine einzelne Stellenanzeige.');
     }
     if ($company === '') {
-        $company = importCompanyFromText($ogTitle) ?: importCompanyFromText($metaDescription) ?: importVisibleCompany($xpath);
+        $company = importCompanyFromText($ogTitle)
+            ?: importCompanyFromText(importHtmlMatch($html, ['~<title[^>]*>(.*?)</title>~is']))
+            ?: importHtmlMatch($html, ['~<a[^>]+topcard__org-name-link[^>]*>(.*?)</a>~is'])
+            ?: importCompanyFromText($metaDescription)
+            ?: importVisibleCompany($xpath);
     }
     if ($description === '') {
         $description = $metaDescription;
@@ -4709,7 +4747,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $importUrls = array_values($importUrls);
         if (count($importUrls) > 1) {
-            $created = 0; $skipped = 0; $failed = 0; $uid = userId();
+            $created = 0; $skipped = 0; $failed = 0; $uid = userId(); $failReasons = [];
             foreach ($importUrls as $sourceUrl) {
                 try {
                     $draft = importFromUrl($sourceUrl);
@@ -4717,6 +4755,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $title = trim((string) ($draft['title'] ?? ''));
                     if ($title === '') {
                         $failed++;
+                        if (count($failReasons) < 3) {
+                            $failReasons[] = (parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': kein Titel erkannt';
+                        }
                         continue;
                     }
                     $companyName = trim((string) ($draft['company'] ?? '')) ?: tr('jobs.new_company_from_import');
@@ -4740,9 +4781,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $created++;
                 } catch (Throwable $exception) {
                     $failed++;
+                    if (count($failReasons) < 3) {
+                        $failReasons[] = (parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': ' . $exception->getMessage();
+                    }
                 }
             }
-            flash($created . ' Jobs importiert, ' . $skipped . ' Dubletten übersprungen, ' . $failed . ' fehlgeschlagen.');
+            $message = $created . ' Jobs importiert, ' . $skipped . ' Dubletten übersprungen, ' . $failed . ' fehlgeschlagen.';
+            if ($failReasons) {
+                $message .= ' Fehlerbeispiele: ' . implode(' | ', $failReasons);
+            }
+            flash($message);
             redirect('/?page=jobs');
         }
         try {
@@ -5740,7 +5788,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.31';
+$codeVersion = '1.15.32';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
