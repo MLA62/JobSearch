@@ -5788,7 +5788,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.32';
+$codeVersion = '1.15.33';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7095,6 +7095,7 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.sent_at')) ?><input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
+                <div class="actions"><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button></div>
                 <div class="history"><h3><?= e(tr('applications.online_form_title')) ?></h3><p class="meta-line"><?= e(tr('applications.online_form_hint')) ?></p></div>
                 <?php $onlineApplicationUrl = (string)($applicationEdit['application_url'] ?: ($applicationEdit['job_source_url'] ?? '')); ?>
                 <div class="online-assistant">
