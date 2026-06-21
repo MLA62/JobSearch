@@ -2937,6 +2937,83 @@ function importMetaContent(DOMXPath $xpath, string $selector): string
     return plainText((string) ($node?->nodeValue ?? ''));
 }
 
+function importDetailPathPattern(): string
+{
+    return '~/(?:vacancies/detail|emplois/detail|stellenangebote/detail|offres-emplois/detail|detail)/~iu';
+}
+
+function importUrlLooksLikeDetail(string $url): bool
+{
+    $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+    return (bool) preg_match(importDetailPathPattern(), $path);
+}
+
+function importAbsoluteUrl(string $href, string $baseUrl): string
+{
+    $href = html_entity_decode(trim($href), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if ($href === '') {
+        return '';
+    }
+    if (str_starts_with($href, '//')) {
+        $scheme = (string) (parse_url($baseUrl, PHP_URL_SCHEME) ?: 'https');
+        return $scheme . ':' . $href;
+    }
+    if (preg_match('~^https?://~i', $href)) {
+        return $href;
+    }
+    $scheme = (string) (parse_url($baseUrl, PHP_URL_SCHEME) ?: 'https');
+    $host = (string) (parse_url($baseUrl, PHP_URL_HOST) ?: '');
+    if ($host === '') {
+        return '';
+    }
+    if (str_starts_with($href, '/')) {
+        return $scheme . '://' . $host . $href;
+    }
+    $path = rtrim(dirname((string) (parse_url($baseUrl, PHP_URL_PATH) ?: '/')), '/');
+    return $scheme . '://' . $host . ($path === '' ? '' : $path) . '/' . $href;
+}
+
+function importDiscoverDetailUrls(string $url, int $limit = 30): array
+{
+    if (importUrlLooksLikeDetail($url)) {
+        return [$url];
+    }
+    if (!publicHttpUrl($url) || !function_exists('curl_init')) {
+        return [$url];
+    }
+    $curl = curl_init($url);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
+        CURLOPT_CONNECTTIMEOUT => 6,
+        CURLOPT_TIMEOUT => 12,
+        CURLOPT_USERAGENT => 'JeMaJobs/0.1 (+https://jobs.jema.business)',
+        CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+    ]);
+    $html = curl_exec($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    $finalUrl = (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
+    curl_close($curl);
+    if (!is_string($html) || $status >= 400 || strlen($html) > 5_000_000) {
+        return [$url];
+    }
+    $baseUrl = $finalUrl ?: $url;
+    preg_match_all('~href=["\']([^"\']*(?:vacancies/detail|emplois/detail|stellenangebote/detail|offres-emplois/detail|/detail/)[^"\']*)["\']~iu', $html, $matches);
+    $urls = [];
+    foreach ($matches[1] ?? [] as $href) {
+        $candidate = importAbsoluteUrl((string) $href, $baseUrl);
+        if ($candidate !== '' && publicHttpUrl($candidate) && importUrlLooksLikeDetail($candidate)) {
+            $urls[$candidate] = $candidate;
+        }
+        if (count($urls) >= $limit) {
+            break;
+        }
+    }
+    return $urls ? array_values($urls) : [$url];
+}
+
 function importJobLocation(array $job): string
 {
     $locations = $job['jobLocation'] ?? [];
@@ -2995,6 +3072,19 @@ function importVisibleCompany(DOMXPath $xpath): string
         }
     }
     return '';
+}
+
+function importLooksLikeJobDetail(string $url, ?array $job, DOMXPath $xpath): bool
+{
+    if ($job) {
+        return true;
+    }
+    $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+    if (!preg_match(importDetailPathPattern(), $path)) {
+        return false;
+    }
+    return importMetaContent($xpath, '//h1[@data-cy="vacancy-title"]') !== ''
+        || importMetaContent($xpath, '//meta[@property="og:title"]/@content') !== '';
 }
 
 function importUpsertCompany(mysqli $db, int $uid, string $companyName): int
@@ -3082,10 +3172,17 @@ function importFromUrl(string $url): array
     $description = plainText((string) ($job['description'] ?? ''));
     $location = $job ? importJobLocation($job) : '';
 
+    if (!importLooksLikeJobDetail($finalUrl ?: $url, $job, $xpath)) {
+        throw new RuntimeException('Die URL ist keine einzelne Stellenanzeige.');
+    }
+    $visibleTitle = importMetaContent($xpath, '//h1[@data-cy="vacancy-title"]');
     $ogTitle = importMetaContent($xpath, '//meta[@property="og:title"]/@content');
     $metaDescription = importMetaContent($xpath, '//meta[@name="description"]/@content');
     if ($title === '') {
-        $title = importCleanTitle($ogTitle ?: importMetaContent($xpath, '//title'));
+        $title = importCleanTitle($visibleTitle ?: ($ogTitle ?: importMetaContent($xpath, '//title')));
+    }
+    if (preg_match('~^\d+\s+.+\s+Jobs$~iu', $title)) {
+        throw new RuntimeException('Die URL zeigt eine Ergebnisliste, keine einzelne Stellenanzeige.');
     }
     if ($company === '') {
         $company = importCompanyFromText($ogTitle) ?: importCompanyFromText($metaDescription) ?: importVisibleCompany($xpath);
@@ -4603,7 +4700,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Bitte eine Stellen-URL oder den Ausschreibungstext einfügen.', 'danger');
             redirect('/?page=jobs');
         }
-        $importUrls = extractImportUrls($payload);
+        $rawImportUrls = extractImportUrls($payload);
+        $importUrls = [];
+        foreach ($rawImportUrls as $importUrl) {
+            foreach (importDiscoverDetailUrls($importUrl) as $detailUrl) {
+                $importUrls[$detailUrl] = $detailUrl;
+            }
+        }
+        $importUrls = array_values($importUrls);
         if (count($importUrls) > 1) {
             $created = 0; $skipped = 0; $failed = 0; $uid = userId();
             foreach ($importUrls as $sourceUrl) {
@@ -5636,7 +5740,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.30';
+$codeVersion = '1.15.31';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
