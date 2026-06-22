@@ -204,6 +204,13 @@ try {
     ensureColumn($db, 'contacts', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'status', "`status` ENUM('planned','open','done','cancelled') NOT NULL DEFAULT 'done'", 'direction');
+    ensureColumn($db, 'contact_logs', 'outcome', '`outcome` VARCHAR(500) NULL', 'follow_up_at');
+    ensureColumn($db, 'user_preferences', 'salary_period', "`salary_period` ENUM('hour','month','year') NOT NULL DEFAULT 'year'", 'salary_currency');
+    ensureColumn($db, 'user_preferences', 'desired_benefits', '`desired_benefits` TEXT NULL', 'desired_level');
+    ensureColumn($db, 'user_preferences', 'excluded_industries', '`excluded_industries` TEXT NULL', 'desired_benefits');
+    ensureColumn($db, 'user_preferences', 'willing_to_relocate', '`willing_to_relocate` TINYINT(1) NOT NULL DEFAULT 0', 'excluded_industries');
+    ensureColumn($db, 'user_preferences', 'travel_percentage', '`travel_percentage` TINYINT UNSIGNED NULL', 'willing_to_relocate');
+    ensureColumn($db, 'user_preferences', 'available_from', '`available_from` DATE NULL', 'travel_percentage');
     $db->query("CREATE TABLE IF NOT EXISTS application_documents (
         application_id BIGINT UNSIGNED NOT NULL,
         user_document_id BIGINT UNSIGNED NOT NULL,
@@ -5948,7 +5955,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.36';
+$codeVersion = '1.15.37';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6199,7 +6206,19 @@ if ($page === 'export_pdf') {
         pdfResponse('report-' . $reportId . '.pdf', (string)$report['name'], $headers, $rows);
     }
     if ($type === 'rav') {
-        pdfTextResponse('RAV-Bewerbungsdossier-' . date('Y-m-d') . '.pdf', 'RAV-Bewerbungsdossier', ravDossierPdfSections($db, userId(), $currentUser));
+        try {
+            $ravSections = ravDossierPdfSections($db, userId(), $currentUser);
+        } catch (Throwable $exception) {
+            error_log('RAV dossier export failed: ' . $exception->getMessage());
+            $ravSections = [
+                'RAV-Bewerbungsdossier' => [
+                    'Das Dossier konnte nicht vollständig erstellt werden.',
+                    'Technischer Hinweis: ' . $exception->getMessage(),
+                    'Zeitpunkt: ' . date('Y-m-d H:i:s'),
+                ],
+            ];
+        }
+        pdfTextResponse('RAV-Bewerbungsdossier-' . date('Y-m-d') . '.pdf', 'RAV-Bewerbungsdossier', $ravSections);
     }
     if ($type === 'applications') {
         $applicationStatuses = applicationStatusOptions();
