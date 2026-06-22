@@ -2198,22 +2198,30 @@ function jobRoomApplicationResult(?string $status): string
 
 function jobRoomWorkloadLabel(array $row): string
 {
-    $min = $row['workload_min'] !== null && $row['workload_min'] !== '' ? (int) $row['workload_min'] : null;
-    $max = $row['workload_max'] !== null && $row['workload_max'] !== '' ? (int) $row['workload_max'] : null;
-    if (($max !== null && $max >= 100 && ($min === null || $min >= 100)) || (string)($row['employment_type'] ?? '') === 'full_time') {
-        return tr('job_room_helper.workload.full_time');
+    $minRaw = $row['workload_min'] ?? null;
+    $maxRaw = $row['workload_max'] ?? null;
+    $min = $minRaw !== null && $minRaw !== '' ? (int) $minRaw : null;
+    $max = $maxRaw !== null && $maxRaw !== '' ? (int) $maxRaw : null;
+    if ($min === null && $max === null) {
+        return '100%';
     }
-    if (($max !== null && $max > 0) || ($min !== null && $min > 0) || (string)($row['employment_type'] ?? '') === 'part_time') {
-        return tr('job_room_helper.workload.part_time');
+    if ($min === null) {
+        $min = $max;
     }
-    return '';
+    if ($max === null) {
+        $max = $min;
+    }
+    if ($min === $max) {
+        return $min . '%';
+    }
+    return $min . '% - ' . $max . '%';
 }
 
 function jobRoomCountryLabel(?string $countryCode): string
 {
     $countryCode = strtoupper(trim((string) $countryCode));
     if ($countryCode === '') {
-        return '';
+        return tr('job_room_helper.country.switzerland');
     }
     if ($countryCode === 'CH') {
         return tr('job_room_helper.country.switzerland');
@@ -2260,7 +2268,7 @@ function jobRoomHelperFields(array $row, array $currentUser): array
         'job_room_helper.field.phone' => trim((string)($row['contact_phone'] ?? '')) ?: (trim((string)($row['contact_mobile'] ?? '')) ?: trim((string)($row['company_phone'] ?? ''))),
         'job_room_helper.field.job_title' => trim((string)($row['job_title'] ?? '')),
         'job_room_helper.field.online_form_link' => $onlineLink,
-        'job_room_helper.field.rav_assigned' => '',
+        'job_room_helper.field.rav_assigned' => tr('job_room_helper.value.no'),
         'job_room_helper.field.workload' => jobRoomWorkloadLabel($row),
         'job_room_helper.field.result' => jobRoomApplicationResult($row['application_status'] ?? null),
     ];
@@ -6379,7 +6387,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.46';
+$codeVersion = '1.15.47';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
