@@ -2417,6 +2417,30 @@ function displayDateTime(?string $value, ?array $user = null, bool $withTime = t
     }
 }
 
+function percentageRangeLabel(mixed $min, mixed $max): string
+{
+    $minValue = trim((string)($min ?? ''));
+    $maxValue = trim((string)($max ?? ''));
+    if ($minValue === '' && $maxValue === '') {
+        return '';
+    }
+    $format = static function (string $value): string {
+        if ($value === '') {
+            return '';
+        }
+        $number = (float)$value;
+        $formatted = abs($number - round($number)) < 0.0001 ? (string)(int)round($number) : rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.');
+        return $formatted . '%';
+    };
+    if ($minValue !== '' && $maxValue !== '' && (float)$minValue === (float)$maxValue) {
+        return $format($minValue);
+    }
+    if ($minValue !== '' && $maxValue !== '') {
+        return $format($minValue) . ' - ' . $format($maxValue);
+    }
+    return $format($minValue !== '' ? $minValue : $maxValue);
+}
+
 function storageRoot(): string
 {
     return __DIR__ . '/storage/documents';
@@ -3807,7 +3831,8 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
     $location = trim((string)($currentUser['city'] ?? '') . ' / ' . (string)($currentUser['region'] ?? '') . ' / ' . (string)($currentUser['country_code'] ?? ''), ' /');
     $languageLine = $languages ? implode(', ', array_map(static fn(array $row): string => trim((string)$row['language_name'] . ' ' . (string)$row['cefr_level']), $languages)) : 'keine Sprachkenntnisse erfasst';
     $salaryLine = trim((string)($preference['salary_min'] ?? '') . ' ' . (string)($preference['salary_currency'] ?? '') . ' / ' . (salaryPeriodOptions()[(string)($preference['salary_period'] ?? '')] ?? (string)($preference['salary_period'] ?? '')), ' /');
-    $workloadLine = trim((string)($preference['workload_min'] ?? '') . ' - ' . (string)($preference['workload_max'] ?? '') . '%', ' -%');
+    $workloadLine = percentageRangeLabel($preference['workload_min'] ?? '', $preference['workload_max'] ?? '');
+    $availableFromLine = !empty($preference['available_from']) ? displayDateTime((string)$preference['available_from'], $currentUser, false) : '';
     $submittedCount = 0;
     foreach ($applicationRows as $row) {
         if (!empty($row['applied_at']) || in_array((string)$row['status'], ['sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed'], true)) {
@@ -3827,7 +3852,7 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
             'Arbeitsmodell: ' . (string)($preference['remote_preference'] ?? ''),
             'Stellenarten: ' . (string)($preference['employment_types'] ?? ''),
             'Pensum: ' . $workloadLine . ' | Lohn: ' . $salaryLine,
-            'Verfügbar ab: ' . (string)($preference['available_from'] ?? ''),
+            'Verfügbar ab: ' . $availableFromLine,
             '',
         ],
     ];
@@ -3885,7 +3910,7 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
             'Ausschlüsse: ' . (string)($preference['excluded_industries'] ?? ''),
             'Umzug möglich: ' . (!empty($preference['willing_to_relocate']) ? 'ja' : 'nein'),
             'Reisebereitschaft: ' . (string)($preference['travel_percentage'] ?? '') . '%',
-            'Verfügbar ab: ' . (string)($preference['available_from'] ?? ''),
+            'Verfügbar ab: ' . $availableFromLine,
             'Notizen: ' . (string)($preference['notes'] ?? ''),
         ],
         'Pendenzenliste' => [],
@@ -6035,7 +6060,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.40';
+$codeVersion = '1.15.41';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
