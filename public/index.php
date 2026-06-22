@@ -1755,6 +1755,25 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
         }
         $fontSize = $heading ? 12 : $size;
         $color = $heading ? '0.77 0.20 0.00' : '0.10 0.13 0.16';
+        if (!$heading && preg_match('/^(.*?)(Status: [^|]+)(.*)$/u', $text, $matches) === 1) {
+            $x = $margin;
+            $normalColor = '0.10 0.13 0.16';
+            $statusColor = '0.77 0.20 0.00';
+            $segments = [
+                [$matches[1], $normalColor],
+                [$matches[2], $statusColor],
+                [$matches[3], $normalColor],
+            ];
+            foreach ($segments as [$segment, $segmentColor]) {
+                if ($segment === '') {
+                    continue;
+                }
+                $content .= "{$segmentColor} rg\nBT /F1 {$fontSize} Tf {$x} {$y} Td " . pdfTextOperand($segment) . " Tj ET\n";
+                $x += mb_strlen($segment) * ($fontSize * 0.46);
+            }
+            $y -= $lineHeight;
+            return;
+        }
         $content .= "{$color} rg\nBT /F1 {$fontSize} Tf {$margin} {$y} Td " . pdfTextOperand($text) . " Tj ET\n";
         $y -= $heading ? 18 : $lineHeight;
     };
@@ -3802,6 +3821,14 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
             'Erstellt am: ' . displayDateTime(date('Y-m-d H:i:s'), $currentUser),
             'Erfasste Bewerbungen: ' . count($applicationRows) . ' | Eingereicht: ' . $submittedCount,
             '',
+            'Job-Präferenzen',
+            'Rollen: ' . (string)($preference['desired_roles'] ?? ''),
+            'Orte/Regionen: ' . (string)($preference['desired_locations'] ?? ''),
+            'Arbeitsmodell: ' . (string)($preference['remote_preference'] ?? ''),
+            'Stellenarten: ' . (string)($preference['employment_types'] ?? ''),
+            'Pensum: ' . $workloadLine . ' | Lohn: ' . $salaryLine,
+            'Verfügbar ab: ' . (string)($preference['available_from'] ?? ''),
+            '',
         ],
     ];
     $lastCompany = null;
@@ -3814,9 +3841,8 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
         }
         $submittedAt = !empty($row['applied_at']) ? displayDateTime((string)$row['applied_at'], $currentUser) : 'noch nicht eingereicht';
         $status = $applicationStatuses[(string)$row['status']] ?? (string)$row['status'];
-        $channel = $applicationChannels[(string)$row['channel']] ?? (string)$row['channel'];
         $sections['Bewerbungsnachweis'][] = 'Stelle: ' . $jobTitle;
-        $sections['Bewerbungsnachweis'][] = 'Nachweis: ' . $submittedAt . ' | Status: ' . $status . ' | Kanal: ' . $channel;
+        $sections['Bewerbungsnachweis'][] = 'Nachweis: ' . $submittedAt . ' | Status: ' . $status;
         $nextAction = trim((string)($row['next_action'] ?? ''));
         if ($nextAction !== '' || !empty($row['next_action_at'])) {
             $sections['Bewerbungsnachweis'][] = 'Pendent: ' . ($nextAction !== '' ? ($nextActionLabels[$nextAction] ?? $nextAction) : 'offen') . (!empty($row['next_action_at']) ? ' | Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '');
@@ -6009,7 +6035,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.39';
+$codeVersion = '1.15.40';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
