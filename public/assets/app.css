@@ -764,6 +764,48 @@ tr.is-selected td:first-child { box-shadow: inset 5px 0 0 var(--accent); }
 .reports-layout { display: grid; gap: 20px; }
 .report-editor-panel form { max-width: 920px; }
 
+.job-room-list {
+    display: grid;
+    gap: 16px;
+}
+
+.job-room-card h2 {
+    margin-top: 0;
+}
+
+.job-room-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+}
+
+.job-room-field {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+    min-height: 94px;
+    border: 1.5px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: #f8fafc;
+}
+
+.job-room-field strong {
+    font-size: .78rem;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.job-room-field span {
+    min-height: 1.35em;
+    overflow-wrap: anywhere;
+}
+
+.job-room-field button {
+    justify-self: start;
+    min-height: 30px;
+    padding: 5px 9px;
+}
+
 .sf-toolbar {
     display: inline-flex;
     align-items: center;

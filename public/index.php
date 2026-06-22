@@ -2167,6 +2167,105 @@ function applicationChannelOptions(): array
     return ['email'=>tr('contact_log.channel.email'),'portal'=>tr('applications.channel.portal'),'website'=>tr('applications.channel.website'),'mail'=>tr('applications.channel.mail'),'referral'=>tr('applications.channel.referral'),'other'=>tr('common.other')];
 }
 
+function jobRoomCompanyName(array $row): string
+{
+    $name = trim((string) ($row['company_name'] ?? ''));
+    if ($name !== '' && !empty($row['is_intermediary'])) {
+        $name .= ' ' . tr('job_room_helper.intermediary_suffix');
+    }
+    return $name;
+}
+
+function jobRoomApplicationMethod(?string $channel): string
+{
+    return match ((string) $channel) {
+        'email', 'portal', 'website' => tr('job_room_helper.method.electronic'),
+        'mail' => tr('job_room_helper.method.letter'),
+        default => '',
+    };
+}
+
+function jobRoomApplicationResult(?string $status): string
+{
+    return match ((string) $status) {
+        'interview', 'assessment' => tr('job_room_helper.result.interview'),
+        'offer', 'accepted' => tr('job_room_helper.result.hired'),
+        'rejected', 'withdrawn', 'closed' => tr('job_room_helper.result.rejected'),
+        'sent', 'confirmed' => tr('job_room_helper.result.open'),
+        default => '',
+    };
+}
+
+function jobRoomWorkloadLabel(array $row): string
+{
+    $min = $row['workload_min'] !== null && $row['workload_min'] !== '' ? (int) $row['workload_min'] : null;
+    $max = $row['workload_max'] !== null && $row['workload_max'] !== '' ? (int) $row['workload_max'] : null;
+    if (($max !== null && $max >= 100 && ($min === null || $min >= 100)) || (string)($row['employment_type'] ?? '') === 'full_time') {
+        return tr('job_room_helper.workload.full_time');
+    }
+    if (($max !== null && $max > 0) || ($min !== null && $min > 0) || (string)($row['employment_type'] ?? '') === 'part_time') {
+        return tr('job_room_helper.workload.part_time');
+    }
+    return '';
+}
+
+function jobRoomCountryLabel(?string $countryCode): string
+{
+    $countryCode = strtoupper(trim((string) $countryCode));
+    if ($countryCode === '') {
+        return '';
+    }
+    if ($countryCode === 'CH') {
+        return tr('job_room_helper.country.switzerland');
+    }
+    return countryChoices()[$countryCode] ?? $countryCode;
+}
+
+function jobRoomHelperRows(mysqli $db, int $userId): array
+{
+    return dbAll(
+        $db,
+        'SELECT a.id application_id, a.status application_status, a.channel, a.applied_at, a.application_url, a.reference_number,
+                j.id job_id, j.title job_title, j.source_url, j.employment_type, j.workload_min, j.workload_max,
+                c.id company_id, c.name company_name, c.is_intermediary, c.email company_email, c.phone company_phone,
+                c.address_line1, c.address_line2, c.postal_code, c.city, c.country_code,
+                ct.first_name contact_first_name, ct.last_name contact_last_name, ct.email contact_email,
+                ct.phone contact_phone, ct.mobile contact_mobile
+         FROM applications a
+         JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL
+         JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
+         LEFT JOIN contacts ct ON ct.id=a.primary_contact_id AND ct.deleted_at IS NULL
+         WHERE a.user_id=? AND a.deleted_at IS NULL
+         ORDER BY COALESCE(a.applied_at, a.updated_at, a.created_at) DESC, c.name ASC, j.title ASC',
+        'i',
+        [$userId]
+    );
+}
+
+function jobRoomHelperFields(array $row, array $currentUser): array
+{
+    $contactName = trim((string)($row['contact_first_name'] ?? '') . ' ' . (string)($row['contact_last_name'] ?? ''));
+    $postalCity = trim(trim((string)($row['postal_code'] ?? '') . ' ' . (string)($row['city'] ?? '')));
+    $onlineLink = trim((string)($row['application_url'] ?? '')) ?: trim((string)($row['source_url'] ?? ''));
+    return [
+        'job_room_helper.field.date' => !empty($row['applied_at']) ? displayDateTime((string)$row['applied_at'], $currentUser, false) : '',
+        'job_room_helper.field.method' => jobRoomApplicationMethod($row['channel'] ?? null),
+        'job_room_helper.field.company' => jobRoomCompanyName($row),
+        'job_room_helper.field.street' => trim((string)($row['address_line1'] ?? '')),
+        'job_room_helper.field.po_box' => trim((string)($row['address_line2'] ?? '')),
+        'job_room_helper.field.country' => jobRoomCountryLabel($row['country_code'] ?? null),
+        'job_room_helper.field.postal_city' => $postalCity,
+        'job_room_helper.field.contact_person' => $contactName,
+        'job_room_helper.field.email' => trim((string)($row['contact_email'] ?? '')) ?: trim((string)($row['company_email'] ?? '')),
+        'job_room_helper.field.phone' => trim((string)($row['contact_phone'] ?? '')) ?: (trim((string)($row['contact_mobile'] ?? '')) ?: trim((string)($row['company_phone'] ?? ''))),
+        'job_room_helper.field.job_title' => trim((string)($row['job_title'] ?? '')),
+        'job_room_helper.field.online_form_link' => $onlineLink,
+        'job_room_helper.field.rav_assigned' => '',
+        'job_room_helper.field.workload' => jobRoomWorkloadLabel($row),
+        'job_room_helper.field.result' => jobRoomApplicationResult($row['application_status'] ?? null),
+    ];
+}
+
 function calendarEventTypeOptions(): array
 {
     return ['task'=>tr('calendar.type.task'),'follow_up'=>tr('calendar.type.follow_up'),'interview'=>tr('calendar.type.interview'),'deadline'=>tr('calendar.type.deadline'),'meeting'=>tr('calendar.type.meeting'),'reminder'=>tr('calendar.type.reminder'),'other'=>tr('common.other')];
@@ -3872,8 +3971,9 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
         }
     }
 
+    $proofKey = tr('reports.application_overview_proof');
     $sections = [
-        'Bewerbungsnachweis' => [
+        $proofKey => [
             'Bewerber: ' . ($name !== '' ? $name : (string)($currentUser['email'] ?? '')),
             'Erstellt am: ' . displayDateTime(date('Y-m-d H:i:s'), $currentUser),
             'Erfasste Bewerbungen: ' . count($applicationRows) . ' | Eingereicht: ' . $submittedCount,
@@ -3893,21 +3993,21 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
         $companyName = trim((string)$row['company_name']);
         $jobTitle = trim((string)$row['job_title']);
         if ($companyName !== $lastCompany) {
-            $sections['Bewerbungsnachweis'][] = 'Firma: ' . $companyName;
+            $sections[$proofKey][] = 'Firma: ' . $companyName;
             $lastCompany = $companyName;
         }
         $submittedAt = !empty($row['applied_at']) ? displayDateTime((string)$row['applied_at'], $currentUser) : 'noch nicht eingereicht';
         $status = $applicationStatuses[(string)$row['status']] ?? (string)$row['status'];
-        $sections['Bewerbungsnachweis'][] = 'Stelle: ' . $jobTitle;
-        $sections['Bewerbungsnachweis'][] = 'Nachweis: ' . $submittedAt . ' | Status: ' . $status;
+        $sections[$proofKey][] = 'Stelle: ' . $jobTitle;
+        $sections[$proofKey][] = 'Nachweis: ' . $submittedAt . ' | Status: ' . $status;
         $nextAction = trim((string)($row['next_action'] ?? ''));
         if ($nextAction !== '' || !empty($row['next_action_at'])) {
-            $sections['Bewerbungsnachweis'][] = 'Pendent: ' . ($nextAction !== '' ? ($nextActionLabels[$nextAction] ?? $nextAction) : 'offen') . (!empty($row['next_action_at']) ? ' | Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '');
+            $sections[$proofKey][] = 'Pendent: ' . ($nextAction !== '' ? ($nextActionLabels[$nextAction] ?? $nextAction) : 'offen') . (!empty($row['next_action_at']) ? ' | Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '');
         }
-        $sections['Bewerbungsnachweis'][] = '';
+        $sections[$proofKey][] = '';
     }
     if (!$applicationRows) {
-        $sections['Bewerbungsnachweis'][] = 'Keine Bewerbungen erfasst.';
+        $sections[$proofKey][] = 'Keine Bewerbungen erfasst.';
     }
     return $sections;
 
@@ -6279,7 +6379,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.45';
+$codeVersion = '1.15.46';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6530,19 +6630,20 @@ if ($page === 'export_pdf') {
         pdfResponse('report-' . $reportId . '.pdf', (string)$report['name'], $headers, $rows);
     }
     if ($type === 'rav') {
+        $applicationOverviewTitle = tr('reports.application_overview_title');
         try {
             $ravSections = ravDossierPdfSections($db, userId(), $currentUser);
         } catch (Throwable $exception) {
             error_log('RAV dossier export failed: ' . $exception->getMessage());
             $ravSections = [
-                'RAV-Bewerbungsdossier' => [
-                    'Das Dossier konnte nicht vollständig erstellt werden.',
-                    'Technischer Hinweis: ' . $exception->getMessage(),
-                    'Zeitpunkt: ' . date('Y-m-d H:i:s'),
+                $applicationOverviewTitle => [
+                    tr('reports.application_overview_error_incomplete'),
+                    tr('reports.application_overview_error_technical') . ': ' . $exception->getMessage(),
+                    tr('reports.application_overview_error_time') . ': ' . date('Y-m-d H:i:s'),
                 ],
             ];
         }
-        pdfTextResponse('RAV-Bewerbungsdossier-' . date('Y-m-d') . '.pdf', 'RAV-Bewerbungsdossier', $ravSections);
+        pdfTextResponse('Bewerbungsuebersicht-' . date('Y-m-d') . '.pdf', $applicationOverviewTitle, $ravSections);
     }
     if ($type === 'applications') {
         $applicationStatuses = applicationStatusOptions();
@@ -6611,7 +6712,7 @@ startUiTranslationBuffer($appLocale);
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.crm')) ?></button><div class="menu-panel"><a href="/?page=companies"><?= e(tr('nav.companies')) ?></a><a href="/?page=contacts"><?= e(tr('nav.contacts')) ?></a><a href="/?page=sharing"><?= e(tr('nav.sharing')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=pendents"><?= e(tr('nav.pendents')) ?></a><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=export_pdf&type=rav">RAV-Dossier PDF</a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.help')) ?></button><div class="menu-panel menu-panel-right"><a href="/?page=help"><?= e(tr('nav.help')) ?></a><a href="/?page=about"><?= e(tr('nav.about')) ?></a></div></div>
         </nav>
@@ -6911,10 +7012,55 @@ startUiTranslationBuffer($appLocale);
                     <div class="two"><label><?= e(tr('reports.sort_by')) ?><select name="report_sort"><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('reports.direction')) ?><select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>><?= e(tr('sf.asc')) ?></option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>><?= e(tr('sf.desc')) ?></option></select></label></div>
                     <div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= e($editReport ? tr('common.save_changes') : tr('common.save')) ?></button><?php if($editReport): ?><a class="button" href="/?page=reports"><?= e(tr('common.new')) ?></a><a class="button" href="/?page=export_pdf&type=report&report_id=<?= (int)$editReport['id'] ?>">PDF</a><?php endif; ?></div>
                 </form>
-                <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=export_pdf&type=rav">RAV-Dossier PDF</a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
+                <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a class="button" href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
             </section>
             <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
         </div>
+    <?php elseif ($page === 'job_room_helper'): ?>
+        <?php
+        $jobRoomRows = jobRoomHelperRows($db, userId());
+        ?>
+        <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('job_room_helper.title')) ?></h1></div><span><?= e(tr('job_room_helper.count', null, ['count' => (string) count($jobRoomRows)])) ?></span></div>
+        <section class="panel">
+            <p><?= e(tr('job_room_helper.intro')) ?></p>
+        </section>
+        <section class="job-room-list">
+            <?php foreach($jobRoomRows as $jobRoomRow): $jobRoomFields = jobRoomHelperFields($jobRoomRow, $currentUser); ?>
+                <article class="panel job-room-card">
+                    <div class="section-head">
+                        <div>
+                            <p class="eyebrow"><?= e(jobRoomCompanyName($jobRoomRow)) ?></p>
+                            <h2><?= e((string)$jobRoomRow['job_title']) ?></h2>
+                        </div>
+                        <a class="button" href="/?page=applications&edit=<?= (int)$jobRoomRow['application_id'] ?>#application-form"><?= e(tr('job_room_helper.open_application')) ?></a>
+                    </div>
+                    <div class="job-room-fields">
+                        <?php foreach($jobRoomFields as $labelKey => $fieldValue): ?>
+                            <div class="job-room-field">
+                                <strong><?= e(tr($labelKey)) ?></strong>
+                                <span><?= e((string)$fieldValue) ?></span>
+                                <?php if(trim((string)$fieldValue) !== ''): ?><button type="button" data-copy-value="<?= e((string)$fieldValue) ?>"><?= e(tr('job_room_helper.copy')) ?></button><?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+            <?php if(!$jobRoomRows): ?><div class="panel empty"><?= e(tr('job_room_helper.no_entries')) ?></div><?php endif; ?>
+        </section>
+        <script>
+            document.querySelectorAll('[data-copy-value]').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const original = button.textContent;
+                    try {
+                        await navigator.clipboard.writeText(button.dataset.copyValue || '');
+                        button.textContent = <?= json_encode(tr('job_room_helper.copied'), JSON_UNESCAPED_UNICODE) ?>;
+                        setTimeout(() => { button.textContent = original; }, 1400);
+                    } catch (error) {
+                        button.textContent = original;
+                    }
+                });
+            });
+        </script>
     <?php elseif ($page === 'calendar'): ?>
         <?php
         $calendarViews = calendarViewOptions();
