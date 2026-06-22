@@ -4253,7 +4253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = (string) $_POST['password'];
         $preferredLanguage = normalizeLocale((string) ($_POST['preferred_language'] ?? currentLocale(null)));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 10 || $first === '' || $last === '') {
-            flash('Bitte gültige Daten und mindestens 10 Passwortzeichen eingeben.', 'danger');
+            flash(tr('flash.auth.register_invalid'), 'danger');
             redirect('/?page=register');
         }
         try {
@@ -4282,18 +4282,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     sendSmtpMail($config, $email, $subject, $body);
                     logOutboundEmail($db, $newUserId, $email, $subject, $body, 'sent');
-                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. Bitte bestätige deine E-Mail-Adresse über den Link in deinem Postfach.';
+                    $_SESSION['email_verify_notice'] = tr('flash.auth.registered_verify_mail');
                 } catch (Throwable $exception) {
                     logOutboundEmail($db, $newUserId, $email, $subject, $body, 'failed', $exception->getMessage());
-                    $_SESSION['email_verify_notice'] = 'Registrierung gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte System-SMTP-Konfiguration prüfen.';
+                    $_SESSION['email_verify_notice'] = tr('flash.auth.registered_verify_mail_failed');
                 }
             } else {
-                $_SESSION['email_verify_notice'] = 'Registrierung gespeichert. E-Mail-Versand ist deaktiviert; das Konto wurde für die Testphase direkt bestätigt.';
+                $_SESSION['email_verify_notice'] = tr('flash.auth.registered_mail_disabled');
             }
-            flash($emailNeedsVerification ? 'Registrierung gespeichert. Bitte E-Mail bestätigen.' : 'Registrierung gespeichert. Du kannst dich jetzt direkt anmelden.');
+            flash(tr($emailNeedsVerification ? 'flash.auth.registered_verify' : 'flash.auth.registered_login'));
             redirect('/?page=login');
         } catch (mysqli_sql_exception $exception) {
-            flash('Diese E-Mail-Adresse ist bereits registriert.', 'danger');
+            flash(tr('flash.auth.email_registered'), 'danger');
             redirect('/?page=register');
         }
     }
@@ -4303,15 +4303,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = (string) $_POST['password'];
         $user = dbOne($db, 'SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', 's', [$email]);
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            flash('E-Mail oder Passwort ist falsch.', 'danger');
+            flash(tr('flash.auth.login_failed'), 'danger');
             redirect('/?page=login');
         }
         if (in_array((string) $user['status'], ['locked', 'disabled'], true)) {
-            flash('Dieses Konto ist gesperrt oder deaktiviert.', 'warning');
+            flash(tr('flash.auth.account_inactive'), 'warning');
             redirect('/?page=login');
         }
         if (empty($user['email_verified_at'])) {
-            flash('Bitte bestätige zuerst deine E-Mail-Adresse.', 'warning');
+            flash(tr('flash.auth.email_unverified'), 'warning');
             redirect('/?page=login');
         }
         $loginLocale = !empty($_SESSION['locale'])
@@ -4400,19 +4400,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (mailEnabledForUser($db, $config, (int) $user['id'])) {
                 try {
                     sendConfiguredMail($db, $config, (int) $user['id'], $email, $subject, $body);
-                    $_SESSION['password_reset_notice'] = 'Reset-Link wurde per E-Mail versendet.';
+                    $_SESSION['password_reset_notice'] = tr('flash.auth.reset_mail_sent');
                 } catch (Throwable $exception) {
-                    $_SESSION['password_reset_notice'] = 'E-Mail konnte nicht versendet werden. Bitte eigene SMTP-Konfiguration prüfen.';
+                    $_SESSION['password_reset_notice'] = tr('flash.auth.reset_mail_failed');
                 }
             } else {
                 $_SESSION['password_reset_link'] = $resetLink;
-                $_SESSION['password_reset_notice'] = 'Reset-Link wurde erstellt.';
+                $_SESSION['password_reset_notice'] = tr('flash.auth.reset_link_created');
             }
             audit($db, (int) $user['id'], 'other', 'auth_token', (int) $stmt->insert_id, null, ['token_type' => 'password_reset']);
         } else {
-            $_SESSION['password_reset_notice'] = 'Testphase: Für diese E-Mail wurde kein aktives Konto gefunden.';
+            $_SESSION['password_reset_notice'] = tr('flash.auth.reset_no_account');
         }
-        flash('Falls das Konto existiert, wurde ein Zurücksetzen vorbereitet.', 'success');
+        flash(tr('flash.auth.reset_prepared'), 'success');
         redirect('/?page=forgot_password&sent=1');
     }
 
@@ -4421,7 +4421,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = (string) ($_POST['password'] ?? '');
         $confirm = (string) ($_POST['password_confirm'] ?? '');
         if ($token === '' || strlen($password) < 10 || $password !== $confirm) {
-            flash('Token ungültig oder Passwörter passen nicht zusammen. Mindestens 10 Zeichen.', 'danger');
+            flash(tr('flash.auth.reset_invalid'), 'danger');
             redirect('/?page=reset_password&token=' . urlencode($token));
         }
         $tokenHash = hash('sha256', $token);
@@ -4440,7 +4440,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$tokenHash]
         );
         if (!$reset || in_array((string) $reset['status'], ['locked', 'disabled'], true)) {
-            flash('Dieser Link ist ungültig oder abgelaufen.', 'danger');
+            flash(tr('flash.auth.reset_link_invalid'), 'danger');
             redirect('/?page=forgot_password');
         }
         $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -4452,7 +4452,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, (int) $reset['user_id'], 'update', 'user', (int) $reset['user_id'], null, ['password_reset' => true]);
         unset($_SESSION['password_reset_link']);
-        flash('Passwort wurde geändert. Du kannst dich jetzt anmelden.');
+        flash(tr('flash.auth.password_changed_login'));
         redirect('/?page=login');
     }
 
@@ -4472,13 +4472,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $adminId = realUserId();
         audit($db, $targetId, 'other', 'support_access', $targetId, null, ['admin_user_id' => $adminId, 'ended' => true]);
         endSupportImpersonationSession();
-        flash('Support-Umgebung beendet. Du bist wieder in deinem Admin-Konto.');
+        flash(tr('flash.support.ended'));
         redirect('/?page=admin_users');
     }
 
     if ($action === 'grant_admin_support') {
         if (isSupportImpersonation()) {
-            flash('Support-Freigaben können während einer Support-Sitzung nicht geändert werden.', 'warning');
+            flash(tr('flash.support.grant_locked'), 'warning');
             redirect('/?page=profile#support-access');
         }
         $uid = userId();
@@ -4489,13 +4489,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('ii', $uid, $uid);
         $stmt->execute();
         audit($db, $uid, 'create', 'support_access', (int) $stmt->insert_id, null, ['granted' => true]);
-        flash('ADMIN Support ist freigegeben. Ein Administrator kann sich jetzt in deine Umgebung einklinken.');
+        flash(tr('flash.support.granted'));
         redirect('/?page=profile#support-access');
     }
 
     if ($action === 'revoke_admin_support') {
         if (isSupportImpersonation()) {
-            flash('Support-Freigaben können während einer Support-Sitzung nicht geändert werden.', 'warning');
+            flash(tr('flash.support.grant_locked'), 'warning');
             redirect('/?page=profile#support-access');
         }
         $uid = userId();
@@ -4503,7 +4503,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('ii', $uid, $uid);
         $stmt->execute();
         audit($db, $uid, 'delete', 'support_access', $uid, null, ['revoked' => true]);
-        flash('ADMIN Support wurde widerrufen.');
+        flash(tr('flash.support.revoked'));
         redirect('/?page=profile#support-access');
     }
 
@@ -4514,18 +4514,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit('Forbidden');
         }
         if (isSupportImpersonation()) {
-            flash('Beende zuerst die aktuelle Support-Umgebung.', 'warning');
+            flash(tr('flash.support.end_current_first'), 'warning');
             redirect('/');
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
         if ($targetUserId === $adminId) {
-            flash('Das eigene Konto kann nicht als Support-Umgebung geöffnet werden.', 'warning');
+            flash(tr('flash.support.own_account_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         $target = dbOne($db, "SELECT id, email, first_name, last_name, status FROM users WHERE id=? AND deleted_at IS NULL AND status NOT IN ('locked','disabled')", 'i', [$targetUserId]);
         $grant = activeSupportGrant($db, $targetUserId);
         if (!$target || !$grant) {
-            flash('Für diesen Benutzer liegt keine aktive ADMIN-Support-Freigabe vor.', 'danger');
+            flash(tr('flash.support.no_active_grant'), 'danger');
             redirect('/?page=admin_users');
         }
         $admin = dbOne($db, 'SELECT first_name, last_name, email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$adminId]) ?: [];
@@ -4537,7 +4537,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $targetUserId;
         $_SESSION['user_name'] = userLabel($target);
         audit($db, $targetUserId, 'other', 'support_access', (int) $grant['id'], null, ['admin_user_id' => $adminId, 'started' => true]);
-        flash('Support-Umgebung geöffnet: ' . userLabel($target));
+        flash(strtr(tr('flash.support.started'), ['{user}' => userLabel($target)]));
         redirect('/');
     }
 
@@ -4548,19 +4548,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
         if ($targetUserId === realUserId()) {
-            flash('Das eigene Admin-Konto kann hier nicht geändert werden.', 'warning');
+            flash(tr('flash.admin.own_account_update_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         $target = dbOne($db, 'SELECT id, email, first_name, last_name, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
         if (!$target) {
-            flash('Benutzer nicht gefunden.', 'danger');
+            flash(tr('flash.admin.user_not_found'), 'danger');
             redirect('/?page=admin_users');
         }
         $email = strtolower(trim((string) ($_POST['email'] ?? '')));
         $firstName = trim((string) ($_POST['first_name'] ?? ''));
         $lastName = trim((string) ($_POST['last_name'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $firstName === '' || $lastName === '') {
-            flash('Name und gültige E-Mail sind erforderlich.', 'danger');
+            flash(tr('flash.admin.user_required'), 'danger');
             redirect('/?page=admin_users');
         }
         $status = in_array($_POST['status'] ?? '', ['invited','active','locked','disabled'], true) ? (string) $_POST['status'] : (string) $target['status'];
@@ -4569,7 +4569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sssssi', $email, $firstName, $lastName, $status, $status, $targetUserId);
             $stmt->execute();
         } catch (mysqli_sql_exception) {
-            flash('Diese E-Mail-Adresse ist bereits vergeben.', 'danger');
+            flash(tr('flash.admin.email_taken'), 'danger');
             redirect('/?page=admin_users');
         }
 
@@ -4589,7 +4589,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         audit($db, realUserId(), 'update', 'user', $targetUserId, $target, ['email' => $email, 'first_name' => $firstName, 'last_name' => $lastName, 'status' => $status, 'is_admin' => $isAdminTarget]);
-        flash('Benutzer aktualisiert.');
+        flash(tr('flash.admin.user_updated'));
         redirect('/?page=admin_users');
     }
 
@@ -4600,14 +4600,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
         if ($targetUserId === realUserId()) {
-            flash('Das eigene Admin-Passwort bitte über Passwort vergessen oder Profil-Sicherheit ändern.', 'warning');
+            flash(tr('flash.admin.own_password_reset_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
         $password = (string) ($_POST['new_password'] ?? '');
         $confirm = (string) ($_POST['new_password_confirm'] ?? '');
         if (!$target || strlen($password) < 10 || $password !== $confirm) {
-            flash('Benutzer nicht gefunden oder Passwort ungültig. Mindestens 10 Zeichen und beide Felder gleich.', 'danger');
+            flash(tr('flash.admin.password_reset_invalid'), 'danger');
             redirect('/?page=admin_users');
         }
         $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -4618,7 +4618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
         audit($db, realUserId(), 'update', 'user', $targetUserId, ['admin_password_reset' => true], ['target_email' => $target['email']]);
-        flash('Passwort wurde zurückgesetzt.');
+        flash(tr('flash.admin.password_reset'));
         redirect('/?page=admin_users');
     }
 
@@ -4629,17 +4629,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
         if ($targetUserId === realUserId()) {
-            flash('Das eigene Admin-Konto kann hier nicht gelöscht werden.', 'warning');
+            flash(tr('flash.admin.own_delete_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         $target = dbOne($db, 'SELECT id, email, status FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
         if (!$target) {
-            flash('Benutzer nicht gefunden.', 'danger');
+            flash(tr('flash.admin.user_not_found'), 'danger');
             redirect('/?page=admin_users');
         }
         $adminEmails = array_map('strtolower', (array) ($config['admin_emails'] ?? ['admin@jema.business']));
         if (in_array(strtolower((string) $target['email']), $adminEmails, true)) {
-            flash('Ein Config-Admin kann hier nicht gelöscht werden.', 'warning');
+            flash(tr('flash.admin.config_delete_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         cleanupUserCascade($db, $targetUserId);
@@ -4650,7 +4650,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
         audit($db, realUserId(), 'delete', 'user', $targetUserId, $target, ['soft_delete' => true]);
-        flash('Benutzer wurde gelöscht.');
+        flash(tr('flash.admin.user_deleted'));
         redirect('/?page=admin_users');
     }
 
@@ -4661,12 +4661,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $targetUserId = (int) ($_POST['user_id'] ?? 0);
         if ($targetUserId === realUserId()) {
-            flash('Die eigene 2FA bitte im Profil verwalten.', 'warning');
+            flash(tr('flash.admin.own_2fa_reset_blocked'), 'warning');
             redirect('/?page=admin_users');
         }
         $target = dbOne($db, 'SELECT id, email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$targetUserId]);
         if (!$target) {
-            flash('Benutzer nicht gefunden.', 'danger');
+            flash(tr('flash.admin.user_not_found'), 'danger');
             redirect('/?page=admin_users');
         }
         $stmt = $db->prepare('DELETE FROM two_factor_methods WHERE user_id=?');
@@ -4676,7 +4676,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
         audit($db, realUserId(), 'delete', 'user', $targetUserId, ['two_factor_reset' => true], ['target_email' => $target['email']]);
-        flash('2FA wurde für den Benutzer zurückgesetzt.');
+        flash(tr('flash.admin.two_factor_reset'));
         redirect('/?page=admin_users');
     }
 
@@ -4730,7 +4730,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim((string) ($_POST['title'] ?? '')) ?: 'Freigabe';
         $expiresAt = trim((string) ($_POST['expires_at'] ?? '')) ?: null;
         if (!filter_var($recipient, FILTER_VALIDATE_EMAIL) || ($targetType !== 'area' && (!$targetId || !translationTargetExists($db, userId(), $targetType, (int)$targetId)))) {
-            flash('Empfänger und Ziel der Freigabe sind erforderlich.', 'danger');
+            flash(tr('flash.sharing.required'), 'danger');
             redirect('/?page=sharing');
         }
         if ($expiresAt) {
@@ -4750,12 +4750,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $body = "Hallo\n\nes wurde ein JeMa Jobs Bereich für dich freigegeben:\n" . $link . "\n\nDiese Freigabe ist persönlich und kann widerrufen werden.\n";
         try {
             if (sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body)) {
-                flash('Freigabe erstellt und per E-Mail versendet.');
+                flash(tr('flash.sharing.created_sent'));
             } else {
-                flash('Freigabe erstellt. Eigener SMTP-Versand ist nicht aktiv; Link wird angezeigt.', 'warning');
+                flash(tr('flash.sharing.created_no_smtp'), 'warning');
             }
         } catch (Throwable) {
-            flash('Freigabe erstellt. E-Mail konnte nicht versendet werden; Link wird angezeigt.', 'warning');
+            flash(tr('flash.sharing.created_mail_failed'), 'warning');
         }
         audit($db, $uid, 'create', 'guest_share', $shareId, null, ['target_type' => $targetType, 'target_id' => $targetId, 'recipient_email' => $recipient]);
         redirect('/?page=sharing');
@@ -4770,7 +4770,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid);
             $stmt->execute();
             audit($db, $uid, 'delete', 'guest_share', $id, $old, ['revoked' => true]);
-            flash('Freigabe widerrufen.');
+            flash(tr('flash.sharing.revoked'));
         }
         redirect('/?page=sharing');
     }
@@ -4789,7 +4789,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $body = trim((string) ($_POST['translation_body'] ?? ''));
         $uid = userId();
         if ($body === '' || $entityType === '' || $entityId < 1 || !translationTargetExists($db, $uid, $entityType, $entityId)) {
-            flash('Datensatz und Übersetzungstext sind erforderlich.', 'danger');
+            flash(tr('flash.translation.required'), 'danger');
             redirect('/?page=translations');
         }
         $existing = dbOne($db, 'SELECT COALESCE(MAX(version),0) v FROM record_translations WHERE owner_user_id=? AND entity_type=? AND entity_id=? AND target_language=?', 'isis', [$uid, $entityType, $entityId, $targetLanguage]);
@@ -4801,7 +4801,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('isisssi', $uid, $entityType, $entityId, $targetLanguage, $title, $body, $version);
         $stmt->execute();
         audit($db, $uid, 'create', 'record_translation', (int) $stmt->insert_id, null, ['entity_type' => $entityType, 'entity_id' => $entityId, 'target_language' => $targetLanguage, 'version' => $version]);
-        flash('Übersetzung gespeichert.');
+        flash(tr('flash.translation.saved'));
         redirect('/?page=translations');
     }
 
@@ -4809,19 +4809,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $target = (string) ($_POST['translation_target'] ?? '');
         $targetLanguage = normalizeLocale((string) ($_POST['target_language'] ?? 'de-CH'));
         if (!preg_match('/^(company|job|contact|application|document):(\d+)$/', $target, $matches)) {
-            flash('Bitte zuerst einen Datensatz auswählen.', 'danger');
+            flash(tr('flash.translation.select_record'), 'danger');
             redirect('/?page=translations');
         }
         $entityType = $matches[1];
         $entityId = (int) $matches[2];
         $uid = userId();
         if (!translationTargetExists($db, $uid, $entityType, $entityId)) {
-            flash('Der gewählte Datensatz ist nicht verfügbar.', 'danger');
+            flash(tr('flash.translation.record_unavailable'), 'danger');
             redirect('/?page=translations');
         }
         $source = translationSource($db, $uid, $entityType, $entityId, $currentUser ?? []);
         if (trim((string)$source['source']) === '') {
-            flash('Für diesen Datensatz ist kein Ausgangstext vorhanden.', 'warning');
+            flash(tr('flash.translation.no_source'), 'warning');
             redirect('/?page=translations');
         }
         $_SESSION['translation_draft'] = [
@@ -4830,7 +4830,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'title' => trim((string) ($_POST['translation_title'] ?? '')) ?: (string)$source['title'],
             'body' => translationPrompt($targetLanguage, (string)$source['title'], (string)$source['source']),
         ];
-        flash('Übersetzungsauftrag vorbereitet. Text kopieren, übersetzen lassen, Ergebnis hier einfügen und speichern.');
+        flash(tr('flash.translation.prepared'));
         redirect('/?page=translations#translation-form');
     }
 
@@ -4839,7 +4839,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $startsAt = trim((string) ($_POST['starts_at'] ?? ''));
         $eventType = in_array($_POST['event_type'] ?? '', ['task','follow_up','interview','deadline','meeting','reminder','other'], true) ? (string) $_POST['event_type'] : 'reminder';
         if ($title === '' || $startsAt === '') {
-            flash('Titel und Startzeit sind erforderlich.', 'danger');
+            flash(tr('flash.calendar.required'), 'danger');
             redirect('/?page=calendar&view=agenda');
         }
         $startsAt = str_replace('T', ' ', $startsAt) . (strlen($startsAt) === 16 ? ':00' : '');
@@ -4850,7 +4850,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('iissss', $uid, $applicationId, $title, $eventType, $startsAt, $notes);
         $stmt->execute();
         audit($db, $uid, 'create', 'calendar_event', (int) $stmt->insert_id, null, ['title' => $title, 'starts_at' => $startsAt]);
-        flash('Kalendereintrag gespeichert.');
+        flash(tr('flash.calendar.saved'));
         redirect('/?page=calendar&view=agenda');
     }
 
@@ -4860,7 +4860,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $baseEntity = array_key_exists((string) ($_POST['base_entity'] ?? ''), reportBaseOptions()) ? (string) $_POST['base_entity'] : 'jobs';
         $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
         if ($name === '') {
-            flash('Report-Name ist erforderlich.', 'danger');
+            flash(tr('flash.reports.name_required'), 'danger');
             redirect('/?page=reports');
         }
         $uid = userId();
@@ -4870,7 +4870,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $reportId = (int) $stmt->insert_id;
         saveReportSettings($db, $reportId, $baseEntity);
         audit($db, $uid, 'create', 'saved_report', $reportId, null, ['name' => $name, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
-        flash('Report gespeichert.');
+        flash(tr('flash.reports.saved'));
         redirect('/?page=reports');
     }
 
@@ -4882,7 +4882,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
         $old = dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$id, userId()]);
         if (!$old || $name === '') {
-            flash('Report konnte nicht aktualisiert werden.', 'danger');
+            flash(tr('flash.reports.update_failed'), 'danger');
             redirect('/?page=reports');
         }
         $uid = userId();
@@ -4891,7 +4891,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         saveReportSettings($db, $id, $baseEntity);
         audit($db, $uid, 'update', 'saved_report', $id, $old, ['name' => $name, 'description' => $description, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
-        flash('Report aktualisiert.');
+        flash(tr('flash.reports.updated'));
         redirect('/?page=reports&edit_report=' . $id);
     }
 
@@ -4906,14 +4906,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             audit($db, $uid, 'delete', 'saved_report', $id, $old, null);
         }
-        flash('Report gelöscht.');
+        flash(tr('flash.reports.deleted'));
         redirect('/?page=reports');
     }
 
     if ($action === 'request_cleanup') {
         $cutoff = trim((string) ($_POST['cutoff_date'] ?? ''));
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $cutoff)) {
-            flash('Stichtag ist erforderlich.', 'danger');
+            flash(tr('flash.cleanup.cutoff_required'), 'danger');
             redirect('/?page=privacy');
         }
         $preview = cleanupPreview($db, userId(), $cutoff);
@@ -4941,11 +4941,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sortOrder = max(0, (int)($_POST['sort_order'] ?? 0));
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
         if ($name === '' || $template === '' || !str_contains($template, '{q}')) {
-            flash('Name und Such-URL mit Platzhalter {q} sind erforderlich.', 'danger');
+            flash(tr('flash.platform.required'), 'danger');
             redirect('/?page=admin_job_platforms');
         }
         if ($baseUrl !== '' && !filter_var($baseUrl, FILTER_VALIDATE_URL)) {
-            flash('Basis-URL ist ungültig.', 'danger');
+            flash(tr('flash.platform.base_invalid'), 'danger');
             redirect('/?page=admin_job_platforms');
         }
         if ($platformId > 0) {
@@ -4955,13 +4955,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ssssiii', $name, $baseUrl, $template, $notes, $sortOrder, $isActive, $platformId);
             $stmt->execute();
             audit($db, realUserId(), 'update', 'job_platform', $platformId, $old, ['name'=>$name,'is_active'=>$isActive]);
-            flash('Jobplattform gespeichert.');
+            flash(tr('flash.platform.saved'));
         } else {
             $stmt = $db->prepare('INSERT INTO job_platforms (name, base_url, search_url_template, notes, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?)');
             $stmt->bind_param('ssssii', $name, $baseUrl, $template, $notes, $sortOrder, $isActive);
             $stmt->execute();
             audit($db, realUserId(), 'create', 'job_platform', (int)$stmt->insert_id, null, ['name'=>$name,'is_active'=>$isActive]);
-            flash('Jobplattform erstellt.');
+            flash(tr('flash.platform.created'));
         }
         redirect('/?page=admin_job_platforms');
     }
@@ -4978,7 +4978,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('i', $platformId);
             $stmt->execute();
             audit($db, realUserId(), 'delete', 'job_platform', $platformId, $old, null);
-            flash('Jobplattform deaktiviert.');
+            flash(tr('flash.platform.disabled'));
         }
         redirect('/?page=admin_job_platforms');
     }
@@ -4994,17 +4994,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
             $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
             if ($query === '') {
-                flash('Bitte einen Suchbegriff erfassen oder im Profil gewünschte Tätigkeiten / Rollen pflegen.', 'warning');
+                flash(tr('flash.search.query_required'), 'warning');
                 redirect('/?page=job_platform_search');
             }
             if (!$platformIds) {
-                flash('Bitte mindestens ein Portal auswählen.', 'warning');
+                flash(tr('flash.search.portal_required'), 'warning');
                 redirect('/?page=job_platform_search');
             }
             $platformIdSql = implode(',', array_map('intval', array_unique($platformIds)));
             $platforms = dbAll($db, "SELECT * FROM job_platforms WHERE id IN ($platformIdSql) AND is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name");
             if (!$platforms) {
-                flash('Keine aktiven Portale gefunden.', 'warning');
+                flash(tr('flash.search.no_active_portals'), 'warning');
                 redirect('/?page=job_platform_search');
             }
             $perPlatform = max(1, (int)ceil($total / count($platforms)));
@@ -5039,7 +5039,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'preview_import') {
         $payload = trim((string) ($_POST['import_payload'] ?? ''));
         if ($payload === '') {
-            flash('Bitte eine Stellen-URL oder den Ausschreibungstext einfügen.', 'danger');
+            flash(tr('flash.import.source_required'), 'danger');
             redirect('/?page=jobs');
         }
         $rawImportUrls = extractImportUrls($payload);
@@ -5101,9 +5101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['import_draft'] = count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)
                 ? importFromUrl($importUrls[0])
                 : importFromText($payload);
-            flash('Import gelesen. Bitte Vorschlag prüfen und speichern.');
+            flash(tr('flash.import.read'));
         } catch (Throwable $exception) {
-            flash('Import nicht möglich: ' . $exception->getMessage(), 'danger');
+            flash(strtr(tr('flash.import.failed'), ['{error}' => $exception->getMessage()]), 'danger');
         }
         redirect('/?page=jobs#new');
     }
@@ -5125,7 +5125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $city = trim((string) ($_POST['city'] ?? '')) ?: null;
         [$country, $region] = countryForRegion((string) ($_POST['region_key'] ?? ''));
         if ($first === '' || $last === '') {
-            flash('Vorname und Nachname sind erforderlich.', 'danger');
+            flash(tr('flash.profile.name_required'), 'danger');
             redirect('/?page=profile');
         }
         foreach (['LinkedIn'=>$linkedinUrl, 'Facebook'=>$facebookUrl, 'X'=>$xUrl, 'Andere'=>$otherProfileUrl] as $label => $url) {
@@ -5218,7 +5218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_name'] = $first . ' ' . $last;
         $_SESSION['locale'] = $language;
         audit($db, $uid, 'update', 'profile', $uid, $old, ['first_name'=>$first,'last_name'=>$last,'preferred_language'=>$language,'timezone'=>$timezone,'language_skills'=>$savedLanguageSkills]);
-        flash('Profil gespeichert.');
+        flash(tr('flash.profile.saved'));
         redirect('/?page=profile');
     }
 
@@ -5234,7 +5234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fromName = trim((string) ($_POST['from_name'] ?? '')) ?: null;
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
         if ($host === '' || $port < 1 || $port > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
-            flash('SMTP-Host, Port und Absender-E-Mail sind erforderlich.', 'danger');
+            flash(tr('flash.smtp.required'), 'danger');
             redirect('/?page=profile#smtp');
         }
         $existing = dbOne($db, 'SELECT smtp_password_encrypted FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [$uid]);
@@ -5256,12 +5256,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $smtpTestUser = dbOne($db, 'SELECT email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$uid]);
                 sendConfiguredMail($db, $config, $uid, (string) ($smtpTestUser['email'] ?? $fromEmail), 'JeMa Jobs SMTP-Test', "Hallo\n\nDer E-Mail-Versand über deine SMTP-Konfiguration funktioniert.\n");
-                flash('SMTP gespeichert und Test-E-Mail versendet.');
+                flash(tr('flash.smtp.saved_test_sent'));
             } catch (Throwable $exception) {
-                flash('SMTP gespeichert, Test-E-Mail fehlgeschlagen: ' . $exception->getMessage(), 'danger');
+                flash(strtr(tr('flash.smtp.saved_test_failed'), ['{error}' => $exception->getMessage()]), 'danger');
             }
         } else {
-            flash('SMTP-Einstellungen gespeichert.');
+            flash(tr('flash.smtp.saved'));
         }
         redirect('/?page=profile#smtp');
     }
@@ -5292,7 +5292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $type = dbOne($db, 'SELECT id, code FROM document_types WHERE id=?', 'i', [$documentTypeId]);
         if (!$type || !in_array((string) $type['code'], allowedDocumentTypeCodes($scope), true) || $title === '') {
-            flash('Dokumenttyp und Titel sind erforderlich.', 'danger');
+            flash(tr('flash.documents.required'), 'danger');
             redirect($redirectTarget);
         }
         try {
@@ -5342,9 +5342,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $linkStmt->execute();
             }
             audit($db, $uid, 'create', 'user_document', $newDocumentId, null, ['title'=>$title,'version'=>$version,'scope'=>$scope,'application_id'=>$applicationId]);
-            flash('Dokument gespeichert.');
+            flash(tr('flash.documents.saved'));
         } catch (Throwable $exception) {
-            flash('Dokument konnte nicht gespeichert werden: ' . $exception->getMessage(), 'danger');
+            flash(strtr(tr('flash.documents.save_failed'), ['{error}' => $exception->getMessage()]), 'danger');
         }
         redirect($redirectTarget);
     }
@@ -5362,14 +5362,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old = dbOne($db, "SELECT id, document_type_id, language_code, title, description, valid_from, valid_until FROM user_documents WHERE id=? AND user_id=? AND scope='profile' AND deleted_at IS NULL", 'ii', [$id, $uid]);
         $type = dbOne($db, 'SELECT id, code FROM document_types WHERE id=?', 'i', [$documentTypeId]);
         if (!$old || !$type || !in_array((string) $type['code'], allowedDocumentTypeCodes('profile'), true) || $title === '') {
-            flash('Dokument konnte nicht aktualisiert werden.', 'danger');
+            flash(tr('flash.documents.update_failed'), 'danger');
             redirect('/?page=documents');
         }
         $stmt = $db->prepare('UPDATE user_documents SET document_type_id=?, language_code=?, title=?, description=?, valid_from=?, valid_until=? WHERE id=? AND user_id=?');
         $stmt->bind_param('isssssii', $documentTypeId, $languageCode, $title, $description, $validFrom, $validUntil, $id, $uid);
         $stmt->execute();
         audit($db, $uid, 'update', 'user_document', $id, $old, ['document_type_id'=>$documentTypeId,'language_code'=>$languageCode,'title'=>$title,'description'=>$description,'valid_from'=>$validFrom,'valid_until'=>$validUntil]);
-        flash('Dokument aktualisiert.');
+        flash(tr('flash.documents.updated'));
         redirect('/?page=documents&edit_document=' . $id);
     }
 
@@ -5383,7 +5383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid);
             $stmt->execute();
             audit($db, $uid, 'delete', 'user_document', $id, $old, null);
-            flash('Dokument gelöscht.');
+            flash(tr('flash.documents.deleted'));
         }
         $returnTo = (string) ($_POST['document_return'] ?? '');
         $target = $old && ($old['scope'] ?? '') === 'application' && !empty($old['application_id'])
@@ -5429,7 +5429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('iii', $applicationId, $documentId, $uid);
         $stmt->execute();
         audit($db, $uid, 'delete', 'application_document', $documentId, ['application_id'=>$applicationId], null);
-        flash('Dokument-Zuordnung entfernt.');
+        flash(tr('flash.documents.link_removed'));
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
 
@@ -5449,7 +5449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $region = $region ?? '';
         $isIntermediary = !empty($_POST['is_intermediary']) ? 1 : 0;
         if ($name === '') {
-            flash('Firmenname ist erforderlich.', 'danger');
+            flash(tr('flash.companies.name_required'), 'danger');
             redirect('/?page=companies');
         }
         if ($id > 0) {
@@ -5470,7 +5470,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'company', $id, null, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1, 'notes' => $notes, 'is_intermediary' => $isIntermediary]);
         }
-        flash('Firma gespeichert.');
+        flash(tr('flash.companies.saved'));
         redirect('/?page=companies');
     }
 
@@ -5484,7 +5484,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'company', $id, $old, null);
         }
-        flash('Firma gelöscht.');
+        flash(tr('flash.companies.deleted'));
         redirect('/?page=companies');
     }
 
@@ -5523,7 +5523,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $company = dbOne($db, 'SELECT id FROM companies WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$companyId, userId()]);
         if (!$company || $title === '') {
-            flash('Firma und Jobtitel sind erforderlich.', 'danger'); redirect('/?page=jobs');
+            flash(tr('flash.jobs.required'), 'danger'); redirect('/?page=jobs');
         }
         $duplicate = dbOne(
             $db,
@@ -5531,7 +5531,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'iisi', [userId(), $companyId, $title, $id]
         );
         if ($duplicate && empty($_POST['confirm_duplicate'])) {
-            flash('Mögliche Dublette gefunden: ' . $duplicate['title'] . '. Zum Speichern Dublette bestätigen.', 'warning');
+            flash(strtr(tr('flash.jobs.duplicate'), ['{title}' => $duplicate['title']]), 'warning');
             redirect('/?page=jobs&duplicate=1');
         }
         if ($id > 0) {
@@ -5567,7 +5567,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
         }
-        flash('Job gespeichert.');
+        flash(tr('flash.jobs.saved'));
         unset($_SESSION['import_draft']);
         redirect('/?page=jobs');
     }
@@ -5582,7 +5582,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'job', $id, $old, null);
         }
-        flash('Job gelöscht.');
+        flash(tr('flash.jobs.deleted'));
         redirect('/?page=jobs');
     }
 
@@ -5593,7 +5593,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sortOrder = max(0, (int) ($_POST['sort_order'] ?? 0));
         $job = dbOne($db, 'SELECT id FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
         if (!$job || $question === '') {
-            flash('Frage konnte nicht gespeichert werden.', 'danger');
+            flash(tr('flash.questions.save_failed'), 'danger');
             redirect('/?page=jobs&edit=' . $jobId . '#job-questions');
         }
         $uid = userId();
@@ -5601,7 +5601,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('iissi', $uid, $jobId, $question, $answer, $sortOrder);
         $stmt->execute();
         audit($db, $uid, 'create', 'job_question', (int)$stmt->insert_id, null, ['job_id'=>$jobId,'question_text'=>$question]);
-        flash('Frage gespeichert.');
+        flash(tr('flash.questions.saved'));
         redirect('/?page=jobs&edit=' . $jobId . '#job-questions');
     }
 
@@ -5614,10 +5614,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $questionId, $uid);
             $stmt->execute();
             audit($db, $uid, 'delete', 'job_question', $questionId, $question, null);
-            flash('Frage gelöscht.');
+            flash(tr('flash.questions.deleted'));
             redirect('/?page=jobs&edit=' . (int)$question['job_id'] . '#job-questions');
         }
-        flash('Frage nicht gefunden.', 'danger');
+        flash(tr('flash.questions.not_found'), 'danger');
         redirect('/?page=jobs');
     }
 
@@ -5625,7 +5625,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jobId = (int) ($_POST['job_id'] ?? 0);
         $job = dbOne($db, 'SELECT id, title, source_url FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
         if (!$job) {
-            flash('Diese Stelle ist nicht mehr verfügbar.', 'danger');
+            flash(tr('flash.jobs.unavailable'), 'danger');
             redirect('/?page=jobs');
         }
         $existing = dbOne($db, 'SELECT id FROM applications WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [userId(), $jobId]);
@@ -5696,7 +5696,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $language = $languageInput !== '' ? normalizeLocale($languageInput) : null;
         $notes = trim((string) ($_POST['contact_notes'] ?? ''));
         if ($firstName === '' || $lastName === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) {
-            flash('Vorname, Nachname und eine gültige E-Mail-Adresse sind erforderlich.', 'danger');
+            flash(tr('flash.contacts.required'), 'danger');
             redirect('/?page=applications&edit=' . $applicationId . '#contacts');
         }
         $uid = userId(); $employerCompanyId = (int) $application['company_id']; $jobId = (int) $application['job_id'];
@@ -5723,7 +5723,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('iii', $contactId, $applicationId, $uid);
             $stmt->execute();
         }
-        flash('Kontakt gespeichert.');
+        flash(tr('flash.contacts.saved'));
         redirect('/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contacts');
     }
 
@@ -5743,7 +5743,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $language = $languageInput !== '' ? normalizeLocale($languageInput) : null;
         $notes = trim((string) ($_POST['contact_notes'] ?? ''));
         if ($firstName === '' || $lastName === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) {
-            flash('Vorname, Nachname und eine gültige E-Mail-Adresse sind erforderlich.', 'danger');
+            flash(tr('flash.contacts.required'), 'danger');
             redirect('/?page=jobs&edit=' . $jobId . '#job-contacts');
         }
         $uid = userId();
@@ -5753,7 +5753,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $contactId = (int) $stmt->insert_id;
         audit($db, $uid, 'create', 'contact', $contactId, null, ['first_name'=>$firstName,'last_name'=>$lastName,'email'=>$email,'job_id'=>$jobId]);
-        flash('Kontakt zur Stelle gespeichert.');
+        flash(tr('flash.contacts.job_saved'));
         redirect('/?page=jobs&edit=' . $jobId . '#job-contacts');
     }
 
@@ -5775,14 +5775,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old = dbOne($db, 'SELECT id, company_id, first_name, last_name, email FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contactId, $uid]);
         $company = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$companyId, $uid]);
         if (!$old || !$company || $firstName === '' || $lastName === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) {
-            flash('Kontakt konnte nicht gespeichert werden. Bitte Pflichtfelder prüfen.', 'danger');
+            flash(tr('flash.contacts.save_failed'), 'danger');
             redirect('/?page=contacts&edit_contact=' . $contactId);
         }
         $stmt = $db->prepare('UPDATE contacts SET company_id=?, first_name=?, last_name=?, position=?, department=?, email=?, phone=?, mobile=?, linkedin_url=?, preferred_language=?, notes=? WHERE id=? AND owner_user_id=?');
         $stmt->bind_param('issssssssssii', $companyId, $firstName, $lastName, $position, $department, $email, $phone, $mobile, $linkedin, $language, $notes, $contactId, $uid);
         $stmt->execute();
         audit($db, $uid, 'update', 'contact', $contactId, $old, ['company_id'=>$companyId,'first_name'=>$firstName,'last_name'=>$lastName,'email'=>$email]);
-        flash('Kontakt aktualisiert.');
+        flash(tr('flash.contacts.updated'));
         redirect('/?page=contacts&edit_contact=' . $contactId);
     }
 
@@ -5815,11 +5815,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $attachmentId = saveContactLogAttachment($db, $uid, $contactId, $logId, trim((string)$relation['first_name'] . ' ' . (string)$relation['last_name']), $subject);
         } catch (Throwable $exception) {
-            flash('Kontaktaktivität gespeichert, aber Anhang konnte nicht abgelegt werden: ' . $exception->getMessage(), 'warning');
+            flash(strtr(tr('flash.contact_log.saved_attachment_failed'), ['{error}' => $exception->getMessage()]), 'warning');
             redirect($applicationId > 0 ? '/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contact-log' : '/?page=contacts&edit_contact=' . $contactId . '#contact-log');
         }
         audit($db, $uid, 'create', 'contact_log', $logId, null, ['contact_id'=>$contactId,'application_id'=>$logApplicationId,'channel'=>$channel,'direction'=>$direction,'status'=>$logStatus,'subject'=>$subject]);
-        flash('Kontaktaktivität gespeichert.');
+        flash(tr('flash.contact_log.saved'));
         redirect($applicationId > 0 ? '/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contact-log' : '/?page=contacts&edit_contact=' . $contactId . '#contact-log');
     }
 
@@ -5848,11 +5848,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             saveContactLogAttachment($db, $uid, (int)$old['contact_id'], $logId, trim((string)($contact['first_name'] ?? '') . ' ' . (string)($contact['last_name'] ?? '')), $subject);
         } catch (Throwable $exception) {
-            flash('Kontaktaktivität aktualisiert, aber Anhang konnte nicht abgelegt werden: ' . $exception->getMessage(), 'warning');
+            flash(strtr(tr('flash.contact_log.updated_attachment_failed'), ['{error}' => $exception->getMessage()]), 'warning');
             redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
         }
         audit($db, $uid, 'update', 'contact_log', $logId, $old, ['status'=>$logStatus,'subject'=>$subject]);
-        flash('Kontaktaktivität aktualisiert.');
+        flash(tr('flash.contact_log.updated'));
         redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
     }
 
@@ -5866,10 +5866,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $logId, $uid);
             $stmt->execute();
             audit($db, $uid, 'delete', 'contact_log', $logId, $old, null);
-            flash('Kontaktaktivität gelöscht.');
+            flash(tr('flash.contact_log.deleted'));
             redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
         }
-        flash('Kontaktaktivität nicht gefunden.', 'danger');
+        flash(tr('flash.contact_log.not_found'), 'danger');
         redirect('/?page=contacts');
     }
 
@@ -6017,7 +6017,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subject = trim((string) ($_POST['email_subject'] ?? ($application['email_subject'] ?? '')));
         $body = trim((string) ($_POST['email_body'] ?? ($application['email_body'] ?? '')));
         if (!$application || !filter_var($recipient, FILTER_VALIDATE_EMAIL) || $subject === '' || $body === '') {
-            flash('Empfänger, Betreff und Begleittext sind erforderlich.', 'danger');
+            flash(tr('flash.applications.mail_required'), 'danger');
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         $uid = userId();
@@ -6026,7 +6026,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body, $attachments);
         } catch (Throwable) {
-            flash('E-Mail konnte nicht versendet werden. Bitte eigene SMTP-Konfiguration prüfen.', 'danger');
+            flash(tr('flash.applications.mail_failed'), 'danger');
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         if ($sent) {
@@ -6046,7 +6046,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
             flash(tr('applications.email_sent'));
         } else {
-            flash('Eigener SMTP-Versand ist nicht aktiv. E-Mail wurde als Entwurf protokolliert.', 'warning');
+            flash(tr('flash.applications.smtp_missing_draft'), 'warning');
         }
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
@@ -6092,7 +6092,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.43';
+$codeVersion = '1.15.44';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6106,7 +6106,7 @@ if (isSupportImpersonation()) {
     $targetId = (int) ($_SESSION['support_target_user_id'] ?? 0);
     if ($targetId !== userId() || !activeSupportGrant($db, $targetId) || !$currentUser) {
         endSupportImpersonationSession();
-        flash('ADMIN Support wurde beendet, weil die Freigabe nicht mehr aktiv ist.', 'warning');
+        flash(tr('flash.support.ended_inactive_grant'), 'warning');
         redirect('/?page=admin_users');
     }
 }
@@ -6141,9 +6141,9 @@ if ($page === 'verify_email') {
         $stmt->bind_param('i', $reset['token_id']);
         $stmt->execute();
         audit($db, (int) $reset['user_id'], 'update', 'user', (int) $reset['user_id'], null, ['email_verified' => true]);
-        flash('E-Mail-Adresse bestätigt. Du kannst dich jetzt anmelden.');
+        flash(tr('flash.auth.email_verified'));
     } else {
-        flash('Dieser Bestätigungslink ist ungültig oder abgelaufen.', 'danger');
+        flash(tr('flash.auth.verify_link_invalid'), 'danger');
     }
     redirect('/?page=login');
 }
@@ -6241,7 +6241,7 @@ if ($page === 'application_documents_temp') {
     }
     $package = createApplicationTempPackage($db, userId(), $applicationId);
     if (!$package) {
-        flash('Keine Bewerbungsdokumente für einen temporären Ordner vorhanden.', 'warning');
+        flash(tr('flash.applications.no_temp_documents'), 'warning');
         redirect('/?page=applications&edit=' . $applicationId . '#documents');
     }
     startUiTranslationBuffer($appLocale);
