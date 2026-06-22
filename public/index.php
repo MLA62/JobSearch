@@ -3733,6 +3733,121 @@ function dossierPdfSections(array $dossier): array
     return $sections;
 }
 
+function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): array
+{
+    $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [$userId]) ?: [];
+    $languages = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [$userId]);
+    $applicationStatuses = applicationStatusOptions();
+    $applicationChannels = applicationChannelOptions();
+    $nextActionLabels = applicationNextActionOptions();
+    $contactLogStatuses = contactLogStatusOptions();
+    $calendarStatuses = calendarStatusOptions();
+
+    $applicationRows = dbAll($db, 'SELECT a.id, a.status, a.channel, a.applied_at, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY COALESCE(a.applied_at, a.created_at) DESC, a.id DESC', 'i', [$userId]);
+    $applicationPendents = dbAll($db, "SELECT a.id, a.status, a.next_action, a.next_action_at due_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL AND a.status NOT IN ('rejected','withdrawn','closed') ORDER BY a.next_action_at ASC", 'i', [$userId]);
+    $contactPendents = dbAll($db, 'SELECT l.status, l.subject, l.follow_up_at due_at, ct.first_name, ct.last_name, co.name company_name FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id AND ct.deleted_at IS NULL JOIN companies co ON co.id=l.company_id AND co.deleted_at IS NULL WHERE l.owner_user_id=? AND l.follow_up_at IS NOT NULL AND l.status IN ("open","planned") ORDER BY l.follow_up_at ASC', 'i', [$userId]);
+    $calendarPendents = dbAll($db, 'SELECT ce.title, ce.event_type, ce.status, ce.starts_at due_at, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE ce.owner_user_id=? AND ce.status="planned" ORDER BY ce.starts_at ASC', 'i', [$userId]);
+    $contactLogs = dbAll($db, 'SELECT l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,1200) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name, j.title job_title FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id LEFT JOIN jobs j ON j.id=l.job_id WHERE l.owner_user_id=? ORDER BY l.occurred_at DESC LIMIT 120', 'i', [$userId]);
+    $calendarEvents = dbAll($db, 'SELECT ce.title, ce.event_type, ce.status, ce.starts_at, ce.ends_at, ce.notes, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at DESC LIMIT 120', 'i', [$userId]);
+    $documents = dbAll($db, 'SELECT d.title, d.version, d.original_filename, d.file_size, d.created_at, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope="profile" AND d.deleted_at IS NULL AND d.is_current=1 ORDER BY dt.sort_order, d.title', 'i', [$userId]);
+
+    $name = trim((string)($currentUser['first_name'] ?? '') . ' ' . (string)($currentUser['last_name'] ?? ''));
+    $phone = trim((string)($currentUser['phone'] ?? '') . ' ' . (string)($currentUser['mobile'] ?? ''));
+    $location = trim((string)($currentUser['city'] ?? '') . ' / ' . (string)($currentUser['region'] ?? '') . ' / ' . (string)($currentUser['country_code'] ?? ''), ' /');
+    $languageLine = $languages ? implode(', ', array_map(static fn(array $row): string => trim((string)$row['language_name'] . ' ' . (string)$row['cefr_level']), $languages)) : 'keine Sprachkenntnisse erfasst';
+    $salaryLine = trim((string)($preference['salary_min'] ?? '') . ' ' . (string)($preference['salary_currency'] ?? '') . ' / ' . (salaryPeriodOptions()[(string)($preference['salary_period'] ?? '')] ?? (string)($preference['salary_period'] ?? '')), ' /');
+    $workloadLine = trim((string)($preference['workload_min'] ?? '') . ' - ' . (string)($preference['workload_max'] ?? '') . '%', ' -%');
+    $submittedCount = 0;
+    foreach ($applicationRows as $row) {
+        if (!empty($row['applied_at']) || in_array((string)$row['status'], ['sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed'], true)) {
+            $submittedCount++;
+        }
+    }
+
+    $sections = [
+        'Übersicht' => [
+            'Erstellt am: ' . displayDateTime(date('Y-m-d H:i:s'), $currentUser),
+            'Bewerber: ' . ($name !== '' ? $name : (string)($currentUser['email'] ?? '')),
+            'Erfasste Bewerbungen: ' . count($applicationRows),
+            'Eingereichte Bewerbungen: ' . $submittedCount,
+            'Offene Pendenzen: ' . (count($applicationPendents) + count($contactPendents) + count($calendarPendents)),
+        ],
+        'Personalien' => [
+            'Name: ' . $name,
+            'E-Mail: ' . (string)($currentUser['email'] ?? ''),
+            'Telefon/Mobil: ' . $phone,
+            'Ort/Region/Land: ' . $location,
+            'LinkedIn: ' . (string)($currentUser['linkedin_url'] ?? ''),
+            'Facebook: ' . (string)($currentUser['facebook_url'] ?? ''),
+            'X: ' . (string)($currentUser['x_url'] ?? ''),
+            'Weitere Profile: ' . (string)($currentUser['other_profile_url'] ?? ''),
+            'Sprachen: ' . $languageLine,
+        ],
+        'Job-Präferenzen' => [
+            'Gewünschte Tätigkeiten/Rollen: ' . (string)($preference['desired_roles'] ?? ''),
+            'Gewünschte Orte/Regionen: ' . (string)($preference['desired_locations'] ?? ''),
+            'Arbeitsmodell: ' . (string)($preference['remote_preference'] ?? ''),
+            'Stellenarten: ' . (string)($preference['employment_types'] ?? ''),
+            'Pensum: ' . $workloadLine,
+            'Lohnvorstellung: ' . $salaryLine,
+            'Level/Lage: ' . (string)($preference['desired_level'] ?? ''),
+            'PK / Extras / Benefits: ' . (string)($preference['desired_benefits'] ?? ''),
+            'Ausschlüsse: ' . (string)($preference['excluded_industries'] ?? ''),
+            'Umzug möglich: ' . (!empty($preference['willing_to_relocate']) ? 'ja' : 'nein'),
+            'Reisebereitschaft: ' . (string)($preference['travel_percentage'] ?? '') . '%',
+            'Verfügbar ab: ' . (string)($preference['available_from'] ?? ''),
+            'Notizen: ' . (string)($preference['notes'] ?? ''),
+        ],
+        'Pendenzenliste' => [],
+        'Stammdokumente' => [],
+        'Bewerbungsbemühungen' => [],
+        'Aktivitäten / Nachweise' => [],
+    ];
+
+    foreach ($applicationPendents as $row) {
+        $title = (string)($row['next_action'] ?: 'Pendent');
+        $sections['Pendenzenliste'][] = displayDateTime((string)$row['due_at'], $currentUser) . ' | Bewerbung | ' . ($nextActionLabels[$title] ?? $title) . ' | ' . (string)$row['job_title'] . ' | ' . (string)$row['company_name'];
+    }
+    foreach ($contactPendents as $row) {
+        $sections['Pendenzenliste'][] = displayDateTime((string)$row['due_at'], $currentUser) . ' | Kontakt | ' . (string)$row['subject'] . ' | ' . trim((string)$row['first_name'] . ' ' . (string)$row['last_name']) . ' | ' . (string)$row['company_name'] . ' | ' . ($contactLogStatuses[(string)$row['status']] ?? (string)$row['status']);
+    }
+    foreach ($calendarPendents as $row) {
+        $sections['Pendenzenliste'][] = displayDateTime((string)$row['due_at'], $currentUser) . ' | Kalender | ' . (string)$row['title'] . ' | ' . trim((string)($row['job_title'] ?? '') . ' ' . (string)($row['company_name'] ?? '')) . ' | ' . ($calendarStatuses[(string)$row['status']] ?? (string)$row['status']);
+    }
+
+    foreach ($documents as $row) {
+        $sections['Stammdokumente'][] = documentTypeLabel((string)$row['type_code'], (string)($currentUser['preferred_language'] ?? 'de-CH')) . ' | ' . (string)$row['title'] . ' | v' . (int)$row['version'] . ' | ' . (string)$row['original_filename'] . ' | ' . bytesLabel((int)$row['file_size']) . ' | ' . displayDateTime((string)$row['created_at'], $currentUser);
+    }
+
+    foreach ($applicationRows as $row) {
+        $title = (string)($row['next_action'] ?: '');
+        $effortParts = [
+            displayDateTime((string)($row['applied_at'] ?: ''), $currentUser) ?: 'noch nicht eingereicht',
+            (string)$row['job_title'],
+            (string)$row['company_name'],
+            $applicationStatuses[(string)$row['status']] ?? (string)$row['status'],
+            $applicationChannels[(string)$row['channel']] ?? (string)$row['channel'],
+            $title !== '' ? 'Nächster Schritt: ' . ($nextActionLabels[$title] ?? $title) : '',
+            !empty($row['next_action_at']) ? 'Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '',
+        ];
+        $sections['Bewerbungsbemühungen'][] = implode(' | ', array_filter($effortParts, static fn($value): bool => trim((string)$value) !== ''));
+    }
+
+    foreach ($contactLogs as $row) {
+        $sections['Aktivitäten / Nachweise'][] = displayDateTime((string)$row['occurred_at'], $currentUser) . ' | Kontaktlog | ' . (string)$row['subject'] . ' | ' . trim((string)$row['first_name'] . ' ' . (string)$row['last_name']) . ' | ' . (string)$row['company_name'] . ' | ' . (string)($row['job_title'] ?? '') . ' | ' . (string)$row['outcome'];
+    }
+    foreach ($calendarEvents as $row) {
+        $sections['Aktivitäten / Nachweise'][] = displayDateTime((string)$row['starts_at'], $currentUser) . ' | Kalender | ' . (string)$row['title'] . ' | ' . (string)($row['job_title'] ?? '') . ' | ' . (string)($row['company_name'] ?? '') . ' | ' . ($calendarStatuses[(string)$row['status']] ?? (string)$row['status']);
+    }
+
+    foreach ($sections as $section => $lines) {
+        if (!$lines) {
+            $sections[$section] = ['Keine Einträge vorhanden.'];
+        }
+    }
+    return $sections;
+}
+
 function allowedDocumentTypeCodes(string $scope): array
 {
     if ($scope === 'application') {
@@ -5788,7 +5903,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.33';
+$codeVersion = '1.15.34';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6038,6 +6153,9 @@ if ($page === 'export_pdf') {
         [$headers, $rows] = reportDataset($db, userId(), $report, $settings, $currentUser);
         pdfResponse('report-' . $reportId . '.pdf', (string)$report['name'], $headers, $rows);
     }
+    if ($type === 'rav') {
+        pdfTextResponse('RAV-Bewerbungsdossier-' . date('Y-m-d') . '.pdf', 'RAV-Bewerbungsdossier', ravDossierPdfSections($db, userId(), $currentUser));
+    }
     if ($type === 'applications') {
         $applicationStatuses = applicationStatusOptions();
         $applicationChannels = applicationChannelOptions();
@@ -6105,7 +6223,7 @@ startUiTranslationBuffer($appLocale);
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.crm')) ?></button><div class="menu-panel"><a href="/?page=companies"><?= e(tr('nav.companies')) ?></a><a href="/?page=contacts"><?= e(tr('nav.contacts')) ?></a><a href="/?page=sharing"><?= e(tr('nav.sharing')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=pendents"><?= e(tr('nav.pendents')) ?></a><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=export_pdf&type=rav">RAV-Dossier PDF</a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.help')) ?></button><div class="menu-panel menu-panel-right"><a href="/?page=help"><?= e(tr('nav.help')) ?></a><a href="/?page=about"><?= e(tr('nav.about')) ?></a></div></div>
         </nav>
@@ -6405,7 +6523,7 @@ startUiTranslationBuffer($appLocale);
                     <div class="two"><label><?= e(tr('reports.sort_by')) ?><select name="report_sort"><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('reports.direction')) ?><select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>><?= e(tr('sf.asc')) ?></option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>><?= e(tr('sf.desc')) ?></option></select></label></div>
                     <div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= e($editReport ? tr('common.save_changes') : tr('common.save')) ?></button><?php if($editReport): ?><a class="button" href="/?page=reports"><?= e(tr('common.new')) ?></a><a class="button" href="/?page=export_pdf&type=report&report_id=<?= (int)$editReport['id'] ?>">PDF</a><?php endif; ?></div>
                 </form>
-                <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
+                <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=export_pdf&type=rav">RAV-Dossier PDF</a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
             </section>
             <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= e($report['description']) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
         </div>
