@@ -201,6 +201,7 @@ try {
     ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
     ensureColumn($db, 'users', 'x_url', '`x_url` VARCHAR(500) NULL', 'facebook_url');
     ensureColumn($db, 'users', 'other_profile_url', '`other_profile_url` VARCHAR(500) NULL', 'x_url');
+    ensureColumn($db, 'document_types', 'sort_order', '`sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0', 'name_key');
     ensureColumn($db, 'contacts', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'application_id', '`application_id` BIGINT UNSIGNED NULL', 'company_id');
     ensureColumn($db, 'contact_logs', 'status', "`status` ENUM('planned','open','done','cancelled') NOT NULL DEFAULT 'done'", 'direction');
@@ -3758,7 +3759,7 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
     $calendarPendents = dbAll($db, 'SELECT ce.title, ce.event_type, ce.status, ce.starts_at due_at, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE ce.owner_user_id=? AND ce.status="planned" ORDER BY ce.starts_at ASC', 'i', [$userId]);
     $contactLogs = dbAll($db, 'SELECT l.application_id, l.job_id, l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,1200) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name, j.title job_title FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id LEFT JOIN jobs j ON j.id=l.job_id WHERE l.owner_user_id=? ORDER BY l.occurred_at DESC LIMIT 120', 'i', [$userId]);
     $calendarEvents = dbAll($db, 'SELECT ce.application_id, ce.title, ce.event_type, ce.status, ce.starts_at, ce.ends_at, ce.notes, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at DESC LIMIT 120', 'i', [$userId]);
-    $documents = dbAll($db, 'SELECT d.title, d.version, d.original_filename, d.file_size, d.created_at, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope="profile" AND d.deleted_at IS NULL AND d.is_current=1 ORDER BY dt.sort_order, d.title', 'i', [$userId]);
+    $documents = dbAll($db, 'SELECT d.title, d.version, d.original_filename, d.file_size, d.created_at, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope="profile" AND d.deleted_at IS NULL AND d.is_current=1 ORDER BY d.title', 'i', [$userId]);
     $applicationDocuments = dbAll($db, 'SELECT ad.application_id, ad.purpose, d.title, d.version, d.original_filename, d.file_size, dt.code type_code FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.application_id, d.title', 'i', [$userId]);
 
     $name = trim((string)($currentUser['first_name'] ?? '') . ' ' . (string)($currentUser['last_name'] ?? ''));
@@ -5955,7 +5956,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.37';
+$codeVersion = '1.15.38';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
