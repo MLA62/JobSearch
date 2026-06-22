@@ -6092,7 +6092,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.42';
+$codeVersion = '1.15.43';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6807,7 +6807,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
         <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
         <section class="panel calendar-panel matrix-first">
-        <?php if($outsideTimeEvents['before'] || $outsideTimeEvents['after']): ?>
+        <?php if($calendarView !== 'month' && ($outsideTimeEvents['before'] || $outsideTimeEvents['after'])): ?>
             <div class="calendar-outside-notice">
                 <?php if($outsideTimeEvents['before']): ?><div><strong><?= e(tr('calendar.outside.before')) ?></strong><?= $renderOutsideEvents($outsideTimeEvents['before']) ?></div><?php endif; ?>
                 <?php if($outsideTimeEvents['after']): ?><div><strong><?= e(tr('calendar.outside.after')) ?></strong><?= $renderOutsideEvents($outsideTimeEvents['after']) ?></div><?php endif; ?>
