@@ -6387,7 +6387,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.49';
+$codeVersion = '1.15.50';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7770,7 +7770,7 @@ startUiTranslationBuffer($appLocale);
         <?php if ($applicationEdit): ?>
         <section class="panel application-editor" id="application-form">
             <div class="section-head">
-                <div><p class="eyebrow"><a class="record-link" href="/?page=companies&edit=<?= (int)$applicationEdit['company_id'] ?>"><?= e($applicationEdit['company_name']) ?></a></p><h2><?= e($applicationEdit['title']) ?></h2></div>
+                <div><p class="eyebrow"><a class="record-link" href="/?page=companies&edit=<?= (int)$applicationEdit['company_id'] ?>"><?= e($applicationEdit['company_name']) ?></a></p><h2><a class="record-link" href="/?page=jobs&edit=<?= (int)$applicationEdit['job_id'] ?>#new"><?= e($applicationEdit['title']) ?></a></h2></div>
                 <a href="/?page=applications"><?= e(tr('common.close')) ?></a>
             </div>
             <form method="post" class="stack">
