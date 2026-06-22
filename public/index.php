@@ -100,6 +100,38 @@ try {
         changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
+    foreach ([
+        'calendar.outside.before' => [
+            'de-CH' => 'Termine vor 07:00',
+            'fr-CH' => 'Rendez-vous avant 07:00',
+            'en-GB' => 'Appointments before 07:00',
+            'pt-BR' => 'Compromissos antes das 07:00',
+            'es-MX' => 'Citas antes de las 07:00',
+        ],
+        'calendar.outside.after' => [
+            'de-CH' => 'Termine ab 19:00',
+            'fr-CH' => 'Rendez-vous dès 19:00',
+            'en-GB' => 'Appointments from 19:00',
+            'pt-BR' => 'Compromissos a partir das 19:00',
+            'es-MX' => 'Citas desde las 19:00',
+        ],
+    ] as $textKey => $translations) {
+        $namespace = 'calendar';
+        $defaultLocale = 'de-CH';
+        $stmt = $db->prepare('INSERT INTO ui_text_keys (text_key, namespace, default_locale) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE namespace=VALUES(namespace), is_active=1');
+        $stmt->bind_param('sss', $textKey, $namespace, $defaultLocale);
+        $stmt->execute();
+        $keyRow = dbOne($db, 'SELECT id FROM ui_text_keys WHERE text_key=?', 's', [$textKey]);
+        if ($keyRow) {
+            $textKeyId = (int) $keyRow['id'];
+            $status = 'approved';
+            $stmt = $db->prepare('INSERT INTO ui_text_translations (text_key_id, locale, text_value, status) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE text_value=VALUES(text_value), status=VALUES(status)');
+            foreach ($translations as $locale => $textValue) {
+                $stmt->bind_param('isss', $textKeyId, $locale, $textValue, $status);
+                $stmt->execute();
+            }
+        }
+    }
 } catch (Throwable $exception) {
     error_log('Locale migration failed: ' . $exception->getMessage());
 }
@@ -6060,7 +6092,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.41';
+$codeVersion = '1.15.42';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6720,12 +6752,24 @@ startUiTranslationBuffer($appLocale);
         $nextDate = $anchor->modify($nextStep)->format('Y-m-d');
         $weekNo = $anchor->format('W');
         $weekdayNames = ['Mon'=>tr('weekday.mon_short'),'Tue'=>tr('weekday.tue_short'),'Wed'=>tr('weekday.wed_short'),'Thu'=>tr('weekday.thu_short'),'Fri'=>tr('weekday.fri_short'),'Sat'=>tr('weekday.sat_short'),'Sun'=>tr('weekday.sun_short')];
-        $hours = range(7, 19);
+        $hours = range(7, 18);
         $eventsByDate = [];
         foreach ($calendarEvents as $entry) {
             $eventsByDate[substr((string)$entry['starts_at'], 0, 10)][] = $entry;
         }
         $isDayEntry = static fn(array $entry): bool => date('H:i:s', strtotime((string)$entry['starts_at'])) === '00:00:00';
+        $outsideTimeEvents = ['before'=>[], 'after'=>[]];
+        foreach ($calendarEvents as $entry) {
+            if ($isDayEntry($entry)) {
+                continue;
+            }
+            $entryTime = date('H:i:s', strtotime((string)$entry['starts_at']));
+            if ($entryTime < '07:00:00') {
+                $outsideTimeEvents['before'][] = $entry;
+            } elseif ($entryTime >= '19:00:00') {
+                $outsideTimeEvents['after'][] = $entry;
+            }
+        }
         foreach ($eventsByDate as &$dateEvents) {
             usort($dateEvents, static function(array $a, array $b) use ($isDayEntry): int {
                 $aDay = $isDayEntry($a) ? 0 : 1;
@@ -6751,11 +6795,24 @@ startUiTranslationBuffer($appLocale);
             $class = $isDayEntry($entry) ? 'calendar-event is-day-entry' : 'calendar-event';
             return '<a class="' . $class . '" href="' . e((string)$entry['href']) . '"><strong>' . e($title) . '</strong><span>' . e((string)$entry['type'] . ((string)$entry['meta'] !== '' ? ' · ' . (string)$entry['meta'] : '')) . '</span></a>';
         };
+        $renderOutsideEvents = static function(array $events): string {
+            $links = [];
+            foreach ($events as $entry) {
+                $links[] = '<a href="' . e((string)$entry['href']) . '">' . e(date('d.m., H:i', strtotime((string)$entry['starts_at'])) . ' ' . (string)$entry['title']) . '</a>';
+            }
+            return implode('', $links);
+        };
         $appsForCalendar = dbAll($db, 'SELECT a.id, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY a.updated_at DESC LIMIT 100', 'i', [userId()]);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
         <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
         <section class="panel calendar-panel matrix-first">
+        <?php if($outsideTimeEvents['before'] || $outsideTimeEvents['after']): ?>
+            <div class="calendar-outside-notice">
+                <?php if($outsideTimeEvents['before']): ?><div><strong><?= e(tr('calendar.outside.before')) ?></strong><?= $renderOutsideEvents($outsideTimeEvents['before']) ?></div><?php endif; ?>
+                <?php if($outsideTimeEvents['after']): ?><div><strong><?= e(tr('calendar.outside.after')) ?></strong><?= $renderOutsideEvents($outsideTimeEvents['after']) ?></div><?php endif; ?>
+            </div>
+        <?php endif; ?>
         <?php if($calendarView === 'agenda'): ?>
             <h2><?= e(tr('calendar.agenda')) ?></h2><div class="actions export-actions"><?= sfToolbar('calendar_agenda', $calendarSf, $calendarPreserve, $calendarSfFields) ?></div><div class="table-wrap"><table><thead><tr><?= sfHeader('calendar_agenda','starts_at',tr('common.time'),$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','title',tr('calendar.event'),$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','type',tr('calendar.type'),$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','status',tr('common.status'),$calendarSf,$calendarPreserve) ?><?= sfHeader('calendar_agenda','meta',tr('common.reference'),$calendarSf,$calendarPreserve) ?></tr></thead><tbody><?php foreach($calendarEvents as $event): ?><tr><td><?= e(displayDateTime($event['starts_at'], $currentUser)) ?></td><td><a href="<?= e($event['href']) ?>"><?= e($event['title']) ?></a></td><td><?= e($event['type']) ?></td><td><?= e($event['status']) ?></td><td><?= e($event['meta']) ?></td></tr><?php endforeach; ?><?php if(!$calendarEvents): ?><tr><td colspan="5" class="empty"><?= e(tr('calendar.empty')) ?></td></tr><?php endif; ?></tbody></table></div>
         <?php elseif(in_array($calendarView, ['day','workweek','week'], true)): ?>
