@@ -1581,6 +1581,27 @@ function pdfEscape(string $value): string
     return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
 }
 
+function pdfTextOperand(string $value): string
+{
+    $encoded = iconv('UTF-8', 'Windows-1252//TRANSLIT//IGNORE', $value);
+    if ($encoded === false) {
+        $encoded = $value;
+    }
+    $out = '';
+    $length = strlen($encoded);
+    for ($i = 0; $i < $length; $i++) {
+        $byte = ord($encoded[$i]);
+        if ($byte === 40 || $byte === 41 || $byte === 92) {
+            $out .= '\\' . chr($byte);
+        } elseif ($byte < 32 || $byte > 126) {
+            $out .= sprintf('\\%03o', $byte);
+        } else {
+            $out .= chr($byte);
+        }
+    }
+    return '(' . $out . ')';
+}
+
 function pdfUiText(string $value, ?string $locale = null): string
 {
     return $value;
@@ -1635,8 +1656,8 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
     $chunks = array_chunk($rows ?: [array_fill(0, $columnCount, '')], $rowsPerPage);
     $pageTotal = count($chunks);
     foreach ($chunks as $pageIndex => $chunk) {
-        $content = "0.09 0.13 0.16 rg\nBT /F1 18 Tf {$margin} 548 Td (" . pdfEscape($title) . ") Tj ET\n";
-        $content .= "0.39 0.45 0.48 rg\nBT /F1 8 Tf {$margin} 529 Td (" . pdfEscape($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . ($pageIndex + 1) . ' ' . $ofLabel . ' ' . $pageTotal) . ") Tj ET\n";
+        $content = "0.09 0.13 0.16 rg\nBT /F1 18 Tf {$margin} 548 Td " . pdfTextOperand($title) . " Tj ET\n";
+        $content .= "0.39 0.45 0.48 rg\nBT /F1 8 Tf {$margin} 529 Td " . pdfTextOperand($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . ($pageIndex + 1) . ' ' . $ofLabel . ' ' . $pageTotal) . " Tj ET\n";
 
         $x = $margin;
         $headerY = $tableTop - $headerHeight;
@@ -1645,7 +1666,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
         foreach ($headers as $index => $header) {
             $width = $widths[$index] ?? ($tableWidth / $columnCount);
             $text = mb_strimwidth((string) $header, 0, max(4, (int) floor(($width - 10) / 4.5)), '...');
-            $content .= "0.09 0.13 0.16 rg\nBT /F1 8.5 Tf " . ($x + 5) . ' ' . ($headerY + 9) . ' Td (' . pdfEscape($text) . ") Tj ET\n";
+            $content .= "0.09 0.13 0.16 rg\nBT /F1 8.5 Tf " . ($x + 5) . ' ' . ($headerY + 9) . ' Td ' . pdfTextOperand($text) . " Tj ET\n";
             if ($index > 0) {
                 $content .= "0.62 0.67 0.70 RG {$x} {$headerY} m {$x} " . ($headerY + $headerHeight) . " l S\n";
             }
@@ -1665,7 +1686,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
                 if ($index > 0) {
                     $content .= "0.82 0.85 0.86 RG {$x} {$rowY} m {$x} " . ($rowY + $rowHeight) . " l S\n";
                 }
-                $content .= "0.10 0.13 0.16 rg\nBT /F1 8 Tf " . ($x + 5) . ' ' . ($rowY + 8) . ' Td (' . pdfEscape($text) . ") Tj ET\n";
+                $content .= "0.10 0.13 0.16 rg\nBT /F1 8 Tf " . ($x + 5) . ' ' . ($rowY + 8) . ' Td ' . pdfTextOperand($text) . " Tj ET\n";
                 $x += $width;
             }
         }
@@ -1677,7 +1698,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
     }
     $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     $objects[2] = '<< /Type /Pages /Kids [' . implode(' ', $pages) . '] /Count ' . count($pages) . ' >>';
-    $objects[$fontObjectNo] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    $objects[$fontObjectNo] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
     ksort($objects);
     $pdf = "%PDF-1.4\n";
     $offsets = [0];
@@ -1722,8 +1743,8 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
         if ($content !== '') {
             $pageContents[] = $content;
         }
-        $content = "0.09 0.13 0.16 rg\nBT /F1 16 Tf {$margin} 806 Td (" . pdfEscape($title) . ") Tj ET\n";
-        $content .= "0.45 0.50 0.54 rg\nBT /F1 8 Tf {$margin} 788 Td (" . pdfEscape($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . $pageNo) . ") Tj ET\n";
+        $content = "0.09 0.13 0.16 rg\nBT /F1 16 Tf {$margin} 806 Td " . pdfTextOperand($title) . " Tj ET\n";
+        $content .= "0.45 0.50 0.54 rg\nBT /F1 8 Tf {$margin} 788 Td " . pdfTextOperand($createdLabel . ' ' . date('d.m.Y H:i') . ' | ' . $pageLabel . ' ' . $pageNo) . " Tj ET\n";
         $content .= "0.78 0.81 0.84 RG 0.6 w {$margin} 778 m " . ($pageWidth - $margin) . " 778 l S\n";
         $y = 758;
         $pageNo++;
@@ -1734,7 +1755,7 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
         }
         $fontSize = $heading ? 12 : $size;
         $color = $heading ? '0.77 0.20 0.00' : '0.10 0.13 0.16';
-        $content .= "{$color} rg\nBT /F1 {$fontSize} Tf {$margin} {$y} Td (" . pdfEscape($text) . ") Tj ET\n";
+        $content .= "{$color} rg\nBT /F1 {$fontSize} Tf {$margin} {$y} Td " . pdfTextOperand($text) . " Tj ET\n";
         $y -= $heading ? 18 : $lineHeight;
     };
     $newPage();
@@ -1769,7 +1790,7 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
     }
     $objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     $objects[2] = '<< /Type /Pages /Kids [' . implode(' ', $pages) . '] /Count ' . count($pages) . ' >>';
-    $objects[$fontObjectNo] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+    $objects[$fontObjectNo] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
     ksort($objects);
     $pdf = "%PDF-1.4\n";
     $offsets = [0];
@@ -3774,6 +3795,38 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
             $submittedCount++;
         }
     }
+
+    $sections = [
+        'Bewerbungsnachweis' => [
+            'Bewerber: ' . ($name !== '' ? $name : (string)($currentUser['email'] ?? '')),
+            'Erstellt am: ' . displayDateTime(date('Y-m-d H:i:s'), $currentUser),
+            'Erfasste Bewerbungen: ' . count($applicationRows) . ' | Eingereicht: ' . $submittedCount,
+            '',
+        ],
+    ];
+    $lastCompany = null;
+    foreach ($applicationRows as $row) {
+        $companyName = trim((string)$row['company_name']);
+        $jobTitle = trim((string)$row['job_title']);
+        if ($companyName !== $lastCompany) {
+            $sections['Bewerbungsnachweis'][] = 'Firma: ' . $companyName;
+            $lastCompany = $companyName;
+        }
+        $submittedAt = !empty($row['applied_at']) ? displayDateTime((string)$row['applied_at'], $currentUser) : 'noch nicht eingereicht';
+        $status = $applicationStatuses[(string)$row['status']] ?? (string)$row['status'];
+        $channel = $applicationChannels[(string)$row['channel']] ?? (string)$row['channel'];
+        $sections['Bewerbungsnachweis'][] = 'Stelle: ' . $jobTitle;
+        $sections['Bewerbungsnachweis'][] = 'Nachweis: ' . $submittedAt . ' | Status: ' . $status . ' | Kanal: ' . $channel;
+        $nextAction = trim((string)($row['next_action'] ?? ''));
+        if ($nextAction !== '' || !empty($row['next_action_at'])) {
+            $sections['Bewerbungsnachweis'][] = 'Pendent: ' . ($nextAction !== '' ? ($nextActionLabels[$nextAction] ?? $nextAction) : 'offen') . (!empty($row['next_action_at']) ? ' | Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '');
+        }
+        $sections['Bewerbungsnachweis'][] = '';
+    }
+    if (!$applicationRows) {
+        $sections['Bewerbungsnachweis'][] = 'Keine Bewerbungen erfasst.';
+    }
+    return $sections;
 
     $sections = [
         'Übersicht' => [
@@ -5956,7 +6009,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.38';
+$codeVersion = '1.15.39';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
