@@ -3743,13 +3743,14 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
     $contactLogStatuses = contactLogStatusOptions();
     $calendarStatuses = calendarStatusOptions();
 
-    $applicationRows = dbAll($db, 'SELECT a.id, a.status, a.channel, a.applied_at, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY COALESCE(a.applied_at, a.created_at) DESC, a.id DESC', 'i', [$userId]);
+    $applicationRows = dbAll($db, 'SELECT a.id, a.job_id, j.company_id, a.status, a.channel, a.applied_at, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL ORDER BY c.name, j.title, COALESCE(a.applied_at, a.created_at) DESC, a.id DESC', 'i', [$userId]);
     $applicationPendents = dbAll($db, "SELECT a.id, a.status, a.next_action, a.next_action_at due_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at IS NOT NULL AND a.status NOT IN ('rejected','withdrawn','closed') ORDER BY a.next_action_at ASC", 'i', [$userId]);
     $contactPendents = dbAll($db, 'SELECT l.status, l.subject, l.follow_up_at due_at, ct.first_name, ct.last_name, co.name company_name FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id AND ct.deleted_at IS NULL JOIN companies co ON co.id=l.company_id AND co.deleted_at IS NULL WHERE l.owner_user_id=? AND l.follow_up_at IS NOT NULL AND l.status IN ("open","planned") ORDER BY l.follow_up_at ASC', 'i', [$userId]);
     $calendarPendents = dbAll($db, 'SELECT ce.title, ce.event_type, ce.status, ce.starts_at due_at, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE ce.owner_user_id=? AND ce.status="planned" ORDER BY ce.starts_at ASC', 'i', [$userId]);
-    $contactLogs = dbAll($db, 'SELECT l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,1200) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name, j.title job_title FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id LEFT JOIN jobs j ON j.id=l.job_id WHERE l.owner_user_id=? ORDER BY l.occurred_at DESC LIMIT 120', 'i', [$userId]);
-    $calendarEvents = dbAll($db, 'SELECT ce.title, ce.event_type, ce.status, ce.starts_at, ce.ends_at, ce.notes, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at DESC LIMIT 120', 'i', [$userId]);
+    $contactLogs = dbAll($db, 'SELECT l.application_id, l.job_id, l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,1200) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name, j.title job_title FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id LEFT JOIN jobs j ON j.id=l.job_id WHERE l.owner_user_id=? ORDER BY l.occurred_at DESC LIMIT 120', 'i', [$userId]);
+    $calendarEvents = dbAll($db, 'SELECT ce.application_id, ce.title, ce.event_type, ce.status, ce.starts_at, ce.ends_at, ce.notes, j.title job_title, c.name company_name FROM calendar_events ce LEFT JOIN applications a ON a.id=ce.application_id LEFT JOIN jobs j ON j.id=a.job_id LEFT JOIN companies c ON c.id=j.company_id WHERE ce.owner_user_id=? ORDER BY ce.starts_at DESC LIMIT 120', 'i', [$userId]);
     $documents = dbAll($db, 'SELECT d.title, d.version, d.original_filename, d.file_size, d.created_at, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope="profile" AND d.deleted_at IS NULL AND d.is_current=1 ORDER BY dt.sort_order, d.title', 'i', [$userId]);
+    $applicationDocuments = dbAll($db, 'SELECT ad.application_id, ad.purpose, d.title, d.version, d.original_filename, d.file_size, dt.code type_code FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.application_id, ad.sort_order, d.title', 'i', [$userId]);
 
     $name = trim((string)($currentUser['first_name'] ?? '') . ' ' . (string)($currentUser['last_name'] ?? ''));
     $phone = trim((string)($currentUser['phone'] ?? '') . ' ' . (string)($currentUser['mobile'] ?? ''));
@@ -3800,7 +3801,7 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
         ],
         'Pendenzenliste' => [],
         'Stammdokumente' => [],
-        'Bewerbungsbemühungen' => [],
+        'Bewerbungsbemühungen (kaskadierend)' => [],
         'Aktivitäten / Nachweise' => [],
     ];
 
@@ -3819,18 +3820,60 @@ function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): arr
         $sections['Stammdokumente'][] = documentTypeLabel((string)$row['type_code'], (string)($currentUser['preferred_language'] ?? 'de-CH')) . ' | ' . (string)$row['title'] . ' | v' . (int)$row['version'] . ' | ' . (string)$row['original_filename'] . ' | ' . bytesLabel((int)$row['file_size']) . ' | ' . displayDateTime((string)$row['created_at'], $currentUser);
     }
 
+    $logsByApplication = [];
+    foreach ($contactLogs as $row) {
+        $applicationId = (int)($row['application_id'] ?? 0);
+        if ($applicationId > 0) {
+            $logsByApplication[$applicationId][] = $row;
+        }
+    }
+    $eventsByApplication = [];
+    foreach ($calendarEvents as $row) {
+        $applicationId = (int)($row['application_id'] ?? 0);
+        if ($applicationId > 0) {
+            $eventsByApplication[$applicationId][] = $row;
+        }
+    }
+    $documentsByApplication = [];
+    foreach ($applicationDocuments as $row) {
+        $applicationId = (int)($row['application_id'] ?? 0);
+        if ($applicationId > 0) {
+            $documentsByApplication[$applicationId][] = $row;
+        }
+    }
+    $effortKey = 'Bewerbungsbemühungen (kaskadierend)';
+    $lastCompany = null;
+    $lastJob = null;
     foreach ($applicationRows as $row) {
+        $applicationId = (int)$row['id'];
+        $companyName = (string)$row['company_name'];
+        $jobTitle = (string)$row['job_title'];
+        if ($companyName !== $lastCompany) {
+            $sections[$effortKey][] = 'Firma > ' . $companyName;
+            $lastCompany = $companyName;
+            $lastJob = null;
+        }
+        if ($jobTitle !== $lastJob) {
+            $sections[$effortKey][] = 'Stelle > ' . $jobTitle;
+            $lastJob = $jobTitle;
+        }
         $title = (string)($row['next_action'] ?: '');
-        $effortParts = [
+        $sections[$effortKey][] = 'Bewerbung > ' . implode(' | ', array_filter([
             displayDateTime((string)($row['applied_at'] ?: ''), $currentUser) ?: 'noch nicht eingereicht',
-            (string)$row['job_title'],
-            (string)$row['company_name'],
             $applicationStatuses[(string)$row['status']] ?? (string)$row['status'],
             $applicationChannels[(string)$row['channel']] ?? (string)$row['channel'],
             $title !== '' ? 'Nächster Schritt: ' . ($nextActionLabels[$title] ?? $title) : '',
             !empty($row['next_action_at']) ? 'Fällig: ' . displayDateTime((string)$row['next_action_at'], $currentUser) : '',
-        ];
-        $sections['Bewerbungsbemühungen'][] = implode(' | ', array_filter($effortParts, static fn($value): bool => trim((string)$value) !== ''));
+        ], static fn($value): bool => trim((string)$value) !== ''));
+        foreach ($documentsByApplication[$applicationId] ?? [] as $doc) {
+            $sections[$effortKey][] = 'Dokument > ' . documentTypeLabel((string)$doc['type_code'], (string)($currentUser['preferred_language'] ?? 'de-CH')) . ' | ' . (string)$doc['title'] . ' | v' . (int)$doc['version'] . ' | ' . (string)$doc['original_filename'];
+        }
+        foreach ($logsByApplication[$applicationId] ?? [] as $log) {
+            $sections[$effortKey][] = 'Kontaktlog > ' . displayDateTime((string)$log['occurred_at'], $currentUser) . ' | ' . (string)$log['subject'] . ' | ' . trim((string)$log['first_name'] . ' ' . (string)$log['last_name']) . ' | ' . (string)$log['outcome'];
+        }
+        foreach ($eventsByApplication[$applicationId] ?? [] as $event) {
+            $sections[$effortKey][] = 'Kalender > ' . displayDateTime((string)$event['starts_at'], $currentUser) . ' | ' . (string)$event['title'] . ' | ' . ($calendarStatuses[(string)$event['status']] ?? (string)$event['status']);
+        }
     }
 
     foreach ($contactLogs as $row) {
@@ -5903,7 +5946,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.34';
+$codeVersion = '1.15.35';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
