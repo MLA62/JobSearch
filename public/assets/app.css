@@ -488,6 +488,14 @@ input[type="date"] {
     gap: 8px;
 }
 
+.file-picker.is-dragover .file-picker-name,
+.file-picker.is-dragover .file-picker-button {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
 .file-picker input[type="file"] {
     position: absolute;
     inline-size: 1px;

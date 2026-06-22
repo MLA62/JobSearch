@@ -4237,6 +4237,92 @@ function contactLogTimelineHtml(array $logs, array $attachments, array $channels
     return (string) ob_get_clean();
 }
 
+function mailActivityContext(mysqli $db, int $userId, string $contextType, int $contextId): array
+{
+    $selectedCompanyId = 0;
+    $selectedContactId = 0;
+    $selectedApplicationId = 0;
+    if ($contextType === 'application' && $contextId > 0) {
+        $row = dbOne($db, 'SELECT a.id, a.primary_contact_id, j.company_id FROM applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL AND j.deleted_at IS NULL', 'ii', [$contextId, $userId]);
+        if ($row) {
+            $selectedApplicationId = (int) $row['id'];
+            $selectedCompanyId = (int) $row['company_id'];
+            $selectedContactId = (int) ($row['primary_contact_id'] ?? 0);
+        }
+    } elseif ($contextType === 'contact' && $contextId > 0) {
+        $row = dbOne($db, 'SELECT id, company_id, application_id FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contextId, $userId]);
+        if ($row) {
+            $selectedContactId = (int) $row['id'];
+            $selectedCompanyId = (int) $row['company_id'];
+            $selectedApplicationId = (int) ($row['application_id'] ?? 0);
+        }
+    } elseif ($contextType === 'company' && $contextId > 0) {
+        $row = dbOne($db, 'SELECT id FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contextId, $userId]);
+        if ($row) {
+            $selectedCompanyId = (int) $row['id'];
+        }
+    }
+    return [$selectedCompanyId, $selectedContactId, $selectedApplicationId];
+}
+
+function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, string $contextType, int $contextId): string
+{
+    [$selectedCompanyId, $selectedContactId, $selectedApplicationId] = mailActivityContext($db, $userId, $contextType, $contextId);
+    $companies = dbAll($db, 'SELECT id, name FROM companies WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY name', 'i', [$userId]);
+    $contacts = dbAll($db, 'SELECT ct.id, ct.company_id, ct.first_name, ct.last_name, co.name company_name FROM contacts ct JOIN companies co ON co.id=ct.company_id WHERE ct.owner_user_id=? AND ct.deleted_at IS NULL ORDER BY ct.last_name, ct.first_name', 'i', [$userId]);
+    $applications = dbAll($db, 'SELECT a.id, j.company_id, a.primary_contact_id, a.status, j.title, co.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies co ON co.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND j.deleted_at IS NULL ORDER BY co.name, j.title', 'i', [$userId]);
+    $applicationStatuses = applicationStatusOptions();
+    $channels = ['email' => tr('contact_log.channel.email'), 'external_email' => tr('contact_log.channel.external_email')];
+    $returnTo = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    $occurred = date('Y-m-d\TH:i');
+    $followUp = date('Y-m-d\TH:i');
+    ob_start();
+    ?>
+    <section class="panel mail-activity" id="mail-activity">
+        <div class="section-head"><div><p class="eyebrow"><?= e(tr('mail_activity.eyebrow')) ?></p><h2><?= e(tr('mail_activity.title')) ?></h2></div></div>
+        <form method="post" enctype="multipart/form-data" class="stack">
+            <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+            <input type="hidden" name="return_to" value="<?= e($returnTo) ?>">
+            <div class="three">
+                <label><?= e(tr('companies.company')) ?><select name="mail_company_id"><option value="0"><?= e(tr('common.not_selected')) ?></option><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$company['id']===$selectedCompanyId?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label>
+                <label><?= e(tr('contacts.contact')) ?><select name="mail_contact_id"><option value="0"><?= e(tr('mail_activity.auto_contact')) ?></option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" data-company-id="<?= (int)$contact['company_id'] ?>" <?= (int)$contact['id']===$selectedContactId?'selected':'' ?>><?= e(trim((string)$contact['last_name'].' '.(string)$contact['first_name'])) ?> · <?= e((string)$contact['company_name']) ?></option><?php endforeach; ?></select></label>
+                <label><?= e(tr('applications.application')) ?><select name="mail_application_id"><option value="0"><?= e(tr('common.not_selected')) ?></option><?php foreach($applications as $application): ?><option value="<?= (int)$application['id'] ?>" data-company-id="<?= (int)$application['company_id'] ?>" data-contact-id="<?= (int)($application['primary_contact_id'] ?? 0) ?>" <?= (int)$application['id']===$selectedApplicationId?'selected':'' ?>><?= e($application['title'].' · '.$application['company_name']) ?></option><?php endforeach; ?></select></label>
+            </div>
+            <div class="three">
+                <label><?= e(tr('applications.channel')) ?><select name="mail_channel"><?php foreach($channels as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
+                <label><?= e(tr('contact_log.direction')) ?><select name="mail_direction"><option value="incoming"><?= e(tr('contact_log.direction.incoming')) ?></option><option value="outgoing"><?= e(tr('contact_log.direction.outgoing')) ?></option><option value="internal"><?= e(tr('contact_log.direction.internal')) ?></option></select></label>
+                <label><?= e(tr('mail_activity.application_status')) ?><select name="mail_application_status"><option value=""><?= e(tr('mail_activity.status_no_change')) ?></option><?php foreach($applicationStatuses as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
+            </div>
+            <div class="two"><label><?= e(tr('contact_log.occurred_at')) ?><input type="datetime-local" name="mail_occurred_at" value="<?= e($occurred) ?>" required></label><label><?= e(tr('contact_log.follow_up_at')) ?><input type="datetime-local" name="mail_follow_up_at" value="<?= e($followUp) ?>"></label></div>
+            <label><?= e(tr('contact_log.subject')) ?><input name="mail_subject" required></label>
+            <label><?= e(tr('mail_activity.mail_text')) ?><textarea name="mail_body" rows="7" required></textarea></label>
+            <?= filePickerHtml('log_attachment', false) ?>
+            <p class="meta-line"><?= e(tr('mail_activity.pendent_hint')) ?></p>
+            <div class="actions"><button class="primary" name="action" value="save_mail_activity"><?= e(tr('mail_activity.save')) ?></button></div>
+        </form>
+    </section>
+    <script>
+    (() => {
+        const root = document.getElementById('mail-activity');
+        if (!root) return;
+        const company = root.querySelector('[name="mail_company_id"]');
+        const contact = root.querySelector('[name="mail_contact_id"]');
+        const application = root.querySelector('[name="mail_application_id"]');
+        application?.addEventListener('change', () => {
+            const selected = application.options[application.selectedIndex];
+            if (selected?.dataset.companyId && company) company.value = selected.dataset.companyId;
+            if (selected?.dataset.contactId && selected.dataset.contactId !== '0' && contact) contact.value = selected.dataset.contactId;
+        });
+        contact?.addEventListener('change', () => {
+            const selected = contact.options[contact.selectedIndex];
+            if (selected?.dataset.companyId && company) company.value = selected.dataset.companyId;
+        });
+    })();
+    </script>
+    <?php
+    return (string) ob_get_clean();
+}
+
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 $action = (string) ($_POST['action'] ?? '');
 if (isset($_GET['lang'])) {
@@ -5873,6 +5959,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=contacts');
     }
 
+    if ($action === 'save_mail_activity') {
+        $uid = userId();
+        $returnTo = trim((string) ($_POST['return_to'] ?? '/?page=dashboard'));
+        if ($returnTo === '' || str_starts_with($returnTo, 'http://') || str_starts_with($returnTo, 'https://')) {
+            $returnTo = '/?page=dashboard';
+        }
+        $applicationId = (int) ($_POST['mail_application_id'] ?? 0);
+        $contactId = (int) ($_POST['mail_contact_id'] ?? 0);
+        $companyId = (int) ($_POST['mail_company_id'] ?? 0);
+        $application = null;
+        if ($applicationId > 0) {
+            $application = dbOne($db, 'SELECT a.id, a.job_id, a.primary_contact_id, a.status, j.company_id FROM applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL AND j.deleted_at IS NULL', 'ii', [$applicationId, $uid]);
+            if (!$application) {
+                flash(tr('mail_activity.application_missing'), 'danger');
+                redirect($returnTo . '#mail-activity');
+            }
+            $companyId = $companyId > 0 ? $companyId : (int) $application['company_id'];
+            $contactId = $contactId > 0 ? $contactId : (int) ($application['primary_contact_id'] ?? 0);
+        }
+        $contact = $contactId > 0 ? dbOne($db, 'SELECT id, company_id, job_id, application_id, first_name, last_name FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contactId, $uid]) : null;
+        if ($contact) {
+            $companyId = (int) $contact['company_id'];
+        }
+        $company = $companyId > 0 ? dbOne($db, 'SELECT id, name FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$companyId, $uid]) : null;
+        if (!$company) {
+            flash(tr('mail_activity.company_required'), 'danger');
+            redirect($returnTo . '#mail-activity');
+        }
+        $genericFirstName = tr('mail_activity.generic_contact_first');
+        $genericLastName = (string) $company['name'];
+        if (!$contact) {
+            $contact = dbOne($db, 'SELECT id, company_id, job_id, application_id, first_name, last_name FROM contacts WHERE owner_user_id=? AND company_id=? AND first_name=? AND last_name=? AND deleted_at IS NULL LIMIT 1', 'iiss', [$uid, $companyId, $genericFirstName, $genericLastName]);
+        }
+        if (!$contact) {
+            $firstName = $genericFirstName;
+            $lastName = $genericLastName;
+            $jobIdForContact = $application ? (int) $application['job_id'] : null;
+            $applicationIdForContact = $application ? (int) $application['id'] : null;
+            $stmt = $db->prepare('INSERT INTO contacts (owner_user_id, company_id, application_id, job_id, first_name, last_name, notes) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $notes = tr('mail_activity.generic_contact_notes');
+            $stmt->bind_param('iiiisss', $uid, $companyId, $applicationIdForContact, $jobIdForContact, $firstName, $lastName, $notes);
+            $stmt->execute();
+            $contactId = (int) $stmt->insert_id;
+            $contact = ['id' => $contactId, 'company_id' => $companyId, 'job_id' => $jobIdForContact, 'application_id' => $applicationIdForContact, 'first_name' => $firstName, 'last_name' => $lastName];
+            audit($db, $uid, 'create', 'contact', $contactId, null, ['company_id' => $companyId, 'source' => 'mail_activity']);
+        }
+        $contactId = (int) $contact['id'];
+        $jobId = $application ? (int) $application['job_id'] : (int) ($contact['job_id'] ?? 0);
+        $logApplicationId = $application ? (int) $application['id'] : (int) ($contact['application_id'] ?? 0);
+        $allowedChannels = ['email', 'external_email'];
+        $allowedDirections = ['incoming', 'outgoing', 'internal'];
+        $channel = in_array($_POST['mail_channel'] ?? '', $allowedChannels, true) ? (string) $_POST['mail_channel'] : 'external_email';
+        $direction = in_array($_POST['mail_direction'] ?? '', $allowedDirections, true) ? (string) $_POST['mail_direction'] : 'incoming';
+        $subject = trim((string) ($_POST['mail_subject'] ?? ''));
+        $body = trim((string) ($_POST['mail_body'] ?? ''));
+        if ($subject === '' || $body === '') {
+            flash(tr('mail_activity.subject_body_required'), 'danger');
+            redirect($returnTo . '#mail-activity');
+        }
+        $occurredAt = trim((string) ($_POST['mail_occurred_at'] ?? '')) ?: date('Y-m-d H:i:s');
+        $followUpAt = trim((string) ($_POST['mail_follow_up_at'] ?? '')) ?: null;
+        $occurredAt = str_replace('T', ' ', $occurredAt) . (strlen($occurredAt) === 16 ? ':00' : '');
+        if ($followUpAt) {
+            $followUpAt = str_replace('T', ' ', $followUpAt) . (strlen($followUpAt) === 16 ? ':00' : '');
+        }
+        $logStatus = $followUpAt ? 'open' : 'done';
+        $outcome = $logApplicationId > 0 ? tr('mail_activity.application_reply_logged') : tr('mail_activity.email_logged');
+        $stmt = $db->prepare('INSERT INTO contact_logs (owner_user_id, contact_id, company_id, application_id, job_id, channel, direction, status, subject, body, occurred_at, follow_up_at, outcome) VALUES (?, ?, ?, NULLIF(?,0), NULLIF(?,0), ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('iiiiissssssss', $uid, $contactId, $companyId, $logApplicationId, $jobId, $channel, $direction, $logStatus, $subject, $body, $occurredAt, $followUpAt, $outcome);
+        $stmt->execute();
+        $logId = (int) $stmt->insert_id;
+        try {
+            saveContactLogAttachment($db, $uid, $contactId, $logId, trim((string)$contact['first_name'] . ' ' . (string)$contact['last_name']), $subject);
+        } catch (Throwable $exception) {
+            flash(strtr(tr('flash.contact_log.saved_attachment_failed'), ['{error}' => $exception->getMessage()]), 'warning');
+            redirect($returnTo . '#mail-activity');
+        }
+        $newStatus = trim((string) ($_POST['mail_application_status'] ?? ''));
+        if ($application && $newStatus !== '' && array_key_exists($newStatus, applicationStatusOptions()) && $newStatus !== (string) $application['status']) {
+            $appliedAt = null;
+            $nextAction = null;
+            $nextActionAt = null;
+            if ($newStatus === 'sent') {
+                $appliedAt = $occurredAt;
+                $nextAction = 'Antwort auf Bewerbung pendent';
+                $nextActionAt = $occurredAt;
+            }
+            $stmt = $db->prepare('UPDATE applications SET status=?, applied_at=COALESCE(applied_at, ?), next_action=COALESCE(?, next_action), next_action_at=COALESCE(?, next_action_at) WHERE id=? AND user_id=?');
+            $stmt->bind_param('ssssii', $newStatus, $appliedAt, $nextAction, $nextActionAt, $logApplicationId, $uid);
+            $stmt->execute();
+            $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
+            $oldStatus = (string) $application['status'];
+            $comment = tr('mail_activity.status_changed_by_mail');
+            $history->bind_param('iisss', $logApplicationId, $uid, $oldStatus, $newStatus, $comment);
+            $history->execute();
+        }
+        audit($db, $uid, 'create', 'mail_activity', $logId, null, ['contact_id' => $contactId, 'company_id' => $companyId, 'application_id' => $logApplicationId, 'direction' => $direction, 'subject' => $subject]);
+        flash(tr('mail_activity.saved'));
+        redirect($returnTo . '#mail-activity');
+    }
+
     if ($action === 'save_application') {
         $id = (int) ($_POST['id'] ?? 0);
         $old = dbOne($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
@@ -6092,7 +6279,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.44';
+$codeVersion = '1.15.45';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7174,6 +7361,7 @@ startUiTranslationBuffer($appLocale);
         <div class="actions export-actions"><?= sfToolbar('companies', $companySf, ['page'=>'companies'], $companySfFields) ?><a class="button" href="/?page=export_pdf&type=companies">PDF</a></div>
         <div class="split"><section class="panel"><h2><?= e($edit ? tr('companies.edit') : tr('companies.new')) ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label><?= e(tr('common.name')) ?><input name="name" value="<?= e($edit['name'] ?? '') ?>" required></label><label class="check"><input type="checkbox" name="is_intermediary" value="1" <?= !empty($edit['is_intermediary'])?'checked':'' ?>> <?= e(tr('companies.possible_intermediary')) ?></label><label><?= e(tr('companies.main_phone')) ?><input name="company_phone" value="<?= e($edit['phone'] ?? '') ?>"></label><label><?= e(tr('companies.address')) ?><textarea name="address" rows="3" placeholder="<?= e(tr('companies.address_placeholder')) ?>"><?= e(trim((string)($edit['address_line1'] ?? '') . "\n" . (string)($edit['address_line2'] ?? ''))) ?></textarea></label><div class="two"><label><?= e(tr('companies.postal_code')) ?><input name="postal_code" value="<?= e($edit['postal_code'] ?? '') ?>"></label><label><?= e(tr('companies.city')) ?><input name="city" value="<?= e($edit['city'] ?? '') ?>"></label></div><div class="two"><label><?= e(tr('companies.region')) ?><select name="company_region_key" id="company-region"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = ($edit['region'] ?? '')===$region && ($edit['country_code'] ?? '')===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label><?= e(tr('companies.country')) ?><output id="company-country-display" class="readonly-value"><?= e(countryChoices()[$edit['country_code'] ?? ''] ?? tr('companies.country_from_region')) ?></output></label></div><label><?= e(tr('companies.website')) ?><input type="url" name="website" value="<?= e($edit['website'] ?? '') ?>"></label><label><?= e(tr('common.comment')) ?><textarea name="company_notes" rows="4"><?= e($edit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_company"><?= e(tr('common.save')) ?></button></form></section>
         <section class="panel table-wrap"><table><thead><tr><?= sfHeader('companies','name',tr('companies.company'),$companySf,$companyPreserve) ?><?= sfHeader('companies','address',tr('companies.address_phone'),$companySf,$companyPreserve) ?><?= sfHeader('companies','role',tr('companies.role_intermediary'),$companySf,$companyPreserve) ?><?= sfHeader('companies','links',tr('companies.links'),$companySf,$companyPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr class="<?= $edit && (int)$edit['id']===(int)$company['id']?'is-selected':'' ?>"><td><strong><a class="record-link" href="/?page=companies&edit=<?= (int)$company['id'] ?>"><?= e($company['name']) ?></a></strong><small><?= e($company['website']) ?></small></td><td><?php if($company['address_line1']): ?><small><?= nl2br(e(trim((string)$company['address_line1'] . "\n" . (string)$company['address_line2']))) ?></small><?php endif; ?><?php if($company['city']): ?><small><?= e($company['city']) ?></small><?php endif; ?><?php if($company['phone']): ?><small><?= e($company['phone']) ?></small><?php endif; ?></td><td class="relationship-cell"><?php if(!empty($company['is_intermediary']) || $company['mediated_clients']): ?><span class="badge role-badge"><?= e(tr('companies.intermediary')) ?></span><?php endif; ?><?php if($company['mediated_clients']): ?><small><?= e(tr('companies.mediates')) ?>: <?php foreach(explode('||', $company['mediated_clients']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge"><?= e(tr('companies.mediated')) ?></span><small><?= e(tr('companies.by')) ?>: <?php foreach(explode('||', $company['mediated_by']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if(empty($company['is_intermediary']) && !$company['mediated_clients'] && !$company['mediated_by']): ?><small><?= e(tr('companies.direct_none')) ?></small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> <?= e(tr('nav.jobs')) ?></a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> <?= e(tr('nav.applications')) ?></a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> <?= e(tr('nav.contacts')) ?></a></td><td class="actions"><form method="post" onsubmit="return confirm('<?= e(tr('companies.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
+        <?php if($edit): ?><?= mailActivityFormHtml($db, userId(), $currentUser, 'company', (int)$edit['id']) ?><?php endif; ?>
         <script>
         (() => {
             const region = document.getElementById('company-region');
@@ -7566,6 +7754,7 @@ startUiTranslationBuffer($appLocale);
             <?php if($contactEdit): ?><section class="panel contact-log contact-log-inline" id="contact-log"><div class="section-head"><div><p class="eyebrow"><?= e(tr('contact_log.title')) ?></p><h2><?= e($contactEdit['first_name'].' '.$contactEdit['last_name']) ?></h2></div></div><?= contactLogFormHtml($editLog, (int)$applicationEdit['id'], (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser, (int)$applicationEdit['id']) ?></section><?php endif; ?>
         </section>
         <?php endif; ?>
+        <?php if($applicationEdit): ?><?= mailActivityFormHtml($db, userId(), $currentUser, 'application', (int)$applicationEdit['id']) ?><?php endif; ?>
         <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('applications','title',tr('reports.field.job'),$appSf,$appPreserve) ?><?= sfHeader('applications','company',tr('companies.company'),$appSf,$appPreserve) ?><?= sfHeader('applications','status',tr('common.status'),$appSf,$appPreserve) ?><?= sfHeader('applications','channel',tr('applications.channel'),$appSf,$appPreserve) ?><?= sfHeader('applications','next_action',tr('applications.next_action'),$appSf,$appPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong><small><?= e($app['applied_at'] ? displayDateTime($app['applied_at'], $currentUser) : '') ?></small></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small><?= e(tr('companies.by')) ?> <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e(applicationChannelOptions()[(string)$app['channel']] ?? (string)$app['channel']) ?></td><td><?= e($nextActionLabel) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · <?= e(tr('companies.by')) ?> <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong><?= e(tr('applications.next_action')) ?>:</strong> <?= e($nextActionLabel) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('applications.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2><?= e(tr('applications.empty_title')) ?></h2><p><?= e(tr('applications.empty_hint')) ?></p><a class="button primary" href="/?page=jobs"><?= e(tr('applications.to_jobs')) ?></a></div><?php endif; ?></section><?php endif; ?>
     <?php elseif ($page === 'contacts'): ?>
         <?php
@@ -7593,6 +7782,7 @@ startUiTranslationBuffer($appLocale);
         <div class="actions export-actions"><?= sfToolbar('contacts', $contactSf, ['page'=>'contacts', 'company_id'=>$contactCompanyFilter ?: ''], $contactSfFields) ?><a class="button" href="/?page=export_pdf&type=contacts">PDF</a></div>
         <?php if($contactCompany): ?><p class="filter-note"><?= e(tr('contacts.at_company')) ?> <a href="/?page=companies&edit=<?= (int)$contactCompany['id'] ?>"><?= e($contactCompany['name']) ?></a> · <a href="/?page=contacts"><?= e(tr('contacts.show_all')) ?></a></p><?php endif; ?>
         <div class="<?= $contactEdit ? 'split' : 'full-width' ?>"><?php if($contactEdit): ?><section class="panel"><h2><?= e(tr('contacts.edit')) ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="contact_id" value="<?= (int)$contactEdit['id'] ?>"><label><?= e(tr('companies.company')) ?><select name="contact_company_id"><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$contactEdit['company_id']===(int)$company['id']?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" value="<?= e($contactEdit['first_name']) ?>" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" value="<?= e($contactEdit['last_name']) ?>" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position" value="<?= e($contactEdit['position']) ?>"></label><label><?= e(tr('contacts.department')) ?><input name="department" value="<?= e($contactEdit['department']) ?>"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email" value="<?= e($contactEdit['email']) ?>"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone" value="<?= e($contactEdit['phone']) ?>"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile" value="<?= e($contactEdit['mobile']) ?>"></label></div><label>LinkedIn<input type="url" name="linkedin_url" value="<?= e($contactEdit['linkedin_url']) ?>"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($contactEdit['preferred_language']??'')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="4"><?= e($contactEdit['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="update_contact_global"><?= e(tr('contacts.save_contact')) ?></button><a class="button" href="/?page=contacts"><?= e(tr('common.close')) ?></a></div></form><hr><h2 id="contact-log"><?= e(tr('contact_log.title')) ?></h2><?= contactLogFormHtml($editLog, 0, (int)$contactEdit['id'], $contactLogChannels, $contactLogStatuses) ?><?= contactLogTimelineHtml($contactLogs, $contactAttachments, $contactLogChannels, $contactLogStatuses, $currentUser) ?></section><?php endif; ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('contacts','name',tr('contacts.contact'),$contactSf,$contactPreserve) ?><?= sfHeader('contacts','company',tr('companies.company'),$contactSf,$contactPreserve) ?><?= sfHeader('contacts','reachable',tr('contacts.reachable'),$contactSf,$contactPreserve) ?><?= sfHeader('contacts','crm',tr('contacts.crm_reference'),$contactSf,$contactPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($contactRows as $contact): ?><tr class="<?= $contactEdit && (int)$contactEdit['id']===(int)$contact['id']?'is-selected':'' ?>"><td><strong><?= e($contact['first_name'].' '.$contact['last_name']) ?></strong><small><?= e($contact['position'] ?: $contact['department']) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a></td><td><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small></td><td class="link-list"><span><?= e(tr('contacts.log_count_summary', null, ['open' => (string)(int)$contact['open_log_count'], 'total' => (string)(int)$contact['log_count']])) ?></span><?php if($contact['job_id']): ?><a href="/?page=jobs&edit=<?= (int)$contact['job_id'] ?>#new"><?= e($contact['job_title'] ?: tr('contacts.open_job')) ?></a><?php endif; ?><?php if($contact['application_id']): ?><a href="/?page=applications&edit=<?= (int)$contact['application_id'] ?>&contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contacts.application_activities')) ?></a><?php endif; ?></td><td class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contacts.new_entry')) ?></a></td></tr><?php endforeach; ?><?php if(!$contactRows): ?><tr><td colspan="5" class="empty"><?= e(tr('contacts.empty')) ?></td></tr><?php endif; ?></tbody></table></section></div>
+        <?php if($contactEdit): ?><?= mailActivityFormHtml($db, userId(), $currentUser, 'contact', (int)$contactEdit['id']) ?><?php endif; ?>
     <?php elseif ($page === 'documents'): ?>
         <?php
         $documentTypes = dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id');
@@ -7790,11 +7980,28 @@ startUiTranslationBuffer($appLocale);
         const name = wrapper?.querySelector('[data-file-picker-name]');
         const button = wrapper?.querySelector('.file-picker-button');
         if (!wrapper || !name || !button) return;
-        button.addEventListener('click', () => input.click());
-        input.addEventListener('change', () => {
+        const update = () => {
             const files = Array.from(input.files || []).map((file) => file.name);
             name.textContent = files.length ? files.join(', ') : (name.dataset.empty || '');
+        };
+        button.addEventListener('click', () => input.click());
+        input.addEventListener('change', update);
+        ['dragenter', 'dragover'].forEach((eventName) => {
+            wrapper.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                wrapper.classList.add('is-dragover');
+            });
         });
+        ['dragleave', 'drop'].forEach((eventName) => {
+            wrapper.addEventListener(eventName, () => wrapper.classList.remove('is-dragover'));
+        });
+        wrapper.addEventListener('drop', (event) => {
+            event.preventDefault();
+            if (!event.dataTransfer?.files?.length) return;
+            input.files = event.dataTransfer.files;
+            update();
+        });
+        update();
     });
 })();
 (() => {
