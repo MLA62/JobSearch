@@ -115,8 +115,15 @@ try {
             'pt-BR' => 'Compromissos a partir das 19:00',
             'es-MX' => 'Citas desde las 19:00',
         ],
+        'job_room_helper.month_filter' => [
+            'de-CH' => 'Monat',
+            'fr-CH' => 'Mois',
+            'en-GB' => 'Month',
+            'pt-BR' => 'Mês',
+            'es-MX' => 'Mes',
+        ],
     ] as $textKey => $translations) {
-        $namespace = 'calendar';
+        $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
         $stmt = $db->prepare('INSERT INTO ui_text_keys (text_key, namespace, default_locale) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE namespace=VALUES(namespace), is_active=1');
         $stmt->bind_param('sss', $textKey, $namespace, $defaultLocale);
@@ -6396,7 +6403,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.52';
+$codeVersion = '1.15.53';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7054,7 +7061,7 @@ startUiTranslationBuffer($appLocale);
             <p><?= e(tr('job_room_helper.intro')) ?></p>
             <form method="get" class="inline-form">
                 <input type="hidden" name="page" value="job_room_helper">
-                <label><?= e(tr('calendar.month_view')) ?><select name="month" onchange="this.form.submit()">
+                <label><?= e(tr('job_room_helper.month_filter')) ?><select name="month" onchange="this.form.submit()">
                     <?php foreach($availableJobRoomMonths as $monthOption): $monthDate = DateTimeImmutable::createFromFormat('!Y-m', (string)$monthOption); ?>
                         <option value="<?= e((string)$monthOption) ?>" <?= $jobRoomMonth===$monthOption?'selected':'' ?>><?= e($monthDate ? $monthDate->format('m.Y') : (string)$monthOption) ?></option>
                     <?php endforeach; ?>
