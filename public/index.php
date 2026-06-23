@@ -2229,8 +2229,17 @@ function jobRoomCountryLabel(?string $countryCode): string
     return countryChoices()[$countryCode] ?? $countryCode;
 }
 
-function jobRoomHelperRows(mysqli $db, int $userId): array
+function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, ?string $monthEnd = null): array
 {
+    $where = 'a.user_id=? AND a.deleted_at IS NULL';
+    $types = 'i';
+    $values = [$userId];
+    if ($monthStart !== null && $monthEnd !== null) {
+        $where .= ' AND COALESCE(a.applied_at, a.updated_at, a.created_at) >= ? AND COALESCE(a.applied_at, a.updated_at, a.created_at) < ?';
+        $types .= 'ss';
+        $values[] = $monthStart;
+        $values[] = $monthEnd;
+    }
     return dbAll(
         $db,
         'SELECT a.id application_id, a.status application_status, a.channel, a.applied_at, a.application_url, a.reference_number,
@@ -2243,10 +2252,10 @@ function jobRoomHelperRows(mysqli $db, int $userId): array
          JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL
          JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
          LEFT JOIN contacts ct ON ct.id=a.primary_contact_id AND ct.deleted_at IS NULL
-         WHERE a.user_id=? AND a.deleted_at IS NULL
+         WHERE ' . $where . '
          ORDER BY COALESCE(a.applied_at, a.updated_at, a.created_at) DESC, c.name ASC, j.title ASC',
-        'i',
-        [$userId]
+        $types,
+        $values
     );
 }
 
@@ -6387,7 +6396,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.51';
+$codeVersion = '1.15.52';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7026,11 +7035,32 @@ startUiTranslationBuffer($appLocale);
         </div>
     <?php elseif ($page === 'job_room_helper'): ?>
         <?php
-        $jobRoomRows = jobRoomHelperRows($db, userId());
+        $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(COALESCE(applied_at, updated_at, created_at), "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL ORDER BY month_key DESC', 'i', [userId()]), 'month_key');
+        $currentJobRoomMonth = (new DateTimeImmutable('first day of this month'))->format('Y-m');
+        if (!in_array($currentJobRoomMonth, $availableJobRoomMonths, true)) {
+            array_unshift($availableJobRoomMonths, $currentJobRoomMonth);
+        }
+        $jobRoomMonth = preg_match('/^\d{4}-\d{2}$/', (string)($_GET['month'] ?? '')) ? (string)$_GET['month'] : $currentJobRoomMonth;
+        if (!in_array($jobRoomMonth, $availableJobRoomMonths, true)) {
+            $availableJobRoomMonths[] = $jobRoomMonth;
+            rsort($availableJobRoomMonths);
+        }
+        $jobRoomMonthStart = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $jobRoomMonth . '-01 00:00:00') ?: new DateTimeImmutable('first day of this month 00:00:00');
+        $jobRoomMonthEnd = $jobRoomMonthStart->modify('first day of next month');
+        $jobRoomRows = jobRoomHelperRows($db, userId(), $jobRoomMonthStart->format('Y-m-d H:i:s'), $jobRoomMonthEnd->format('Y-m-d H:i:s'));
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('job_room_helper.title')) ?></h1></div><span><?= e(tr('job_room_helper.count', null, ['count' => (string) count($jobRoomRows)])) ?></span></div>
         <section class="panel">
             <p><?= e(tr('job_room_helper.intro')) ?></p>
+            <form method="get" class="inline-form">
+                <input type="hidden" name="page" value="job_room_helper">
+                <label><?= e(tr('calendar.month_view')) ?><select name="month" onchange="this.form.submit()">
+                    <?php foreach($availableJobRoomMonths as $monthOption): $monthDate = DateTimeImmutable::createFromFormat('!Y-m', (string)$monthOption); ?>
+                        <option value="<?= e((string)$monthOption) ?>" <?= $jobRoomMonth===$monthOption?'selected':'' ?>><?= e($monthDate ? $monthDate->format('m.Y') : (string)$monthOption) ?></option>
+                    <?php endforeach; ?>
+                </select></label>
+                <noscript><button class="primary"><?= e(tr('common.show')) ?></button></noscript>
+            </form>
         </section>
         <section class="job-room-list">
             <?php foreach($jobRoomRows as $jobRoomRow): $jobRoomFields = jobRoomHelperFields($jobRoomRow, $currentUser); ?>
