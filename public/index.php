@@ -536,14 +536,16 @@ function localeCode(string $locale): string
 function localeFlagIconHtml(string $locale): string
 {
     $country = match (normalizeLocale($locale)) {
-        'de-CH', 'fr-CH' => 'ch',
+        'de-CH' => 'ch-de',
+        'fr-CH' => 'ch-fr',
         'en-GB' => 'gb',
         'pt-BR' => 'br',
         'es-MX' => 'mx',
-        default => 'ch',
+        default => 'ch-de',
     };
     $icons = [
-        'ch' => '<svg class="locale-flag locale-flag-ch" viewBox="0 0 32 32" role="img" focusable="false"><rect width="32" height="32" rx="2" fill="#d52b1e"/><path fill="#fff" d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z"/></svg>',
+        'ch-de' => '<svg class="locale-flag locale-flag-ch" viewBox="0 0 60 36" role="img" focusable="false"><defs><clipPath id="flag-ch-de-diagonal"><polygon points="60,0 60,36 0,36"/></clipPath></defs><rect width="60" height="36" rx="2" fill="#d52b1e"/><path fill="#fff" d="M24 8h12v8h9v8h-9v8H24v-8h-9v-8h9z"/><g clip-path="url(#flag-ch-de-diagonal)"><rect width="60" height="12" fill="#000"/><rect y="12" width="60" height="12" fill="#dd0000"/><rect y="24" width="60" height="12" fill="#ffce00"/></g><rect width="60" height="36" rx="2" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg>',
+        'ch-fr' => '<svg class="locale-flag locale-flag-ch" viewBox="0 0 60 36" role="img" focusable="false"><defs><clipPath id="flag-ch-fr-diagonal"><polygon points="60,0 60,36 0,36"/></clipPath></defs><rect width="60" height="36" rx="2" fill="#d52b1e"/><path fill="#fff" d="M24 8h12v8h9v8h-9v8H24v-8h-9v-8h9z"/><g clip-path="url(#flag-ch-fr-diagonal)"><rect width="20" height="36" fill="#0055a4"/><rect x="20" width="20" height="36" fill="#fff"/><rect x="40" width="20" height="36" fill="#ef4135"/></g><rect width="60" height="36" rx="2" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1"/></svg>',
         'gb' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="60" height="36" fill="#012169"/><path stroke="#fff" stroke-width="7" d="M0 0l60 36M60 0L0 36"/><path stroke="#c8102e" stroke-width="4" d="M0 0l60 36M60 0L0 36"/><path stroke="#fff" stroke-width="12" d="M30 0v36M0 18h60"/><path stroke="#c8102e" stroke-width="7" d="M30 0v36M0 18h60"/></svg>',
         'br' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="60" height="36" fill="#009b3a"/><path fill="#ffdf00" d="M30 4l25 14-25 14L5 18z"/><circle cx="30" cy="18" r="8.5" fill="#002776"/><path stroke="#fff" stroke-width="2" d="M20 17c7-3 14-3 20 1"/></svg>',
         'mx' => '<svg class="locale-flag" viewBox="0 0 60 36" role="img" focusable="false"><rect width="20" height="36" fill="#006847"/><rect x="20" width="20" height="36" fill="#fff"/><rect x="40" width="20" height="36" fill="#ce1126"/><circle cx="30" cy="18" r="4.2" fill="#b38e5d"/><path stroke="#006847" stroke-width="1.2" d="M27 20c2 2 5 2 7 0"/></svg>',
@@ -6403,7 +6405,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.53';
+$codeVersion = '1.15.54';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
