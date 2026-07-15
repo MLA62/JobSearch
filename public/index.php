@@ -6407,7 +6407,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.55';
+$codeVersion = '1.15.56';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7726,7 +7726,10 @@ startUiTranslationBuffer($appLocale);
         $jobs=dbAll($db,$sql,$types,$vals);
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url, original_pdf_status, SUBSTRING(description,1,65535) description, SUBSTRING(notes,1,65535) notes FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $draft = is_array($_SESSION['import_draft'] ?? null) ? $_SESSION['import_draft'] : [];
-        $form = $edit ?: $draft;
+        if ($draft) {
+            $edit = null;
+        }
+        $form = $draft ?: ($edit ?: []);
         $draftCompany = trim((string) ($draft['company'] ?? ''));
         $matchedCompanyId = 0;
         foreach ($companies as $candidate) {
