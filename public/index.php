@@ -5263,7 +5263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $importUrls = array_values($importUrls);
         if (count($importUrls) > 1) {
-            $created = 0; $skipped = 0; $failed = 0; $uid = userId(); $failReasons = [];
+            $created = 0; $skipped = 0; $failed = 0; $uid = userId(); $failReasons = []; $lastImportedJobId = 0;
             foreach ($importUrls as $sourceUrl) {
                 try {
                     $draft = importFromUrl($sourceUrl);
@@ -5281,6 +5281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $existing = dbOne($db, 'SELECT j.id,j.title,c.name AS company_name FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.source_url=? AND j.deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
                     if ($existing) {
                         importRepairExistingJob($db, $uid, $existing, $draft, $companyId);
+                        $lastImportedJobId = (int) $existing['id'];
                         $skipped++;
                         continue;
                     }
@@ -5294,6 +5295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute();
                     $jobId = (int) $stmt->insert_id;
                     audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
+                    $lastImportedJobId = $jobId;
                     $created++;
                 } catch (Throwable $exception) {
                     $failed++;
@@ -5307,7 +5309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message .= ' Fehlerbeispiele: ' . implode(' | ', $failReasons);
             }
             flash($message);
-            redirect('/?page=jobs');
+            redirect($lastImportedJobId > 0 ? '/?page=jobs&edit=' . $lastImportedJobId . '#new' : '/?page=jobs');
         }
         try {
             $_SESSION['import_draft'] = count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)
@@ -5781,7 +5783,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         flash(tr('flash.jobs.saved'));
         unset($_SESSION['import_draft']);
-        redirect('/?page=jobs');
+        redirect('/?page=jobs&edit=' . $id . '#new');
     }
 
     if ($action === 'delete_job') {
@@ -6405,7 +6407,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.54';
+$codeVersion = '1.15.55';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
