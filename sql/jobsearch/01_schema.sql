@@ -94,6 +94,36 @@ CREATE TABLE user_calendar_feeds (
     CONSTRAINT fk_user_calendar_feeds_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE user_google_calendar_settings (
+    user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    client_id VARCHAR(255) NULL,
+    client_secret_encrypted LONGTEXT NULL,
+    calendar_id VARCHAR(255) NULL,
+    calendar_summary VARCHAR(255) NULL,
+    access_token_encrypted LONGTEXT NULL,
+    refresh_token_encrypted LONGTEXT NULL,
+    token_expires_at DATETIME NULL,
+    sync_enabled TINYINT(1) NOT NULL DEFAULT 0,
+    last_sync_at DATETIME NULL,
+    last_error TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_google_calendar_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE google_calendar_event_links (
+    user_id BIGINT UNSIGNED NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    source_id BIGINT UNSIGNED NOT NULL,
+    google_event_id VARCHAR(255) NOT NULL,
+    last_hash CHAR(64) NULL,
+    last_error TEXT NULL,
+    synced_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, source_type, source_id),
+    KEY idx_google_calendar_event_links_event (google_event_id),
+    CONSTRAINT fk_google_calendar_event_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE support_access_grants (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,

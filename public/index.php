@@ -185,6 +185,167 @@ try {
             'pt-BR' => 'Feed de calendário não encontrado.',
             'es-MX' => 'Feed de calendario no encontrado.',
         ],
+        'calendar.google_config_title' => [
+            'de-CH' => 'Google Kalender verbinden',
+            'fr-CH' => 'Connecter Google Agenda',
+            'en-GB' => 'Connect Google Calendar',
+            'pt-BR' => 'Conectar Google Agenda',
+            'es-MX' => 'Conectar Google Calendar',
+        ],
+        'calendar.google_config_hint' => [
+            'de-CH' => 'Konfiguriere hier den Google-Zugang. Die Freigabe erfolgt beim Verbinden direkt in Google und wird danach von der App gespeichert.',
+            'fr-CH' => 'Configure ici l’accès Google. L’autorisation se fait lors de la connexion directement chez Google et est ensuite enregistrée par l’app.',
+            'en-GB' => 'Configure Google access here. Consent is granted during connection directly with Google and then stored by the app.',
+            'pt-BR' => 'Configure aqui o acesso ao Google. A autorização ocorre ao conectar diretamente no Google e depois é salva pelo app.',
+            'es-MX' => 'Configura aquí el acceso a Google. La autorización se da al conectar directamente en Google y luego la app la guarda.',
+        ],
+        'calendar.google_client_id' => [
+            'de-CH' => 'Google Client-ID',
+            'fr-CH' => 'ID client Google',
+            'en-GB' => 'Google client ID',
+            'pt-BR' => 'ID de cliente do Google',
+            'es-MX' => 'ID de cliente de Google',
+        ],
+        'calendar.google_client_secret' => [
+            'de-CH' => 'Google Client-Secret',
+            'fr-CH' => 'Secret client Google',
+            'en-GB' => 'Google client secret',
+            'pt-BR' => 'Segredo de cliente do Google',
+            'es-MX' => 'Secreto de cliente de Google',
+        ],
+        'calendar.google_secret_placeholder' => [
+            'de-CH' => 'Leer lassen = unverändert',
+            'fr-CH' => 'Laisser vide = inchangé',
+            'en-GB' => 'Leave empty = unchanged',
+            'pt-BR' => 'Deixe vazio = sem alteração',
+            'es-MX' => 'Dejar vacío = sin cambios',
+        ],
+        'calendar.google_redirect_uri' => [
+            'de-CH' => 'Redirect-URI für Google',
+            'fr-CH' => 'URI de redirection pour Google',
+            'en-GB' => 'Redirect URI for Google',
+            'pt-BR' => 'URI de redirecionamento para Google',
+            'es-MX' => 'URI de redirección para Google',
+        ],
+        'calendar.google_calendar_id' => [
+            'de-CH' => 'Kalender-ID',
+            'fr-CH' => 'ID du calendrier',
+            'en-GB' => 'Calendar ID',
+            'pt-BR' => 'ID do calendário',
+            'es-MX' => 'ID del calendario',
+        ],
+        'calendar.google_calendar_id_hint' => [
+            'de-CH' => 'Leer oder „primary“ nutzt den Hauptkalender. Nach der Verbindung kann auch eine konkrete Kalender-ID gespeichert werden.',
+            'fr-CH' => 'Vide ou « primary » utilise le calendrier principal. Après la connexion, une ID de calendrier précise peut aussi être enregistrée.',
+            'en-GB' => 'Empty or “primary” uses the primary calendar. After connecting, a specific calendar ID can also be saved.',
+            'pt-BR' => 'Vazio ou “primary” usa o calendário principal. Depois de conectar, um ID específico também pode ser salvo.',
+            'es-MX' => 'Vacío o “primary” usa el calendario principal. Después de conectar, también se puede guardar un ID específico.',
+        ],
+        'calendar.google_sync_enabled' => [
+            'de-CH' => 'Google-Synchronisation aktivieren',
+            'fr-CH' => 'Activer la synchronisation Google',
+            'en-GB' => 'Enable Google sync',
+            'pt-BR' => 'Ativar sincronização Google',
+            'es-MX' => 'Activar sincronización Google',
+        ],
+        'calendar.google_status_connected' => [
+            'de-CH' => 'Verbunden',
+            'fr-CH' => 'Connecté',
+            'en-GB' => 'Connected',
+            'pt-BR' => 'Conectado',
+            'es-MX' => 'Conectado',
+        ],
+        'calendar.google_status_missing' => [
+            'de-CH' => 'Noch nicht verbunden',
+            'fr-CH' => 'Pas encore connecté',
+            'en-GB' => 'Not connected yet',
+            'pt-BR' => 'Ainda não conectado',
+            'es-MX' => 'Aún no conectado',
+        ],
+        'calendar.google_last_sync' => [
+            'de-CH' => 'Letzter Sync',
+            'fr-CH' => 'Dernière synchro',
+            'en-GB' => 'Last sync',
+            'pt-BR' => 'Última sincronização',
+            'es-MX' => 'Última sincronización',
+        ],
+        'calendar.google_last_error' => [
+            'de-CH' => 'Letzter Fehler',
+            'fr-CH' => 'Dernière erreur',
+            'en-GB' => 'Last error',
+            'pt-BR' => 'Último erro',
+            'es-MX' => 'Último error',
+        ],
+        'calendar.google_save' => [
+            'de-CH' => 'Google-Konfiguration speichern',
+            'fr-CH' => 'Enregistrer la configuration Google',
+            'en-GB' => 'Save Google configuration',
+            'pt-BR' => 'Salvar configuração Google',
+            'es-MX' => 'Guardar configuración Google',
+        ],
+        'calendar.google_connect' => [
+            'de-CH' => 'Mit Google verbinden',
+            'fr-CH' => 'Connecter avec Google',
+            'en-GB' => 'Connect with Google',
+            'pt-BR' => 'Conectar com Google',
+            'es-MX' => 'Conectar con Google',
+        ],
+        'calendar.google_sync_now' => [
+            'de-CH' => 'Jetzt synchronisieren',
+            'fr-CH' => 'Synchroniser maintenant',
+            'en-GB' => 'Sync now',
+            'pt-BR' => 'Sincronizar agora',
+            'es-MX' => 'Sincronizar ahora',
+        ],
+        'calendar.google_disconnect' => [
+            'de-CH' => 'Google-Verbindung trennen',
+            'fr-CH' => 'Déconnecter Google',
+            'en-GB' => 'Disconnect Google',
+            'pt-BR' => 'Desconectar Google',
+            'es-MX' => 'Desconectar Google',
+        ],
+        'flash.google_calendar.config_saved' => [
+            'de-CH' => 'Google-Kalender-Konfiguration gespeichert.',
+            'fr-CH' => 'Configuration Google Agenda enregistrée.',
+            'en-GB' => 'Google Calendar configuration saved.',
+            'pt-BR' => 'Configuração do Google Agenda salva.',
+            'es-MX' => 'Configuración de Google Calendar guardada.',
+        ],
+        'flash.google_calendar.credentials_required' => [
+            'de-CH' => 'Für die Google-Verbindung sind Client-ID und Client-Secret nötig.',
+            'fr-CH' => 'L’ID client et le secret client sont nécessaires pour connecter Google.',
+            'en-GB' => 'Client ID and client secret are required to connect Google.',
+            'pt-BR' => 'ID e segredo de cliente são necessários para conectar o Google.',
+            'es-MX' => 'Se necesitan ID de cliente y secreto de cliente para conectar Google.',
+        ],
+        'flash.google_calendar.connected' => [
+            'de-CH' => 'Google Kalender verbunden.',
+            'fr-CH' => 'Google Agenda connecté.',
+            'en-GB' => 'Google Calendar connected.',
+            'pt-BR' => 'Google Agenda conectado.',
+            'es-MX' => 'Google Calendar conectado.',
+        ],
+        'flash.google_calendar.disconnected' => [
+            'de-CH' => 'Google-Verbindung getrennt.',
+            'fr-CH' => 'Connexion Google supprimée.',
+            'en-GB' => 'Google connection removed.',
+            'pt-BR' => 'Conexão Google removida.',
+            'es-MX' => 'Conexión Google eliminada.',
+        ],
+        'flash.google_calendar.sync_done' => [
+            'de-CH' => 'Google Kalender synchronisiert: {created} neu, {updated} aktualisiert, {failed} Fehler.',
+            'fr-CH' => 'Google Agenda synchronisé : {created} nouveau, {updated} actualisé, {failed} erreur(s).',
+            'en-GB' => 'Google Calendar synced: {created} created, {updated} updated, {failed} failed.',
+            'pt-BR' => 'Google Agenda sincronizado: {created} novo(s), {updated} atualizado(s), {failed} erro(s).',
+            'es-MX' => 'Google Calendar sincronizado: {created} nuevo(s), {updated} actualizado(s), {failed} error(es).',
+        ],
+        'flash.google_calendar.oauth_failed' => [
+            'de-CH' => 'Google-Verbindung fehlgeschlagen: {error}',
+            'fr-CH' => 'Connexion Google échouée : {error}',
+            'en-GB' => 'Google connection failed: {error}',
+            'pt-BR' => 'Falha ao conectar Google: {error}',
+            'es-MX' => 'Falló la conexión con Google: {error}',
+        ],
     ] as $textKey => $translations) {
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
@@ -323,6 +484,34 @@ try {
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY uq_user_calendar_feeds_token (token),
         CONSTRAINT fk_user_calendar_feeds_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS user_google_calendar_settings (
+        user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+        client_id VARCHAR(255) NULL,
+        client_secret_encrypted LONGTEXT NULL,
+        calendar_id VARCHAR(255) NULL,
+        calendar_summary VARCHAR(255) NULL,
+        access_token_encrypted LONGTEXT NULL,
+        refresh_token_encrypted LONGTEXT NULL,
+        token_expires_at DATETIME NULL,
+        sync_enabled TINYINT(1) NOT NULL DEFAULT 0,
+        last_sync_at DATETIME NULL,
+        last_error TEXT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_user_google_calendar_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS google_calendar_event_links (
+        user_id BIGINT UNSIGNED NOT NULL,
+        source_type VARCHAR(50) NOT NULL,
+        source_id BIGINT UNSIGNED NOT NULL,
+        google_event_id VARCHAR(255) NOT NULL,
+        last_hash CHAR(64) NULL,
+        last_error TEXT NULL,
+        synced_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, source_type, source_id),
+        KEY idx_google_calendar_event_links_event (google_event_id),
+        CONSTRAINT fk_google_calendar_event_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS application_documents (
         application_id BIGINT UNSIGNED NOT NULL,
@@ -2675,6 +2864,213 @@ function rotateCalendarFeed(mysqli $db, int $userId): string
     $stmt->bind_param('is', $userId, $token);
     $stmt->execute();
     return $token;
+}
+
+function googleCalendarSettings(mysqli $db, int $userId): array
+{
+    return dbOne($db, 'SELECT user_id, client_id, client_secret_encrypted, calendar_id, calendar_summary, access_token_encrypted, refresh_token_encrypted, token_expires_at, sync_enabled, last_sync_at, last_error FROM user_google_calendar_settings WHERE user_id=? LIMIT 1', 'i', [$userId]) ?: [];
+}
+
+function googleCalendarScope(): string
+{
+    return 'https://www.googleapis.com/auth/calendar';
+}
+
+function googleCalendarRedirectUri(array $config): string
+{
+    return absoluteUrl($config, '/?page=google_calendar_callback');
+}
+
+function googleCalendarAuthUrl(array $config, string $clientId, string $state): string
+{
+    return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+        'client_id' => $clientId,
+        'redirect_uri' => googleCalendarRedirectUri($config),
+        'response_type' => 'code',
+        'scope' => googleCalendarScope(),
+        'access_type' => 'offline',
+        'prompt' => 'consent',
+        'state' => $state,
+    ], '', '&', PHP_QUERY_RFC3986);
+}
+
+function googleHttpStatus(array $headers): int
+{
+    foreach ($headers as $header) {
+        if (preg_match('~^HTTP/\S+\s+(\d{3})~', (string) $header, $matches)) {
+            return (int) $matches[1];
+        }
+    }
+    return 0;
+}
+
+function googleJsonRequest(string $method, string $url, array $headers = [], ?array $payload = null): array
+{
+    $headerLines = array_merge(['Accept: application/json'], $headers);
+    $body = '';
+    if ($payload !== null) {
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE);
+        $headerLines[] = 'Content-Type: application/json; charset=utf-8';
+    }
+    $context = stream_context_create(['http' => [
+        'method' => $method,
+        'header' => implode("\r\n", $headerLines),
+        'content' => $body,
+        'ignore_errors' => true,
+        'timeout' => 25,
+    ]]);
+    $response = @file_get_contents($url, false, $context);
+    $responseHeaders = $http_response_header ?? [];
+    $status = googleHttpStatus($responseHeaders);
+    $data = json_decode((string) $response, true);
+    $data = is_array($data) ? $data : [];
+    if ($status >= 400 || $response === false) {
+        $message = (string) ($data['error']['message'] ?? $data['error_description'] ?? $data['error'] ?? 'Google API error');
+        throw new RuntimeException($message);
+    }
+    return $data;
+}
+
+function googleFormRequest(array $params): array
+{
+    $body = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Accept: application/json\r\nContent-Type: application/x-www-form-urlencoded",
+        'content' => $body,
+        'ignore_errors' => true,
+        'timeout' => 25,
+    ]]);
+    $response = @file_get_contents('https://oauth2.googleapis.com/token', false, $context);
+    $responseHeaders = $http_response_header ?? [];
+    $status = googleHttpStatus($responseHeaders);
+    $data = json_decode((string) $response, true);
+    $data = is_array($data) ? $data : [];
+    if ($status >= 400 || $response === false) {
+        $message = (string) ($data['error_description'] ?? $data['error'] ?? 'Google OAuth error');
+        throw new RuntimeException($message);
+    }
+    return $data;
+}
+
+function googleAccessToken(mysqli $db, array $config, int $userId, array $settings): string
+{
+    $accessToken = decryptSecret($config, $settings['access_token_encrypted'] ?? null);
+    $expiresAt = trim((string) ($settings['token_expires_at'] ?? ''));
+    if ($accessToken !== '' && ($expiresAt === '' || strtotime($expiresAt) > time() + 120)) {
+        return $accessToken;
+    }
+    $refreshToken = decryptSecret($config, $settings['refresh_token_encrypted'] ?? null);
+    $clientSecret = decryptSecret($config, $settings['client_secret_encrypted'] ?? null);
+    $clientId = trim((string) ($settings['client_id'] ?? ''));
+    if ($clientId === '' || $clientSecret === '' || $refreshToken === '') {
+        throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
+    }
+    $tokens = googleFormRequest([
+        'client_id' => $clientId,
+        'client_secret' => $clientSecret,
+        'refresh_token' => $refreshToken,
+        'grant_type' => 'refresh_token',
+    ]);
+    $accessToken = (string) ($tokens['access_token'] ?? '');
+    if ($accessToken === '') {
+        throw new RuntimeException('Google access token missing');
+    }
+    $encryptedAccess = encryptSecret($config, $accessToken);
+    $expires = date('Y-m-d H:i:s', time() + (int) ($tokens['expires_in'] ?? 3600));
+    $stmt = $db->prepare('UPDATE user_google_calendar_settings SET access_token_encrypted=?, token_expires_at=?, updated_at=NOW() WHERE user_id=?');
+    $stmt->bind_param('ssi', $encryptedAccess, $expires, $userId);
+    $stmt->execute();
+    return $accessToken;
+}
+
+function googleCalendarEventPayload(array $config, array $event, array $user): array
+{
+    $timezone = (string) ($user['timezone'] ?? 'Europe/Zurich');
+    $start = (new DateTimeImmutable((string) $event['starts_at']))->format('Y-m-d\TH:i:s');
+    $end = (new DateTimeImmutable((string) $event['ends_at']))->format('Y-m-d\TH:i:s');
+    $description = trim((string) ($event['meta'] ?? '') . "\n" . (string) ($event['notes'] ?? ''));
+    $href = (string) ($event['href'] ?? '');
+    if ($href !== '' && $href !== '#') {
+        $description = trim($description . "\n" . absoluteUrl($config, $href));
+    }
+    return [
+        'summary' => (string) $event['title'],
+        'description' => $description,
+        'start' => ['dateTime' => $start, 'timeZone' => $timezone],
+        'end' => ['dateTime' => $end, 'timeZone' => $timezone],
+        'extendedProperties' => ['private' => [
+            'jema_source' => (string) $event['source'],
+            'jema_id' => (string) $event['id'],
+        ]],
+    ];
+}
+
+function googleCalendarSyncHash(array $event): string
+{
+    return hash('sha256', json_encode([
+        'title' => (string) ($event['title'] ?? ''),
+        'meta' => (string) ($event['meta'] ?? ''),
+        'notes' => (string) ($event['notes'] ?? ''),
+        'starts_at' => (string) ($event['starts_at'] ?? ''),
+        'ends_at' => (string) ($event['ends_at'] ?? ''),
+        'href' => (string) ($event['href'] ?? ''),
+    ], JSON_UNESCAPED_UNICODE));
+}
+
+function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array $user): array
+{
+    $settings = googleCalendarSettings($db, $userId);
+    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
+        throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
+    }
+    $token = googleAccessToken($db, $config, $userId, $settings);
+    $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
+    $start = (new DateTimeImmutable('-30 days'))->setTime(0, 0);
+    $end = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
+    $created = 0;
+    $updated = 0;
+    $failed = 0;
+    foreach (calendarEventRows($db, $userId, $start, $end) as $event) {
+        $sourceType = (string) $event['source'];
+        $sourceId = (int) $event['id'];
+        $hash = googleCalendarSyncHash($event);
+        $link = dbOne($db, 'SELECT google_event_id, last_hash FROM google_calendar_event_links WHERE user_id=? AND source_type=? AND source_id=? LIMIT 1', 'isi', [$userId, $sourceType, $sourceId]);
+        if ($link && (string) ($link['last_hash'] ?? '') === $hash) {
+            continue;
+        }
+        $payload = googleCalendarEventPayload($config, $event, $user);
+        try {
+            if ($link && trim((string) $link['google_event_id']) !== '') {
+                googleJsonRequest('PATCH', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode((string) $link['google_event_id']), ['Authorization: Bearer ' . $token], $payload);
+                $googleEventId = (string) $link['google_event_id'];
+                $updated++;
+            } else {
+                $response = googleJsonRequest('POST', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events', ['Authorization: Bearer ' . $token], $payload);
+                $googleEventId = (string) ($response['id'] ?? '');
+                $created++;
+            }
+            if ($googleEventId === '') {
+                throw new RuntimeException('Google event id missing');
+            }
+            $emptyError = null;
+            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE google_event_id=VALUES(google_event_id), last_hash=VALUES(last_hash), last_error=NULL, synced_at=NOW()');
+            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $googleEventId, $hash, $emptyError);
+            $stmt->execute();
+        } catch (Throwable $exception) {
+            $failed++;
+            $message = mb_substr($exception->getMessage(), 0, 1000);
+            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE last_error=VALUES(last_error), synced_at=NOW()');
+            $emptyId = '';
+            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $emptyId, $hash, $message);
+            $stmt->execute();
+        }
+    }
+    $lastError = $failed > 0 ? (string) $failed . ' sync errors' : null;
+    $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_sync_at=NOW(), last_error=? WHERE user_id=?');
+    $stmt->bind_param('si', $lastError, $userId);
+    $stmt->execute();
+    return ['created' => $created, 'updated' => $updated, 'failed' => $failed];
 }
 
 function localeForCountry(?string $countryCode): string
@@ -5219,6 +5615,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=calendar#calendar-sync');
     }
 
+    if (in_array($action, ['save_google_calendar_settings', 'connect_google_calendar'], true)) {
+        $uid = userId();
+        $clientId = trim((string) ($_POST['google_client_id'] ?? ''));
+        $clientSecret = (string) ($_POST['google_client_secret'] ?? '');
+        $calendarId = trim((string) ($_POST['google_calendar_id'] ?? '')) ?: 'primary';
+        $syncEnabled = isset($_POST['google_sync_enabled']) ? 1 : 0;
+        $existing = googleCalendarSettings($db, $uid);
+        $encryptedSecret = $existing['client_secret_encrypted'] ?? null;
+        if ($clientSecret !== '') {
+            $encryptedSecret = encryptSecret($config, $clientSecret);
+        }
+        if ($clientId === '' || ($encryptedSecret === null || $encryptedSecret === '')) {
+            flash(tr('flash.google_calendar.credentials_required'), 'danger');
+            redirect('/?page=calendar#calendar-sync');
+        }
+        $stmt = $db->prepare('INSERT INTO user_google_calendar_settings (user_id, client_id, client_secret_encrypted, calendar_id, sync_enabled) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE client_id=VALUES(client_id), client_secret_encrypted=VALUES(client_secret_encrypted), calendar_id=VALUES(calendar_id), sync_enabled=VALUES(sync_enabled), updated_at=NOW()');
+        $stmt->bind_param('isssi', $uid, $clientId, $encryptedSecret, $calendarId, $syncEnabled);
+        $stmt->execute();
+        audit($db, $uid, 'update', 'google_calendar_settings', $uid, null, ['calendar_id' => $calendarId, 'sync_enabled' => $syncEnabled]);
+        if ($action === 'connect_google_calendar') {
+            $state = bin2hex(random_bytes(24));
+            $_SESSION['google_oauth_state'] = $state;
+            redirect(googleCalendarAuthUrl($config, $clientId, $state));
+        }
+        flash(tr('flash.google_calendar.config_saved'));
+        redirect('/?page=calendar#calendar-sync');
+    }
+
+    if ($action === 'sync_google_calendar') {
+        $uid = userId();
+        try {
+            $result = syncGoogleCalendarEvents($db, $config, $uid, $currentUser ?? []);
+            audit($db, $uid, 'update', 'google_calendar_sync', $uid, null, $result);
+            flash(tr('flash.google_calendar.sync_done', null, [
+                'created' => (string) $result['created'],
+                'updated' => (string) $result['updated'],
+                'failed' => (string) $result['failed'],
+            ]), ((int) $result['failed'] > 0 ? 'warning' : 'success'));
+        } catch (Throwable $exception) {
+            flash(tr('flash.google_calendar.oauth_failed', null, ['error' => $exception->getMessage()]), 'danger');
+        }
+        redirect('/?page=calendar#calendar-sync');
+    }
+
+    if ($action === 'disconnect_google_calendar') {
+        $uid = userId();
+        $stmt = $db->prepare('UPDATE user_google_calendar_settings SET access_token_encrypted=NULL, refresh_token_encrypted=NULL, token_expires_at=NULL, sync_enabled=0, last_error=NULL, updated_at=NOW() WHERE user_id=?');
+        $stmt->bind_param('i', $uid);
+        $stmt->execute();
+        $stmt = $db->prepare('DELETE FROM google_calendar_event_links WHERE user_id=?');
+        $stmt->bind_param('i', $uid);
+        $stmt->execute();
+        audit($db, $uid, 'update', 'google_calendar_settings', $uid, null, ['disconnected' => true]);
+        flash(tr('flash.google_calendar.disconnected'));
+        redirect('/?page=calendar#calendar-sync');
+    }
+
     if ($action === 'save_report') {
         $name = trim((string) ($_POST['report_name'] ?? ''));
         $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
@@ -6569,7 +7022,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.60';
+$codeVersion = '1.15.61';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6869,6 +7322,68 @@ if ($page === 'calendar_feed') {
     $feedStart = (new DateTimeImmutable('-90 days'))->setTime(0, 0);
     $feedEnd = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
     calendarIcsResponse('jema-jobs-google.ics', calendarEventRows($db, (int) $feed['user_id'], $feedStart, $feedEnd));
+}
+if ($page === 'google_calendar_callback') {
+    requireLogin();
+    $state = (string) ($_GET['state'] ?? '');
+    $expectedState = (string) ($_SESSION['google_oauth_state'] ?? '');
+    unset($_SESSION['google_oauth_state']);
+    if ($state === '' || $expectedState === '' || !hash_equals($expectedState, $state)) {
+        flash(tr('flash.google_calendar.oauth_failed', null, ['error' => 'Invalid state']), 'danger');
+        redirect('/?page=calendar#calendar-sync');
+    }
+    if (isset($_GET['error'])) {
+        flash(tr('flash.google_calendar.oauth_failed', null, ['error' => (string) $_GET['error']]), 'danger');
+        redirect('/?page=calendar#calendar-sync');
+    }
+    $code = trim((string) ($_GET['code'] ?? ''));
+    $settings = googleCalendarSettings($db, userId());
+    $clientId = trim((string) ($settings['client_id'] ?? ''));
+    $clientSecret = decryptSecret($config, $settings['client_secret_encrypted'] ?? null);
+    if ($code === '' || $clientId === '' || $clientSecret === '') {
+        flash(tr('flash.google_calendar.credentials_required'), 'danger');
+        redirect('/?page=calendar#calendar-sync');
+    }
+    try {
+        $tokens = googleFormRequest([
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'code' => $code,
+            'redirect_uri' => googleCalendarRedirectUri($config),
+            'grant_type' => 'authorization_code',
+        ]);
+        $accessToken = (string) ($tokens['access_token'] ?? '');
+        $refreshToken = (string) ($tokens['refresh_token'] ?? '');
+        if ($refreshToken === '') {
+            $refreshToken = decryptSecret($config, $settings['refresh_token_encrypted'] ?? null);
+        }
+        if ($accessToken === '' || $refreshToken === '') {
+            throw new RuntimeException('Google token missing');
+        }
+        $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
+        $calendarSummary = (string) ($settings['calendar_summary'] ?? '');
+        if ($calendarId === 'primary') {
+            try {
+                $calendar = googleJsonRequest('GET', 'https://www.googleapis.com/calendar/v3/calendars/primary', ['Authorization: Bearer ' . $accessToken]);
+                $calendarId = (string) ($calendar['id'] ?? 'primary');
+                $calendarSummary = (string) ($calendar['summary'] ?? $calendarSummary);
+            } catch (Throwable $ignored) {
+                $calendarId = 'primary';
+            }
+        }
+        $encryptedAccess = encryptSecret($config, $accessToken);
+        $encryptedRefresh = encryptSecret($config, $refreshToken);
+        $expires = date('Y-m-d H:i:s', time() + (int) ($tokens['expires_in'] ?? 3600));
+        $syncEnabled = 1;
+        $uid = userId();
+        $stmt = $db->prepare('UPDATE user_google_calendar_settings SET calendar_id=?, calendar_summary=?, access_token_encrypted=?, refresh_token_encrypted=?, token_expires_at=?, sync_enabled=?, last_error=NULL, updated_at=NOW() WHERE user_id=?');
+        $stmt->bind_param('sssssii', $calendarId, $calendarSummary, $encryptedAccess, $encryptedRefresh, $expires, $syncEnabled, $uid);
+        $stmt->execute();
+        flash(tr('flash.google_calendar.connected'));
+    } catch (Throwable $exception) {
+        flash(tr('flash.google_calendar.oauth_failed', null, ['error' => $exception->getMessage()]), 'danger');
+    }
+    redirect('/?page=calendar#calendar-sync');
 }
 if ($page === 'export_ics') {
     requireLogin();
@@ -7340,8 +7855,9 @@ startUiTranslationBuffer($appLocale);
         $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
         $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
-        $calendarFeed = ensureCalendarFeed($db, userId());
-        $googleFeedUrl = absoluteUrl($config, '/?page=calendar_feed&token=' . rawurlencode((string) $calendarFeed['token']));
+        $googleSettings = googleCalendarSettings($db, userId());
+        $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
+        $googleRedirectUri = googleCalendarRedirectUri($config);
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
             'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
@@ -7367,12 +7883,22 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
         <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
         <section class="panel" id="calendar-sync">
-            <h2><?= e(tr('calendar.google_sync_title')) ?></h2>
-            <p><?= e(tr('calendar.google_sync_hint')) ?></p>
-            <label><?= e(tr('calendar.google_sync_url')) ?><input readonly value="<?= e($googleFeedUrl) ?>" onclick="this.select()"></label>
-            <form method="post" class="actions" onsubmit="return confirm(<?= e(json_encode(tr('calendar.google_sync_rotate_confirm'), JSON_UNESCAPED_UNICODE)) ?>)">
+            <h2><?= e(tr('calendar.google_config_title')) ?></h2>
+            <p><?= e(tr('calendar.google_config_hint')) ?></p>
+            <p class="meta-line"><strong><?= e($googleConnected ? tr('calendar.google_status_connected') : tr('calendar.google_status_missing')) ?></strong><?php if(!empty($googleSettings['calendar_summary'])): ?> · <?= e((string)$googleSettings['calendar_summary']) ?><?php endif; ?><?php if(!empty($googleSettings['last_sync_at'])): ?> · <?= e(tr('calendar.google_last_sync')) ?>: <?= e(displayDateTime((string)$googleSettings['last_sync_at'], $currentUser)) ?><?php endif; ?></p>
+            <?php if(!empty($googleSettings['last_error'])): ?><div class="alert warning"><?= e(tr('calendar.google_last_error')) ?>: <?= e((string)$googleSettings['last_error']) ?></div><?php endif; ?>
+            <form method="post" class="stack">
                 <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-                <button name="action" value="rotate_calendar_feed"><?= e(tr('calendar.google_sync_rotate')) ?></button>
+                <label><?= e(tr('calendar.google_client_id')) ?><input name="google_client_id" value="<?= e((string)($googleSettings['client_id'] ?? '')) ?>" autocomplete="off"></label>
+                <label><?= e(tr('calendar.google_client_secret')) ?><input type="password" name="google_client_secret" placeholder="<?= e(tr('calendar.google_secret_placeholder')) ?>" autocomplete="new-password"></label>
+                <label><?= e(tr('calendar.google_redirect_uri')) ?><input readonly value="<?= e($googleRedirectUri) ?>" onclick="this.select()"></label>
+                <label><?= e(tr('calendar.google_calendar_id')) ?><input name="google_calendar_id" value="<?= e((string)($googleSettings['calendar_id'] ?? 'primary')) ?>"><small><?= e(tr('calendar.google_calendar_id_hint')) ?></small></label>
+                <label class="check"><input type="checkbox" name="google_sync_enabled" value="1" <?= !empty($googleSettings['sync_enabled']) ? 'checked' : '' ?>><?= e(tr('calendar.google_sync_enabled')) ?></label>
+                <div class="actions">
+                    <button name="action" value="save_google_calendar_settings"><?= e(tr('calendar.google_save')) ?></button>
+                    <button class="primary" name="action" value="connect_google_calendar"><?= e(tr('calendar.google_connect')) ?></button>
+                    <?php if($googleConnected): ?><button name="action" value="sync_google_calendar"><?= e(tr('calendar.google_sync_now')) ?></button><button name="action" value="disconnect_google_calendar"><?= e(tr('calendar.google_disconnect')) ?></button><?php endif; ?>
+                </div>
             </form>
         </section>
         <section class="panel calendar-panel matrix-first">
