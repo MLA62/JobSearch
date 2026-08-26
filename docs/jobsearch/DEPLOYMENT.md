@@ -130,22 +130,13 @@ Nach manueller Anmeldung sollten stichprobenartig geprueft werden:
 
 ## Worker
 
-### Original-PDFs fuer Jobs
+### Stellenausschreibungen fuer Jobs
 
-Jobs mit Quell-URL koennen serverseitig als Original-PDF gerendert werden.
-
-```sh
-php deploy/render-pending-job-pdfs.php --limit=5
-```
-
-Cron-Beispiel:
-
-```sh
-*/5 * * * * cd /home/kerubina/public_html/jobs.jema.business && /opt/alt/php81/usr/bin/php deploy/render-pending-job-pdfs.php --limit=5 >> deploy/job-pdf-render.log 2>&1
-```
-
-Chromium oder ein kompatibler Browser muss verfuegbar sein. Falls Autodetektion
-nicht reicht, `job_pdf_browser_path` in `public/config.php` setzen.
+Die Anwendung rendert Quell-Webseiten nicht automatisch. Benutzer erstellen
+bei Bedarf selbst ein PDF oder Ganzseitenbild und laden es im bearbeiteten Job
+hoch. Erlaubt sind PDF, JPG, JPEG und PNG. Die Datei wird in der bestehenden
+Dokumentenablage gespeichert und kann dort geoeffnet, ersetzt oder geloescht
+werden. Dafuer ist kein Browser-Worker und kein Cronjob erforderlich.
 
 ### Dokumenttextextraktion
 

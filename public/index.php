@@ -101,19 +101,62 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
     foreach ([
-        'jobs.original_pdf_creating' => [
-            'de-CH' => 'Original-PDF wird erstellt. Bitte kurz warten.',
-            'fr-CH' => 'Le PDF original est en cours de création. Veuillez patienter un instant.',
-            'en-GB' => 'The original PDF is being created. Please wait a moment.',
-            'pt-BR' => 'O PDF original está sendo criado. Aguarde um momento.',
-            'es-MX' => 'El PDF original se está creando. Espera un momento.',
+        'jobs.original_document_title' => [
+            'de-CH' => 'Gespeicherte Stellenausschreibung',
+            'fr-CH' => 'Offre d’emploi enregistrée',
+            'en-GB' => 'Saved job advert',
+            'pt-BR' => 'Anúncio de vaga salvo',
+            'es-MX' => 'Anuncio de empleo guardado',
         ],
-        'jobs.original_pdf_failed_hint' => [
-            'de-CH' => 'Die Stellenseite konnte nicht als PDF gespeichert werden. Bitte erneut versuchen oder die Quell-URL öffnen.',
-            'fr-CH' => 'La page de l’offre n’a pas pu être enregistrée au format PDF. Réessaie ou ouvre l’URL source.',
-            'en-GB' => 'The job page could not be saved as a PDF. Please try again or open the source URL.',
-            'pt-BR' => 'A página da vaga não pôde ser salva como PDF. Tente novamente ou abra o URL de origem.',
-            'es-MX' => 'No se pudo guardar la página de empleo como PDF. Inténtalo de nuevo o abre la URL de origen.',
+        'jobs.original_document_hint' => [
+            'de-CH' => 'Lade dein selbst erstelltes PDF oder Ganzseitenbild hoch. Die Datei wird direkt bei diesem Job gespeichert.',
+            'fr-CH' => 'Téléverse ton PDF ou ta capture pleine page. Le fichier sera enregistré directement avec cet emploi.',
+            'en-GB' => 'Upload your own PDF or full-page image. The file will be stored directly with this job.',
+            'pt-BR' => 'Envie seu PDF ou imagem de página inteira. O arquivo será salvo diretamente com esta vaga.',
+            'es-MX' => 'Sube tu PDF o imagen de página completa. El archivo se guardará directamente con este empleo.',
+        ],
+        'jobs.original_document_upload' => [
+            'de-CH' => 'Datei hochladen', 'fr-CH' => 'Téléverser le fichier', 'en-GB' => 'Upload file',
+            'pt-BR' => 'Enviar arquivo', 'es-MX' => 'Subir archivo',
+        ],
+        'jobs.original_document_replace' => [
+            'de-CH' => 'Datei ersetzen', 'fr-CH' => 'Remplacer le fichier', 'en-GB' => 'Replace file',
+            'pt-BR' => 'Substituir arquivo', 'es-MX' => 'Reemplazar archivo',
+        ],
+        'jobs.original_document_open' => [
+            'de-CH' => 'Gespeicherte Datei öffnen', 'fr-CH' => 'Ouvrir le fichier enregistré', 'en-GB' => 'Open saved file',
+            'pt-BR' => 'Abrir arquivo salvo', 'es-MX' => 'Abrir archivo guardado',
+        ],
+        'jobs.original_document_delete' => [
+            'de-CH' => 'Gespeicherte Datei löschen', 'fr-CH' => 'Supprimer le fichier enregistré', 'en-GB' => 'Delete saved file',
+            'pt-BR' => 'Excluir arquivo salvo', 'es-MX' => 'Eliminar archivo guardado',
+        ],
+        'jobs.original_document_delete_confirm' => [
+            'de-CH' => 'Gespeicherte Stellenausschreibung wirklich löschen?',
+            'fr-CH' => 'Supprimer réellement l’offre d’emploi enregistrée ?',
+            'en-GB' => 'Delete the saved job advert?',
+            'pt-BR' => 'Excluir o anúncio de vaga salvo?',
+            'es-MX' => '¿Eliminar el anuncio de empleo guardado?',
+        ],
+        'jobs.original_document_type_error' => [
+            'de-CH' => 'Erlaubt sind PDF-, JPG- und PNG-Dateien.', 'fr-CH' => 'Les fichiers PDF, JPG et PNG sont autorisés.',
+            'en-GB' => 'PDF, JPG and PNG files are allowed.', 'pt-BR' => 'São permitidos arquivos PDF, JPG e PNG.',
+            'es-MX' => 'Se permiten archivos PDF, JPG y PNG.',
+        ],
+        'flash.jobs.original_document_uploaded' => [
+            'de-CH' => 'Die Stellenausschreibung wurde beim Job gespeichert.', 'fr-CH' => 'L’offre d’emploi a été enregistrée avec cet emploi.',
+            'en-GB' => 'The job advert was saved with the job.', 'pt-BR' => 'O anúncio foi salvo com a vaga.',
+            'es-MX' => 'El anuncio se guardó con el empleo.',
+        ],
+        'flash.jobs.original_document_deleted' => [
+            'de-CH' => 'Die gespeicherte Stellenausschreibung wurde gelöscht.', 'fr-CH' => 'L’offre d’emploi enregistrée a été supprimée.',
+            'en-GB' => 'The saved job advert was deleted.', 'pt-BR' => 'O anúncio de vaga salvo foi excluído.',
+            'es-MX' => 'El anuncio de empleo guardado fue eliminado.',
+        ],
+        'flash.jobs.original_document_upload_failed' => [
+            'de-CH' => 'Die Datei konnte nicht gespeichert werden: {error}', 'fr-CH' => 'Le fichier n’a pas pu être enregistré : {error}',
+            'en-GB' => 'The file could not be saved: {error}', 'pt-BR' => 'Não foi possível salvar o arquivo: {error}',
+            'es-MX' => 'No se pudo guardar el archivo: {error}',
         ],
         'calendar.outside.before' => [
             'de-CH' => 'Termine vor 07:00',
@@ -674,11 +717,11 @@ function e(?string $value): string
     return htmlspecialchars(repairMojibake((string) $value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function filePickerHtml(string $name, bool $required = true): string
+function filePickerHtml(string $name, bool $required = true, string $accept = ''): string
 {
     $id = 'file_' . bin2hex(random_bytes(4));
     return '<label class="file-picker">' . e(tr('documents.file'))
-        . '<input id="' . e($id) . '" type="file" name="' . e($name) . '"' . ($required ? ' required' : '') . ' data-file-picker>'
+        . '<input id="' . e($id) . '" type="file" name="' . e($name) . '"' . ($required ? ' required' : '') . ($accept !== '' ? ' accept="' . e($accept) . '"' : '') . ' data-file-picker>'
         . '<span class="file-picker-button">' . e(tr('documents.choose_file')) . '</span>'
         . '<span class="file-picker-name" data-file-picker-name data-empty="' . e(tr('documents.no_file_selected')) . '">' . e(tr('documents.no_file_selected')) . '</span>'
         . '</label>';
@@ -4369,77 +4412,6 @@ function importFromText(string $text): array
     return array_map(static fn ($value) => is_string($value) ? repairMojibake($value) : $value, $values);
 }
 
-function originalPdfStatusLabel(?string $status): string
-{
-    return match ($status) {
-        'rendered' => tr('jobs.original_pdf_ready'),
-        'pending' => tr('jobs.original_pdf_creating'),
-        'failed' => tr('jobs.original_pdf_failed'),
-        default => tr('jobs.no_original_pdf'),
-    };
-}
-
-function renderPendingJobPdfNow(int $jobId): ?string
-{
-    $script = realpath(__DIR__ . '/../deploy/render-pending-job-pdfs.php');
-    if ($script === false || !function_exists('proc_open')) {
-        return 'Renderer ist auf dem Server nicht verfügbar.';
-    }
-    $candidates = [
-        '/opt/alt/php81/usr/bin/php',
-        '/usr/local/bin/php',
-        '/usr/bin/php',
-        PHP_BINARY,
-    ];
-    foreach ($candidates as $php) {
-        if (!is_file($php) || !is_executable($php) || str_contains(strtolower($php), 'php-cgi')) {
-            continue;
-        }
-        $command = escapeshellarg($php) . ' ' . escapeshellarg($script) . ' --job-id=' . $jobId . ' --limit=1 --timeout=25';
-        $process = @proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-        if (is_resource($process)) {
-            fclose($pipes[0]);
-            $startedAt = time();
-            $output = '';
-            $errors = '';
-            $processExitCode = null;
-            stream_set_blocking($pipes[1], false);
-            stream_set_blocking($pipes[2], false);
-            while (true) {
-                $output .= stream_get_contents($pipes[1]) ?: '';
-                $errors .= stream_get_contents($pipes[2]) ?: '';
-                $status = proc_get_status($process);
-                if (!$status['running']) {
-                    $processExitCode = (int) $status['exitcode'];
-                    break;
-                }
-                if (time() - $startedAt > 35) {
-                    proc_terminate($process);
-                    break;
-                }
-                usleep(100000);
-            }
-            $output .= stream_get_contents($pipes[1]) ?: '';
-            $errors .= stream_get_contents($pipes[2]) ?: '';
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-            $exitCode = proc_close($process);
-            if (($processExitCode ?? $exitCode) === 0) {
-                return null;
-            }
-            return mb_strimwidth(trim($errors ?: $output) ?: 'Renderer konnte nicht ausgeführt werden.', 0, 1000, '...');
-        }
-    }
-    return 'Renderer konnte nicht gestartet werden.';
-}
-
-function markJobOriginalPdfFailed(mysqli $db, int $userId, int $jobId, string $error): void
-{
-    $stmt = $db->prepare("UPDATE jobs SET original_pdf_status='failed', original_pdf_error=?, original_pdf_rendered_at=NULL WHERE id=? AND owner_user_id=? AND original_pdf_status='pending'");
-    $stmt->bind_param('sii', $error, $jobId, $userId);
-    $stmt->execute();
-}
-
 function timezoneChoices(): array
 {
     return [
@@ -6368,10 +6340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
                     $description = trim((string) ($draft['description'] ?? $sourceUrl));
                     $status = 'open'; $workplace = 'unknown'; $engagement = 'permanent'; $term = 'unknown';
-                    $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
-                    $pdfRequestedAt = $sourceUrl !== '' ? date('Y-m-d H:i:s') : null;
-                    $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, original_pdf_status, original_pdf_requested_at, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-                    $stmt->bind_param('iissssssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $pdfStatus, $pdfRequestedAt, $description);
+                    $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                    $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description);
                     $stmt->execute();
                     $jobId = (int) $stmt->insert_id;
                     audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
@@ -6859,29 +6829,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=companies');
     }
 
-    if ($action === 'queue_job_original_pdf') {
+    if ($action === 'upload_job_original_document') {
         $id = (int) ($_POST['id'] ?? $_POST['job_id'] ?? 0);
-        $job = dbOne($db, 'SELECT id, title, source_url FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
-        if ($job && publicHttpUrl((string) $job['source_url'])) {
-            $uid = userId();
-            $db->begin_transaction();
-            try {
-                $documents = $db->prepare('UPDATE user_documents SET deleted_at=NOW() WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL');
-                $documents->bind_param('ii', $uid, $id);
-                $documents->execute();
-                $statement = $db->prepare('UPDATE jobs SET original_pdf_status="pending", original_pdf_requested_at=NOW(), original_pdf_rendered_at=NULL, original_pdf_error=NULL WHERE id=? AND owner_user_id=?');
-                $statement->bind_param('ii', $id, $uid);
-                $statement->execute();
-                audit($db, $uid, 'queue_pdf', 'job', $id, $job, ['original_pdf_status' => 'pending']);
-                $db->commit();
-                if ($renderError = renderPendingJobPdfNow($id)) {
-                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
-                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
-                }
-            } catch (Throwable $exception) {
-                $db->rollback();
-                throw $exception;
+        $uid = userId();
+        $job = dbOne($db, 'SELECT id, title FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+        if (!$job) {
+            http_response_code(404);
+            exit('Not found');
+        }
+        $uploaded = null;
+        try {
+            $uploaded = uploadDocumentFile($_FILES['job_original_document'] ?? [], $uid);
+            $extension = strtolower(pathinfo((string) $uploaded['original'], PATHINFO_EXTENSION));
+            if (!in_array($extension, ['pdf', 'jpg', 'jpeg', 'png'], true)) {
+                throw new RuntimeException(tr('jobs.original_document_type_error'));
             }
+            $uploaded['mime'] = match ($extension) {
+                'pdf' => 'application/pdf',
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+            };
+            $documentType = dbOne($db, 'SELECT id FROM document_types WHERE code="other" LIMIT 1');
+            if (!$documentType) {
+                throw new RuntimeException(tr('documents.error_save_failed'));
+            }
+            $markerTitle = 'Originale Stellenausschreibung';
+            $current = dbOne($db, 'SELECT id, version FROM user_documents WHERE user_id=? AND job_id=? AND title=? AND deleted_at IS NULL ORDER BY version DESC, id DESC LIMIT 1', 'iis', [$uid, $id, $markerTitle]);
+            $version = (int) ($current['version'] ?? 0) + 1;
+            $documentTypeId = (int) $documentType['id'];
+            $languageCode = null;
+            $scope = 'application';
+            $applicationId = null;
+            $description = null;
+            $validFrom = null;
+            $validUntil = null;
+            $db->begin_transaction();
+            $oldDocuments = $db->prepare('UPDATE user_documents SET is_current=0, deleted_at=NOW() WHERE user_id=? AND job_id=? AND title=? AND deleted_at IS NULL');
+            $oldDocuments->bind_param('iis', $uid, $id, $markerTitle);
+            $oldDocuments->execute();
+            $stmt = $db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+            $stmt->bind_param('iissiisssssisssi', $uid, $documentTypeId, $languageCode, $scope, $applicationId, $id, $markerTitle, $description, $uploaded['original'], $uploaded['path'], $uploaded['mime'], $uploaded['size'], $uploaded['sha256'], $validFrom, $validUntil, $version);
+            $stmt->execute();
+            $documentId = (int) $stmt->insert_id;
+            audit($db, $uid, 'create', 'user_document', $documentId, null, ['job_id' => $id, 'filename' => $uploaded['original'], 'source' => 'manual_job_upload']);
+            $db->commit();
+            flash(tr('flash.jobs.original_document_uploaded'));
+        } catch (Throwable $exception) {
+            try { $db->rollback(); } catch (Throwable) {}
+            if ($uploaded && !empty($uploaded['path'])) {
+                $uploadedPath = __DIR__ . '/' . $uploaded['path'];
+                if (is_file($uploadedPath)) {
+                    @unlink($uploadedPath);
+                }
+            }
+            flash(strtr(tr('flash.jobs.original_document_upload_failed'), ['{error}' => $exception->getMessage()]), 'danger');
+        }
+        redirect('/?page=jobs&edit=' . $id . '#new');
+    }
+
+    if ($action === 'delete_job_original_document') {
+        $id = (int) ($_POST['id'] ?? $_POST['job_id'] ?? 0);
+        $uid = userId();
+        $job = dbOne($db, 'SELECT id FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+        if (!$job) {
+            http_response_code(404);
+            exit('Not found');
+        }
+        $documents = dbAll($db, 'SELECT id FROM user_documents WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL', 'ii', [$uid, $id]);
+        $db->begin_transaction();
+        try {
+            foreach ($documents as $document) {
+                $documentId = (int) $document['id'];
+                cleanupDocumentCascade($db, $uid, $documentId);
+                $stmt = $db->prepare('UPDATE user_documents SET is_current=0, deleted_at=NOW() WHERE id=? AND user_id=?');
+                $stmt->bind_param('ii', $documentId, $uid);
+                $stmt->execute();
+                audit($db, $uid, 'delete', 'user_document', $documentId, ['job_id' => $id], null);
+            }
+            $db->commit();
+            flash(tr('flash.jobs.original_document_deleted'));
+        } catch (Throwable $exception) {
+            $db->rollback();
+            throw $exception;
         }
         redirect('/?page=jobs&edit=' . $id . '#new');
     }
@@ -6933,54 +6962,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=jobs&duplicate=1');
         }
         if ($id > 0) {
-            $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url, original_pdf_status, original_pdf_requested_at, original_pdf_rendered_at, original_pdf_error, SUBSTRING(description,1,65535) description, SUBSTRING(notes,1,65535) notes FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
+            $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url, SUBSTRING(description,1,65535) description, SUBSTRING(notes,1,65535) notes FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, userId()]);
             if (!$old) { http_response_code(404); exit('Not found'); }
-            $pdfStatus = (string) ($old['original_pdf_status'] ?? 'none');
-            $pdfRequestedAt = $old['original_pdf_requested_at'] ?? null;
-            $pdfRenderedAt = $old['original_pdf_rendered_at'] ?? null;
-            $pdfError = $old['original_pdf_error'] ?? null;
-            $sourceChanged = $sourceUrl !== (string) ($old['source_url'] ?? '');
-            if ($sourceUrl === '') {
-                $pdfStatus = 'none';
-                $pdfRequestedAt = null;
-                $pdfRenderedAt = null;
-                $pdfError = null;
-            } elseif ($sourceChanged) {
-                $pdfStatus = 'pending';
-                $pdfRequestedAt = date('Y-m-d H:i:s');
-                $pdfRenderedAt = null;
-                $pdfError = null;
-            }
-            $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=?, notes=?, status=?, workplace_type=?, engagement_type=?, contract_term=?, fixed_term_start=?, fixed_term_end=?, salary_min=?, salary_max=?, salary_currency=?, salary_period=?, source_url=?, original_pdf_status=?, original_pdf_requested_at=?, original_pdf_rendered_at=?, original_pdf_error=? WHERE id=? AND owner_user_id=?');
+            $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=?, notes=?, status=?, workplace_type=?, engagement_type=?, contract_term=?, fixed_term_start=?, fixed_term_end=?, salary_min=?, salary_max=?, salary_currency=?, salary_period=?, source_url=? WHERE id=? AND owner_user_id=?');
             $uid = userId();
-            $stmt->bind_param('issssssssssddsssssssii', $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl, $pdfStatus, $pdfRequestedAt, $pdfRenderedAt, $pdfError, $id, $uid);
+            $stmt->bind_param('issssssssssddsssii', $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl, $id, $uid);
             $stmt->execute();
-            if ($sourceChanged) {
-                // Das Original-PDF gehört immer genau zur aktuell gespeicherten Quell-URL.
-                $documents = $db->prepare('UPDATE user_documents SET deleted_at=NOW() WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL');
-                $documents->bind_param('ii', $uid, $id);
-                $documents->execute();
-                if ($renderError = renderPendingJobPdfNow($id)) {
-                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
-                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
-                }
-            }
-            audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
+            audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes]);
         } else {
-            $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
-            $pdfRequestedAt = $sourceUrl !== '' ? date('Y-m-d H:i:s') : null;
-            $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, description, notes, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url, original_pdf_status, original_pdf_requested_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, description, notes, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
             $uid = userId();
-            $stmt->bind_param('iissssssssssddsssss', $uid, $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl, $pdfStatus, $pdfRequestedAt);
+            $stmt->bind_param('iissssssssssddsss', $uid, $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl);
             $stmt->execute();
             $id = (int) $stmt->insert_id;
-            audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
-            if ($sourceUrl !== '') {
-                if ($renderError = renderPendingJobPdfNow($id)) {
-                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
-                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
-                }
-            }
+            audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes]);
         }
         flash(tr('flash.jobs.saved'));
         unset($_SESSION['import_draft']);
@@ -7623,7 +7618,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.74';
+$codeVersion = '1.15.75';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9066,12 +9061,12 @@ startUiTranslationBuffer($appLocale);
         $jobSfFields = ['title'=>['label'=>tr('common.title'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'location'=>['label'=>tr('jobs.location'),'expr'=>'j.location_text'], 'status'=>['label'=>tr('common.status'),'expr'=>'j.status', 'choices'=>jobStatusOptions()], 'match'=>['label'=>tr('jobs.match'),'expr'=>'j.updated_at']];
         $jobSf = sfState('jobs', $jobSfFields, ['sort'=>'title','dir'=>'asc']);
         $jobPreserve = ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: '', 'edit'=>$_GET['edit'] ?? ''];
-        $sql = 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.original_pdf_status, j.original_pdf_requested_at, j.original_pdf_rendered_at, j.original_pdf_error, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
+        $sql = 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
         if ($companyFilter > 0) { $sql .= ' AND j.company_id=?'; $types.='i'; $vals[]=$companyFilter; }
         $sql .= sfApplySql($jobSf, $jobSfFields, $types, $vals);
         $sql .= sfOrderSql($jobSf, $jobSfFields, 'title');
         $jobs=dbAll($db,$sql,$types,$vals);
-        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, j.source_url, j.original_pdf_status, j.original_pdf_requested_at, j.original_pdf_rendered_at, j.original_pdf_error, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, j.source_url, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id, (SELECT d.original_filename FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_name FROM jobs j WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $draft = is_array($_SESSION['import_draft'] ?? null) ? $_SESSION['import_draft'] : [];
         if ($draft) {
             $edit = null;
@@ -9094,7 +9089,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('jobs.section')) ?></p><h1><?= e(tr('nav.jobs')) ?></h1></div><span><?= e(tr('jobs.results_count', null, ['count' => (string) count($jobs)])) ?></span></div>
         <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form" data-progress-form data-progress-button-text="<?= e(tr('jobs.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('jobs.progress.read_import'), tr('jobs.progress.check_links'), tr('jobs.progress.prepare_suggestion'), tr('jobs.progress.check_duplicates')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="preview_import"><textarea name="import_payload" rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e($platformImportPayload) ?></textarea><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('jobs.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('jobs.progress.read_import')) ?></p></div><button class="primary" type="submit" data-progress-button><?= e(tr('jobs.create_suggestion')) ?></button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line"><?= e(tr('jobs.search_links_imported')) ?></p><?php endif; ?></section>
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.cards')) ?></a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.table')) ?></a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
-        <div class="split"><section class="panel" id="new"><h2><?= e($edit ? tr('jobs.edit') : ($draft ? tr('jobs.check_import') : tr('jobs.create'))) ?></h2><form method="post" class="stack">
+        <div class="split"><section class="panel" id="new"><h2><?= e($edit ? tr('jobs.edit') : ($draft ? tr('jobs.check_import') : tr('jobs.create'))) ?></h2><form method="post" enctype="multipart/form-data" class="stack">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
             <label><?= e(tr('companies.company')) ?><select name="company_id"><option value="0"><?= e(tr('jobs.new_company_from_import')) ?></option><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($form['company_id']??$matchedCompanyId)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label>
             <label><?= e(tr('jobs.new_company')) ?><input name="new_company_name" value="<?= e($matchedCompanyId ? '' : $draftCompany) ?>" placeholder="<?= e(tr('jobs.new_company_placeholder')) ?>"></label>
@@ -9104,12 +9099,14 @@ startUiTranslationBuffer($appLocale);
             <div class="two"><label><?= e(tr('jobs.fixed_from')) ?><input type="date" name="fixed_term_start" value="<?= e($form['fixed_term_start'] ?? '') ?>"></label><label><?= e(tr('jobs.fixed_until')) ?><input type="date" name="fixed_term_end" value="<?= e($form['fixed_term_end'] ?? '') ?>"></label></div>
             <div class="salary-row"><label><?= e(tr('profile.salary')) ?> <span><?= e($jobCurrency) ?></span><input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($form['salary_min'] ?? '')) ?>"></label><label><?= e(tr('profile.salary_format')) ?><select name="salary_period"><?php foreach(salaryPeriodOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
             <label><?= e(tr('common.status')) ?><select name="status"><?php foreach(jobStatusOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['status']??'open')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a><?php if($edit): ?><button class="primary-link" name="action" value="queue_job_original_pdf" formnovalidate><?= e(tr('dossier.create_pdf')) ?></button><?php if(!empty($edit['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_pdf')) ?></a><?php elseif(($edit['original_pdf_status'] ?? '') === 'failed'): ?><span class="meta-line"><?= e(tr('jobs.original_pdf_failed_hint')) ?></span><?php else: ?><span class="meta-line"><?= e(originalPdfStatusLabel((string)($edit['original_pdf_status'] ?? 'none'))) ?></span><?php endif; ?><?php endif; ?></small><?php endif; ?></label><label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
+            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a></small><?php endif; ?></label>
+            <?php if($edit): ?><fieldset><legend><?= e(tr('jobs.original_document_title')) ?></legend><p class="meta-line"><?= e(tr('jobs.original_document_hint')) ?></p><?php if(!empty($edit['original_document_id'])): ?><p><strong><?= e((string)$edit['original_document_name']) ?></strong></p><div class="actions"><a class="button" href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_document_open')) ?></a><button name="action" value="delete_job_original_document" formnovalidate onclick="return confirm('<?= e(tr('jobs.original_document_delete_confirm')) ?>')"><?= e(tr('jobs.original_document_delete')) ?></button></div><?php endif; ?><?= filePickerHtml('job_original_document', false, '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png') ?><button class="primary" name="action" value="upload_job_original_document" formnovalidate><?= e(!empty($edit['original_document_id']) ? tr('jobs.original_document_replace') : tr('jobs.original_document_upload')) ?></button></fieldset><?php endif; ?>
+            <label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> <?= e(tr('jobs.save_as_separate')) ?></label><?php endif; ?><button class="primary" name="action" value="save_job"><?= e(tr('common.save')) ?></button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>"><?= e(tr('applications.show')) ?></a></form><?php endif; ?></section>
         <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow"><?= e(tr('jobs.preparation')) ?></p><h2><?= e(tr('jobs.application_questions')) ?></h2></div><span><?= e(tr('jobs.questions_count', null, ['count' => (string) count($jobQuestions)])) ?></span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label><?= e(tr('jobs.question')) ?><textarea name="question_text" rows="3" required placeholder="<?= e(tr('jobs.question_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.answer_preparation')) ?><textarea name="answer_text" rows="4" placeholder="<?= e(tr('jobs.answer_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.sort_order')) ?><input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question"><?= e(tr('jobs.save_question')) ?></button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('<?= e(tr('jobs.delete_question_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question"><?= e(tr('common.delete')) ?></button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty"><?= e(tr('jobs.no_questions')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
-        <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title',tr('common.title'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company',tr('companies.company'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location',tr('jobs.location'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status',tr('common.status'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match',tr('jobs.match'),$jobSf,$jobPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?><small><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line"><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary><?= e(tr('jobs.why_match', null, ['score' => (string) $score])) ?></summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>"><?= e(tr('jobs.original_pdf')) ?></a><?php endif; ?><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty"><?= e(tr('jobs.empty')) ?></div><?php endif; ?></section><?php endif; ?></div>
+        <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title',tr('common.title'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company',tr('companies.company'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location',tr('jobs.location'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status',tr('common.status'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match',tr('jobs.match'),$jobSf,$jobPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?><small><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line"><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary><?= e(tr('jobs.why_match', null, ['score' => (string) $score])) ?></summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>"><?= e(tr('jobs.original_document_open')) ?></a><?php endif; ?><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty"><?= e(tr('jobs.empty')) ?></div><?php endif; ?></section><?php endif; ?></div>
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']); $appView=($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';

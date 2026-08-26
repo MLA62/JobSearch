@@ -131,8 +131,9 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
   Ausschreibungstext.
 - Beim Klick auf `Vorschlag erstellen` muss Fortschritt sichtbar sein.
 - Jobdaten enthalten Firma, Titel, Ort, Arbeitsmodell, Stellenart,
-  Vertragsdauer, Lohn, Status, Quell-URL, Beschreibung, Kommentar,
-  Original-PDF-Status und Fragen.
+  Vertragsdauer, Lohn, Status, Quell-URL, Beschreibung, Kommentar und Fragen.
+- Eine vom Benutzer erstellte Stellenausschreibung kann dem Job als PDF, JPG,
+  JPEG oder PNG zugeordnet, geoeffnet, ersetzt und geloescht werden.
 - Quell-URL ist klickbar.
 - ID-Werte duerfen in Benutzerlisten und Reports nicht als fachliche Information
   erscheinen.

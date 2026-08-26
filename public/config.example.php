@@ -3,7 +3,7 @@
 return [
     'app_name' => 'JeMa Jobs',
     'app_url' => 'https://jobs.jema.business',
-    'app_version' => '1.15.22',
+    'app_version' => '1.15.75',
     'app_key' => 'replace-with-64-random-hex-characters',
     'admin_emails' => ['admin@jema.business'],
     'db_host' => 'localhost',
@@ -22,7 +22,4 @@ return [
     // Einmalige Betreiber-Konfiguration fuer den OAuth-Client der gesamten Anwendung.
     'google_calendar_client_id' => '',
     'google_calendar_client_secret' => '',
-    'job_pdf_browser_path' => '/usr/bin/chromium',
-    'job_pdf_render_limit' => 5,
-    'job_pdf_render_timeout' => 60,
 ];

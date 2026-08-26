@@ -1,5 +1,5 @@
 -- JeMa Jobs CRM - sharing, document text, translations, exports and privacy.
--- Apply after 07_job_original_pdf_status.sql.
+-- Apply after the base schema and preceding migrations.
 
 CREATE TABLE IF NOT EXISTS guest_shares (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

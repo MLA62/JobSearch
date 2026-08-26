@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.15.22`.
+Aktueller dokumentierter Stand: Version `1.15.75`.
 
 ## Lizenz
 
@@ -23,7 +23,7 @@ Siehe [LICENSE.md](LICENSE.md).
 - Klassisches Shared Hosting mit `public/index.php` als Front Controller.
 - Keine Composer-Abhaengigkeiten im produktiven Kern.
 - Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Produktive UI-Sprache in Version `1.15.22`: UI-Texte muessen aus
+- Produktive UI-Sprache in Version `1.15.75`: UI-Texte muessen aus
   `ui_text_keys` und `ui_text_translations` kommen. PHP- und Resource-Dateien
   enthalten keine Uebersetzungswoerterbuecher mehr.
 - UI-Texte werden schrittweise in die Datenbanktabellen `ui_text_keys` und
@@ -48,14 +48,12 @@ sql/jobsearch/
 
 deploy/
   installer/             Einmaliger Web-Installer fuer Hosts ohne SSH
-  render-pending-job-pdfs.php
   extract-document-texts.php
 
 docs/
   jobsearch/REQUIREMENTS.md
   jobsearch/PRODUCT_DECISIONS.md
   jobsearch/DEPLOYMENT.md
-  rendered-job-pdf-migration-2026-06-16.md
 ```
 
 ## Produktumfang
@@ -72,7 +70,8 @@ Der aktuelle produktive Kern umfasst:
 - Firmen mit Kommentaren, Beziehungen, Vermittlungsbezug und Verknuepfungen.
 - Kontakte mit Nachname-Sortierung, Kontaktlog, Wiedervorlage und Anhaengen.
 - Jobs mit Schnellimport aus URLs oder Text, Lohn, Quelle, Kommentar,
-  Original-PDF-Status, Fragen und Dublettenhinweis.
+  manueller Ablage der Stellenausschreibung als PDF oder Bild, Fragen und
+  Dublettenhinweis.
 - Admin-gepflegte Jobplattformen und benutzerseitige ChatGPT-Rechercheprompts
   fuer direkte Stellenlinks.
 - Bewerbungen mit Onlinebewerbungsfluss, E-Mail-Fluss, Dokumentzuordnung,
@@ -98,8 +97,7 @@ Der aktuelle produktive Kern umfasst:
 7. Die Domain per HTTPS ausliefern.
 8. Login, Registrierung, Passwort-Reset, Profil, Dokumentupload, Schnellimport
    und Hilfe testen.
-9. Optional Worker fuer Original-PDFs und Dokumenttextextraktion per Cron
-   aktivieren.
+9. Optional die Dokumenttextextraktion per Cron aktivieren.
 
 Die Anwendung fuehrt mehrere rueckwaertskompatible Runtime-Migrationen in
 `public/index.php` aus. Fuer einen reproduzierbaren Neuaufbau sollte trotzdem

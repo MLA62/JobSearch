@@ -25,22 +25,6 @@ Dieser Bericht prueft jede Code-Datei blockweise in 50-Zeilen-Schritten. Er bewe
 | `deploy/installer/install.php` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `deploy/installer/install.php` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `deploy/installer/install.php` | 101-146 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-existing-job-pdfs.php` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-existing-job-pdfs.php` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-existing-job-pdfs.php` | 101-150 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-existing-job-pdfs.php` | 151-200 | 3 | 0 | geprueft | Sprachrelevante Kandidaten geprueft; bestehende Uebersetzung laeuft ueber tr(...), Legacy-Fallback, Datenbankwert oder nicht sichtbare Technik. |
-| `deploy/migrate-existing-job-pdfs.php` | 201-224 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-job-original-pdf-status.php` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-job-original-pdf-status.php` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/migrate-job-original-pdf-status.php` | 101-126 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 101-150 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 151-200 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 201-250 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 251-300 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 301-350 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `deploy/render-pending-job-pdfs.php` | 351-398 | 1 | 0 | geprueft | Sprachrelevante Kandidaten geprueft; bestehende Uebersetzung laeuft ueber tr(...), Legacy-Fallback, Datenbankwert oder nicht sichtbare Technik. |
 | `public/assets/app.css` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `public/assets/app.css` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `public/assets/app.css` | 101-150 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
@@ -276,7 +260,6 @@ Dieser Bericht prueft jede Code-Datei blockweise in 50-Zeilen-Schritten. Er bewe
 | `sql/jobsearch/04_contacts_crm_actions.sql` | 1-28 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `sql/jobsearch/05_document_scope_language_skills.sql` | 1-18 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `sql/jobsearch/06_company_intermediary_flag.sql` | 1-11 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
-| `sql/jobsearch/07_job_original_pdf_status.sql` | 1-37 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `sql/jobsearch/08_sharing_documents_exports_privacy.sql` | 1-50 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `sql/jobsearch/08_sharing_documents_exports_privacy.sql` | 51-100 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
 | `sql/jobsearch/08_sharing_documents_exports_privacy.sql` | 101-124 | 0 | 0 | ok | Keine sichtbaren UI-Texte oder keine sprachrelevanten Kandidaten im Block. |
