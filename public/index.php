@@ -7458,7 +7458,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.66';
+$codeVersion = '1.15.67';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7548,7 +7548,7 @@ if ($page === 'application_dossier') {
     $contactLogStatuses = contactLogStatusOptions();
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://raw.githubusercontent.com/MLA62/JobSearch/main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('dossier.title')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf"><?= e(tr('dossier.create_pdf')) ?></a></div>
@@ -7612,7 +7612,7 @@ if ($page === 'application_documents_temp') {
     }
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://raw.githubusercontent.com/MLA62/JobSearch/main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
+        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
     <body><main class="container"><section class="panel"><p class="eyebrow"><?= e(tr('application_docs.temp_folder')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line"><?= e(tr('application_docs.temp_folder_hint')) ?></p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>"><?= e(tr('application_docs.download_zip')) ?></a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -7859,7 +7859,7 @@ startUiTranslationBuffer($appLocale);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://raw.githubusercontent.com/MLA62/JobSearch/main/public/assets/app.css?v=<?= e($appVersion) ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>">
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
