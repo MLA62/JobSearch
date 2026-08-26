@@ -1316,12 +1316,39 @@ function dotStuff(string $body): string
     return str_replace("\n", "\r\n", $body);
 }
 
+function linkifyEscapedText(string $escapedText): string
+{
+    $escapedText = preg_replace_callback(
+        '~\bhttps?://[^\s<]+~i',
+        static function (array $match): string {
+            $url = rtrim($match[0], '.,;:)');
+            $suffix = substr($match[0], strlen($url));
+            return '<a href="' . $url . '">' . $url . '</a>' . e($suffix);
+        },
+        $escapedText
+    ) ?? $escapedText;
+    $escapedText = preg_replace_callback(
+        '~(?<!://)\bwww\.[^\s<]+~i',
+        static function (array $match): string {
+            $url = rtrim($match[0], '.,;:)');
+            $suffix = substr($match[0], strlen($url));
+            return '<a href="https://' . $url . '">' . $url . '</a>' . e($suffix);
+        },
+        $escapedText
+    ) ?? $escapedText;
+    return preg_replace_callback(
+        '~\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b~i',
+        static fn(array $match): string => '<a href="mailto:' . $match[0] . '">' . $match[0] . '</a>',
+        $escapedText
+    ) ?? $escapedText;
+}
+
 function htmlMailBody(string $textBody, ?string $footer = null): string
 {
     $body = '<div>' . nl2br(e($textBody), false) . '</div>';
     $footer = trim((string) $footer);
     if ($footer !== '') {
-        $body .= '<div style="margin-top:18px;padding-top:10px;border-top:1px solid #d0d7e2;color:#5f6b7a;">' . nl2br(e($footer), false) . '</div>';
+        $body .= '<div style="margin-top:18px;padding-top:10px;border-top:1px solid #d0d7e2;color:#5f6b7a;">' . nl2br(linkifyEscapedText(e($footer)), false) . '</div>';
     }
     return '<!doctype html><html><body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;line-height:1.35;color:#111827;">' . $body . '</body></html>';
 }
@@ -6443,7 +6470,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.58';
+$codeVersion = '1.15.59';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
