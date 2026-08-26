@@ -84,6 +84,17 @@ CREATE TABLE user_smtp_settings (
     CONSTRAINT fk_user_smtp_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE user_profile_links (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    link_name VARCHAR(120) NOT NULL,
+    link_url VARCHAR(1000) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_user_profile_links_user (user_id),
+    CONSTRAINT fk_user_profile_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE user_calendar_feeds (
     user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     token CHAR(64) NOT NULL,
@@ -614,6 +625,19 @@ CREATE TABLE calendar_events (
     CONSTRAINT fk_calendar_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_calendar_application FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     CONSTRAINT fk_calendar_contact FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE google_calendar_import_links (
+    user_id BIGINT UNSIGNED NOT NULL,
+    google_event_id VARCHAR(255) NOT NULL,
+    calendar_event_id BIGINT UNSIGNED NOT NULL,
+    google_updated_at DATETIME NULL,
+    google_etag VARCHAR(255) NULL,
+    synced_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, google_event_id),
+    UNIQUE KEY uq_google_calendar_import_event (calendar_event_id),
+    CONSTRAINT fk_google_calendar_import_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_google_calendar_import_links_event FOREIGN KEY (calendar_event_id) REFERENCES calendar_events(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE document_templates (

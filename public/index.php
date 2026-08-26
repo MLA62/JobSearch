@@ -136,6 +136,76 @@ try {
             'pt-BR' => 'Adicionado aos e-mails HTML enviados. Fonte padrão: Calibri 11.',
             'es-MX' => 'Se añade a los correos HTML salientes. Fuente estándar: Calibri 11.',
         ],
+        'profile.links_title' => [
+            'de-CH' => 'Links',
+            'fr-CH' => 'Liens',
+            'en-GB' => 'Links',
+            'pt-BR' => 'Links',
+            'es-MX' => 'Enlaces',
+        ],
+        'profile.link_name' => [
+            'de-CH' => 'Linkname',
+            'fr-CH' => 'Nom du lien',
+            'en-GB' => 'Link name',
+            'pt-BR' => 'Nome do link',
+            'es-MX' => 'Nombre del enlace',
+        ],
+        'profile.link_url' => [
+            'de-CH' => 'Link',
+            'fr-CH' => 'Lien',
+            'en-GB' => 'Link',
+            'pt-BR' => 'Link',
+            'es-MX' => 'Enlace',
+        ],
+        'profile.link_create' => [
+            'de-CH' => 'Link erstellen',
+            'fr-CH' => 'Créer un lien',
+            'en-GB' => 'Create link',
+            'pt-BR' => 'Criar link',
+            'es-MX' => 'Crear enlace',
+        ],
+        'profile.link_save' => [
+            'de-CH' => 'Link speichern',
+            'fr-CH' => 'Enregistrer le lien',
+            'en-GB' => 'Save link',
+            'pt-BR' => 'Salvar link',
+            'es-MX' => 'Guardar enlace',
+        ],
+        'profile.link_empty' => [
+            'de-CH' => 'Noch keine Links erfasst.',
+            'fr-CH' => 'Aucun lien enregistré.',
+            'en-GB' => 'No links saved yet.',
+            'pt-BR' => 'Nenhum link salvo ainda.',
+            'es-MX' => 'Aún no hay enlaces guardados.',
+        ],
+        'profile.link_required' => [
+            'de-CH' => 'Linkname und Link sind erforderlich.',
+            'fr-CH' => 'Le nom et le lien sont obligatoires.',
+            'en-GB' => 'Link name and link are required.',
+            'pt-BR' => 'O nome e o link são obrigatórios.',
+            'es-MX' => 'El nombre y el enlace son obligatorios.',
+        ],
+        'profile.link_invalid' => [
+            'de-CH' => 'Der Link ist ungültig.',
+            'fr-CH' => 'Le lien n’est pas valide.',
+            'en-GB' => 'The link is invalid.',
+            'pt-BR' => 'O link é inválido.',
+            'es-MX' => 'El enlace no es válido.',
+        ],
+        'flash.profile.link_saved' => [
+            'de-CH' => 'Link gespeichert.',
+            'fr-CH' => 'Lien enregistré.',
+            'en-GB' => 'Link saved.',
+            'pt-BR' => 'Link salvo.',
+            'es-MX' => 'Enlace guardado.',
+        ],
+        'flash.profile.link_deleted' => [
+            'de-CH' => 'Link gelöscht.',
+            'fr-CH' => 'Lien supprimé.',
+            'en-GB' => 'Link deleted.',
+            'pt-BR' => 'Link excluído.',
+            'es-MX' => 'Enlace eliminado.',
+        ],
         'calendar.google_sync_title' => [
             'de-CH' => 'Google Kalender Sync',
             'fr-CH' => 'Synchronisation Google Agenda',
@@ -476,6 +546,16 @@ try {
     ensureColumn($db, 'user_preferences', 'travel_percentage', '`travel_percentage` TINYINT UNSIGNED NULL', 'willing_to_relocate');
     ensureColumn($db, 'user_preferences', 'available_from', '`available_from` DATE NULL', 'travel_percentage');
     ensureColumn($db, 'user_smtp_settings', 'mail_footer', '`mail_footer` LONGTEXT NULL', 'from_name');
+    $db->query("CREATE TABLE IF NOT EXISTS user_profile_links (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        link_name VARCHAR(120) NOT NULL,
+        link_url VARCHAR(1000) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        KEY idx_user_profile_links_user (user_id),
+        CONSTRAINT fk_user_profile_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS user_calendar_feeds (
         user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
         token CHAR(64) NOT NULL,
@@ -512,6 +592,18 @@ try {
         PRIMARY KEY (user_id, source_type, source_id),
         KEY idx_google_calendar_event_links_event (google_event_id),
         CONSTRAINT fk_google_calendar_event_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS google_calendar_import_links (
+        user_id BIGINT UNSIGNED NOT NULL,
+        google_event_id VARCHAR(255) NOT NULL,
+        calendar_event_id BIGINT UNSIGNED NOT NULL,
+        google_updated_at DATETIME NULL,
+        google_etag VARCHAR(255) NULL,
+        synced_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, google_event_id),
+        UNIQUE KEY uq_google_calendar_import_event (calendar_event_id),
+        CONSTRAINT fk_google_calendar_import_links_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        CONSTRAINT fk_google_calendar_import_links_event FOREIGN KEY (calendar_event_id) REFERENCES calendar_events(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS application_documents (
         application_id BIGINT UNSIGNED NOT NULL,
@@ -3033,6 +3125,97 @@ function googleCalendarSyncHash(array $event): string
     ], JSON_UNESCAPED_UNICODE));
 }
 
+function googleCalendarDateTime(array $value, DateTimeZone $timezone): array
+{
+    if (!empty($value['date'])) {
+        $start = new DateTimeImmutable((string) $value['date'], $timezone);
+        return [$start->format('Y-m-d H:i:s'), true];
+    }
+    $dateTime = trim((string) ($value['dateTime'] ?? ''));
+    if ($dateTime === '') {
+        throw new RuntimeException('Google event without start time');
+    }
+    return [(new DateTimeImmutable($dateTime))->setTimezone($timezone)->format('Y-m-d H:i:s'), false];
+}
+
+function importGoogleCalendarEvents(mysqli $db, string $token, string $calendarId, int $userId, array $user, DateTimeImmutable $start, DateTimeImmutable $end): array
+{
+    $timezone = new DateTimeZone((string) ($user['timezone'] ?? 'Europe/Zurich'));
+    $url = 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events?' . http_build_query([
+        'singleEvents' => 'true',
+        'showDeleted' => 'true',
+        'maxResults' => 2500,
+        'timeMin' => $start->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\\TH:i:s\\Z'),
+        'timeMax' => $end->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\\TH:i:s\\Z'),
+    ], '', '&', PHP_QUERY_RFC3986);
+    $created = 0;
+    $updated = 0;
+    $deleted = 0;
+    do {
+        $response = googleJsonRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+        foreach ((array) ($response['items'] ?? []) as $googleEvent) {
+            $googleEventId = trim((string) ($googleEvent['id'] ?? ''));
+            if ($googleEventId === '') {
+                continue;
+            }
+            $private = (array) ($googleEvent['extendedProperties']['private'] ?? []);
+            if (trim((string) ($private['jema_source'] ?? '')) !== '') {
+                continue;
+            }
+            $link = dbOne($db, 'SELECT calendar_event_id FROM google_calendar_import_links WHERE user_id=? AND google_event_id=? LIMIT 1', 'is', [$userId, $googleEventId]);
+            if ((string) ($googleEvent['status'] ?? '') === 'cancelled') {
+                if ($link) {
+                    $stmt = $db->prepare('DELETE FROM calendar_events WHERE id=? AND owner_user_id=?');
+                    $calendarEventId = (int) $link['calendar_event_id'];
+                    $stmt->bind_param('ii', $calendarEventId, $userId);
+                    $stmt->execute();
+                    $deleted++;
+                }
+                continue;
+            }
+            try {
+                [$startsAt, $allDay] = googleCalendarDateTime((array) ($googleEvent['start'] ?? []), $timezone);
+                [$endsAt] = googleCalendarDateTime((array) ($googleEvent['end'] ?? []), $timezone);
+            } catch (Throwable $ignored) {
+                continue;
+            }
+            $title = trim((string) ($googleEvent['summary'] ?? '')) ?: tr('calendar.event');
+            $notes = trim((string) ($googleEvent['description'] ?? '')) ?: null;
+            $location = trim((string) ($googleEvent['location'] ?? '')) ?: null;
+            $allDayValue = $allDay ? 1 : 0;
+            $status = 'planned';
+            if ($link) {
+                $stmt = $db->prepare('UPDATE calendar_events SET title=?, event_type="other", starts_at=?, ends_at=?, all_day=?, status=?, location=?, notes=? WHERE id=? AND owner_user_id=?');
+                $calendarEventId = (int) $link['calendar_event_id'];
+                $stmt->bind_param('sssisssii', $title, $startsAt, $endsAt, $allDayValue, $status, $location, $notes, $calendarEventId, $userId);
+                $stmt->execute();
+                $updated++;
+            } else {
+                $stmt = $db->prepare('INSERT INTO calendar_events (owner_user_id, title, event_type, starts_at, ends_at, all_day, status, location, notes) VALUES (?, ?, "other", ?, ?, ?, ?, ?, ?)');
+                $stmt->bind_param('isssisss', $userId, $title, $startsAt, $endsAt, $allDayValue, $status, $location, $notes);
+                $stmt->execute();
+                $calendarEventId = (int) $stmt->insert_id;
+                $created++;
+            }
+            $googleUpdatedAt = !empty($googleEvent['updated']) ? (new DateTimeImmutable((string) $googleEvent['updated']))->format('Y-m-d H:i:s') : null;
+            $googleEtag = trim((string) ($googleEvent['etag'] ?? '')) ?: null;
+            $stmt = $db->prepare('INSERT INTO google_calendar_import_links (user_id, google_event_id, calendar_event_id, google_updated_at, google_etag, synced_at) VALUES (?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE calendar_event_id=VALUES(calendar_event_id), google_updated_at=VALUES(google_updated_at), google_etag=VALUES(google_etag), synced_at=NOW()');
+            $stmt->bind_param('isiss', $userId, $googleEventId, $calendarEventId, $googleUpdatedAt, $googleEtag);
+            $stmt->execute();
+        }
+        $nextPageToken = trim((string) ($response['nextPageToken'] ?? ''));
+        $url = $nextPageToken === '' ? '' : 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events?' . http_build_query([
+            'singleEvents' => 'true',
+            'showDeleted' => 'true',
+            'maxResults' => 2500,
+            'timeMin' => $start->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\\TH:i:s\\Z'),
+            'timeMax' => $end->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\\TH:i:s\\Z'),
+            'pageToken' => $nextPageToken,
+        ], '', '&', PHP_QUERY_RFC3986);
+    } while ($url !== '');
+    return ['created' => $created, 'updated' => $updated, 'deleted' => $deleted];
+}
+
 function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array $user): array
 {
     $settings = googleCalendarSettings($db, $userId);
@@ -3043,12 +3226,17 @@ function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array 
     $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
     $start = (new DateTimeImmutable('-30 days'))->setTime(0, 0);
     $end = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
-    $created = 0;
-    $updated = 0;
+    $importResult = importGoogleCalendarEvents($db, $token, $calendarId, $userId, $user, $start, $end);
+    $importedCalendarIds = array_flip(array_map(static fn(array $row): int => (int) $row['calendar_event_id'], dbAll($db, 'SELECT calendar_event_id FROM google_calendar_import_links WHERE user_id=?', 'i', [$userId])));
+    $created = (int) $importResult['created'];
+    $updated = (int) $importResult['updated'];
     $failed = 0;
     foreach (calendarEventRows($db, $userId, $start, $end) as $event) {
         $sourceType = (string) $event['source'];
         $sourceId = (int) $event['id'];
+        if ($sourceType === 'calendar' && isset($importedCalendarIds[$sourceId])) {
+            continue;
+        }
         $hash = googleCalendarSyncHash($event);
         $link = dbOne($db, 'SELECT google_event_id, last_hash FROM google_calendar_event_links WHERE user_id=? AND source_type=? AND source_id=? LIMIT 1', 'isi', [$userId, $sourceType, $sourceId]);
         if ($link && (string) ($link['last_hash'] ?? '') === $hash) {
@@ -3085,7 +3273,7 @@ function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array 
     $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_sync_at=NOW(), last_error=? WHERE user_id=?');
     $stmt->bind_param('si', $lastError, $userId);
     $stmt->execute();
-    return ['created' => $created, 'updated' => $updated, 'failed' => $failed];
+    return ['created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
 }
 
 function localeForCountry(?string $countryCode): string
@@ -5627,7 +5815,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         rotateCalendarFeed($db, $uid);
         audit($db, $uid, 'update', 'user_calendar_feed', $uid, null, ['rotated' => true]);
         flash(tr('flash.calendar_feed.rotated'));
-        redirect('/?page=calendar#calendar-sync');
+        redirect('/?page=profile#calendar-sync');
     }
 
     if ($action === 'connect_google_calendar') {
@@ -5635,7 +5823,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $credentials = googleCalendarAppCredentials($config);
         if ($credentials['client_id'] === '' || $credentials['client_secret'] === '') {
             flash(tr('flash.google_calendar.credentials_required'), 'danger');
-            redirect('/?page=calendar#calendar-sync');
+            redirect('/?page=profile#calendar-sync');
         }
         $calendarId = 'primary';
         $syncEnabled = 1;
@@ -5645,6 +5833,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, $uid, 'update', 'google_calendar_settings', $uid, null, ['calendar_id' => $calendarId, 'sync_enabled' => $syncEnabled]);
         $state = bin2hex(random_bytes(24));
         $_SESSION['google_oauth_state'] = $state;
+        $_SESSION['google_oauth_return_page'] = 'profile';
         redirect(googleCalendarAuthUrl($config, $credentials['client_id'], $state));
     }
 
@@ -5653,7 +5842,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings = googleCalendarSettings($db, $uid);
         if (empty($settings['refresh_token_encrypted'])) {
             flash(tr('flash.google_calendar.credentials_required'), 'danger');
-            redirect('/?page=calendar#calendar-sync');
+            redirect('/?page=profile#calendar-sync');
         }
         $calendarId = trim((string) ($_POST['google_calendar_id'] ?? '')) ?: 'primary';
         $calendarSummary = $calendarId;
@@ -5669,7 +5858,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, $uid, 'update', 'google_calendar_settings', $uid, null, ['calendar_id' => $calendarId]);
         flash(tr('flash.google_calendar.config_saved'));
-        redirect('/?page=calendar#calendar-sync');
+        redirect('/?page=profile#calendar-sync');
     }
 
     if ($action === 'sync_google_calendar') {
@@ -5685,7 +5874,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Throwable $exception) {
             flash(tr('flash.google_calendar.oauth_failed', null, ['error' => $exception->getMessage()]), 'danger');
         }
-        redirect('/?page=calendar#calendar-sync');
+        redirect('/?page=profile#calendar-sync');
     }
 
     if ($action === 'disconnect_google_calendar') {
@@ -5698,7 +5887,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, $uid, 'update', 'google_calendar_settings', $uid, null, ['disconnected' => true]);
         flash(tr('flash.google_calendar.disconnected'));
-        redirect('/?page=calendar#calendar-sync');
+        redirect('/?page=profile#calendar-sync');
     }
 
     if ($action === 'save_report') {
@@ -5955,6 +6144,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash(strtr(tr('flash.import.failed'), ['{error}' => $exception->getMessage()]), 'danger');
         }
         redirect('/?page=jobs#new');
+    }
+
+    if ($action === 'save_profile_link') {
+        $uid = userId();
+        $linkId = (int) ($_POST['link_id'] ?? 0);
+        $linkName = trim((string) ($_POST['link_name'] ?? ''));
+        $linkUrl = trim((string) ($_POST['link_url'] ?? ''));
+        if ($linkName === '' || $linkUrl === '') {
+            flash(tr('profile.link_required'), 'danger');
+            redirect('/?page=profile#profile-links');
+        }
+        if (!filter_var($linkUrl, FILTER_VALIDATE_URL)) {
+            flash(tr('profile.link_invalid'), 'danger');
+            redirect('/?page=profile#profile-links');
+        }
+        if ($linkId > 0) {
+            $stmt = $db->prepare('UPDATE user_profile_links SET link_name=?, link_url=? WHERE id=? AND user_id=?');
+            $stmt->bind_param('ssii', $linkName, $linkUrl, $linkId, $uid);
+        } else {
+            $stmt = $db->prepare('INSERT INTO user_profile_links (user_id, link_name, link_url) VALUES (?, ?, ?)');
+            $stmt->bind_param('iss', $uid, $linkName, $linkUrl);
+        }
+        $stmt->execute();
+        audit($db, $uid, 'update', 'user_profile_link', $linkId, null, ['name' => $linkName, 'url' => $linkUrl]);
+        flash(tr('flash.profile.link_saved'));
+        redirect('/?page=profile#profile-links');
+    }
+
+    if ($action === 'delete_profile_link') {
+        $uid = userId();
+        $linkId = (int) ($_POST['link_id'] ?? 0);
+        $stmt = $db->prepare('DELETE FROM user_profile_links WHERE id=? AND user_id=?');
+        $stmt->bind_param('ii', $linkId, $uid);
+        $stmt->execute();
+        audit($db, $uid, 'delete', 'user_profile_link', $linkId, null, []);
+        flash(tr('flash.profile.link_deleted'));
+        redirect('/?page=profile#profile-links');
     }
 
     if ($action === 'save_profile') {
@@ -7051,7 +7277,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.62';
+$codeVersion = '1.15.63';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7357,13 +7583,15 @@ if ($page === 'google_calendar_callback') {
     $state = (string) ($_GET['state'] ?? '');
     $expectedState = (string) ($_SESSION['google_oauth_state'] ?? '');
     unset($_SESSION['google_oauth_state']);
+    unset($_SESSION['google_oauth_return_page']);
+    $returnUrl = '/?page=profile#calendar-sync';
     if ($state === '' || $expectedState === '' || !hash_equals($expectedState, $state)) {
         flash(tr('flash.google_calendar.oauth_failed', null, ['error' => 'Invalid state']), 'danger');
-        redirect('/?page=calendar#calendar-sync');
+        redirect($returnUrl);
     }
     if (isset($_GET['error'])) {
         flash(tr('flash.google_calendar.oauth_failed', null, ['error' => (string) $_GET['error']]), 'danger');
-        redirect('/?page=calendar#calendar-sync');
+        redirect($returnUrl);
     }
     $code = trim((string) ($_GET['code'] ?? ''));
     $settings = googleCalendarSettings($db, userId());
@@ -7372,7 +7600,7 @@ if ($page === 'google_calendar_callback') {
     $clientSecret = $credentials['client_secret'];
     if ($code === '' || $clientId === '' || $clientSecret === '') {
         flash(tr('flash.google_calendar.credentials_required'), 'danger');
-        redirect('/?page=calendar#calendar-sync');
+        redirect($returnUrl);
     }
     try {
         $tokens = googleFormRequest([
@@ -7409,11 +7637,12 @@ if ($page === 'google_calendar_callback') {
         $stmt = $db->prepare('UPDATE user_google_calendar_settings SET calendar_id=?, calendar_summary=?, access_token_encrypted=?, refresh_token_encrypted=?, token_expires_at=?, sync_enabled=?, last_error=NULL, updated_at=NOW() WHERE user_id=?');
         $stmt->bind_param('sssssii', $calendarId, $calendarSummary, $encryptedAccess, $encryptedRefresh, $expires, $syncEnabled, $uid);
         $stmt->execute();
+        syncGoogleCalendarEvents($db, $config, $uid, $currentUser);
         flash(tr('flash.google_calendar.connected'));
     } catch (Throwable $exception) {
         flash(tr('flash.google_calendar.oauth_failed', null, ['error' => $exception->getMessage()]), 'danger');
     }
-    redirect('/?page=calendar#calendar-sync');
+    redirect($returnUrl);
 }
 if ($page === 'export_ics') {
     requireLogin();
@@ -7885,24 +8114,6 @@ startUiTranslationBuffer($appLocale);
         $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
         $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
-        $googleSettings = googleCalendarSettings($db, userId());
-        $googleConfigured = googleCalendarIsConfigured($config);
-        $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
-        $googleCalendarChoices = [];
-        if ($googleConnected && $googleConfigured) {
-            try {
-                $googleToken = googleAccessToken($db, $config, userId(), $googleSettings);
-                $googleCalendarList = googleJsonRequest('GET', 'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=writer', ['Authorization: Bearer ' . $googleToken]);
-                foreach ((array) ($googleCalendarList['items'] ?? []) as $calendarItem) {
-                    $calendarItemId = trim((string) ($calendarItem['id'] ?? ''));
-                    if ($calendarItemId !== '') {
-                        $googleCalendarChoices[$calendarItemId] = (string) ($calendarItem['summary'] ?? $calendarItemId);
-                    }
-                }
-            } catch (Throwable $exception) {
-                $googleCalendarChoices = [];
-            }
-        }
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
             'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
@@ -7927,18 +8138,6 @@ startUiTranslationBuffer($appLocale);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
         <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
-        <section class="panel" id="calendar-sync">
-            <h2><?= e(tr('calendar.google_config_title')) ?></h2>
-            <p><?= e(tr('calendar.google_config_hint')) ?></p>
-            <p class="meta-line"><strong><?= e($googleConnected ? tr('calendar.google_status_connected') : tr('calendar.google_status_missing')) ?></strong><?php if(!empty($googleSettings['calendar_summary'])): ?> · <?= e((string)$googleSettings['calendar_summary']) ?><?php endif; ?><?php if(!empty($googleSettings['last_sync_at'])): ?> · <?= e(tr('calendar.google_last_sync')) ?>: <?= e(displayDateTime((string)$googleSettings['last_sync_at'], $currentUser)) ?><?php endif; ?></p>
-            <?php if(!empty($googleSettings['last_error'])): ?><div class="alert warning"><?= e(tr('calendar.google_last_error')) ?>: <?= e((string)$googleSettings['last_error']) ?></div><?php endif; ?>
-            <?php if(!$googleConnected): ?>
-                <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="connect_google_calendar" <?= $googleConfigured ? '' : 'disabled' ?>><?= e(tr('calendar.google_connect')) ?></button></form>
-            <?php else: ?>
-                <?php if($googleCalendarChoices): ?><form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label><?= e(tr('calendar.google_calendar_id')) ?><select name="google_calendar_id"><?php foreach($googleCalendarChoices as $calendarId=>$calendarLabel): ?><option value="<?= e($calendarId) ?>" <?= (string)($googleSettings['calendar_id'] ?? 'primary')===$calendarId?'selected':'' ?>><?= e($calendarLabel) ?></option><?php endforeach; ?></select></label><button name="action" value="select_google_calendar"><?= e(tr('calendar.google_save')) ?></button></form><?php endif; ?>
-                <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="sync_google_calendar"><?= e(tr('calendar.google_sync_now')) ?></button><button name="action" value="disconnect_google_calendar"><?= e(tr('calendar.google_disconnect')) ?></button></form>
-            <?php endif; ?>
-        </section>
         <section class="panel calendar-panel matrix-first">
         <?php if(in_array($calendarView, ['day','workweek','week'], true) && ($outsideTimeEvents['before'] || $outsideTimeEvents['after'])): ?>
             <div class="calendar-outside-notice">
@@ -8170,6 +8369,26 @@ startUiTranslationBuffer($appLocale);
         $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
         $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
         $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, mail_footer, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
+        $profileLinks = dbAll($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE user_id=? ORDER BY link_name, id', 'i', [userId()]);
+        $editProfileLink = isset($_GET['edit_profile_link']) ? dbOne($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE id=? AND user_id=? LIMIT 1', 'ii', [(int) $_GET['edit_profile_link'], userId()]) : null;
+        $googleSettings = googleCalendarSettings($db, userId());
+        $googleConfigured = googleCalendarIsConfigured($config);
+        $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
+        $googleCalendarChoices = [];
+        if ($googleConnected && $googleConfigured) {
+            try {
+                $googleToken = googleAccessToken($db, $config, userId(), $googleSettings);
+                $googleCalendarList = googleJsonRequest('GET', 'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=writer', ['Authorization: Bearer ' . $googleToken]);
+                foreach ((array) ($googleCalendarList['items'] ?? []) as $calendarItem) {
+                    $calendarItemId = trim((string) ($calendarItem['id'] ?? ''));
+                    if ($calendarItemId !== '') {
+                        $googleCalendarChoices[$calendarItemId] = (string) ($calendarItem['summary'] ?? $calendarItemId);
+                    }
+                }
+            } catch (Throwable $exception) {
+                $googleCalendarChoices = [];
+            }
+        }
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.account')) ?></p><h1><?= e(tr('profile.title')) ?></h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel" id="security">
@@ -8206,6 +8425,18 @@ startUiTranslationBuffer($appLocale);
             <?php else: ?>
                 <p class="meta-line"><?= e(tr('profile.support_intro')) ?></p>
                 <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="grant_admin_support"><?= e(tr('profile.support_allow')) ?></button></form>
+            <?php endif; ?>
+        </section>
+        <section class="panel" id="calendar-sync">
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h2><?= e(tr('calendar.google_config_title')) ?></h2></div><span><?= e($googleConnected ? tr('calendar.google_status_connected') : tr('calendar.google_status_missing')) ?></span></div>
+            <p class="meta-line"><?= e(tr('calendar.google_config_hint')) ?></p>
+            <?php if(!empty($googleSettings['calendar_summary'])): ?><p class="meta-line"><?= e($googleSettings['calendar_summary']) ?><?php if(!empty($googleSettings['last_sync_at'])): ?> · <?= e(tr('calendar.google_last_sync')) ?>: <?= e(displayDateTime((string)$googleSettings['last_sync_at'], $currentUser)) ?><?php endif; ?></p><?php endif; ?>
+            <?php if(!empty($googleSettings['last_error'])): ?><div class="alert warning"><?= e(tr('calendar.google_last_error')) ?>: <?= e((string)$googleSettings['last_error']) ?></div><?php endif; ?>
+            <?php if(!$googleConnected): ?>
+                <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="connect_google_calendar" <?= $googleConfigured ? '' : 'disabled' ?>><?= e(tr('calendar.google_connect')) ?></button></form>
+            <?php else: ?>
+                <?php if($googleCalendarChoices): ?><form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label><?= e(tr('calendar.google_calendar_id')) ?><select name="google_calendar_id"><?php foreach($googleCalendarChoices as $calendarId=>$calendarLabel): ?><option value="<?= e($calendarId) ?>" <?= (string)($googleSettings['calendar_id'] ?? 'primary')===$calendarId?'selected':'' ?>><?= e($calendarLabel) ?></option><?php endforeach; ?></select></label><button name="action" value="select_google_calendar"><?= e(tr('calendar.google_save')) ?></button></form><?php endif; ?>
+                <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="sync_google_calendar"><?= e(tr('calendar.google_sync_now')) ?></button><button name="action" value="disconnect_google_calendar"><?= e(tr('calendar.google_disconnect')) ?></button></form>
             <?php endif; ?>
         </section>
         <section class="panel" id="smtp">
@@ -8278,6 +8509,16 @@ startUiTranslationBuffer($appLocale);
             <label><?= e(tr('profile.preference_notes')) ?><textarea name="preference_notes" rows="3"><?= e($preference['notes'] ?? '') ?></textarea></label>
             <button class="primary" name="action" value="save_profile"><?= e(tr('profile.save_profile')) ?></button>
         </form></section>
+        <section class="panel" id="profile-links">
+            <div class="section-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h2><?= e(tr('profile.links_title')) ?></h2></div></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                <input type="hidden" name="link_id" value="<?= (int) ($editProfileLink['id'] ?? 0) ?>">
+                <div class="two"><label><?= e(tr('profile.link_name')) ?><input name="link_name" value="<?= e($editProfileLink['link_name'] ?? '') ?>" required></label><label><?= e(tr('profile.link_url')) ?><input type="url" name="link_url" value="<?= e($editProfileLink['link_url'] ?? '') ?>" placeholder="https://..." required></label></div>
+                <div class="actions"><button class="primary" name="action" value="save_profile_link"><?= e($editProfileLink ? tr('profile.link_save') : tr('profile.link_create')) ?></button><?php if($editProfileLink): ?><a class="button" href="/?page=profile#profile-links"><?= e(tr('common.cancel')) ?></a><?php endif; ?></div>
+            </form>
+            <div class="table-wrap"><table><thead><tr><th><?= e(tr('profile.link_name')) ?></th><th><?= e(tr('profile.link_url')) ?></th><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($profileLinks as $profileLink): ?><tr><td><?= e($profileLink['link_name']) ?></td><td><a href="<?= e($profileLink['link_url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($profileLink['link_url']) ?></a></td><td class="actions"><a href="/?page=profile&edit_profile_link=<?= (int)$profileLink['id'] ?>#profile-links"><?= e(tr('common.edit')) ?></a><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="link_id" value="<?= (int)$profileLink['id'] ?>"><button name="action" value="delete_profile_link"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$profileLinks): ?><tr><td colspan="3" class="empty"><?= e(tr('profile.link_empty')) ?></td></tr><?php endif; ?></tbody></table></div>
+        </section>
         <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h2><?= e(tr('profile.document_management')) ?></h2></div><span><?= count($profileDocuments) ?> <?= e(tr('common.versions')) ?></span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id"><option value="0"><?= e(tr('documents.new_profile_document')) ?></option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label><?= e(tr('documents.document_type')) ?><select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.title')) ?><input name="document_title" required placeholder="<?= e(tr('documents.title_placeholder_profile')) ?>"></label><label><?= e(tr('profile.language_label')) ?><select name="document_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= $v===$userLanguage?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="two"><label><?= e(tr('documents.valid_from')) ?><input type="date" name="valid_from"></label><label><?= e(tr('documents.valid_until')) ?><input type="date" name="valid_until"></label></div><label><?= e(tr('common.description')) ?><textarea name="document_description" rows="3"></textarea></label><?= filePickerHtml('user_document') ?><button class="primary" name="action" value="upload_document"><?= e(tr('documents.save_profile_document')) ?></button></form><div class="table-wrap"><table><thead><tr><th><?= e(tr('documents.document')) ?></th><th><?= e(tr('documents.type')) ?></th><th><?= e(tr('documents.version')) ?></th><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · ' . e(tr('common.current')) : '' ?></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e(tr('common.download')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('documents.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty"><?= e(tr('documents.empty_profile')) ?></td></tr><?php endif; ?></tbody></table></div></div></section>
         <script>
         (() => {
