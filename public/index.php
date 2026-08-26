@@ -6747,6 +6747,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=companies');
     }
 
+    if ($action === 'bulk_delete_companies') {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['company_ids'] ?? [])))));
+        $uid = userId();
+        $db->begin_transaction();
+        try {
+            foreach ($ids as $id) {
+                $old = dbOne($db, 'SELECT * FROM companies WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+                if (!$old) {
+                    continue;
+                }
+                cleanupCompanyCascade($db, $uid, $id);
+                $stmt = $db->prepare('UPDATE companies SET deleted_at = NOW() WHERE id = ? AND owner_user_id = ?');
+                $stmt->bind_param('ii', $id, $uid);
+                $stmt->execute();
+                audit($db, $uid, 'delete', 'company', $id, $old, null);
+            }
+            $db->commit();
+        } catch (Throwable $exception) {
+            $db->rollback();
+            throw $exception;
+        }
+        flash(tr('flash.companies.deleted'));
+        redirect('/?page=companies');
+    }
+
     if ($action === 'save_job') {
         $id = (int) ($_POST['id'] ?? 0);
         $companyId = (int) $_POST['company_id'];
@@ -8735,7 +8760,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.crm')) ?></p><h1><?= e(tr('companies.title')) ?></h1></div><span><?= count($companyRows) ?> <?= e(tr('common.entries')) ?></span></div>
         <div class="actions export-actions"><?= sfToolbar('companies', $companySf, ['page'=>'companies'], $companySfFields) ?><a class="button" href="/?page=export_pdf&type=companies">PDF</a></div>
         <div class="split"><section class="panel"><h2><?= e($edit ? tr('companies.edit') : tr('companies.new')) ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>"><label><?= e(tr('common.name')) ?><input name="name" value="<?= e($edit['name'] ?? '') ?>" required></label><label class="check"><input type="checkbox" name="is_intermediary" value="1" <?= !empty($edit['is_intermediary'])?'checked':'' ?>> <?= e(tr('companies.possible_intermediary')) ?></label><label><?= e(tr('companies.main_phone')) ?><input name="company_phone" value="<?= e($edit['phone'] ?? '') ?>"></label><label><?= e(tr('companies.address')) ?><textarea name="address" rows="3" placeholder="<?= e(tr('companies.address_placeholder')) ?>"><?= e(trim((string)($edit['address_line1'] ?? '') . "\n" . (string)($edit['address_line2'] ?? ''))) ?></textarea></label><div class="two"><label><?= e(tr('companies.postal_code')) ?><input name="postal_code" value="<?= e($edit['postal_code'] ?? '') ?>"></label><label><?= e(tr('companies.city')) ?><input name="city" value="<?= e($edit['city'] ?? '') ?>"></label></div><div class="two"><label><?= e(tr('companies.region')) ?><select name="company_region_key" id="company-region"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(regionChoices() as $countryCode=>$regions): ?><optgroup label="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>"><?php foreach($regions as $region): $selectedRegion = ($edit['region'] ?? '')===$region && ($edit['country_code'] ?? '')===$countryCode; ?><option value="<?= e($countryCode . '|' . $region) ?>" data-country="<?= e($countryCode) ?>" data-country-name="<?= e(countryChoices()[$countryCode] ?? $countryCode) ?>" <?= $selectedRegion?'selected':'' ?>><?= e($region) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></label><label><?= e(tr('companies.country')) ?><output id="company-country-display" class="readonly-value"><?= e(countryChoices()[$edit['country_code'] ?? ''] ?? tr('companies.country_from_region')) ?></output></label></div><label><?= e(tr('companies.website')) ?><input type="url" name="website" value="<?= e($edit['website'] ?? '') ?>"></label><label><?= e(tr('common.comment')) ?><textarea name="company_notes" rows="4"><?= e($edit['notes'] ?? '') ?></textarea></label><button class="primary" name="action" value="save_company"><?= e(tr('common.save')) ?></button></form></section>
-        <section class="panel table-wrap"><table><thead><tr><?= sfHeader('companies','name',tr('companies.company'),$companySf,$companyPreserve) ?><?= sfHeader('companies','address',tr('companies.address_phone'),$companySf,$companyPreserve) ?><?= sfHeader('companies','role',tr('companies.role_intermediary'),$companySf,$companyPreserve) ?><?= sfHeader('companies','links',tr('companies.links'),$companySf,$companyPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr class="<?= $edit && (int)$edit['id']===(int)$company['id']?'is-selected':'' ?>"><td><strong><a class="record-link" href="/?page=companies&edit=<?= (int)$company['id'] ?>"><?= e($company['name']) ?></a></strong><small><?= e($company['website']) ?></small></td><td><?php if($company['address_line1']): ?><small><?= nl2br(e(trim((string)$company['address_line1'] . "\n" . (string)$company['address_line2']))) ?></small><?php endif; ?><?php if($company['city']): ?><small><?= e($company['city']) ?></small><?php endif; ?><?php if($company['phone']): ?><small><?= e($company['phone']) ?></small><?php endif; ?></td><td class="relationship-cell"><?php if(!empty($company['is_intermediary']) || $company['mediated_clients']): ?><span class="badge role-badge"><?= e(tr('companies.intermediary')) ?></span><?php endif; ?><?php if($company['mediated_clients']): ?><small><?= e(tr('companies.mediates')) ?>: <?php foreach(explode('||', $company['mediated_clients']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge"><?= e(tr('companies.mediated')) ?></span><small><?= e(tr('companies.by')) ?>: <?php foreach(explode('||', $company['mediated_by']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if(empty($company['is_intermediary']) && !$company['mediated_clients'] && !$company['mediated_by']): ?><small><?= e(tr('companies.direct_none')) ?></small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> <?= e(tr('nav.jobs')) ?></a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> <?= e(tr('nav.applications')) ?></a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> <?= e(tr('nav.contacts')) ?></a></td><td class="actions"><form method="post" onsubmit="return confirm('<?= e(tr('companies.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
+        <section class="panel table-wrap" data-bulk-action="bulk_delete_companies" data-bulk-id-name="company_ids[]"><table><thead><tr><?= sfHeader('companies','name',tr('companies.company'),$companySf,$companyPreserve) ?><?= sfHeader('companies','address',tr('companies.address_phone'),$companySf,$companyPreserve) ?><?= sfHeader('companies','role',tr('companies.role_intermediary'),$companySf,$companyPreserve) ?><?= sfHeader('companies','links',tr('companies.links'),$companySf,$companyPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($companyRows as $company): ?><tr data-bulk-id="<?= (int)$company['id'] ?>" class="<?= $edit && (int)$edit['id']===(int)$company['id']?'is-selected':'' ?>"><td><strong><a class="record-link" href="/?page=companies&edit=<?= (int)$company['id'] ?>"><?= e($company['name']) ?></a></strong><small><?= e($company['website']) ?></small></td><td><?php if($company['address_line1']): ?><small><?= nl2br(e(trim((string)$company['address_line1'] . "\n" . (string)$company['address_line2']))) ?></small><?php endif; ?><?php if($company['city']): ?><small><?= e($company['city']) ?></small><?php endif; ?><?php if($company['phone']): ?><small><?= e($company['phone']) ?></small><?php endif; ?></td><td class="relationship-cell"><?php if(!empty($company['is_intermediary']) || $company['mediated_clients']): ?><span class="badge role-badge"><?= e(tr('companies.intermediary')) ?></span><?php endif; ?><?php if($company['mediated_clients']): ?><small><?= e(tr('companies.mediates')) ?>: <?php foreach(explode('||', $company['mediated_clients']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if($company['mediated_by']): ?><span class="badge"><?= e(tr('companies.mediated')) ?></span><small><?= e(tr('companies.by')) ?>: <?php foreach(explode('||', $company['mediated_by']) as $entry): [$id,$name]=array_pad(explode('::',$entry,2),2,''); ?><a href="/?page=companies&edit=<?= (int)$id ?>"><?= e($name) ?></a><?php endforeach; ?></small><?php endif; ?><?php if(empty($company['is_intermediary']) && !$company['mediated_clients'] && !$company['mediated_by']): ?><small><?= e(tr('companies.direct_none')) ?></small><?php endif; ?></td><td class="link-list"><a href="/?page=jobs&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['job_count'] ?> <?= e(tr('nav.jobs')) ?></a><a href="/?page=applications&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['application_count'] ?> <?= e(tr('nav.applications')) ?></a><a href="/?page=contacts&company_id=<?= (int)$company['id'] ?>"><?= (int)$company['contact_count'] ?> <?= e(tr('nav.contacts')) ?></a></td><td class="actions"><form method="post" onsubmit="return confirm('<?= e(tr('companies.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$company['id'] ?>"><button name="action" value="delete_company"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?></tbody></table></section></div>
         <?php if($edit): ?><?= mailActivityFormHtml($db, userId(), $currentUser, 'company', (int)$edit['id']) ?><?php endif; ?>
         <script>
         (() => {
@@ -9478,6 +9503,7 @@ startUiTranslationBuffer($appLocale);
     ], JSON_UNESCAPED_UNICODE) ?>;
     const deleteSelector = 'form button[name="action"][value^="delete_"]';
     document.querySelectorAll('.table-wrap table').forEach((table) => {
+        const tableContainer = table.closest('[data-bulk-action]');
         const bodyRows = Array.from(table.tBodies).flatMap((body) => Array.from(body.rows));
         const deletableRows = bodyRows.filter((row) => row.querySelector(deleteSelector));
         if (!deletableRows.length) return;
@@ -9534,6 +9560,36 @@ startUiTranslationBuffer($appLocale);
         deleteButton.addEventListener('click', async () => {
             const selected = selectors.filter((item) => item.checkbox.checked);
             if (!selected.length || !window.confirm(labels.deleteConfirm)) return;
+            if (tableContainer?.dataset.bulkAction) {
+                const csrf = selected[0].row.querySelector('input[name="csrf"]')?.value;
+                const idName = tableContainer.dataset.bulkIdName;
+                if (!csrf || !idName) return;
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = window.location.href;
+                const csrfField = document.createElement('input');
+                csrfField.type = 'hidden';
+                csrfField.name = 'csrf';
+                csrfField.value = csrf;
+                form.append(csrfField);
+                const actionField = document.createElement('input');
+                actionField.type = 'hidden';
+                actionField.name = 'action';
+                actionField.value = tableContainer.dataset.bulkAction;
+                form.append(actionField);
+                selected.forEach(({ row }) => {
+                    const id = row.dataset.bulkId;
+                    if (!id) return;
+                    const idField = document.createElement('input');
+                    idField.type = 'hidden';
+                    idField.name = idName;
+                    idField.value = id;
+                    form.append(idField);
+                });
+                document.body.append(form);
+                form.submit();
+                return;
+            }
             deleteButton.disabled = true;
             deleteButton.textContent = labels.deleting;
             try {
