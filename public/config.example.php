@@ -19,6 +19,9 @@ return [
     'smtp_encryption' => 'tls',
     'smtp_username' => '',
     'smtp_password' => '',
+    // Einmalige Betreiber-Konfiguration fuer den OAuth-Client der gesamten Anwendung.
+    'google_calendar_client_id' => '',
+    'google_calendar_client_secret' => '',
     'job_pdf_browser_path' => '/usr/bin/chromium',
     'job_pdf_render_limit' => 5,
     'job_pdf_render_timeout' => 60,
