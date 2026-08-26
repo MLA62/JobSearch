@@ -4359,7 +4359,7 @@ function originalPdfStatusLabel(?string $status): string
 {
     return match ($status) {
         'rendered' => tr('jobs.original_pdf_ready'),
-        'pending' => '',
+        'pending' => tr('jobs.no_original_pdf'),
         'failed' => tr('jobs.original_pdf_failed'),
         default => tr('jobs.no_original_pdf'),
     };
@@ -6860,12 +6860,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdfRequestedAt = $old['original_pdf_requested_at'] ?? null;
             $pdfRenderedAt = $old['original_pdf_rendered_at'] ?? null;
             $pdfError = $old['original_pdf_error'] ?? null;
+            $sourceChanged = $sourceUrl !== (string) ($old['source_url'] ?? '');
             if ($sourceUrl === '') {
                 $pdfStatus = 'none';
                 $pdfRequestedAt = null;
                 $pdfRenderedAt = null;
                 $pdfError = null;
-            } elseif ($sourceUrl !== (string) ($old['source_url'] ?? '')) {
+            } elseif ($sourceChanged) {
                 $pdfStatus = 'pending';
                 $pdfRequestedAt = date('Y-m-d H:i:s');
                 $pdfRenderedAt = null;
@@ -6875,6 +6876,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uid = userId();
             $stmt->bind_param('issssssssssddsssssssii', $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl, $pdfStatus, $pdfRequestedAt, $pdfRenderedAt, $pdfError, $id, $uid);
             $stmt->execute();
+            if ($sourceChanged) {
+                // Das Original-PDF gehört immer genau zur aktuell gespeicherten Quell-URL.
+                $documents = $db->prepare('UPDATE user_documents SET deleted_at=NOW() WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL');
+                $documents->bind_param('ii', $uid, $id);
+                $documents->execute();
+            }
             audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
         } else {
             $pdfStatus = $sourceUrl !== '' ? 'pending' : 'none';
@@ -7527,7 +7534,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.71';
+$codeVersion = '1.15.72';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -8975,7 +8982,7 @@ startUiTranslationBuffer($appLocale);
         $sql .= sfApplySql($jobSf, $jobSfFields, $types, $vals);
         $sql .= sfOrderSql($jobSf, $jobSfFields, 'title');
         $jobs=dbAll($db,$sql,$types,$vals);
-        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, j.source_url, j.original_pdf_status, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT j.id, j.company_id, j.title, j.location_text, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, j.source_url, j.original_pdf_status, j.original_pdf_requested_at, j.original_pdf_rendered_at, j.original_pdf_error, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j WHERE j.id=? AND j.owner_user_id=? AND j.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $draft = is_array($_SESSION['import_draft'] ?? null) ? $_SESSION['import_draft'] : [];
         if ($draft) {
             $edit = null;
@@ -9008,7 +9015,7 @@ startUiTranslationBuffer($appLocale);
             <div class="two"><label><?= e(tr('jobs.fixed_from')) ?><input type="date" name="fixed_term_start" value="<?= e($form['fixed_term_start'] ?? '') ?>"></label><label><?= e(tr('jobs.fixed_until')) ?><input type="date" name="fixed_term_end" value="<?= e($form['fixed_term_end'] ?? '') ?>"></label></div>
             <div class="salary-row"><label><?= e(tr('profile.salary')) ?> <span><?= e($jobCurrency) ?></span><input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($form['salary_min'] ?? '')) ?>"></label><label><?= e(tr('profile.salary_format')) ?><select name="salary_period"><?php foreach(salaryPeriodOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
             <label><?= e(tr('common.status')) ?><select name="status"><?php foreach(jobStatusOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['status']??'open')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a><?php if($edit): ?><button class="primary-link" name="action" value="queue_job_original_pdf" formnovalidate><?= e(tr('dossier.create_pdf')) ?></button><?php if(!empty($edit['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_pdf')) ?></a><?php else: ?><span class="button" aria-disabled="true"><?= e(tr('jobs.original_pdf')) ?></span><?php endif; ?><?php endif; ?></small><?php endif; ?></label><label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
+            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a><?php if($edit): ?><button class="primary-link" name="action" value="queue_job_original_pdf" formnovalidate><?= e(tr('dossier.create_pdf')) ?></button><?php if(!empty($edit['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_pdf')) ?></a><?php else: ?><span class="button" aria-disabled="true"><?= e(tr('jobs.original_pdf')) ?></span><?php endif; ?><span class="meta-line"><?= e(originalPdfStatusLabel((string)($edit['original_pdf_status'] ?? 'none'))) ?><?php if(($edit['original_pdf_status'] ?? '') === 'pending' && !empty($edit['original_pdf_requested_at'])): ?> · <?= e(displayDateTime((string)$edit['original_pdf_requested_at'], $currentUser)) ?><?php elseif(($edit['original_pdf_status'] ?? '') === 'failed' && !empty($edit['original_pdf_error'])): ?> · <?= e((string)$edit['original_pdf_error']) ?><?php endif; ?></span><?php endif; ?></small><?php endif; ?></label><label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> <?= e(tr('jobs.save_as_separate')) ?></label><?php endif; ?><button class="primary" name="action" value="save_job"><?= e(tr('common.save')) ?></button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>"><?= e(tr('applications.show')) ?></a></form><?php endif; ?></section>
         <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><?php endif; ?>

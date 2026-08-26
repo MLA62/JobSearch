@@ -141,7 +141,7 @@ php deploy/render-pending-job-pdfs.php --limit=5
 Cron-Beispiel:
 
 ```sh
-*/10 * * * * cd /home/kerubina/jobs.jema.business && php deploy/render-pending-job-pdfs.php --limit=5 >> var/log/job-pdf-render.log 2>&1
+*/5 * * * * cd /home/kerubina/public_html/jobs.jema.business && /opt/alt/php81/usr/bin/php deploy/render-pending-job-pdfs.php --limit=5 >> deploy/job-pdf-render.log 2>&1
 ```
 
 Chromium oder ein kompatibler Browser muss verfuegbar sein. Falls Autodetektion
