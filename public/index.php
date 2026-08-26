@@ -1516,19 +1516,65 @@ function redirect(string $path = '/'): never
     exit;
 }
 
+function validCsrfToken(string $token): bool
+{
+    return preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
+}
+
+function storeCsrfCookie(string $token): void
+{
+    if (headers_sent()) {
+        return;
+    }
+    $https = !empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+    if (!$https && strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https') {
+        $https = true;
+    }
+    setcookie('JEMA_CSRF', $token, [
+        'expires' => time() + 60 * 60 * 24 * 30,
+        'path' => '/',
+        'secure' => $https,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['JEMA_CSRF'] = $token;
+}
+
 function csrfToken(): string
 {
-    if (empty($_SESSION['csrf'])) {
-        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    $sessionToken = (string) ($_SESSION['csrf'] ?? '');
+    $cookieToken = (string) ($_COOKIE['JEMA_CSRF'] ?? '');
+    if (validCsrfToken($cookieToken)) {
+        $_SESSION['csrf'] = $cookieToken;
+        return $cookieToken;
     }
-    return $_SESSION['csrf'];
+    $token = validCsrfToken($sessionToken) ? $sessionToken : bin2hex(random_bytes(32));
+    $_SESSION['csrf'] = $token;
+    storeCsrfCookie($token);
+    return $token;
 }
 
 function verifyCsrf(): void
 {
-    if (!hash_equals((string) ($_SESSION['csrf'] ?? ''), (string) ($_POST['csrf'] ?? ''))) {
+    $postedToken = (string) ($_POST['csrf'] ?? '');
+    $sessionToken = (string) ($_SESSION['csrf'] ?? '');
+    $cookieToken = (string) ($_COOKIE['JEMA_CSRF'] ?? '');
+    $matchesSession = validCsrfToken($sessionToken) && hash_equals($sessionToken, $postedToken);
+    $matchesBrowser = validCsrfToken($cookieToken) && hash_equals($cookieToken, $postedToken);
+    if (!$matchesSession && !$matchesBrowser) {
+        unset($_SESSION['csrf']);
+        csrfToken();
+        $returnPage = (string) ($_GET['page'] ?? 'login');
+        if (in_array($returnPage, ['login', 'register', 'forgot_password', 'reset_password'], true)) {
+            flash(tr('flash.auth.register_invalid'), 'danger');
+            redirect('/?page=' . rawurlencode($returnPage));
+        }
         http_response_code(419);
-        exit('Invalid CSRF token.');
+        exit;
+    }
+    $_SESSION['csrf'] = $postedToken;
+    if (!$matchesBrowser) {
+        storeCsrfCookie($postedToken);
     }
 }
 
@@ -7648,7 +7694,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.76';
+$codeVersion = '1.15.77';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
