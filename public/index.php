@@ -657,7 +657,7 @@ try {
 
 function e(?string $value): string
 {
-    return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    return htmlspecialchars(repairMojibake((string) $value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 function filePickerHtml(string $name, bool $required = true): string
@@ -3935,9 +3935,18 @@ function matchJob(array $job): array
     return [min(100, $score), $reasons ?: [tr('jobs.match_reason.insufficient_data')]];
 }
 
+function repairMojibake(string $value): string
+{
+    if ($value === '' || !function_exists('iconv') || !preg_match('/(?:Ã.|Â.|â€)/u', $value)) {
+        return $value;
+    }
+    $repaired = @iconv('UTF-8', 'Windows-1252//IGNORE', $value);
+    return is_string($repaired) && $repaired !== '' && preg_match('//u', $repaired) ? $repaired : $value;
+}
+
 function plainText(string $value): string
 {
-    $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $value = repairMojibake(html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     return trim((string) preg_replace('/\s+/u', ' ', $value));
 }
 
