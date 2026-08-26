@@ -5468,13 +5468,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit($db, $uid, 'update', 'user_smtp_settings', $uid, null, ['smtp_host' => $host, 'from_email' => $fromEmail, 'is_active' => $isActive]);
         if ($action === 'test_smtp_settings') {
             try {
+                if (in_array($port, [110, 143, 993, 995], true)) {
+                    throw new RuntimeException('Port ' . $port . ' ist ein Mailbox-Port. Für SMTP bitte normalerweise 587 mit STARTTLS oder 465 mit SSL/TLS verwenden.');
+                }
                 $smtpTestUser = dbOne($db, 'SELECT email FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$uid]);
                 sendConfiguredMail($db, $config, $uid, (string) ($smtpTestUser['email'] ?? $fromEmail), 'JeMa Jobs SMTP-Test', "Hallo\n\nDer E-Mail-Versand über deine SMTP-Konfiguration funktioniert.\n");
-                flash(tr('flash.smtp.saved_test_sent'));
+                $smtpTestMessage = tr('flash.smtp.saved_test_sent');
+                $_SESSION['smtp_test_result'] = ['message' => $smtpTestMessage, 'type' => 'success'];
+                flash($smtpTestMessage);
             } catch (Throwable $exception) {
-                flash(strtr(tr('flash.smtp.saved_test_failed'), ['{error}' => $exception->getMessage()]), 'danger');
+                $smtpTestMessage = strtr(tr('flash.smtp.saved_test_failed'), ['{error}' => $exception->getMessage()]);
+                $_SESSION['smtp_test_result'] = ['message' => $smtpTestMessage, 'type' => 'danger'];
+                flash($smtpTestMessage, 'danger');
             }
         } else {
+            unset($_SESSION['smtp_test_result']);
             flash(tr('flash.smtp.saved'));
         }
         redirect('/?page=profile#smtp');
@@ -6407,7 +6415,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.56';
+$codeVersion = '1.15.57';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6709,6 +6717,8 @@ if ($currentUser && in_array($page, ['login', 'register', 'forgot_password', 're
 }
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
+$smtpTestResult = $_SESSION['smtp_test_result'] ?? null;
+unset($_SESSION['smtp_test_result']);
 $companies = userId() ? dbAll($db, 'SELECT * FROM companies WHERE owner_user_id = ? AND deleted_at IS NULL ORDER BY name', 'i', [userId()]) : [];
 $supportGrant = $currentUser ? activeSupportGrant($db, userId()) : null;
 $supportImpersonating = isSupportImpersonation();
@@ -7476,6 +7486,7 @@ startUiTranslationBuffer($appLocale);
                 </div>
                 <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> <?= e(tr('profile.smtp_enable')) ?></label>
                 <div class="actions"><button class="primary" name="action" value="save_smtp_settings"><?= e(tr('profile.smtp_save')) ?></button><button name="action" value="test_smtp_settings"><?= e(tr('profile.smtp_save_test')) ?></button></div>
+                <?php if ($smtpTestResult): ?><p class="alert <?= e($smtpTestResult['type'] ?? 'success') ?>"><?= e($smtpTestResult['message'] ?? '') ?></p><?php endif; ?>
                 <p class="meta-line"><?= e(tr('profile.smtp_hint')) ?></p>
             </form>
         </section>
