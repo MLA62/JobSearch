@@ -7022,7 +7022,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.61';
+$codeVersion = '1.15.62';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7858,6 +7858,21 @@ startUiTranslationBuffer($appLocale);
         $googleSettings = googleCalendarSettings($db, userId());
         $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
         $googleRedirectUri = googleCalendarRedirectUri($config);
+        $googleCalendarChoices = [];
+        if ($googleConnected) {
+            try {
+                $googleToken = googleAccessToken($db, $config, userId(), $googleSettings);
+                $googleCalendarList = googleJsonRequest('GET', 'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=writer', ['Authorization: Bearer ' . $googleToken]);
+                foreach ((array) ($googleCalendarList['items'] ?? []) as $calendarItem) {
+                    $calendarItemId = trim((string) ($calendarItem['id'] ?? ''));
+                    if ($calendarItemId !== '') {
+                        $googleCalendarChoices[$calendarItemId] = (string) ($calendarItem['summary'] ?? $calendarItemId);
+                    }
+                }
+            } catch (Throwable $exception) {
+                $googleCalendarChoices = [];
+            }
+        }
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
             'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
@@ -7892,7 +7907,11 @@ startUiTranslationBuffer($appLocale);
                 <label><?= e(tr('calendar.google_client_id')) ?><input name="google_client_id" value="<?= e((string)($googleSettings['client_id'] ?? '')) ?>" autocomplete="off"></label>
                 <label><?= e(tr('calendar.google_client_secret')) ?><input type="password" name="google_client_secret" placeholder="<?= e(tr('calendar.google_secret_placeholder')) ?>" autocomplete="new-password"></label>
                 <label><?= e(tr('calendar.google_redirect_uri')) ?><input readonly value="<?= e($googleRedirectUri) ?>" onclick="this.select()"></label>
-                <label><?= e(tr('calendar.google_calendar_id')) ?><input name="google_calendar_id" value="<?= e((string)($googleSettings['calendar_id'] ?? 'primary')) ?>"><small><?= e(tr('calendar.google_calendar_id_hint')) ?></small></label>
+                <?php if($googleCalendarChoices): ?>
+                    <label><?= e(tr('calendar.google_calendar_id')) ?><select name="google_calendar_id"><?php foreach($googleCalendarChoices as $calendarId=>$calendarLabel): ?><option value="<?= e($calendarId) ?>" <?= (string)($googleSettings['calendar_id'] ?? 'primary')===$calendarId?'selected':'' ?>><?= e($calendarLabel) ?></option><?php endforeach; ?></select></label>
+                <?php else: ?>
+                    <label><?= e(tr('calendar.google_calendar_id')) ?><input name="google_calendar_id" value="<?= e((string)($googleSettings['calendar_id'] ?? 'primary')) ?>"><small><?= e(tr('calendar.google_calendar_id_hint')) ?></small></label>
+                <?php endif; ?>
                 <label class="check"><input type="checkbox" name="google_sync_enabled" value="1" <?= !empty($googleSettings['sync_enabled']) ? 'checked' : '' ?>><?= e(tr('calendar.google_sync_enabled')) ?></label>
                 <div class="actions">
                     <button name="action" value="save_google_calendar_settings"><?= e(tr('calendar.google_save')) ?></button>
