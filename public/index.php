@@ -4598,7 +4598,7 @@ function jobPreferenceQuery(array $preference): string
     if ($level !== '') {
         $terms[] = $level;
     }
-    return trim(implode(' ', $terms));
+    return trim(implode(', ', $terms));
 }
 
 function jobPreferenceLocation(array $preference, array $currentUser): string
@@ -7492,7 +7492,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.67';
+$codeVersion = '1.15.68';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -8813,6 +8813,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('job_search.section')) ?></p><h1><?= e(tr('job_search.title')) ?></h1></div><span><?= e(tr('job_search.active_portals', null, ['count' => (string) count($platformRows)])) ?></span></div>
         <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><a href="/?page=profile"><?= e(tr('job_search.edit_profile_preferences')) ?></a></div>
             <?php if($query === ''): ?><p class="alert warning"><?= e(tr('job_search.missing_query')) ?></p><?php else: ?><p class="meta-line"><?= e(tr('job_search.query_from_profile')) ?>: <strong><?= e($query) ?></strong><?= $location !== '' ? ' · ' . e(tr('jobs.location')) . ': <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
+            <?php if($promptFacts): ?><ul class="profile-criteria"><?php foreach($promptFacts as $fact): ?><li><?= e($fact) ?></li><?php endforeach; ?></ul><?php endif; ?>
             <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="generate_platform_search"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($query) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>" required></label><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="15"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" checked> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div><button class="primary" type="submit" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></form>
         </section>
         <section class="panel prompt-panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.chatgpt_section')) ?></p><h2><?= e(tr('job_search.prompt_title')) ?></h2></div><div class="actions copy-actions"><button type="button" data-copy-target="chatgpt-job-prompt"><?= e(tr('job_search.copy_prompt')) ?></button><a class="button" href="/?page=jobs#quick-import"><?= e(tr('job_search.to_quick_import')) ?></a></div></div><label><?= e(tr('job_search.prompt')) ?><textarea id="chatgpt-job-prompt" rows="15" readonly></textarea></label><p class="meta-line"><?= e(tr('job_search.copy_instruction')) ?></p></section>

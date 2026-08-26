@@ -348,6 +348,26 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
 
 .page-head h1 { font-size: 2.6rem; }
 .page-head span, .company, .meta-line, .due, .filter-note { color: var(--muted); }
+
+.profile-criteria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 10px 0 18px;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-criteria li {
+    color: var(--muted);
+    font-size: .92rem;
+}
+
+.profile-criteria li::before {
+    content: "•";
+    color: var(--accent);
+    margin-right: 6px;
+}
 .eyebrow { text-transform: uppercase; letter-spacing: 0; color: var(--brand-dark); font-size: .78rem; font-weight: 800; }
 .context-help-bar {
     display: flex;
