@@ -136,6 +136,55 @@ try {
             'pt-BR' => 'Adicionado aos e-mails HTML enviados. Fonte padrão: Calibri 11.',
             'es-MX' => 'Se añade a los correos HTML salientes. Fuente estándar: Calibri 11.',
         ],
+        'calendar.google_sync_title' => [
+            'de-CH' => 'Google Kalender Sync',
+            'fr-CH' => 'Synchronisation Google Agenda',
+            'en-GB' => 'Google Calendar sync',
+            'pt-BR' => 'Sincronização com Google Agenda',
+            'es-MX' => 'Sincronización con Google Calendar',
+        ],
+        'calendar.google_sync_hint' => [
+            'de-CH' => 'Diesen privaten Link in Google Kalender unter „Per URL“ abonnieren. Google aktualisiert abonnierte Kalender zeitverzögert.',
+            'fr-CH' => 'Abonne ce lien privé dans Google Agenda avec « Depuis une URL ». Google actualise les calendriers abonnés avec un délai.',
+            'en-GB' => 'Subscribe to this private link in Google Calendar using “From URL”. Google refreshes subscribed calendars with a delay.',
+            'pt-BR' => 'Assine este link privado no Google Agenda em “Por URL”. O Google atualiza calendários assinados com atraso.',
+            'es-MX' => 'Suscríbete a este enlace privado en Google Calendar con “Desde URL”. Google actualiza calendarios suscritos con demora.',
+        ],
+        'calendar.google_sync_url' => [
+            'de-CH' => 'Abo-Link',
+            'fr-CH' => 'Lien d’abonnement',
+            'en-GB' => 'Subscription link',
+            'pt-BR' => 'Link de assinatura',
+            'es-MX' => 'Enlace de suscripción',
+        ],
+        'calendar.google_sync_rotate' => [
+            'de-CH' => 'Link erneuern',
+            'fr-CH' => 'Renouveler le lien',
+            'en-GB' => 'Renew link',
+            'pt-BR' => 'Renovar link',
+            'es-MX' => 'Renovar enlace',
+        ],
+        'calendar.google_sync_rotate_confirm' => [
+            'de-CH' => 'Kalender-Link erneuern? Danach muss Google Kalender mit dem neuen Link neu abonniert werden.',
+            'fr-CH' => 'Renouveler le lien du calendrier ? Google Agenda devra ensuite être réabonné avec le nouveau lien.',
+            'en-GB' => 'Renew the calendar link? Google Calendar must then be subscribed again with the new link.',
+            'pt-BR' => 'Renovar o link do calendário? Depois será necessário assinar novamente no Google Agenda com o novo link.',
+            'es-MX' => '¿Renovar el enlace del calendario? Después tendrás que volver a suscribirte en Google Calendar con el nuevo enlace.',
+        ],
+        'flash.calendar_feed.rotated' => [
+            'de-CH' => 'Kalender-Abo-Link erneuert.',
+            'fr-CH' => 'Lien d’abonnement du calendrier renouvelé.',
+            'en-GB' => 'Calendar subscription link renewed.',
+            'pt-BR' => 'Link de assinatura do calendário renovado.',
+            'es-MX' => 'Enlace de suscripción del calendario renovado.',
+        ],
+        'calendar.feed_not_found' => [
+            'de-CH' => 'Kalender-Feed nicht gefunden.',
+            'fr-CH' => 'Flux calendrier introuvable.',
+            'en-GB' => 'Calendar feed not found.',
+            'pt-BR' => 'Feed de calendário não encontrado.',
+            'es-MX' => 'Feed de calendario no encontrado.',
+        ],
     ] as $textKey => $translations) {
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
@@ -266,6 +315,15 @@ try {
     ensureColumn($db, 'user_preferences', 'travel_percentage', '`travel_percentage` TINYINT UNSIGNED NULL', 'willing_to_relocate');
     ensureColumn($db, 'user_preferences', 'available_from', '`available_from` DATE NULL', 'travel_percentage');
     ensureColumn($db, 'user_smtp_settings', 'mail_footer', '`mail_footer` LONGTEXT NULL', 'from_name');
+    $db->query("CREATE TABLE IF NOT EXISTS user_calendar_feeds (
+        user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+        token CHAR(64) NOT NULL,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_user_calendar_feeds_token (token),
+        CONSTRAINT fk_user_calendar_feeds_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS application_documents (
         application_id BIGINT UNSIGNED NOT NULL,
         user_document_id BIGINT UNSIGNED NOT NULL,
@@ -2584,6 +2642,39 @@ function calendarIcsResponse(string $filename, array $events): never
     header('Content-Length: ' . strlen($ics));
     echo $ics;
     exit;
+}
+
+function calendarFeedToken(): string
+{
+    return bin2hex(random_bytes(32));
+}
+
+function ensureCalendarFeed(mysqli $db, int $userId): array
+{
+    $feed = dbOne($db, 'SELECT token, is_active FROM user_calendar_feeds WHERE user_id=? LIMIT 1', 'i', [$userId]);
+    if ($feed && (int) $feed['is_active'] === 1 && trim((string) $feed['token']) !== '') {
+        return $feed;
+    }
+    $token = calendarFeedToken();
+    if ($feed) {
+        $stmt = $db->prepare('UPDATE user_calendar_feeds SET token=?, is_active=1 WHERE user_id=?');
+        $stmt->bind_param('si', $token, $userId);
+        $stmt->execute();
+    } else {
+        $stmt = $db->prepare('INSERT INTO user_calendar_feeds (user_id, token, is_active) VALUES (?, ?, 1)');
+        $stmt->bind_param('is', $userId, $token);
+        $stmt->execute();
+    }
+    return ['token' => $token, 'is_active' => 1];
+}
+
+function rotateCalendarFeed(mysqli $db, int $userId): string
+{
+    $token = calendarFeedToken();
+    $stmt = $db->prepare('INSERT INTO user_calendar_feeds (user_id, token, is_active) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE token=VALUES(token), is_active=1');
+    $stmt->bind_param('is', $userId, $token);
+    $stmt->execute();
+    return $token;
 }
 
 function localeForCountry(?string $countryCode): string
@@ -5120,6 +5211,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=calendar&view=agenda');
     }
 
+    if ($action === 'rotate_calendar_feed') {
+        $uid = userId();
+        rotateCalendarFeed($db, $uid);
+        audit($db, $uid, 'update', 'user_calendar_feed', $uid, null, ['rotated' => true]);
+        flash(tr('flash.calendar_feed.rotated'));
+        redirect('/?page=calendar#calendar-sync');
+    }
+
     if ($action === 'save_report') {
         $name = trim((string) ($_POST['report_name'] ?? ''));
         $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
@@ -6470,7 +6569,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.59';
+$codeVersion = '1.15.60';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -6758,6 +6857,18 @@ if ($page === 'export_pdf') {
     $workplaceTypes = workplaceTypeOptions();
     $rows = dbAll($db, 'SELECT j.id, j.title, c.name company, j.location_text, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL ORDER BY j.updated_at DESC', 'i', [userId()]);
     pdfResponse('jobs.pdf', tr('nav.jobs'), [tr('common.title'),tr('companies.company'),tr('jobs.location'),tr('common.status'),tr('jobs.workplace_type'),tr('common.updated')], array_map(static fn(array $r): array => [$r['title'], $r['company'], $r['location_text'], optionLabel($jobStatuses, $r['status']), optionLabel($workplaceTypes, $r['workplace_type']), $r['updated_at']], $rows));
+}
+if ($page === 'calendar_feed') {
+    $token = trim((string) ($_GET['token'] ?? ''));
+    $feed = $token !== '' ? dbOne($db, "SELECT f.user_id FROM user_calendar_feeds f JOIN users u ON u.id=f.user_id WHERE f.token=? AND f.is_active=1 AND u.deleted_at IS NULL AND u.status='active' LIMIT 1", 's', [$token]) : null;
+    if (!$feed) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit(tr('calendar.feed_not_found'));
+    }
+    $feedStart = (new DateTimeImmutable('-90 days'))->setTime(0, 0);
+    $feedEnd = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
+    calendarIcsResponse('jema-jobs-google.ics', calendarEventRows($db, (int) $feed['user_id'], $feedStart, $feedEnd));
 }
 if ($page === 'export_ics') {
     requireLogin();
@@ -7229,6 +7340,8 @@ startUiTranslationBuffer($appLocale);
         $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
         $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
+        $calendarFeed = ensureCalendarFeed($db, userId());
+        $googleFeedUrl = absoluteUrl($config, '/?page=calendar_feed&token=' . rawurlencode((string) $calendarFeed['token']));
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
             'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
@@ -7253,6 +7366,15 @@ startUiTranslationBuffer($appLocale);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
         <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
+        <section class="panel" id="calendar-sync">
+            <h2><?= e(tr('calendar.google_sync_title')) ?></h2>
+            <p><?= e(tr('calendar.google_sync_hint')) ?></p>
+            <label><?= e(tr('calendar.google_sync_url')) ?><input readonly value="<?= e($googleFeedUrl) ?>" onclick="this.select()"></label>
+            <form method="post" class="actions" onsubmit="return confirm(<?= e(json_encode(tr('calendar.google_sync_rotate_confirm'), JSON_UNESCAPED_UNICODE)) ?>)">
+                <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
+                <button name="action" value="rotate_calendar_feed"><?= e(tr('calendar.google_sync_rotate')) ?></button>
+            </form>
+        </section>
         <section class="panel calendar-panel matrix-first">
         <?php if(in_array($calendarView, ['day','workweek','week'], true) && ($outsideTimeEvents['before'] || $outsideTimeEvents['after'])): ?>
             <div class="calendar-outside-notice">
