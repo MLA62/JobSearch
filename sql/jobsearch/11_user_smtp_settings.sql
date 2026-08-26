@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS user_smtp_settings (
     smtp_password_encrypted LONGTEXT NULL,
     from_email VARCHAR(254) NOT NULL,
     from_name VARCHAR(190) NULL,
+    mail_footer LONGTEXT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

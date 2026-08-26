@@ -122,6 +122,20 @@ try {
             'pt-BR' => 'Mês',
             'es-MX' => 'Mes',
         ],
+        'profile.smtp_footer' => [
+            'de-CH' => 'E-Mail-Footer',
+            'fr-CH' => 'Pied de page e-mail',
+            'en-GB' => 'Email footer',
+            'pt-BR' => 'Rodapé do e-mail',
+            'es-MX' => 'Pie de correo',
+        ],
+        'profile.smtp_footer_hint' => [
+            'de-CH' => 'Wird an ausgehende HTML-E-Mails angehängt. Standard-Schrift: Calibri 11.',
+            'fr-CH' => 'Ajouté aux e-mails HTML sortants. Police standard : Calibri 11.',
+            'en-GB' => 'Appended to outgoing HTML emails. Default font: Calibri 11.',
+            'pt-BR' => 'Adicionado aos e-mails HTML enviados. Fonte padrão: Calibri 11.',
+            'es-MX' => 'Se añade a los correos HTML salientes. Fuente estándar: Calibri 11.',
+        ],
     ] as $textKey => $translations) {
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
@@ -251,6 +265,7 @@ try {
     ensureColumn($db, 'user_preferences', 'willing_to_relocate', '`willing_to_relocate` TINYINT(1) NOT NULL DEFAULT 0', 'excluded_industries');
     ensureColumn($db, 'user_preferences', 'travel_percentage', '`travel_percentage` TINYINT UNSIGNED NULL', 'willing_to_relocate');
     ensureColumn($db, 'user_preferences', 'available_from', '`available_from` DATE NULL', 'travel_percentage');
+    ensureColumn($db, 'user_smtp_settings', 'mail_footer', '`mail_footer` LONGTEXT NULL', 'from_name');
     $db->query("CREATE TABLE IF NOT EXISTS application_documents (
         application_id BIGINT UNSIGNED NOT NULL,
         user_document_id BIGINT UNSIGNED NOT NULL,
@@ -1301,6 +1316,16 @@ function dotStuff(string $body): string
     return str_replace("\n", "\r\n", $body);
 }
 
+function htmlMailBody(string $textBody, ?string $footer = null): string
+{
+    $body = '<div>' . nl2br(e($textBody), false) . '</div>';
+    $footer = trim((string) $footer);
+    if ($footer !== '') {
+        $body .= '<div style="margin-top:18px;padding-top:10px;border-top:1px solid #d0d7e2;color:#5f6b7a;">' . nl2br(e($footer), false) . '</div>';
+    }
+    return '<!doctype html><html><body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;line-height:1.35;color:#111827;">' . $body . '</body></html>';
+}
+
 function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): void
 {
     $host = trim((string) ($config['smtp_host'] ?? ''));
@@ -1342,6 +1367,7 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
         smtpCommand($stream, 'DATA', [354]);
 
         $fromHeader = encodeMailHeader(mailFromName($config)) . ' <' . $from . '>';
+        $htmlBody = htmlMailBody($textBody, (string) ($config['mail_footer'] ?? ''));
         $headers = [
             'Date: ' . date(DATE_RFC2822),
             'From: ' . $fromHeader,
@@ -1353,9 +1379,9 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
             $boundary = 'jema_jobs_' . bin2hex(random_bytes(12));
             $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
             $message = '--' . $boundary . "\r\n"
-                . "Content-Type: text/plain; charset=UTF-8\r\n"
+                . "Content-Type: text/html; charset=UTF-8\r\n"
                 . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                . $textBody . "\r\n";
+                . $htmlBody . "\r\n";
             foreach ($attachments as $attachment) {
                 $path = (string) ($attachment['path'] ?? '');
                 if (!is_file($path)) {
@@ -1371,9 +1397,9 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
             }
             $message .= '--' . $boundary . "--\r\n";
         } else {
-            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            $headers[] = 'Content-Type: text/html; charset=UTF-8';
             $headers[] = 'Content-Transfer-Encoding: 8bit';
-            $message = $textBody;
+            $message = $htmlBody;
         }
         smtpCommand($stream, implode("\r\n", $headers) . "\r\n\r\n" . dotStuff($message) . "\r\n.", [250]);
         smtpCommand($stream, 'QUIT', [221]);
@@ -1406,6 +1432,7 @@ function userSmtpSettings(mysqli $db, array $config, int $userId): ?array
         'smtp_password' => decryptSecret($config, $settings['smtp_password_encrypted'] ?? null),
         'mail_from' => (string) $settings['from_email'],
         'mail_from_name' => trim((string) ($settings['from_name'] ?? '')) ?: mailFromName($config),
+        'mail_footer' => (string) ($settings['mail_footer'] ?? ''),
     ];
 }
 
@@ -5446,6 +5473,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = (string) ($_POST['smtp_password'] ?? '');
         $fromEmail = strtolower(trim((string) ($_POST['from_email'] ?? '')));
         $fromName = trim((string) ($_POST['from_name'] ?? '')) ?: null;
+        $mailFooter = trim((string) ($_POST['mail_footer'] ?? '')) ?: null;
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
         if ($host === '' || $port < 1 || $port > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
             flash(tr('flash.smtp.required'), 'danger');
@@ -5457,12 +5485,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $encryptedPassword = encryptSecret($config, $password);
         }
         if ($existing) {
-            $stmt = $db->prepare('UPDATE user_smtp_settings SET smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password_encrypted=?, from_email=?, from_name=?, is_active=? WHERE user_id=?');
-            $stmt->bind_param('sisssssii', $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $isActive, $uid);
+            $stmt = $db->prepare('UPDATE user_smtp_settings SET smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password_encrypted=?, from_email=?, from_name=?, mail_footer=?, is_active=? WHERE user_id=?');
+            $stmt->bind_param('sissssssii', $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $isActive, $uid);
             $stmt->execute();
         } else {
-            $stmt = $db->prepare('INSERT INTO user_smtp_settings (user_id, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password_encrypted, from_email, from_name, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->bind_param('isisssssi', $uid, $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $isActive);
+            $stmt = $db->prepare('INSERT INTO user_smtp_settings (user_id, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password_encrypted, from_email, from_name, mail_footer, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('isissssssi', $uid, $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $isActive);
             $stmt->execute();
         }
         audit($db, $uid, 'update', 'user_smtp_settings', $uid, null, ['smtp_host' => $host, 'from_email' => $fromEmail, 'is_active' => $isActive]);
@@ -6415,7 +6443,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.57';
+$codeVersion = '1.15.58';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7428,7 +7456,7 @@ startUiTranslationBuffer($appLocale);
         }
         $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
         $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
-        $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
+        $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, mail_footer, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.account')) ?></p><h1><?= e(tr('profile.title')) ?></h1></div><span><?= e($currentUser['email']) ?></span></div>
         <section class="panel" id="security">
@@ -7484,6 +7512,7 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('profile.smtp_from_email')) ?><input type="email" name="from_email" value="<?= e($smtpSettings['from_email'] ?? $currentUser['email']) ?>" required></label>
                     <label><?= e(tr('profile.smtp_from_name')) ?><input name="from_name" value="<?= e($smtpSettings['from_name'] ?? trim((string)$currentUser['first_name'] . ' ' . (string)$currentUser['last_name'])) ?>"></label>
                 </div>
+                <label><?= e(tr('profile.smtp_footer')) ?><textarea name="mail_footer" rows="4"><?= e($smtpSettings['mail_footer'] ?? '') ?></textarea><small><?= e(tr('profile.smtp_footer_hint')) ?></small></label>
                 <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> <?= e(tr('profile.smtp_enable')) ?></label>
                 <div class="actions"><button class="primary" name="action" value="save_smtp_settings"><?= e(tr('profile.smtp_save')) ?></button><button name="action" value="test_smtp_settings"><?= e(tr('profile.smtp_save_test')) ?></button></div>
                 <?php if ($smtpTestResult): ?><p class="alert <?= e($smtpTestResult['type'] ?? 'success') ?>"><?= e($smtpTestResult['message'] ?? '') ?></p><?php endif; ?>
