@@ -115,6 +115,21 @@ try {
             'pt-BR' => 'Compromissos a partir das 19:00',
             'es-MX' => 'Citas desde las 19:00',
         ],
+        'calendar.edit_entry' => [
+            'de-CH' => 'Termin bearbeiten', 'fr-CH' => 'Modifier le rendez-vous', 'en-GB' => 'Edit appointment', 'pt-BR' => 'Editar compromisso', 'es-MX' => 'Editar cita',
+        ],
+        'calendar.delete_confirm' => [
+            'de-CH' => 'Diesen Termin löschen?', 'fr-CH' => 'Supprimer ce rendez-vous ?', 'en-GB' => 'Delete this appointment?', 'pt-BR' => 'Excluir este compromisso?', 'es-MX' => '¿Eliminar esta cita?',
+        ],
+        'flash.calendar.deleted' => [
+            'de-CH' => 'Termin gelöscht.', 'fr-CH' => 'Rendez-vous supprimé.', 'en-GB' => 'Appointment deleted.', 'pt-BR' => 'Compromisso excluído.', 'es-MX' => 'Cita eliminada.',
+        ],
+        'calendar.end' => [
+            'de-CH' => 'Ende', 'fr-CH' => 'Fin', 'en-GB' => 'End', 'pt-BR' => 'Fim', 'es-MX' => 'Fin',
+        ],
+        'calendar.location' => [
+            'de-CH' => 'Ort', 'fr-CH' => 'Lieu', 'en-GB' => 'Location', 'pt-BR' => 'Local', 'es-MX' => 'Lugar',
+        ],
         'job_room_helper.month_filter' => [
             'de-CH' => 'Monat',
             'fr-CH' => 'Mois',
@@ -2866,7 +2881,7 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
             'ends_at' => (string) ($event['ends_at'] ?: date('Y-m-d H:i:s', strtotime((string) $event['starts_at']) + 1800)),
             'meta' => trim((string) (($event['job_title'] ?? '') . (($event['company_name'] ?? '') ? ' · ' . $event['company_name'] : ''))),
             'notes' => (string) ($event['notes'] ?? ''),
-            'href' => !empty($event['application_id']) ? '/?page=applications&edit=' . (int) $event['application_id'] . '#application-form' : '#event-' . (int) $event['id'],
+            'href' => '/?page=calendar&edit_event=' . (int) $event['id'] . '#calendar-entry-form',
         ];
     }
     foreach (dbAll($db, 'SELECT a.id, a.next_action, a.next_action_at, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.next_action_at BETWEEN ? AND ? ORDER BY a.next_action_at ASC', 'iss', [$userId, $startSql, $endSql]) as $todo) {
@@ -3274,6 +3289,75 @@ function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array 
     $stmt->bind_param('si', $lastError, $userId);
     $stmt->execute();
     return ['created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
+}
+
+function calendarLocalEvent(mysqli $db, int $userId, int $eventId): ?array
+{
+    return dbOne($db, 'SELECT id, application_id, title, event_type, starts_at, ends_at, all_day, status, location, notes FROM calendar_events WHERE id=? AND owner_user_id=? LIMIT 1', 'ii', [$eventId, $userId]);
+}
+
+function googleImportedCalendarEventPayload(array $event, array $user): array
+{
+    $timezone = (string) ($user['timezone'] ?? 'Europe/Zurich');
+    $payload = [
+        'summary' => (string) $event['title'],
+        'description' => (string) ($event['notes'] ?? ''),
+        'location' => (string) ($event['location'] ?? ''),
+    ];
+    if ((int) ($event['all_day'] ?? 0) === 1) {
+        $payload['start'] = ['date' => substr((string) $event['starts_at'], 0, 10)];
+        $payload['end'] = ['date' => substr((string) $event['ends_at'], 0, 10)];
+    } else {
+        $payload['start'] = ['dateTime' => (new DateTimeImmutable((string) $event['starts_at']))->format('Y-m-d\\TH:i:s'), 'timeZone' => $timezone];
+        $payload['end'] = ['dateTime' => (new DateTimeImmutable((string) $event['ends_at']))->format('Y-m-d\\TH:i:s'), 'timeZone' => $timezone];
+    }
+    return $payload;
+}
+
+function syncImportedCalendarEvent(mysqli $db, array $config, int $userId, array $user, array $event): void
+{
+    $link = dbOne($db, 'SELECT google_event_id FROM google_calendar_import_links WHERE user_id=? AND calendar_event_id=? LIMIT 1', 'ii', [$userId, (int) $event['id']]);
+    if (!$link) {
+        return;
+    }
+    $settings = googleCalendarSettings($db, $userId);
+    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
+        return;
+    }
+    $token = googleAccessToken($db, $config, $userId, $settings);
+    $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
+    googleJsonRequest('PATCH', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode((string) $link['google_event_id']), ['Authorization: Bearer ' . $token], googleImportedCalendarEventPayload($event, $user));
+}
+
+function deleteGoogleCalendarEvent(mysqli $db, array $config, int $userId, array $user, int $eventId): void
+{
+    $link = dbOne($db, 'SELECT google_event_id FROM google_calendar_import_links WHERE user_id=? AND calendar_event_id=? LIMIT 1', 'ii', [$userId, $eventId]);
+    if (!$link) {
+        $link = dbOne($db, 'SELECT google_event_id FROM google_calendar_event_links WHERE user_id=? AND source_type="calendar" AND source_id=? LIMIT 1', 'ii', [$userId, $eventId]);
+    }
+    if (!$link || trim((string) ($link['google_event_id'] ?? '')) === '') {
+        return;
+    }
+    $settings = googleCalendarSettings($db, $userId);
+    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
+        return;
+    }
+    $token = googleAccessToken($db, $config, $userId, $settings);
+    $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
+    googleJsonRequest('DELETE', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode((string) $link['google_event_id']), ['Authorization: Bearer ' . $token]);
+}
+
+function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array $user): void
+{
+    $settings = googleCalendarSettings($db, $userId);
+    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0) || empty($settings['refresh_token_encrypted'])) {
+        return;
+    }
+    try {
+        syncGoogleCalendarEvents($db, $config, $userId, $user);
+    } catch (Throwable $exception) {
+        error_log('Google calendar synchronization failed: ' . $exception->getMessage());
+    }
 }
 
 function localeForCountry(?string $countryCode): string
@@ -5799,14 +5883,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=calendar&view=agenda');
         }
         $startsAt = str_replace('T', ' ', $startsAt) . (strlen($startsAt) === 16 ? ':00' : '');
+        $endsAt = trim((string) ($_POST['ends_at'] ?? ''));
+        $endsAt = $endsAt === '' ? date('Y-m-d H:i:s', strtotime($startsAt) + 1800) : str_replace('T', ' ', $endsAt) . (strlen($endsAt) === 16 ? ':00' : '');
         $applicationId = (int) ($_POST['application_id'] ?? 0) ?: null;
         $notes = trim((string) ($_POST['event_notes'] ?? '')) ?: null;
+        $location = trim((string) ($_POST['event_location'] ?? '')) ?: null;
+        $status = array_key_exists((string) ($_POST['event_status'] ?? 'planned'), calendarStatusOptions()) ? (string) $_POST['event_status'] : 'planned';
+        $allDay = !empty($_POST['event_all_day']) ? 1 : 0;
         $uid = userId();
-        $stmt = $db->prepare('INSERT INTO calendar_events (owner_user_id, application_id, title, event_type, starts_at, notes) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('iissss', $uid, $applicationId, $title, $eventType, $startsAt, $notes);
+        $stmt = $db->prepare('INSERT INTO calendar_events (owner_user_id, application_id, title, event_type, starts_at, ends_at, all_day, status, location, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->bind_param('iissssisss', $uid, $applicationId, $title, $eventType, $startsAt, $endsAt, $allDay, $status, $location, $notes);
         $stmt->execute();
         audit($db, $uid, 'create', 'calendar_event', (int) $stmt->insert_id, null, ['title' => $title, 'starts_at' => $startsAt]);
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.calendar.saved'));
+        redirect('/?page=calendar&view=agenda');
+    }
+
+    if ($action === 'update_calendar_event') {
+        $uid = userId();
+        $eventId = (int) ($_POST['event_id'] ?? 0);
+        $event = calendarLocalEvent($db, $uid, $eventId);
+        $title = trim((string) ($_POST['event_title'] ?? ''));
+        $startsAt = trim((string) ($_POST['starts_at'] ?? ''));
+        if (!$event || $title === '' || $startsAt === '') {
+            flash(tr('flash.calendar.required'), 'danger');
+            redirect('/?page=calendar&view=agenda');
+        }
+        $startsAt = str_replace('T', ' ', $startsAt) . (strlen($startsAt) === 16 ? ':00' : '');
+        $endsAt = trim((string) ($_POST['ends_at'] ?? ''));
+        $endsAt = $endsAt === '' ? date('Y-m-d H:i:s', strtotime($startsAt) + 1800) : str_replace('T', ' ', $endsAt) . (strlen($endsAt) === 16 ? ':00' : '');
+        $eventType = in_array($_POST['event_type'] ?? '', ['task','follow_up','interview','deadline','meeting','reminder','other'], true) ? (string) $_POST['event_type'] : 'reminder';
+        $status = array_key_exists((string) ($_POST['event_status'] ?? 'planned'), calendarStatusOptions()) ? (string) $_POST['event_status'] : 'planned';
+        $allDay = !empty($_POST['event_all_day']) ? 1 : 0;
+        $applicationId = (int) ($_POST['application_id'] ?? 0) ?: null;
+        $location = trim((string) ($_POST['event_location'] ?? '')) ?: null;
+        $notes = trim((string) ($_POST['event_notes'] ?? '')) ?: null;
+        $stmt = $db->prepare('UPDATE calendar_events SET application_id=?, title=?, event_type=?, starts_at=?, ends_at=?, all_day=?, status=?, location=?, notes=? WHERE id=? AND owner_user_id=?');
+        $stmt->bind_param('issssisssii', $applicationId, $title, $eventType, $startsAt, $endsAt, $allDay, $status, $location, $notes, $eventId, $uid);
+        $stmt->execute();
+        $event = calendarLocalEvent($db, $uid, $eventId);
+        if ($event) {
+            try {
+                syncImportedCalendarEvent($db, $config, $uid, $currentUser ?? [], $event);
+            } catch (Throwable $exception) {
+                error_log('Google imported calendar event update failed: ' . $exception->getMessage());
+            }
+        }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
+        audit($db, $uid, 'update', 'calendar_event', $eventId, null, ['title' => $title, 'starts_at' => $startsAt]);
+        flash(tr('flash.calendar.saved'));
+        redirect('/?page=calendar&view=agenda');
+    }
+
+    if ($action === 'delete_calendar_event') {
+        $uid = userId();
+        $eventId = (int) ($_POST['event_id'] ?? 0);
+        if (calendarLocalEvent($db, $uid, $eventId)) {
+            try {
+                deleteGoogleCalendarEvent($db, $config, $uid, $currentUser ?? [], $eventId);
+            } catch (Throwable $exception) {
+                error_log('Google calendar event deletion failed: ' . $exception->getMessage());
+            }
+            $stmt = $db->prepare('DELETE FROM calendar_events WHERE id=? AND owner_user_id=?');
+            $stmt->bind_param('ii', $eventId, $uid);
+            $stmt->execute();
+            syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
+            audit($db, $uid, 'delete', 'calendar_event', $eventId, null, null);
+            flash(tr('flash.calendar.deleted'));
+        }
         redirect('/?page=calendar&view=agenda');
     }
 
@@ -6153,11 +6298,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $linkUrl = trim((string) ($_POST['link_url'] ?? ''));
         if ($linkName === '' || $linkUrl === '') {
             flash(tr('profile.link_required'), 'danger');
-            redirect('/?page=profile#profile-links');
+            redirect('/?page=profile_links');
         }
         if (!filter_var($linkUrl, FILTER_VALIDATE_URL)) {
             flash(tr('profile.link_invalid'), 'danger');
-            redirect('/?page=profile#profile-links');
+            redirect('/?page=profile_links');
         }
         if ($linkId > 0) {
             $stmt = $db->prepare('UPDATE user_profile_links SET link_name=?, link_url=? WHERE id=? AND user_id=?');
@@ -6169,7 +6314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, $uid, 'update', 'user_profile_link', $linkId, null, ['name' => $linkName, 'url' => $linkUrl]);
         flash(tr('flash.profile.link_saved'));
-        redirect('/?page=profile#profile-links');
+        redirect('/?page=profile_links');
     }
 
     if ($action === 'delete_profile_link') {
@@ -6180,7 +6325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         audit($db, $uid, 'delete', 'user_profile_link', $linkId, null, []);
         flash(tr('flash.profile.link_deleted'));
-        redirect('/?page=profile#profile-links');
+        redirect('/?page=profile_links');
     }
 
     if ($action === 'save_profile') {
@@ -7277,7 +7422,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.63';
+$codeVersion = '1.15.64';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -7686,7 +7831,7 @@ startUiTranslationBuffer($appLocale);
     <?php if ($currentUser): ?>
         <button class="menu-button" type="button" onclick="document.body.classList.toggle('nav-open')"><?= e(tr('nav.menu')) ?></button>
         <nav class="menubar" aria-label="<?= e(tr('nav.menu')) ?>">
-            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.file')) ?></button><div class="menu-panel"><a href="/?page=dashboard"><?= e(tr('nav.dashboard')) ?></a><div class="submenu"><button type="button"><?= e(tr('nav.master_data')) ?></button><div class="submenu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><a href="/?page=documents"><?= e(tr('nav.documents')) ?></a><a href="/?page=translations"><?= e(tr('nav.translations')) ?></a></div></div><a href="/?page=privacy"><?= e(tr('nav.privacy')) ?></a><a href="/?page=audit"><?= e(tr('nav.audit')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.file')) ?></button><div class="menu-panel"><a href="/?page=dashboard"><?= e(tr('nav.dashboard')) ?></a><div class="submenu"><button type="button"><?= e(tr('nav.master_data')) ?></button><div class="submenu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><a href="/?page=documents"><?= e(tr('nav.documents')) ?></a><a href="/?page=profile_links"><?= e(tr('profile.links_title')) ?></a><a href="/?page=translations"><?= e(tr('nav.translations')) ?></a></div></div><a href="/?page=privacy"><?= e(tr('nav.privacy')) ?></a><a href="/?page=audit"><?= e(tr('nav.audit')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.crm')) ?></button><div class="menu-panel"><a href="/?page=companies"><?= e(tr('nav.companies')) ?></a><a href="/?page=contacts"><?= e(tr('nav.contacts')) ?></a><a href="/?page=sharing"><?= e(tr('nav.sharing')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=pendents"><?= e(tr('nav.pendents')) ?></a><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
@@ -8066,6 +8211,7 @@ startUiTranslationBuffer($appLocale);
         $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)$_GET['view'] : 'agenda';
         $anchor = calendarAnchorDate($currentUser);
         [$rangeStart, $rangeEnd, $prevStep, $nextStep] = calendarRange($calendarView, $anchor);
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         $calendarEvents = calendarEventRows($db, userId(), $rangeStart, $rangeEnd);
         $calendarStatusLabels = calendarStatusOptions();
         $calendarSfFields = [
@@ -8112,7 +8258,8 @@ startUiTranslationBuffer($appLocale);
         unset($dateEvents);
         $viewUrl = static fn(string $view, string $date): string => '/?page=calendar&view=' . urlencode($view) . '&date=' . urlencode($date);
         $newStart = preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', (string)($_GET['new_start'] ?? '')) ? (string)$_GET['new_start'] : '';
-        $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#new-calendar-entry';
+        $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#calendar-entry-form';
+        $editCalendarEvent = isset($_GET['edit_event']) ? calendarLocalEvent($db, userId(), (int) $_GET['edit_event']) : null;
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
         $headline = match($calendarView) {
             'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
@@ -8154,7 +8301,7 @@ startUiTranslationBuffer($appLocale);
             <?php $monthStart=$rangeStart->modify('monday this week'); $monthEnd=$rangeEnd->modify('sunday this week'); $monthDays=[]; for($d=$monthStart; $d <= $monthEnd; $d=$d->modify('+1 day')) { $monthDays[]=$d; } ?>
             <h2><?= e(tr('calendar.month_plan')) ?> <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head"><?= e(tr('calendar.week_number_short')) ?></div><?php foreach([tr('weekday.mon_short'),tr('weekday.tue_short'),tr('weekday.wed_short'),tr('weekday.thu_short'),tr('weekday.fri_short'),tr('weekday.sat_short'),tr('weekday.sun_short')] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><div class="month-day-top"><strong><?= e($day->format('d.m.')) ?></strong><a class="calendar-add" href="<?= e($newEntryUrl($dateKey.'T09:00')) ?>">+</a></div><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event, !$isDayEntry($event)) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php endif; ?>
-        </section><details class="panel calendar-entry-panel" id="new-calendar-entry" <?= $newStart !== '' ? 'open' : '' ?>><summary><?= e(tr('calendar.create_entry')) ?></summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label><?= e(tr('common.title')) ?><input name="event_title" required></label><label><?= e(tr('calendar.type')) ?><select name="event_type"><?php foreach(calendarEventTypeOptions() as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('calendar.start')) ?><input type="datetime-local" name="starts_at" value="<?= e($newStart) ?>" required></label><label><?= e(tr('applications.application')) ?><select name="application_id"><option value="0"><?= e(tr('calendar.no_link')) ?></option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>"><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label><?= e(tr('contact_log.notes')) ?><textarea name="event_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_calendar_event"><?= e(tr('common.save')) ?></button></form></details>
+        </section><?php $calendarFormEvent = $editCalendarEvent ?: ['id'=>0,'title'=>'','event_type'=>'reminder','starts_at'=>$newStart,'ends_at'=>'','all_day'=>0,'status'=>'planned','location'=>'','notes'=>'','application_id'=>0]; ?><details class="panel calendar-entry-panel" id="calendar-entry-form" <?= ($newStart !== '' || $editCalendarEvent) ? 'open' : '' ?>><summary><?= e($editCalendarEvent ? tr('calendar.edit_entry') : tr('calendar.create_entry')) ?></summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editCalendarEvent): ?><input type="hidden" name="event_id" value="<?= (int)$calendarFormEvent['id'] ?>"><?php endif; ?><label><?= e(tr('common.title')) ?><input name="event_title" value="<?= e((string)$calendarFormEvent['title']) ?>" required></label><div class="two"><label><?= e(tr('calendar.type')) ?><select name="event_type"><?php foreach(calendarEventTypeOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['event_type']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.status')) ?><select name="event_status"><?php foreach(calendarStatusOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['status']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label></div><div class="two"><label><?= e(tr('calendar.start')) ?><input type="datetime-local" name="starts_at" value="<?= e($calendarFormEvent['starts_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['starts_at'])) : '') ?>" required></label><label><?= e(tr('calendar.end')) ?><input type="datetime-local" name="ends_at" value="<?= e($calendarFormEvent['ends_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['ends_at'])) : '') ?>"></label></div><label class="check"><input type="checkbox" name="event_all_day" value="1" <?= (int)$calendarFormEvent['all_day']===1?'checked':'' ?>> <?= e(tr('calendar.all_day')) ?></label><label><?= e(tr('calendar.location')) ?><input name="event_location" value="<?= e((string)$calendarFormEvent['location']) ?>"></label><label><?= e(tr('applications.application')) ?><select name="application_id"><option value="0"><?= e(tr('calendar.no_link')) ?></option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>" <?= (int)$app['id']===(int)$calendarFormEvent['application_id']?'selected':'' ?>><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label><?= e(tr('contact_log.notes')) ?><textarea name="event_notes" rows="3"><?= e((string)$calendarFormEvent['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="<?= $editCalendarEvent ? 'update_calendar_event' : 'save_calendar_event' ?>"><?= e(tr('common.save')) ?></button><?php if($editCalendarEvent): ?><a class="button" href="/?page=calendar&view=<?= e($calendarView) ?>&date=<?= e($anchor->format('Y-m-d')) ?>"><?= e(tr('common.cancel')) ?></a><button name="action" value="delete_calendar_event" onclick="return confirm('<?= e(tr('calendar.delete_confirm')) ?>')"><?= e(tr('common.delete')) ?></button><?php endif; ?></div></form></details>
     <?php elseif ($page === 'translations'): ?>
         <?php
         $translationDraft = $_SESSION['translation_draft'] ?? [];
@@ -8369,8 +8516,6 @@ startUiTranslationBuffer($appLocale);
         $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
         $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
         $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, mail_footer, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
-        $profileLinks = dbAll($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE user_id=? ORDER BY link_name, id', 'i', [userId()]);
-        $editProfileLink = isset($_GET['edit_profile_link']) ? dbOne($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE id=? AND user_id=? LIMIT 1', 'ii', [(int) $_GET['edit_profile_link'], userId()]) : null;
         $googleSettings = googleCalendarSettings($db, userId());
         $googleConfigured = googleCalendarIsConfigured($config);
         $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
@@ -8509,17 +8654,6 @@ startUiTranslationBuffer($appLocale);
             <label><?= e(tr('profile.preference_notes')) ?><textarea name="preference_notes" rows="3"><?= e($preference['notes'] ?? '') ?></textarea></label>
             <button class="primary" name="action" value="save_profile"><?= e(tr('profile.save_profile')) ?></button>
         </form></section>
-        <section class="panel" id="profile-links">
-            <div class="section-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h2><?= e(tr('profile.links_title')) ?></h2></div></div>
-            <form method="post" class="stack">
-                <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
-                <input type="hidden" name="link_id" value="<?= (int) ($editProfileLink['id'] ?? 0) ?>">
-                <div class="two"><label><?= e(tr('profile.link_name')) ?><input name="link_name" value="<?= e($editProfileLink['link_name'] ?? '') ?>" required></label><label><?= e(tr('profile.link_url')) ?><input type="url" name="link_url" value="<?= e($editProfileLink['link_url'] ?? '') ?>" placeholder="https://..." required></label></div>
-                <div class="actions"><button class="primary" name="action" value="save_profile_link"><?= e($editProfileLink ? tr('profile.link_save') : tr('profile.link_create')) ?></button><?php if($editProfileLink): ?><a class="button" href="/?page=profile#profile-links"><?= e(tr('common.cancel')) ?></a><?php endif; ?></div>
-            </form>
-            <div class="table-wrap"><table><thead><tr><th><?= e(tr('profile.link_name')) ?></th><th><?= e(tr('profile.link_url')) ?></th><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($profileLinks as $profileLink): ?><tr><td><?= e($profileLink['link_name']) ?></td><td><a href="<?= e($profileLink['link_url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($profileLink['link_url']) ?></a></td><td class="actions"><a href="/?page=profile&edit_profile_link=<?= (int)$profileLink['id'] ?>#profile-links"><?= e(tr('common.edit')) ?></a><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="link_id" value="<?= (int)$profileLink['id'] ?>"><button name="action" value="delete_profile_link"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$profileLinks): ?><tr><td colspan="3" class="empty"><?= e(tr('profile.link_empty')) ?></td></tr><?php endif; ?></tbody></table></div>
-        </section>
-        <section class="panel" id="documents"><div class="section-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h2><?= e(tr('profile.document_management')) ?></h2></div><span><?= count($profileDocuments) ?> <?= e(tr('common.versions')) ?></span></div><div class="split inner-split"><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_scope" value="profile"><label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id"><option value="0"><?= e(tr('documents.new_profile_document')) ?></option><?php foreach($profileDocuments as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><label><?= e(tr('documents.document_type')) ?><select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.title')) ?><input name="document_title" required placeholder="<?= e(tr('documents.title_placeholder_profile')) ?>"></label><label><?= e(tr('profile.language_label')) ?><select name="document_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= $v===$userLanguage?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="two"><label><?= e(tr('documents.valid_from')) ?><input type="date" name="valid_from"></label><label><?= e(tr('documents.valid_until')) ?><input type="date" name="valid_until"></label></div><label><?= e(tr('common.description')) ?><textarea name="document_description" rows="3"></textarea></label><?= filePickerHtml('user_document') ?><button class="primary" name="action" value="upload_document"><?= e(tr('documents.save_profile_document')) ?></button></form><div class="table-wrap"><table><thead><tr><th><?= e(tr('documents.document')) ?></th><th><?= e(tr('documents.type')) ?></th><th><?= e(tr('documents.version')) ?></th><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($profileDocuments as $doc): ?><tr class="<?= (int)$doc['is_current'] ? 'is-selected' : '' ?>"><td><strong><a class="record-link" href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?><small><?= e($doc['language_code']) ?></small></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · ' . e(tr('common.current')) : '' ?></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e(tr('common.download')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('documents.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$profileDocuments): ?><tr><td colspan="4" class="empty"><?= e(tr('documents.empty_profile')) ?></td></tr><?php endif; ?></tbody></table></div></div></section>
         <script>
         (() => {
             const region = document.getElementById('profile-region');
@@ -8535,6 +8669,13 @@ startUiTranslationBuffer($appLocale);
             syncCountry();
         })();
         </script>
+    <?php elseif ($page === 'profile_links'): ?>
+        <?php
+        $profileLinks = dbAll($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE user_id=? ORDER BY link_name, id', 'i', [userId()]);
+        $editProfileLink = isset($_GET['edit_profile_link']) ? dbOne($db, 'SELECT id, link_name, link_url FROM user_profile_links WHERE id=? AND user_id=? LIMIT 1', 'ii', [(int) $_GET['edit_profile_link'], userId()]) : null;
+        ?>
+        <div class="page-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h1><?= e(tr('profile.links_title')) ?></h1></div></div>
+        <div class="split"><section class="panel"><h2><?= e($editProfileLink ? tr('profile.link_save') : tr('profile.link_create')) ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="link_id" value="<?= (int) ($editProfileLink['id'] ?? 0) ?>"><label><?= e(tr('profile.link_name')) ?><input name="link_name" value="<?= e($editProfileLink['link_name'] ?? '') ?>" required></label><label><?= e(tr('profile.link_url')) ?><input type="url" name="link_url" value="<?= e($editProfileLink['link_url'] ?? '') ?>" placeholder="https://..." required></label><div class="actions"><button class="primary" name="action" value="save_profile_link"><?= e($editProfileLink ? tr('profile.link_save') : tr('profile.link_create')) ?></button><?php if($editProfileLink): ?><a class="button" href="/?page=profile_links"><?= e(tr('common.cancel')) ?></a><?php endif; ?></div></form></section><section class="panel table-wrap"><table><thead><tr><th><?= e(tr('profile.link_name')) ?></th><th><?= e(tr('profile.link_url')) ?></th><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($profileLinks as $profileLink): ?><tr><td><?= e($profileLink['link_name']) ?></td><td><a href="<?= e($profileLink['link_url']) ?>" target="_blank" rel="noopener noreferrer"><?= e($profileLink['link_url']) ?></a></td><td class="actions"><a href="/?page=profile_links&edit_profile_link=<?= (int)$profileLink['id'] ?>"><?= e(tr('common.edit')) ?></a><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="link_id" value="<?= (int)$profileLink['id'] ?>"><button name="action" value="delete_profile_link"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$profileLinks): ?><tr><td colspan="3" class="empty"><?= e(tr('profile.link_empty')) ?></td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'companies'): ?>
         <?php
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT * FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
