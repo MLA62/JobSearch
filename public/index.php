@@ -5411,6 +5411,7 @@ $action = (string) ($_POST['action'] ?? '');
 if (isset($_GET['lang'])) {
     $_SESSION['locale'] = normalizeLocale((string) $_GET['lang']);
 }
+csrfToken();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
@@ -7694,7 +7695,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.77';
+$codeVersion = '1.15.78';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
