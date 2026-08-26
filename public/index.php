@@ -7525,7 +7525,7 @@ if ($page === 'document_download') {
     }
     header('Content-Type: ' . $document['mime_type']);
     header('Content-Length: ' . (string) $document['file_size']);
-    header('Content-Disposition: attachment; filename="' . addslashes($document['original_filename']) . '"');
+    header('Content-Disposition: inline; filename="' . addslashes($document['original_filename']) . '"');
     readfile($path);
     exit;
 }
