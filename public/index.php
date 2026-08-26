@@ -101,6 +101,20 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
     foreach ([
+        'jobs.original_pdf_creating' => [
+            'de-CH' => 'Original-PDF wird erstellt. Bitte kurz warten.',
+            'fr-CH' => 'Le PDF original est en cours de création. Veuillez patienter un instant.',
+            'en-GB' => 'The original PDF is being created. Please wait a moment.',
+            'pt-BR' => 'O PDF original está sendo criado. Aguarde um momento.',
+            'es-MX' => 'El PDF original se está creando. Espera un momento.',
+        ],
+        'jobs.original_pdf_failed_hint' => [
+            'de-CH' => 'Die Stellenseite konnte nicht als PDF gespeichert werden. Bitte erneut versuchen oder die Quell-URL öffnen.',
+            'fr-CH' => 'La page de l’offre n’a pas pu être enregistrée au format PDF. Réessaie ou ouvre l’URL source.',
+            'en-GB' => 'The job page could not be saved as a PDF. Please try again or open the source URL.',
+            'pt-BR' => 'A página da vaga não pôde ser salva como PDF. Tente novamente ou abra o URL de origem.',
+            'es-MX' => 'No se pudo guardar la página de empleo como PDF. Inténtalo de nuevo o abre la URL de origen.',
+        ],
         'calendar.outside.before' => [
             'de-CH' => 'Termine vor 07:00',
             'fr-CH' => 'Rendez-vous avant 07:00',
@@ -4359,17 +4373,17 @@ function originalPdfStatusLabel(?string $status): string
 {
     return match ($status) {
         'rendered' => tr('jobs.original_pdf_ready'),
-        'pending' => tr('jobs.no_original_pdf'),
+        'pending' => tr('jobs.original_pdf_creating'),
         'failed' => tr('jobs.original_pdf_failed'),
         default => tr('jobs.no_original_pdf'),
     };
 }
 
-function triggerPendingJobPdfRenderer(): void
+function renderPendingJobPdfNow(int $jobId): ?string
 {
     $script = realpath(__DIR__ . '/../deploy/render-pending-job-pdfs.php');
     if ($script === false || !function_exists('proc_open')) {
-        return;
+        return 'Renderer ist auf dem Server nicht verfügbar.';
     }
     $candidates = [
         '/opt/alt/php81/usr/bin/php',
@@ -4381,17 +4395,49 @@ function triggerPendingJobPdfRenderer(): void
         if (!is_file($php) || !is_executable($php) || str_contains(strtolower($php), 'php-cgi')) {
             continue;
         }
-        $command = escapeshellarg($php) . ' ' . escapeshellarg($script) . ' --limit=1 > /dev/null 2>&1 &';
+        $command = escapeshellarg($php) . ' ' . escapeshellarg($script) . ' --job-id=' . $jobId . ' --limit=1 --timeout=25';
         $process = @proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
         if (is_resource($process)) {
-            foreach ($pipes as $pipe) {
-                fclose($pipe);
+            fclose($pipes[0]);
+            $startedAt = time();
+            $output = '';
+            $errors = '';
+            $processExitCode = null;
+            stream_set_blocking($pipes[1], false);
+            stream_set_blocking($pipes[2], false);
+            while (true) {
+                $output .= stream_get_contents($pipes[1]) ?: '';
+                $errors .= stream_get_contents($pipes[2]) ?: '';
+                $status = proc_get_status($process);
+                if (!$status['running']) {
+                    $processExitCode = (int) $status['exitcode'];
+                    break;
+                }
+                if (time() - $startedAt > 35) {
+                    proc_terminate($process);
+                    break;
+                }
+                usleep(100000);
             }
-            proc_close($process);
-            return;
+            $output .= stream_get_contents($pipes[1]) ?: '';
+            $errors .= stream_get_contents($pipes[2]) ?: '';
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $exitCode = proc_close($process);
+            if (($processExitCode ?? $exitCode) === 0) {
+                return null;
+            }
+            return mb_strimwidth(trim($errors ?: $output) ?: 'Renderer konnte nicht ausgeführt werden.', 0, 1000, '...');
         }
     }
-    error_log('Original-PDF-Renderer konnte nicht gestartet werden.');
+    return 'Renderer konnte nicht gestartet werden.';
+}
+
+function markJobOriginalPdfFailed(mysqli $db, int $userId, int $jobId, string $error): void
+{
+    $stmt = $db->prepare("UPDATE jobs SET original_pdf_status='failed', original_pdf_error=?, original_pdf_rendered_at=NULL WHERE id=? AND owner_user_id=? AND original_pdf_status='pending'");
+    $stmt->bind_param('sii', $error, $jobId, $userId);
+    $stmt->execute();
 }
 
 function timezoneChoices(): array
@@ -6828,7 +6874,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $statement->execute();
                 audit($db, $uid, 'queue_pdf', 'job', $id, $job, ['original_pdf_status' => 'pending']);
                 $db->commit();
-                triggerPendingJobPdfRenderer();
+                if ($renderError = renderPendingJobPdfNow($id)) {
+                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
+                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
+                }
             } catch (Throwable $exception) {
                 $db->rollback();
                 throw $exception;
@@ -6911,7 +6960,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $documents = $db->prepare('UPDATE user_documents SET deleted_at=NOW() WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL');
                 $documents->bind_param('ii', $uid, $id);
                 $documents->execute();
-                triggerPendingJobPdfRenderer();
+                if ($renderError = renderPendingJobPdfNow($id)) {
+                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
+                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
+                }
             }
             audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
         } else {
@@ -6924,7 +6976,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
             if ($sourceUrl !== '') {
-                triggerPendingJobPdfRenderer();
+                if ($renderError = renderPendingJobPdfNow($id)) {
+                    markJobOriginalPdfFailed($db, $uid, $id, $renderError);
+                    error_log('Original-PDF-Erstellung fehlgeschlagen: ' . $renderError);
+                }
             }
         }
         flash(tr('flash.jobs.saved'));
@@ -7568,7 +7623,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.73';
+$codeVersion = '1.15.74';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9049,7 +9104,7 @@ startUiTranslationBuffer($appLocale);
             <div class="two"><label><?= e(tr('jobs.fixed_from')) ?><input type="date" name="fixed_term_start" value="<?= e($form['fixed_term_start'] ?? '') ?>"></label><label><?= e(tr('jobs.fixed_until')) ?><input type="date" name="fixed_term_end" value="<?= e($form['fixed_term_end'] ?? '') ?>"></label></div>
             <div class="salary-row"><label><?= e(tr('profile.salary')) ?> <span><?= e($jobCurrency) ?></span><input type="number" min="0" step="0.01" name="salary_min" value="<?= e((string)($form['salary_min'] ?? '')) ?>"></label><label><?= e(tr('profile.salary_format')) ?><select name="salary_period"><?php foreach(salaryPeriodOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['salary_period'] ?? 'year')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
             <label><?= e(tr('common.status')) ?><select name="status"><?php foreach(jobStatusOptions() as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($form['status']??'open')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a><?php if($edit): ?><button class="primary-link" name="action" value="queue_job_original_pdf" formnovalidate><?= e(tr('dossier.create_pdf')) ?></button><?php if(!empty($edit['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_pdf')) ?></a><?php else: ?><span class="button" aria-disabled="true"><?= e(tr('jobs.original_pdf')) ?></span><?php endif; ?><span class="meta-line"><?= e(originalPdfStatusLabel((string)($edit['original_pdf_status'] ?? 'none'))) ?><?php if(($edit['original_pdf_status'] ?? '') === 'pending' && !empty($edit['original_pdf_requested_at'])): ?> · <?= e(displayDateTime((string)$edit['original_pdf_requested_at'], $currentUser)) ?><?php elseif(($edit['original_pdf_status'] ?? '') === 'failed' && !empty($edit['original_pdf_error'])): ?> · <?= e((string)$edit['original_pdf_error']) ?><?php endif; ?></span><?php endif; ?></small><?php endif; ?></label><label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
+            <label><?= e(tr('jobs.source_url')) ?><input type="url" name="source_url" value="<?= e($form['source_url'] ?? '') ?>"><?php if(!empty($form['source_url'])): ?><small class="actions"><a href="<?= e($form['source_url']) ?>" target="_blank" rel="noopener"><?= e(tr('jobs.open_source_url')) ?></a><?php if($edit): ?><button class="primary-link" name="action" value="queue_job_original_pdf" formnovalidate><?= e(tr('dossier.create_pdf')) ?></button><?php if(!empty($edit['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$edit['original_document_id'] ?>" target="_blank" rel="noopener"><?= e(tr('jobs.original_pdf')) ?></a><?php elseif(($edit['original_pdf_status'] ?? '') === 'failed'): ?><span class="meta-line"><?= e(tr('jobs.original_pdf_failed_hint')) ?></span><?php else: ?><span class="meta-line"><?= e(originalPdfStatusLabel((string)($edit['original_pdf_status'] ?? 'none'))) ?></span><?php endif; ?><?php endif; ?></small><?php endif; ?></label><label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> <?= e(tr('jobs.save_as_separate')) ?></label><?php endif; ?><button class="primary" name="action" value="save_job"><?= e(tr('common.save')) ?></button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>"><?= e(tr('applications.show')) ?></a></form><?php endif; ?></section>
         <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><?php endif; ?>

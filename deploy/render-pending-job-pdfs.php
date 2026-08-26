@@ -7,9 +7,9 @@ if (PHP_SAPI !== 'cli') {
     exit('Not found');
 }
 
-$options = getopt('', ['limit::', 'browser::', 'timeout::', 'dry-run', 'help']);
+$options = getopt('', ['job-id::', 'limit::', 'browser::', 'timeout::', 'dry-run', 'help']);
 if (isset($options['help'])) {
-    echo "Usage: php deploy/render-pending-job-pdfs.php [--limit=5] [--browser=/path/to/chrome] [--timeout=60] [--dry-run]\n";
+    echo "Usage: php deploy/render-pending-job-pdfs.php [--job-id=123] [--limit=5] [--browser=/path/to/chrome] [--timeout=60] [--dry-run]\n";
     exit(0);
 }
 
@@ -38,6 +38,7 @@ if (!$publicRoot) {
 }
 
 $limit = max(1, min(50, (int) ($options['limit'] ?? ($config['job_pdf_render_limit'] ?? 5))));
+$requestedJobId = max(0, (int) ($options['job-id'] ?? 0));
 $timeout = max(10, min(300, (int) ($options['timeout'] ?? ($config['job_pdf_render_timeout'] ?? 60))));
 $dryRun = isset($options['dry-run']);
 
@@ -302,9 +303,7 @@ if (!$documentType) {
 }
 $documentTypeId = (int) $documentType['id'];
 
-$jobs = dbAll(
-    $db,
-    'SELECT j.id, j.owner_user_id, j.title, j.source_url
+$jobSql = 'SELECT j.id, j.owner_user_id, j.title, j.source_url
        FROM jobs j
       WHERE j.deleted_at IS NULL
         AND j.original_pdf_status = "pending"
@@ -315,13 +314,19 @@ $jobs = dbAll(
              WHERE d.user_id = j.owner_user_id
                AND d.job_id = j.id
                AND d.title = "Originale Stellenausschreibung"
-               AND d.deleted_at IS NULL
-        )
-      ORDER BY COALESCE(j.original_pdf_requested_at, j.created_at), j.id
-      LIMIT ?',
-    'i',
-    [$limit]
-);
+             AND d.deleted_at IS NULL
+        )';
+$jobTypes = '';
+$jobValues = [];
+if ($requestedJobId > 0) {
+    $jobSql .= ' AND j.id=?';
+    $jobTypes .= 'i';
+    $jobValues[] = $requestedJobId;
+}
+$jobSql .= ' ORDER BY COALESCE(j.original_pdf_requested_at, j.created_at), j.id LIMIT ?';
+$jobTypes .= 'i';
+$jobValues[] = $limit;
+$jobs = dbAll($db, $jobSql, $jobTypes, $jobValues);
 
 $summary = ['checked' => count($jobs), 'rendered' => 0, 'failed' => 0, 'skipped' => 0, 'dry_run' => $dryRun, 'results' => []];
 
