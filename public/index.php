@@ -4365,6 +4365,35 @@ function originalPdfStatusLabel(?string $status): string
     };
 }
 
+function triggerPendingJobPdfRenderer(): void
+{
+    $script = realpath(__DIR__ . '/../deploy/render-pending-job-pdfs.php');
+    if ($script === false || !function_exists('proc_open')) {
+        return;
+    }
+    $candidates = [
+        '/opt/alt/php81/usr/bin/php',
+        '/usr/local/bin/php',
+        '/usr/bin/php',
+        PHP_BINARY,
+    ];
+    foreach ($candidates as $php) {
+        if (!is_file($php) || !is_executable($php) || str_contains(strtolower($php), 'php-cgi')) {
+            continue;
+        }
+        $command = escapeshellarg($php) . ' ' . escapeshellarg($script) . ' --limit=1 > /dev/null 2>&1 &';
+        $process = @proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        if (is_resource($process)) {
+            foreach ($pipes as $pipe) {
+                fclose($pipe);
+            }
+            proc_close($process);
+            return;
+        }
+    }
+    error_log('Original-PDF-Renderer konnte nicht gestartet werden.');
+}
+
 function timezoneChoices(): array
 {
     return [
@@ -6799,6 +6828,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $statement->execute();
                 audit($db, $uid, 'queue_pdf', 'job', $id, $job, ['original_pdf_status' => 'pending']);
                 $db->commit();
+                triggerPendingJobPdfRenderer();
             } catch (Throwable $exception) {
                 $db->rollback();
                 throw $exception;
@@ -6881,6 +6911,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $documents = $db->prepare('UPDATE user_documents SET deleted_at=NOW() WHERE user_id=? AND job_id=? AND title="Originale Stellenausschreibung" AND deleted_at IS NULL');
                 $documents->bind_param('ii', $uid, $id);
                 $documents->execute();
+                triggerPendingJobPdfRenderer();
             }
             audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
         } else {
@@ -6892,6 +6923,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes, 'original_pdf_status' => $pdfStatus]);
+            if ($sourceUrl !== '') {
+                triggerPendingJobPdfRenderer();
+            }
         }
         flash(tr('flash.jobs.saved'));
         unset($_SESSION['import_draft']);
@@ -7534,7 +7568,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.72';
+$codeVersion = '1.15.73';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
