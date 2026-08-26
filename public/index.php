@@ -4594,19 +4594,19 @@ function jobPreferenceQuery(array $preference): string
 {
     $roles = preg_split('/[\R,;]+/u', (string)($preference['desired_roles'] ?? '')) ?: [];
     $level = trim((string)($preference['desired_level'] ?? ''));
-    $terms = array_values(array_filter(array_map('trim', $roles)));
+    $terms = array_values(array_unique(array_filter(array_map('trim', $roles))));
     if ($level !== '') {
         $terms[] = $level;
     }
-    return trim(implode(' ', array_slice($terms, 0, 4)));
+    return trim(implode(' ', $terms));
 }
 
 function jobPreferenceLocation(array $preference, array $currentUser): string
 {
     $locations = preg_split('/[\R,;]+/u', (string)($preference['desired_locations'] ?? '')) ?: [];
-    $location = trim((string)($locations[0] ?? ''));
-    if ($location !== '') {
-        return $location;
+    $locations = array_values(array_unique(array_filter(array_map('trim', $locations))));
+    if ($locations) {
+        return implode(' | ', $locations);
     }
     return trim((string)($currentUser['city'] ?? '') . ' ' . (string)($currentUser['region'] ?? ''));
 }
@@ -8785,9 +8785,18 @@ startUiTranslationBuffer($appLocale);
         $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
         $employmentLabels = ['full_time'=>tr('profile.employment.full_time'),'part_time'=>tr('profile.employment.part_time'),'temporary'=>tr('profile.employment.temporary'),'contract'=>tr('profile.employment.contract'),'internship'=>tr('profile.employment.internship'),'freelance'=>tr('profile.employment.freelance')];
         $selectedEmployment = array_filter(explode(',', (string)($preference['employment_types'] ?? '')));
+        $languageSkills = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [userId()]);
+        $languageSkillText = implode(', ', array_filter(array_map(static fn(array $skill): string => trim((string)$skill['language_name'] . ' ' . (string)$skill['cefr_level']), $languageSkills)));
+        $profileLocationParts = array_filter([
+            trim((string)($currentUser['city'] ?? '')),
+            trim((string)($currentUser['region'] ?? '')),
+            trim((string)($currentUser['country_code'] ?? '')),
+        ]);
         $promptFacts = array_values(array_filter([
             trim((string)($preference['desired_roles'] ?? '')) !== '' ? tr('job_search.fact.roles') . ': ' . trim((string)$preference['desired_roles']) : '',
             trim((string)($preference['desired_locations'] ?? '')) !== '' ? tr('job_search.fact.locations') . ': ' . trim((string)$preference['desired_locations']) : '',
+            $profileLocationParts ? tr('profile.city') . '/' . tr('profile.region') . '/' . tr('profile.country') . ': ' . implode(', ', $profileLocationParts) : '',
+            $languageSkillText !== '' ? tr('profile.language_skills_title') . ': ' . $languageSkillText : '',
             ($preference['remote_preference'] ?? 'any') !== 'any' ? tr('jobs.workplace_type') . ': ' . (workplaceTypeOptions()[(string)$preference['remote_preference']] ?? (string)$preference['remote_preference']) : '',
             $selectedEmployment ? tr('profile.employment_types') . ': ' . implode(', ', array_map(static fn(string $type): string => $employmentLabels[$type] ?? $type, $selectedEmployment)) : '',
             ($preference['workload_min'] ?? '') !== '' || ($preference['workload_max'] ?? '') !== '' ? tr('profile.workload') . ': ' . trim((string)($preference['workload_min'] ?? '')) . '-' . trim((string)($preference['workload_max'] ?? '')) . '%' : '',
