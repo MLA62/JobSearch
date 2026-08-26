@@ -6996,6 +6996,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=jobs');
     }
 
+    if ($action === 'bulk_delete_jobs') {
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['job_ids'] ?? [])))));
+        $uid = userId();
+        $db->begin_transaction();
+        try {
+            foreach ($ids as $id) {
+                $old = dbOne($db, 'SELECT id, company_id, title, location_text, status, workplace_type, source_url, SUBSTRING(description,1,65535) description FROM jobs WHERE id = ? AND owner_user_id = ? AND deleted_at IS NULL', 'ii', [$id, $uid]);
+                if (!$old) {
+                    continue;
+                }
+                cleanupJobCascade($db, $uid, $id);
+                $stmt = $db->prepare('UPDATE jobs SET deleted_at = NOW() WHERE id = ? AND owner_user_id = ?');
+                $stmt->bind_param('ii', $id, $uid);
+                $stmt->execute();
+                audit($db, $uid, 'delete', 'job', $id, $old, null);
+            }
+            $db->commit();
+        } catch (Throwable $exception) {
+            $db->rollback();
+            throw $exception;
+        }
+        flash(tr('flash.jobs.deleted'));
+        $companyFilter = max(0, (int) ($_POST['company_id'] ?? 0));
+        $returnUrl = '/?page=jobs&view=table';
+        if ($companyFilter > 0) {
+            $returnUrl .= '&company_id=' . $companyFilter;
+        }
+        redirect($returnUrl);
+    }
+
     if ($action === 'save_job_question') {
         $jobId = (int) ($_POST['job_id'] ?? 0);
         $question = trim((string) ($_POST['question_text'] ?? ''));
@@ -7618,7 +7648,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.75';
+$codeVersion = '1.15.76';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9087,6 +9117,7 @@ startUiTranslationBuffer($appLocale);
         unset($_SESSION['platform_import_payload']);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('jobs.section')) ?></p><h1><?= e(tr('nav.jobs')) ?></h1></div><span><?= e(tr('jobs.results_count', null, ['count' => (string) count($jobs)])) ?></span></div>
+        <div data-bulk-action="bulk_delete_jobs" data-bulk-id-name="job_ids[]" data-bulk-company-id="<?= $companyFilter ?>">
         <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form" data-progress-form data-progress-button-text="<?= e(tr('jobs.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('jobs.progress.read_import'), tr('jobs.progress.check_links'), tr('jobs.progress.prepare_suggestion'), tr('jobs.progress.check_duplicates')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="preview_import"><textarea name="import_payload" rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e($platformImportPayload) ?></textarea><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('jobs.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('jobs.progress.read_import')) ?></p></div><button class="primary" type="submit" data-progress-button><?= e(tr('jobs.create_suggestion')) ?></button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line"><?= e(tr('jobs.search_links_imported')) ?></p><?php endif; ?></section>
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.cards')) ?></a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.table')) ?></a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
         <div class="split"><section class="panel" id="new"><h2><?= e($edit ? tr('jobs.edit') : ($draft ? tr('jobs.check_import') : tr('jobs.create'))) ?></h2><form method="post" enctype="multipart/form-data" class="stack">
@@ -9107,6 +9138,7 @@ startUiTranslationBuffer($appLocale);
         <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow"><?= e(tr('jobs.preparation')) ?></p><h2><?= e(tr('jobs.application_questions')) ?></h2></div><span><?= e(tr('jobs.questions_count', null, ['count' => (string) count($jobQuestions)])) ?></span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label><?= e(tr('jobs.question')) ?><textarea name="question_text" rows="3" required placeholder="<?= e(tr('jobs.question_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.answer_preparation')) ?><textarea name="answer_text" rows="4" placeholder="<?= e(tr('jobs.answer_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.sort_order')) ?><input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question"><?= e(tr('jobs.save_question')) ?></button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('<?= e(tr('jobs.delete_question_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question"><?= e(tr('common.delete')) ?></button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty"><?= e(tr('jobs.no_questions')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title',tr('common.title'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company',tr('companies.company'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location',tr('jobs.location'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status',tr('common.status'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match',tr('jobs.match'),$jobSf,$jobPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?><small><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line"><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary><?= e(tr('jobs.why_match', null, ['score' => (string) $score])) ?></summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>"><?= e(tr('jobs.original_document_open')) ?></a><?php endif; ?><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty"><?= e(tr('jobs.empty')) ?></div><?php endif; ?></section><?php endif; ?></div>
+        </div>
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']); $appView=($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
@@ -9716,8 +9748,16 @@ startUiTranslationBuffer($appLocale);
                 actionField.name = 'action';
                 actionField.value = tableContainer.dataset.bulkAction;
                 form.append(actionField);
+                if (tableContainer.dataset.bulkCompanyId) {
+                    const companyField = document.createElement('input');
+                    companyField.type = 'hidden';
+                    companyField.name = 'company_id';
+                    companyField.value = tableContainer.dataset.bulkCompanyId;
+                    form.append(companyField);
+                }
                 selected.forEach(({ row }) => {
-                    const id = row.dataset.bulkId;
+                    const id = row.dataset.bulkId
+                        || row.querySelector('form button[name="action"][value="delete_job"]')?.form?.querySelector('input[name="id"]')?.value;
                     if (!id) return;
                     const idField = document.createElement('input');
                     idField.type = 'hidden';
