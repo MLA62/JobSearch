@@ -2038,6 +2038,21 @@ function imapCommand($stream, string $tag, string $command): array
     return imapReadTaggedResponse($stream, $tag);
 }
 
+function streamWriteAll($stream, string $data): void
+{
+    $length = strlen($data);
+    $offset = 0;
+    while ($offset < $length) {
+        $written = fwrite($stream, substr($data, $offset, 16384));
+        if ($written === false || $written === 0) {
+            $meta = stream_get_meta_data($stream);
+            $reason = !empty($meta['timed_out']) ? 'Zeitüberschreitung' : 'Verbindung abgebrochen';
+            throw new RuntimeException('IMAP: Nachricht konnte nicht vollständig übertragen werden (' . $reason . ').');
+        }
+        $offset += $written;
+    }
+}
+
 function imapMailboxName(string $token): string
 {
     $token = trim($token);
@@ -2054,6 +2069,7 @@ function imapSentFolder($stream, ?string $configuredFolder = null): string
         return $configuredFolder;
     }
     $mailboxes = [];
+    $sentMailboxes = [];
     foreach (imapCommand($stream, 'A004', 'LIST "" "*"') as $line) {
         if (!preg_match('/^\*\s+LIST\s+\(([^)]*)\)\s+(?:"[^"]*"|NIL)\s+(.+?)\r?\n?$/i', $line, $matches)) {
             continue;
@@ -2061,15 +2077,18 @@ function imapSentFolder($stream, ?string $configuredFolder = null): string
         $mailbox = imapMailboxName($matches[2]);
         $mailboxes[] = $mailbox;
         if (preg_match('/(?:^|\s)\\\\Sent(?:\s|$)/i', $matches[1])) {
-            return $mailbox;
+            $sentMailboxes[] = $mailbox;
         }
     }
-    foreach (['Sent', 'INBOX.Sent', 'Sent Items', 'Gesendet', 'INBOX.Gesendet'] as $candidate) {
-        foreach ($mailboxes as $mailbox) {
+    foreach (['INBOX.Sent', 'Sent', 'INBOX.Sent Messages', 'Sent Messages', 'Sent Items', 'INBOX.Gesendet', 'Gesendet'] as $candidate) {
+        foreach (array_unique(array_merge($sentMailboxes, $mailboxes)) as $mailbox) {
             if (strcasecmp($mailbox, $candidate) === 0) {
                 return $mailbox;
             }
         }
+    }
+    if ($sentMailboxes !== []) {
+        return $sentMailboxes[0];
     }
     throw new RuntimeException('IMAP: Ordner für gesendete E-Mails wurde nicht gefunden.');
 }
@@ -2105,14 +2124,19 @@ function saveSentCopyViaImap(array $config, string $message): void
         $folder = imapSentFolder($stream, $config['imap_sent_folder'] ?? null);
         $message = rtrim(str_replace(["\r\n", "\r"], "\n", $message), "\n");
         $message = str_replace("\n", "\r\n", $message) . "\r\n";
-        fwrite($stream, 'A005 APPEND ' . imapQuote($folder) . ' (\\Seen) {' . strlen($message) . "}\r\n");
+        streamWriteAll($stream, 'A005 APPEND ' . imapQuote($folder) . ' (\\Seen) {' . strlen($message) . "}\r\n");
         $continuation = fgets($stream);
         if ($continuation === false || !str_starts_with($continuation, '+')) {
             throw new RuntimeException('IMAP: Der Ordner hat die Nachricht nicht angenommen.');
         }
-        fwrite($stream, $message);
+        streamWriteAll($stream, $message);
+        streamWriteAll($stream, "\r\n");
         imapReadTaggedResponse($stream, 'A005');
-        imapCommand($stream, 'A006', 'LOGOUT');
+        try {
+            imapCommand($stream, 'A006', 'LOGOUT');
+        } catch (Throwable) {
+            // Manche IMAP-Server schliessen nach LOGOUT ohne abschliessende Tag-Antwort.
+        }
     } finally {
         fclose($stream);
     }
@@ -7970,7 +7994,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.85';
+$codeVersion = '1.15.86';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
