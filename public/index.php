@@ -7695,7 +7695,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'ii',
             [$id, userId()]
         );
-        $recipient = strtolower(trim((string) ($_POST['recipient_email'] ?? ($application['contact_email'] ?? ''))));
+        $hasAssignedContact = (int) ($application['primary_contact_id'] ?? 0) > 0;
+        $recipient = $hasAssignedContact
+            ? strtolower(trim((string) ($application['contact_email'] ?? '')))
+            : strtolower(trim((string) ($_POST['recipient_email'] ?? '')));
         $subject = trim((string) ($_POST['email_subject'] ?? ($application['email_subject'] ?? '')));
         $body = trim((string) ($_POST['email_body'] ?? ($application['email_body'] ?? '')));
         if (!$application || !filter_var($recipient, FILTER_VALIDATE_EMAIL) || $subject === '' || $body === '') {
@@ -7779,7 +7782,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.81';
+$codeVersion = '1.15.82';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9286,6 +9289,15 @@ startUiTranslationBuffer($appLocale);
         $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
+        $primaryContact = null;
+        if ($applicationEdit && (int) ($applicationEdit['primary_contact_id'] ?? 0) > 0) {
+            foreach ($contacts as $candidateContact) {
+                if ((int) $candidateContact['id'] === (int) $applicationEdit['primary_contact_id']) {
+                    $primaryContact = $candidateContact;
+                    break;
+                }
+            }
+        }
         $selectedContactId = (int) ($_GET['contact'] ?? ($applicationEdit['primary_contact_id'] ?? 0));
         $contactEdit = $selectedContactId > 0 && $applicationEdit ? dbOne($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND (company_id=? OR company_id=? OR application_id=? OR job_id=?) AND deleted_at IS NULL', 'iiiiii', [$selectedContactId, userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : null;
         $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, contact_id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
@@ -9354,7 +9366,7 @@ startUiTranslationBuffer($appLocale);
                 </div>
                 <label><?= e(tr('applications.status_comment')) ?><input name="status_comment" placeholder="<?= e(tr('applications.status_comment_placeholder')) ?>"></label>
                 <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="app-note"><?= e(tr('applications.smtp_missing_note')) ?></p><?php endif; ?>
-                <label><?= e(tr('applications.email_recipient')) ?><input type="email" name="recipient_email" value="<?= e($contactEdit['email'] ?? '') ?>" placeholder="<?= e(tr('applications.email_recipient_placeholder')) ?>"></label>
+                <label><?= e(tr('applications.email_recipient')) ?><input type="email" name="recipient_email" value="<?= e($primaryContact['email'] ?? ($contactEdit['email'] ?? '')) ?>" placeholder="<?= e(tr('applications.email_recipient_placeholder')) ?>" <?= (int)($applicationEdit['primary_contact_id'] ?? 0) > 0 ? 'readonly' : '' ?>></label>
                 <label><?= e(tr('applications.email_subject')) ?><input id="email-subject" name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label><?= e(tr('applications.email_body')) ?><textarea id="email-body" name="email_body" rows="4"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
                 <label><?= e(tr('applications.cover_letter')) ?><textarea id="cover-letter-text" name="cover_letter_text" rows="<?= $coverLetterPrompt ? 16 : 7 ?>"><?= e($applicationEdit['cover_letter_text'] ?: $coverLetterPrompt) ?></textarea><?php if($coverLetterPrompt): ?><small><?= e(tr('applications.cover_prompt_hint')) ?></small><?php endif; ?></label>
