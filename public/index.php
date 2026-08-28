@@ -3223,16 +3223,16 @@ function calendarAnchorDate(array $user): DateTimeImmutable
 
 function calendarRange(string $view, DateTimeImmutable $anchor): array
 {
+    $monthFirst = $anchor->setDate((int) $anchor->format('Y'), (int) $anchor->format('m'), 1)->setTime(0, 0);
+    $monthLast = $monthFirst->modify('last day of this month')->setTime(23, 59, 59);
+    $monthStart = $monthFirst->modify('-' . ((int) $monthFirst->format('N') - 1) . ' days');
+    $monthEnd = $monthLast->modify('+' . (7 - (int) $monthLast->format('N')) . ' days');
+
     return match ($view) {
         'day' => [$anchor->setTime(0, 0), $anchor->setTime(23, 59, 59), '-1 day', '+1 day'],
         'workweek' => [$anchor->modify('monday this week')->setTime(0, 0), $anchor->modify('friday this week')->setTime(23, 59, 59), '-1 week', '+1 week'],
         'week' => [$anchor->modify('monday this week')->setTime(0, 0), $anchor->modify('sunday this week')->setTime(23, 59, 59), '-1 week', '+1 week'],
-        'month' => [
-            $anchor->modify('first day of this month')->modify('monday this week')->setTime(0, 0),
-            $anchor->modify('last day of this month')->modify('sunday this week')->setTime(23, 59, 59),
-            '-1 month',
-            '+1 month',
-        ],
+        'month' => [$monthStart, $monthEnd, '-1 month', '+1 month'],
         default => [$anchor->setTime(0, 0), $anchor->modify('+60 days')->setTime(23, 59, 59), '-30 days', '+30 days'],
     };
 }
@@ -3268,6 +3268,39 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
             'meta' => trim((string) ($todo['job_title'] . ' · ' . $todo['company_name'])),
             'notes' => '',
             'href' => '/?page=applications&edit=' . (int) $todo['id'] . '#application-form',
+        ];
+    }
+    $applicationStatuses = applicationStatusOptions();
+    foreach (dbAll($db, 'SELECT a.id, a.created_at, a.status, COALESCE((SELECT h.old_status FROM application_status_history h WHERE h.application_id=a.id ORDER BY h.changed_at ASC, h.id ASC LIMIT 1), a.status) initial_status, j.title job_title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND a.created_at BETWEEN ? AND ? ORDER BY a.created_at ASC', 'iss', [$userId, $startSql, $endSql]) as $application) {
+        $statusValue = (string) $application['initial_status'];
+        $statusLabel = $applicationStatuses[$statusValue] ?? $statusValue;
+        $rows[] = [
+            'source' => 'application_created',
+            'id' => (int) $application['id'],
+            'title' => tr('common.status') . ': ' . $statusLabel,
+            'type' => tr('applications.application'),
+            'status' => $statusLabel,
+            'starts_at' => (string) $application['created_at'],
+            'ends_at' => date('Y-m-d H:i:s', strtotime((string) $application['created_at']) + 1800),
+            'meta' => trim((string) ($application['job_title'] . ' · ' . $application['company_name'])),
+            'notes' => '',
+            'href' => '/?page=applications&edit=' . (int) $application['id'] . '#application-form',
+        ];
+    }
+    foreach (dbAll($db, 'SELECT h.id, h.application_id, h.new_status, h.comment, h.changed_at, j.title job_title, c.name company_name FROM application_status_history h JOIN applications a ON a.id=h.application_id JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.user_id=? AND a.deleted_at IS NULL AND h.changed_at BETWEEN ? AND ? ORDER BY h.changed_at ASC, h.id ASC', 'iss', [$userId, $startSql, $endSql]) as $history) {
+        $statusValue = (string) $history['new_status'];
+        $statusLabel = $applicationStatuses[$statusValue] ?? $statusValue;
+        $rows[] = [
+            'source' => 'application_status',
+            'id' => (int) $history['id'],
+            'title' => tr('common.status') . ': ' . $statusLabel,
+            'type' => tr('applications.application'),
+            'status' => $statusLabel,
+            'starts_at' => (string) $history['changed_at'],
+            'ends_at' => date('Y-m-d H:i:s', strtotime((string) $history['changed_at']) + 1800),
+            'meta' => trim((string) ($history['job_title'] . ' · ' . $history['company_name'])),
+            'notes' => (string) ($history['comment'] ?? ''),
+            'href' => '/?page=applications&edit=' . (int) $history['application_id'] . '#application-form',
         ];
     }
     foreach (dbAll($db, 'SELECT l.id, l.contact_id, l.channel, l.status, l.subject, l.follow_up_at, c.first_name, c.last_name, co.name company_name FROM contact_logs l JOIN contacts c ON c.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND l.follow_up_at BETWEEN ? AND ? ORDER BY l.follow_up_at ASC', 'iss', [$userId, $startSql, $endSql]) as $log) {
@@ -7808,8 +7841,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
         if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
         if ($status === 'sent') {
-            $nextAction = 'Antwort auf Bewerbung pendent';
-            $nextActionAt = $appliedAt ?: date('Y-m-d H:i:s');
+            $nextAction = $nextAction ?: 'Antwort auf Bewerbung pendent';
+            $nextActionAt = $nextActionAt ?: ($appliedAt ?: date('Y-m-d H:i:s'));
         }
         $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
         $uid = userId();
@@ -7994,7 +8027,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.86';
+$codeVersion = '1.15.87';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
