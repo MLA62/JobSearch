@@ -2055,7 +2055,7 @@ function imapSentFolder($stream, ?string $configuredFolder = null): string
     }
     $mailboxes = [];
     foreach (imapCommand($stream, 'A004', 'LIST "" "*"') as $line) {
-        if (!preg_match('/^\*\s+LIST\s+\(([^)]*)\)\s+(?:"(?:[^"\\]|\\.)*"|NIL)\s+(.+)\r?\n?$/i', $line, $matches)) {
+        if (!preg_match('/^\*\s+LIST\s+\(([^)]*)\)\s+(?:"[^"]*"|NIL)\s+(.+?)\r?\n?$/i', $line, $matches)) {
             continue;
         }
         $mailbox = imapMailboxName($matches[2]);
@@ -7970,7 +7970,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.84';
+$codeVersion = '1.15.85';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
