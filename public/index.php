@@ -209,6 +209,33 @@ try {
             'pt-BR' => 'Mês',
             'es-MX' => 'Mes',
         ],
+        'applications.job_room_status' => [
+            'de-CH' => 'Job-Room Status', 'fr-CH' => 'Statut Job-Room', 'en-GB' => 'Job-Room status', 'pt-BR' => 'Status do Job-Room', 'es-MX' => 'Estado de Job-Room',
+        ],
+        'applications.job_room_interview' => [
+            'de-CH' => 'Vorstellungsgespräch', 'fr-CH' => 'Entretien d’embauche', 'en-GB' => 'Job interview', 'pt-BR' => 'Entrevista de emprego', 'es-MX' => 'Entrevista de trabajo',
+        ],
+        'job_room_helper.field.interview' => [
+            'de-CH' => 'Vorstellungsgespräch', 'fr-CH' => 'Entretien d’embauche', 'en-GB' => 'Job interview', 'pt-BR' => 'Entrevista de emprego', 'es-MX' => 'Entrevista de trabajo',
+        ],
+        'job_room_helper.value.yes' => [
+            'de-CH' => 'Ja', 'fr-CH' => 'Oui', 'en-GB' => 'Yes', 'pt-BR' => 'Sim', 'es-MX' => 'Sí',
+        ],
+        'job_room_helper.value.no' => [
+            'de-CH' => 'Nein', 'fr-CH' => 'Non', 'en-GB' => 'No', 'pt-BR' => 'Não', 'es-MX' => 'No',
+        ],
+        'job_room_helper.field.result' => [
+            'de-CH' => 'Ergebnis der Bewerbung', 'fr-CH' => 'Résultat de la candidature', 'en-GB' => 'Application outcome', 'pt-BR' => 'Resultado da candidatura', 'es-MX' => 'Resultado de la postulación',
+        ],
+        'job_room_helper.result.open' => [
+            'de-CH' => 'Noch offen', 'fr-CH' => 'Encore ouvert', 'en-GB' => 'Still open', 'pt-BR' => 'Ainda em aberto', 'es-MX' => 'Aún abierto',
+        ],
+        'job_room_helper.result.hired' => [
+            'de-CH' => 'Anstellung', 'fr-CH' => 'Engagement', 'en-GB' => 'Employment', 'pt-BR' => 'Contratação', 'es-MX' => 'Contratación',
+        ],
+        'job_room_helper.result.rejected' => [
+            'de-CH' => 'Absage', 'fr-CH' => 'Refus', 'en-GB' => 'Rejection', 'pt-BR' => 'Recusa', 'es-MX' => 'Rechazo',
+        ],
         'profile.smtp_footer' => [
             'de-CH' => 'E-Mail-Footer',
             'fr-CH' => 'Pied de page e-mail',
@@ -677,6 +704,8 @@ try {
     ensureColumn($db, 'applications', 'next_action', '`next_action` VARCHAR(255) NULL', 'salary_currency');
     ensureColumn($db, 'applications', 'next_action_at', '`next_action_at` DATETIME NULL', 'next_action');
     ensureColumn($db, 'applications', 'notes', '`notes` LONGTEXT NULL', 'next_action_at');
+    ensureColumn($db, 'applications', 'job_room_result', "`job_room_result` ENUM('open','hired','rejected') NOT NULL DEFAULT 'open'", 'notes');
+    ensureColumn($db, 'applications', 'job_room_interview', '`job_room_interview` TINYINT(1) NOT NULL DEFAULT 0', 'job_room_result');
     ensureColumn($db, 'companies', 'notes', '`notes` TEXT NULL', 'rating');
     ensureColumn($db, 'jobs', 'notes', '`notes` LONGTEXT NULL', 'description');
     $db->query("CREATE TABLE IF NOT EXISTS job_questions (
@@ -2969,14 +2998,17 @@ function jobRoomApplicationMethod(?string $channel): string
     };
 }
 
-function jobRoomApplicationResult(?string $status): string
+function jobRoomApplicationResult(?string $result, ?string $applicationStatus = null): string
 {
-    return match ((string) $status) {
-        'interview', 'assessment' => tr('job_room_helper.result.interview'),
-        'offer', 'accepted' => tr('job_room_helper.result.hired'),
-        'rejected', 'withdrawn', 'closed' => tr('job_room_helper.result.rejected'),
-        'sent', 'confirmed' => tr('job_room_helper.result.open'),
-        default => '',
+    return match ((string) $result) {
+        'open' => tr('job_room_helper.result.open'),
+        'hired' => tr('job_room_helper.result.hired'),
+        'rejected' => tr('job_room_helper.result.rejected'),
+        default => match ((string) $applicationStatus) {
+            'offer', 'accepted' => tr('job_room_helper.result.hired'),
+            'rejected', 'withdrawn', 'closed' => tr('job_room_helper.result.rejected'),
+            default => tr('job_room_helper.result.open'),
+        },
     };
 }
 
@@ -3026,7 +3058,7 @@ function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, 
     }
     return dbAll(
         $db,
-        'SELECT a.id application_id, a.status application_status, a.channel, a.applied_at, a.application_url, a.reference_number,
+        'SELECT a.id application_id, a.status application_status, a.job_room_result, a.job_room_interview, a.channel, a.applied_at, a.application_url, a.reference_number,
                 j.id job_id, j.title job_title, j.source_url, j.employment_type, j.workload_min, j.workload_max,
                 c.id company_id, c.name company_name, c.is_intermediary, c.email company_email, c.phone company_phone,
                 c.address_line1, c.address_line2, c.postal_code, c.city, c.country_code,
@@ -3063,7 +3095,8 @@ function jobRoomHelperFields(array $row, array $currentUser): array
         'job_room_helper.field.online_form_link' => $onlineLink,
         'job_room_helper.field.rav_assigned' => tr('job_room_helper.value.no'),
         'job_room_helper.field.workload' => jobRoomWorkloadLabel($row),
-        'job_room_helper.field.result' => jobRoomApplicationResult($row['application_status'] ?? null),
+        'job_room_helper.field.interview' => !empty($row['job_room_interview']) ? tr('job_room_helper.value.yes') : tr('job_room_helper.value.no'),
+        'job_room_helper.field.result' => jobRoomApplicationResult($row['job_room_result'] ?? null, $row['application_status'] ?? null),
     ];
 }
 
@@ -7819,6 +7852,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $onlineNotes = trim((string) ($_POST['online_notes'] ?? '')) ?: null;
         $coverLetter = trim((string) ($_POST['cover_letter_text'] ?? '')) ?: null;
         $notes = trim((string) ($_POST['notes'] ?? '')) ?: null;
+        $allowedJobRoomResults = ['open', 'hired', 'rejected'];
+        $jobRoomResult = in_array((string)($_POST['job_room_result'] ?? ''), $allowedJobRoomResults, true)
+            ? (string)$_POST['job_room_result']
+            : 'open';
+        $jobRoomInterview = isset($_POST['job_room_interview']) ? 1 : 0;
         $primaryContactId = (int) ($_POST['primary_contact_id'] ?? 0);
         $intermediaryCompanyId = (int) ($_POST['intermediary_company_id'] ?? 0);
         if ($intermediaryCompanyId > 0) {
@@ -7844,9 +7882,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nextAction = $nextAction ?: 'Antwort auf Bewerbung pendent';
             $nextActionAt = $nextActionAt ?: ($appliedAt ?: date('Y-m-d H:i:s'));
         }
-        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
+        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=?, job_room_result=?, job_room_interview=? WHERE id=? AND user_id=?');
         $uid = userId();
-        $stmt->bind_param('iisssssssssssssii', $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $id, $uid);
+        $applicationUpdateTypes = 'ii' . str_repeat('s', 14) . 'iii';
+        $stmt->bind_param($applicationUpdateTypes, $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $jobRoomResult, $jobRoomInterview, $id, $uid);
         $stmt->execute();
         if ($old['status'] !== $status) {
             $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: null;
@@ -8027,7 +8066,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.88';
+$codeVersion = '1.15.89';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9532,17 +9571,17 @@ startUiTranslationBuffer($appLocale);
     <?php elseif ($page === 'applications'): ?>
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']); $appView=($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
-        $appSfFields = ['title'=>['label'=>tr('reports.field.job'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'status'=>['label'=>tr('common.status'),'expr'=>'a.status', 'choices'=>applicationStatusOptions()], 'channel'=>['label'=>tr('applications.channel'),'expr'=>'a.channel', 'choices'=>applicationChannelOptions()], 'next_action'=>['label'=>tr('applications.next_action'),'expr'=>'CONCAT_WS(" ", a.next_action, a.next_action_at)']];
+        $appSfFields = ['title'=>['label'=>tr('reports.field.job'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'status'=>['label'=>tr('common.status'),'expr'=>'a.status', 'choices'=>applicationStatusOptions()], 'job_room_result'=>['label'=>tr('applications.job_room_status'),'expr'=>'a.job_room_result', 'choices'=>['open'=>tr('job_room_helper.result.open'),'hired'=>tr('job_room_helper.result.hired'),'rejected'=>tr('job_room_helper.result.rejected')]], 'channel'=>['label'=>tr('applications.channel'),'expr'=>'a.channel', 'choices'=>applicationChannelOptions()], 'next_action'=>['label'=>tr('applications.next_action'),'expr'=>'CONCAT_WS(" ", a.next_action, a.next_action_at)']];
         $appSf = sfState('applications', $appSfFields, ['sort'=>'title','dir'=>'asc']);
         $appPreserve = ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : '', 'edit'=>$_GET['edit'] ?? ''];
-        $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.updated_at, j.title, j.company_id, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
+        $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.updated_at, j.title, j.company_id, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
         if($appCompanyFilter>0){ $appSql.=' AND (j.company_id=? OR a.intermediary_company_id=?)'; $appTypes.='ii'; array_push($appVals,$appCompanyFilter,$appCompanyFilter); }
         if($appJobFilter>0){ $appSql.=' AND a.job_id=?'; $appTypes.='i'; $appVals[]=$appJobFilter; }
         if($todoOnly){ $appSql.=' AND a.next_action_at IS NOT NULL'; }
         $appSql .= sfApplySql($appSf, $appSfFields, $appTypes, $appVals);
         $appSql .= sfOrderSql($appSf, $appSfFields, 'title');
         $apps=dbAll($db,$appSql,$appTypes,$appVals);
-        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
         $primaryContact = null;
@@ -9601,6 +9640,12 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.sent_at')) ?><input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
+                <fieldset class="check"><legend><?= e(tr('applications.job_room_status')) ?></legend>
+                    <label><input type="checkbox" name="job_room_interview" value="1" <?= !empty($applicationEdit['job_room_interview'])?'checked':'' ?>> <?= e(tr('applications.job_room_interview')) ?></label>
+                    <label><input type="radio" name="job_room_result" value="open" <?= ($applicationEdit['job_room_result'] ?? 'open')==='open'?'checked':'' ?>> <?= e(tr('job_room_helper.result.open')) ?></label>
+                    <label><input type="radio" name="job_room_result" value="hired" <?= ($applicationEdit['job_room_result'] ?? '')==='hired'?'checked':'' ?>> <?= e(tr('job_room_helper.result.hired')) ?></label>
+                    <label><input type="radio" name="job_room_result" value="rejected" <?= ($applicationEdit['job_room_result'] ?? '')==='rejected'?'checked':'' ?>> <?= e(tr('job_room_helper.result.rejected')) ?></label>
+                </fieldset>
                 <div class="actions"><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button></div>
                 <div class="history"><h3><?= e(tr('applications.online_form_title')) ?></h3><p class="meta-line"><?= e(tr('applications.online_form_hint')) ?></p></div>
                 <?php $onlineApplicationUrl = (string)($applicationEdit['application_url'] ?: ($applicationEdit['job_source_url'] ?? '')); ?>

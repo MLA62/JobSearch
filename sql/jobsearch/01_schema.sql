@@ -504,6 +504,8 @@ CREATE TABLE applications (
     next_action VARCHAR(255) NULL,
     next_action_at DATETIME NULL,
     notes LONGTEXT NULL,
+    job_room_result ENUM('open','hired','rejected') NOT NULL DEFAULT 'open',
+    job_room_interview TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
