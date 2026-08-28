@@ -6651,7 +6651,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $encryption = in_array((string) ($_POST['smtp_encryption'] ?? 'tls'), ['tls', 'ssl', 'none'], true) ? (string) $_POST['smtp_encryption'] : 'tls';
         $username = trim((string) ($_POST['smtp_username'] ?? '')) ?: null;
         $password = (string) ($_POST['smtp_password'] ?? '');
-        $fromEmail = strtolower(trim((string) ($_POST['from_email'] ?? '')));
+        $fromEmail = trim((string) ($_POST['from_email'] ?? ''));
         $fromName = trim((string) ($_POST['from_name'] ?? '')) ?: null;
         $mailFooter = trim((string) ($_POST['mail_footer'] ?? '')) ?: null;
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
@@ -7782,7 +7782,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.82';
+$codeVersion = '1.15.83';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
