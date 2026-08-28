@@ -223,6 +223,54 @@ try {
             'pt-BR' => 'Adicionado aos e-mails HTML enviados. Fonte padrão: Calibri 11.',
             'es-MX' => 'Se añade a los correos HTML salientes. Fuente estándar: Calibri 11.',
         ],
+        'profile.sent_copy_enable' => [
+            'de-CH' => 'Gesendete E-Mails im Mailkonto speichern',
+            'fr-CH' => 'Enregistrer les e-mails envoyés dans le compte de messagerie',
+            'en-GB' => 'Save sent emails in the mail account',
+            'pt-BR' => 'Salvar e-mails enviados na conta de e-mail',
+            'es-MX' => 'Guardar los correos enviados en la cuenta de correo',
+        ],
+        'profile.sent_copy_hint' => [
+            'de-CH' => 'Die App legt nach erfolgreichem Versand eine Kopie im Ordner „Gesendet“ ab. Benutzername und Passwort werden von der SMTP-Konfiguration übernommen.',
+            'fr-CH' => 'Après l’envoi, l’application enregistre une copie dans le dossier « Envoyés ». Le nom d’utilisateur et le mot de passe sont repris de la configuration SMTP.',
+            'en-GB' => 'After sending, the app saves a copy in the Sent folder. Username and password are taken from the SMTP configuration.',
+            'pt-BR' => 'Após o envio, o aplicativo salva uma cópia na pasta Enviados. O usuário e a senha são obtidos da configuração SMTP.',
+            'es-MX' => 'Después del envío, la app guarda una copia en la carpeta Enviados. El usuario y la contraseña se toman de la configuración SMTP.',
+        ],
+        'profile.sent_copy_advanced' => [
+            'de-CH' => 'Erweiterte Einstellungen', 'fr-CH' => 'Paramètres avancés', 'en-GB' => 'Advanced settings',
+            'pt-BR' => 'Configurações avançadas', 'es-MX' => 'Configuración avanzada',
+        ],
+        'profile.imap_host' => [
+            'de-CH' => 'IMAP-Server', 'fr-CH' => 'Serveur IMAP', 'en-GB' => 'IMAP server',
+            'pt-BR' => 'Servidor IMAP', 'es-MX' => 'Servidor IMAP',
+        ],
+        'profile.imap_port' => [
+            'de-CH' => 'IMAP-Port', 'fr-CH' => 'Port IMAP', 'en-GB' => 'IMAP port',
+            'pt-BR' => 'Porta IMAP', 'es-MX' => 'Puerto IMAP',
+        ],
+        'profile.imap_encryption' => [
+            'de-CH' => 'IMAP-Verschlüsselung', 'fr-CH' => 'Chiffrement IMAP', 'en-GB' => 'IMAP encryption',
+            'pt-BR' => 'Criptografia IMAP', 'es-MX' => 'Cifrado IMAP',
+        ],
+        'profile.imap_sent_folder' => [
+            'de-CH' => 'Ordner für gesendete E-Mails', 'fr-CH' => 'Dossier des e-mails envoyés', 'en-GB' => 'Sent email folder',
+            'pt-BR' => 'Pasta de e-mails enviados', 'es-MX' => 'Carpeta de correos enviados',
+        ],
+        'profile.imap_auto_hint' => [
+            'de-CH' => 'Leer lassen für automatische Erkennung. Ohne separaten IMAP-Server wird der SMTP-Server verwendet.',
+            'fr-CH' => 'Laisser vide pour la détection automatique. Sans serveur IMAP distinct, le serveur SMTP est utilisé.',
+            'en-GB' => 'Leave blank for automatic detection. The SMTP server is used when no separate IMAP server is entered.',
+            'pt-BR' => 'Deixe em branco para detecção automática. O servidor SMTP será usado se nenhum servidor IMAP separado for informado.',
+            'es-MX' => 'Déjalo vacío para la detección automática. Se usará el servidor SMTP si no se indica otro servidor IMAP.',
+        ],
+        'flash.smtp.sent_copy_failed' => [
+            'de-CH' => 'Die E-Mail wurde versendet, konnte aber nicht im Ordner „Gesendet“ gespeichert werden. Bitte die erweiterten Mail-Einstellungen prüfen.',
+            'fr-CH' => 'L’e-mail a été envoyé, mais n’a pas pu être enregistré dans le dossier « Envoyés ». Vérifiez les paramètres avancés de messagerie.',
+            'en-GB' => 'The email was sent but could not be saved in the Sent folder. Please check the advanced mail settings.',
+            'pt-BR' => 'O e-mail foi enviado, mas não pôde ser salvo na pasta Enviados. Verifique as configurações avançadas de e-mail.',
+            'es-MX' => 'El correo se envió, pero no pudo guardarse en la carpeta Enviados. Revisa la configuración avanzada de correo.',
+        ],
         'profile.links_title' => [
             'de-CH' => 'Links',
             'fr-CH' => 'Liens',
@@ -675,6 +723,11 @@ try {
     ensureColumn($db, 'user_preferences', 'travel_percentage', '`travel_percentage` TINYINT UNSIGNED NULL', 'willing_to_relocate');
     ensureColumn($db, 'user_preferences', 'available_from', '`available_from` DATE NULL', 'travel_percentage');
     ensureColumn($db, 'user_smtp_settings', 'mail_footer', '`mail_footer` LONGTEXT NULL', 'from_name');
+    ensureColumn($db, 'user_smtp_settings', 'save_sent_copy', '`save_sent_copy` TINYINT(1) NOT NULL DEFAULT 1', 'mail_footer');
+    ensureColumn($db, 'user_smtp_settings', 'imap_host', '`imap_host` VARCHAR(255) NULL', 'save_sent_copy');
+    ensureColumn($db, 'user_smtp_settings', 'imap_port', '`imap_port` SMALLINT UNSIGNED NOT NULL DEFAULT 993', 'imap_host');
+    ensureColumn($db, 'user_smtp_settings', 'imap_encryption', "`imap_encryption` ENUM('tls','ssl','none') NOT NULL DEFAULT 'ssl'", 'imap_port');
+    ensureColumn($db, 'user_smtp_settings', 'imap_sent_folder', '`imap_sent_folder` VARCHAR(255) NULL', 'imap_encryption');
     $db->query("CREATE TABLE IF NOT EXISTS user_profile_links (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT UNSIGNED NOT NULL,
@@ -1867,7 +1920,50 @@ function htmlMailBody(string $textBody, ?string $footer = null): string
     return '<!doctype html><html><body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;line-height:1.35;color:#111827;">' . $body . '</body></html>';
 }
 
-function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): void
+function buildMailMessage(array $config, string $to, string $subject, string $textBody, array $attachments = []): string
+{
+    $from = trim((string) ($config['mail_from'] ?? ''));
+    $fromHeader = encodeMailHeader(mailFromName($config)) . ' <' . $from . '>';
+    $htmlBody = htmlMailBody($textBody, (string) ($config['mail_footer'] ?? ''));
+    $domain = parse_url(appUrl($config), PHP_URL_HOST) ?: ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    $headers = [
+        'Date: ' . date(DATE_RFC2822),
+        'Message-ID: <' . bin2hex(random_bytes(16)) . '@' . $domain . '>',
+        'From: ' . $fromHeader,
+        'To: <' . $to . '>',
+        'Subject: ' . encodeMailHeader($subject),
+        'MIME-Version: 1.0',
+    ];
+    if ($attachments) {
+        $boundary = 'jema_jobs_' . bin2hex(random_bytes(12));
+        $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
+        $message = '--' . $boundary . "\r\n"
+            . "Content-Type: text/html; charset=UTF-8\r\n"
+            . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+            . $htmlBody . "\r\n";
+        foreach ($attachments as $attachment) {
+            $path = (string) ($attachment['path'] ?? '');
+            if (!is_file($path)) {
+                continue;
+            }
+            $filename = basename((string) ($attachment['filename'] ?? basename($path)));
+            $mime = (string) ($attachment['mime'] ?? 'application/octet-stream');
+            $message .= '--' . $boundary . "\r\n"
+                . 'Content-Type: ' . $mime . '; name="' . addslashes($filename) . '"' . "\r\n"
+                . "Content-Transfer-Encoding: base64\r\n"
+                . 'Content-Disposition: attachment; filename="' . addslashes($filename) . '"' . "\r\n\r\n"
+                . chunk_split(base64_encode((string) file_get_contents($path))) . "\r\n";
+        }
+        $message .= '--' . $boundary . "--\r\n";
+    } else {
+        $headers[] = 'Content-Type: text/html; charset=UTF-8';
+        $headers[] = 'Content-Transfer-Encoding: 8bit';
+        $message = $htmlBody;
+    }
+    return implode("\r\n", $headers) . "\r\n\r\n" . $message;
+}
+
+function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): string
 {
     $host = trim((string) ($config['smtp_host'] ?? ''));
     $from = trim((string) ($config['mail_from'] ?? ''));
@@ -1907,43 +2003,116 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
         smtpCommand($stream, 'RCPT TO:<' . $to . '>', [250, 251]);
         smtpCommand($stream, 'DATA', [354]);
 
-        $fromHeader = encodeMailHeader(mailFromName($config)) . ' <' . $from . '>';
-        $htmlBody = htmlMailBody($textBody, (string) ($config['mail_footer'] ?? ''));
-        $headers = [
-            'Date: ' . date(DATE_RFC2822),
-            'From: ' . $fromHeader,
-            'To: <' . $to . '>',
-            'Subject: ' . encodeMailHeader($subject),
-            'MIME-Version: 1.0',
-        ];
-        if ($attachments) {
-            $boundary = 'jema_jobs_' . bin2hex(random_bytes(12));
-            $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
-            $message = '--' . $boundary . "\r\n"
-                . "Content-Type: text/html; charset=UTF-8\r\n"
-                . "Content-Transfer-Encoding: 8bit\r\n\r\n"
-                . $htmlBody . "\r\n";
-            foreach ($attachments as $attachment) {
-                $path = (string) ($attachment['path'] ?? '');
-                if (!is_file($path)) {
-                    continue;
-                }
-                $filename = basename((string) ($attachment['filename'] ?? basename($path)));
-                $mime = (string) ($attachment['mime'] ?? 'application/octet-stream');
-                $message .= '--' . $boundary . "\r\n"
-                    . 'Content-Type: ' . $mime . '; name="' . addslashes($filename) . '"' . "\r\n"
-                    . "Content-Transfer-Encoding: base64\r\n"
-                    . 'Content-Disposition: attachment; filename="' . addslashes($filename) . '"' . "\r\n\r\n"
-                    . chunk_split(base64_encode((string) file_get_contents($path))) . "\r\n";
-            }
-            $message .= '--' . $boundary . "--\r\n";
-        } else {
-            $headers[] = 'Content-Type: text/html; charset=UTF-8';
-            $headers[] = 'Content-Transfer-Encoding: 8bit';
-            $message = $htmlBody;
-        }
-        smtpCommand($stream, implode("\r\n", $headers) . "\r\n\r\n" . dotStuff($message) . "\r\n.", [250]);
+        $message = buildMailMessage($config, $to, $subject, $textBody, $attachments);
+        smtpCommand($stream, dotStuff($message) . "\r\n.", [250]);
         smtpCommand($stream, 'QUIT', [221]);
+        return $message;
+    } finally {
+        fclose($stream);
+    }
+}
+
+function imapQuote(string $value): string
+{
+    return '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
+}
+
+function imapReadTaggedResponse($stream, string $tag): array
+{
+    $lines = [];
+    while (($line = fgets($stream)) !== false) {
+        $lines[] = $line;
+        if (str_starts_with(strtoupper($line), strtoupper($tag) . ' ')) {
+            if (!preg_match('/^' . preg_quote($tag, '/') . '\s+OK\b/i', $line)) {
+                throw new RuntimeException('IMAP: ' . trim($line));
+            }
+            return $lines;
+        }
+    }
+    throw new RuntimeException('IMAP: Verbindung unerwartet beendet.');
+}
+
+function imapCommand($stream, string $tag, string $command): array
+{
+    fwrite($stream, $tag . ' ' . $command . "\r\n");
+    return imapReadTaggedResponse($stream, $tag);
+}
+
+function imapMailboxName(string $token): string
+{
+    $token = trim($token);
+    if (strlen($token) >= 2 && $token[0] === '"' && $token[strlen($token) - 1] === '"') {
+        return stripcslashes(substr($token, 1, -1));
+    }
+    return $token;
+}
+
+function imapSentFolder($stream, ?string $configuredFolder = null): string
+{
+    $configuredFolder = trim((string) $configuredFolder);
+    if ($configuredFolder !== '') {
+        return $configuredFolder;
+    }
+    $mailboxes = [];
+    foreach (imapCommand($stream, 'A004', 'LIST "" "*"') as $line) {
+        if (!preg_match('/^\*\s+LIST\s+\(([^)]*)\)\s+(?:"(?:[^"\\]|\\.)*"|NIL)\s+(.+)\r?\n?$/i', $line, $matches)) {
+            continue;
+        }
+        $mailbox = imapMailboxName($matches[2]);
+        $mailboxes[] = $mailbox;
+        if (preg_match('/(?:^|\s)\\\\Sent(?:\s|$)/i', $matches[1])) {
+            return $mailbox;
+        }
+    }
+    foreach (['Sent', 'INBOX.Sent', 'Sent Items', 'Gesendet', 'INBOX.Gesendet'] as $candidate) {
+        foreach ($mailboxes as $mailbox) {
+            if (strcasecmp($mailbox, $candidate) === 0) {
+                return $mailbox;
+            }
+        }
+    }
+    throw new RuntimeException('IMAP: Ordner für gesendete E-Mails wurde nicht gefunden.');
+}
+
+function saveSentCopyViaImap(array $config, string $message): void
+{
+    $host = trim((string) ($config['imap_host'] ?? '')) ?: trim((string) ($config['smtp_host'] ?? ''));
+    $encryption = strtolower(trim((string) ($config['imap_encryption'] ?? 'ssl')));
+    $port = (int) ($config['imap_port'] ?? ($encryption === 'ssl' ? 993 : 143));
+    $username = trim((string) ($config['smtp_username'] ?? ''));
+    $password = (string) ($config['smtp_password'] ?? '');
+    if ($host === '' || $username === '' || $password === '') {
+        throw new RuntimeException('IMAP: Server oder Zugangsdaten fehlen.');
+    }
+    $target = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
+    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT);
+    if (!is_resource($stream)) {
+        throw new RuntimeException('IMAP: Verbindung fehlgeschlagen: ' . $errstr);
+    }
+    stream_set_timeout($stream, 30);
+    try {
+        $greeting = fgets($stream);
+        if ($greeting === false || !str_starts_with($greeting, '* OK')) {
+            throw new RuntimeException('IMAP: Server hat die Verbindung nicht angenommen.');
+        }
+        if ($encryption === 'tls') {
+            imapCommand($stream, 'A001', 'STARTTLS');
+            if (!stream_socket_enable_crypto($stream, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new RuntimeException('IMAP: STARTTLS konnte nicht aktiviert werden.');
+            }
+        }
+        imapCommand($stream, 'A002', 'LOGIN ' . imapQuote($username) . ' ' . imapQuote($password));
+        $folder = imapSentFolder($stream, $config['imap_sent_folder'] ?? null);
+        $message = rtrim(str_replace(["\r\n", "\r"], "\n", $message), "\n");
+        $message = str_replace("\n", "\r\n", $message) . "\r\n";
+        fwrite($stream, 'A005 APPEND ' . imapQuote($folder) . ' (\\Seen) {' . strlen($message) . "}\r\n");
+        $continuation = fgets($stream);
+        if ($continuation === false || !str_starts_with($continuation, '+')) {
+            throw new RuntimeException('IMAP: Der Ordner hat die Nachricht nicht angenommen.');
+        }
+        fwrite($stream, $message);
+        imapReadTaggedResponse($stream, 'A005');
+        imapCommand($stream, 'A006', 'LOGOUT');
     } finally {
         fclose($stream);
     }
@@ -1974,6 +2143,11 @@ function userSmtpSettings(mysqli $db, array $config, int $userId): ?array
         'mail_from' => (string) $settings['from_email'],
         'mail_from_name' => trim((string) ($settings['from_name'] ?? '')) ?: mailFromName($config),
         'mail_footer' => (string) ($settings['mail_footer'] ?? ''),
+        'save_sent_copy' => !empty($settings['save_sent_copy']),
+        'imap_host' => (string) ($settings['imap_host'] ?? ''),
+        'imap_port' => (int) ($settings['imap_port'] ?? 993),
+        'imap_encryption' => (string) ($settings['imap_encryption'] ?? 'ssl'),
+        'imap_sent_folder' => (string) ($settings['imap_sent_folder'] ?? ''),
     ];
 }
 
@@ -2007,8 +2181,17 @@ function sendConfiguredMail(mysqli $db, array $config, int $ownerUserId, string 
         return false;
     }
     try {
-        sendSmtpMail($mailConfig, $to, $subject, $body, $attachments);
-        logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'sent');
+        $message = sendSmtpMail($mailConfig, $to, $subject, $body, $attachments);
+        $sentCopyError = null;
+        if (!empty($mailConfig['save_sent_copy'])) {
+            try {
+                saveSentCopyViaImap($mailConfig, $message);
+            } catch (Throwable $exception) {
+                $sentCopyError = $exception->getMessage();
+                flash(tr('flash.smtp.sent_copy_failed'), 'warning');
+            }
+        }
+        logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'sent', $sentCopyError);
         return true;
     } catch (Throwable $exception) {
         logOutboundEmail($db, $ownerUserId, $to, $subject, $body, 'failed', $exception->getMessage());
@@ -6654,8 +6837,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fromEmail = trim((string) ($_POST['from_email'] ?? ''));
         $fromName = trim((string) ($_POST['from_name'] ?? '')) ?: null;
         $mailFooter = trim((string) ($_POST['mail_footer'] ?? '')) ?: null;
+        $saveSentCopy = !empty($_POST['save_sent_copy']) ? 1 : 0;
+        $imapHost = trim((string) ($_POST['imap_host'] ?? '')) ?: null;
+        $imapPort = (int) ($_POST['imap_port'] ?? 993);
+        $imapEncryption = in_array((string) ($_POST['imap_encryption'] ?? 'ssl'), ['tls', 'ssl', 'none'], true) ? (string) $_POST['imap_encryption'] : 'ssl';
+        $imapSentFolder = trim((string) ($_POST['imap_sent_folder'] ?? '')) ?: null;
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
-        if ($host === '' || $port < 1 || $port > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        if ($host === '' || $port < 1 || $port > 65535 || $imapPort < 1 || $imapPort > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
             flash(tr('flash.smtp.required'), 'danger');
             redirect('/?page=profile#smtp');
         }
@@ -6665,12 +6853,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $encryptedPassword = encryptSecret($config, $password);
         }
         if ($existing) {
-            $stmt = $db->prepare('UPDATE user_smtp_settings SET smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password_encrypted=?, from_email=?, from_name=?, mail_footer=?, is_active=? WHERE user_id=?');
-            $stmt->bind_param('sissssssii', $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $isActive, $uid);
+            $stmt = $db->prepare('UPDATE user_smtp_settings SET smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password_encrypted=?, from_email=?, from_name=?, mail_footer=?, save_sent_copy=?, imap_host=?, imap_port=?, imap_encryption=?, imap_sent_folder=?, is_active=? WHERE user_id=?');
+            $stmt->bind_param('sissssssisissii', $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $saveSentCopy, $imapHost, $imapPort, $imapEncryption, $imapSentFolder, $isActive, $uid);
             $stmt->execute();
         } else {
-            $stmt = $db->prepare('INSERT INTO user_smtp_settings (user_id, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password_encrypted, from_email, from_name, mail_footer, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->bind_param('isissssssi', $uid, $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $isActive);
+            $stmt = $db->prepare('INSERT INTO user_smtp_settings (user_id, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password_encrypted, from_email, from_name, mail_footer, save_sent_copy, imap_host, imap_port, imap_encryption, imap_sent_folder, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('isissssssisissi', $uid, $host, $port, $encryption, $username, $encryptedPassword, $fromEmail, $fromName, $mailFooter, $saveSentCopy, $imapHost, $imapPort, $imapEncryption, $imapSentFolder, $isActive);
             $stmt->execute();
         }
         audit($db, $uid, 'update', 'user_smtp_settings', $uid, null, ['smtp_host' => $host, 'from_email' => $fromEmail, 'is_active' => $isActive]);
@@ -7782,7 +7970,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.83';
+$codeVersion = '1.15.84';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -8875,7 +9063,7 @@ startUiTranslationBuffer($appLocale);
         }
         $totpSetupSecret = (string) ($_SESSION['totp_setup_secret'] ?? '');
         $totpSetupUri = $totpSetupSecret ? totpUri($config, $currentUser, $totpSetupSecret) : '';
-        $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, mail_footer, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
+        $smtpSettings = dbOne($db, 'SELECT smtp_host, smtp_port, smtp_encryption, smtp_username, from_email, from_name, mail_footer, save_sent_copy, imap_host, imap_port, imap_encryption, imap_sent_folder, is_active, updated_at FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [userId()]) ?: [];
         $googleSettings = googleCalendarSettings($db, userId());
         $googleConfigured = googleCalendarIsConfigured($config);
         $googleConnected = decryptSecret($config, $googleSettings['refresh_token_encrypted'] ?? null) !== '';
@@ -8962,6 +9150,17 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('profile.smtp_from_name')) ?><input name="from_name" value="<?= e($smtpSettings['from_name'] ?? trim((string)$currentUser['first_name'] . ' ' . (string)$currentUser['last_name'])) ?>"></label>
                 </div>
                 <label><?= e(tr('profile.smtp_footer')) ?><textarea name="mail_footer" rows="4"><?= e($smtpSettings['mail_footer'] ?? '') ?></textarea><small><?= e(tr('profile.smtp_footer_hint')) ?></small></label>
+                <label class="check"><input type="checkbox" name="save_sent_copy" value="1" <?= !array_key_exists('save_sent_copy', $smtpSettings) || !empty($smtpSettings['save_sent_copy']) ? 'checked' : '' ?>> <?= e(tr('profile.sent_copy_enable')) ?></label>
+                <p class="meta-line"><?= e(tr('profile.sent_copy_hint')) ?></p>
+                <details>
+                    <summary><?= e(tr('profile.sent_copy_advanced')) ?></summary>
+                    <div class="three">
+                        <label><?= e(tr('profile.imap_host')) ?><input name="imap_host" value="<?= e($smtpSettings['imap_host'] ?? '') ?>"></label>
+                        <label><?= e(tr('profile.imap_port')) ?><input type="number" min="1" max="65535" name="imap_port" value="<?= e((string)($smtpSettings['imap_port'] ?? 993)) ?>"></label>
+                        <label><?= e(tr('profile.imap_encryption')) ?><select name="imap_encryption"><?php foreach(['ssl'=>'SSL/TLS','tls'=>'STARTTLS','none'=>tr('profile.smtp_encryption_none')] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['imap_encryption'] ?? 'ssl')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+                    </div>
+                    <label><?= e(tr('profile.imap_sent_folder')) ?><input name="imap_sent_folder" value="<?= e($smtpSettings['imap_sent_folder'] ?? '') ?>"><small><?= e(tr('profile.imap_auto_hint')) ?></small></label>
+                </details>
                 <label class="check"><input type="checkbox" name="is_active" value="1" <?= !empty($smtpSettings['is_active']) ? 'checked' : '' ?>> <?= e(tr('profile.smtp_enable')) ?></label>
                 <div class="actions"><button class="primary" name="action" value="save_smtp_settings"><?= e(tr('profile.smtp_save')) ?></button><button name="action" value="test_smtp_settings"><?= e(tr('profile.smtp_save_test')) ?></button></div>
                 <?php if ($smtpTestResult): ?><p class="alert <?= e($smtpTestResult['type'] ?? 'success') ?>"><?= e($smtpTestResult['message'] ?? '') ?></p><?php endif; ?>
