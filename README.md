@@ -6,7 +6,7 @@ ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
 Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
 Nachverfolgung.
 
-Aktueller dokumentierter Stand: Version `1.15.80`.
+Aktueller dokumentierter Stand: Version `1.15.81`.
 
 ## Lizenz
 
@@ -23,7 +23,7 @@ Siehe [LICENSE.md](LICENSE.md).
 - Klassisches Shared Hosting mit `public/index.php` als Front Controller.
 - Keine Composer-Abhaengigkeiten im produktiven Kern.
 - Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Produktive UI-Sprache in Version `1.15.80`: UI-Texte muessen aus
+- Produktive UI-Sprache in Version `1.15.81`: UI-Texte muessen aus
   `ui_text_keys` und `ui_text_translations` kommen. PHP- und Resource-Dateien
   enthalten keine Uebersetzungswoerterbuecher mehr.
 - UI-Texte werden schrittweise in die Datenbanktabellen `ui_text_keys` und
@@ -77,7 +77,8 @@ Der aktuelle produktive Kern umfasst:
   fuer direkte Stellenlinks.
 - Bewerbungen mit Auto-Speichern, sichtbarem Speicherstatus,
   Onlinebewerbungsfluss, E-Mail-Fluss, Dokumentzuordnung, Portalpaket,
-  temporaerem Dokumentordner, Einreichungsprotokoll und Pendent.
+  temporaerem Dokumentordner, vollstaendiger Attachment-Pruefung vor dem
+  E-Mail-Versand, Einreichungsprotokoll und Pendent.
 - Pendent-Zentrale und Kalender mit Agenda, Tages-, Wochen- und Monatsmatrix
   sowie ICS-Export.
 - Reports mit Tabellenansicht, Filtern, Sortierung, Speicherung und PDF-Export.

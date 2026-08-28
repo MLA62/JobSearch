@@ -531,6 +531,20 @@ try {
             'pt-BR' => 'Falha ao salvar automaticamente. Salve manualmente.',
             'es-MX' => 'Falló el guardado automático. Guarda manualmente.',
         ],
+        'applications.attachments_missing' => [
+            'de-CH' => 'E-Mail nicht gesendet. Diese zugeordneten Dokumente fehlen: {documents}. Entferne die Zuordnung oder lade die Dokumente erneut hoch.',
+            'fr-CH' => 'E-mail non envoyé. Ces documents associés sont manquants : {documents}. Supprime l’association ou téléverse à nouveau les documents.',
+            'en-GB' => 'Email not sent. These assigned documents are missing: {documents}. Remove the assignment or upload the documents again.',
+            'pt-BR' => 'E-mail não enviado. Estes documentos associados estão ausentes: {documents}. Remova a associação ou envie os documentos novamente.',
+            'es-MX' => 'Correo no enviado. Faltan estos documentos asignados: {documents}. Elimina la asignación o vuelve a cargar los documentos.',
+        ],
+        'applications.unnamed_document' => [
+            'de-CH' => 'Zugeordnetes Dokument ohne Dateinamen',
+            'fr-CH' => 'Document associé sans nom de fichier',
+            'en-GB' => 'Assigned document without a filename',
+            'pt-BR' => 'Documento associado sem nome de arquivo',
+            'es-MX' => 'Documento asignado sin nombre de archivo',
+        ],
     ] as $textKey => $translations) {
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
@@ -3719,26 +3733,31 @@ function interpolateSql(mysqli $db, string $sql, string $types, array $values): 
     return $sql;
 }
 
-function applicationDocumentFiles(mysqli $db, int $userId, int $applicationId): array
+function applicationDocumentAttachmentState(mysqli $db, int $userId, int $applicationId): array
 {
     $rows = dbAll(
         $db,
-        'SELECT d.id, d.original_filename, d.storage_path, d.mime_type, d.file_size
+        'SELECT ad.user_document_id, d.id, d.original_filename, d.storage_path, d.mime_type, d.file_size, d.deleted_at
            FROM application_documents ad
-           JOIN user_documents d ON d.id=ad.user_document_id
-          WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL
+           LEFT JOIN user_documents d ON d.id=ad.user_document_id AND d.user_id=?
+          WHERE ad.application_id=?
           ORDER BY ad.sort_order, d.scope DESC, d.title, d.version DESC',
         'ii',
-        [$applicationId, $userId]
+        [$userId, $applicationId]
     );
     $root = realpath(storageRoot());
-    if (!$root) {
-        return [];
-    }
     $files = [];
+    $missing = [];
     foreach ($rows as $row) {
+        $filename = trim((string) ($row['original_filename'] ?? ''));
+        $missingLabel = $filename !== '' ? $filename : tr('applications.unnamed_document');
+        if (empty($row['id']) || !empty($row['deleted_at'])) {
+            $missing[] = $missingLabel;
+            continue;
+        }
         $path = realpath(__DIR__ . '/' . (string) $row['storage_path']);
-        if (!$path || !str_starts_with($path, $root) || !is_file($path)) {
+        if (!$root || !$path || !str_starts_with($path, $root) || !is_file($path) || !is_readable($path)) {
+            $missing[] = $missingLabel;
             continue;
         }
         $files[] = [
@@ -3749,7 +3768,12 @@ function applicationDocumentFiles(mysqli $db, int $userId, int $applicationId): 
             'size' => (int) $row['file_size'],
         ];
     }
-    return $files;
+    return ['files' => $files, 'missing' => array_values(array_unique($missing))];
+}
+
+function applicationDocumentFiles(mysqli $db, int $userId, int $applicationId): array
+{
+    return applicationDocumentAttachmentState($db, $userId, $applicationId)['files'];
 }
 
 function zipSafeName(string $filename, array &$used): string
@@ -7679,7 +7703,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         $uid = userId();
-        $attachments = applicationDocumentFiles($db, $uid, $id);
+        $attachmentState = applicationDocumentAttachmentState($db, $uid, $id);
+        $attachments = $attachmentState['files'];
+        if ($attachmentState['missing']) {
+            flash(tr('applications.attachments_missing', null, ['documents' => implode(', ', $attachmentState['missing'])]), 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
         $sent = false;
         try {
             $sent = sendConfiguredMail($db, $config, $uid, $recipient, $subject, $body, $attachments);
@@ -7750,7 +7779,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.80';
+$codeVersion = '1.15.81';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
