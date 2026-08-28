@@ -141,6 +141,16 @@ aufzubauen.
 ## Kalender und Pendent
 
 - Der Begriff lautet `Pendent`, nicht `Offene Schritte`.
+- Der Bewerbungsworkflow wird in drei klar getrennten Ebenen gefuehrt:
+  `Meilenstein`, `Pendent` und `Termin`.
+- Der Statusverlauf ist der Prozessnachweis und die Grundlage fuer RAV- und
+  Job-Room-Auswertungen. Statusaenderungen werden nicht als offene Aufgaben
+  behandelt.
+- Pro Bewerbung gibt es hoechstens ein aktuelles Pendent. Fruehere Pendenzen
+  bleiben abgeschlossen nachvollziehbar.
+- Nachfassen und andere Wiedervorlagen aus dem Kontaktlog werden ebenfalls als
+  Pendent materialisiert. Vorstellungsgespraeche und manuelle Ereignisse sind
+  Termine und bleiben unabhaengig vom Bewerbungsstatus bearbeitbar.
 - Agenda ist tabellarisch.
 - Tages-, Wochen- und Monatsansichten sind Matrixansichten, keine einfachen
   Listen.

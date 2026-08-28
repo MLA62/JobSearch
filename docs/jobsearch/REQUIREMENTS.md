@@ -168,6 +168,20 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
 ## Pendent und Kalender
 
 - `Pendent` ist die zentrale Aufgabenliste.
+- Bewerbungsstatus, Pendenzen und Termine sind fachlich getrennte Datentypen:
+  - Ein Bewerbungsstatus ist ein unveraenderbarer Prozessmeilenstein.
+  - Der naechste Schritt ist genau ein aktives Pendent pro Bewerbung.
+  - Ein Termin ist ein eigenstaendiges Ereignis, zum Beispiel Nachfassen,
+    Vorstellungsgespraech, Assessment oder Besprechung.
+- Jeder echte Statuswechsel wird mit Zeitpunkt im Statusverlauf und im Kalender
+  als abgeschlossener Meilenstein sichtbar.
+- Ersetzt ein Benutzer den naechsten Schritt, wird der bisherige Schritt
+  abgeschlossen und der neue Schritt als aktives Pendent materialisiert.
+- Terminale Stati (`Angenommen`, `Abgelehnt`, `Zurueckgezogen`, `Geschlossen`)
+  schliessen das aktive Pendent der Bewerbung.
+- Das Job-Room-Ergebnis folgt bei eindeutigen Stati automatisch:
+  Vorstellungsgespraech/Assessment markiert das Gespraech, `Angenommen` setzt
+  `Anstellung`, `Abgelehnt` setzt `Absage`.
 - Daten koennen gefiltert und sortiert werden.
 - Kalender bietet:
   - Agenda als Tabelle
@@ -178,6 +192,10 @@ realen Benutzern und vertraulichen Bewerbungsdaten.
   - Tageseintraege ohne Uhrzeit oben
   - ICS-Export je Ansicht
 - Ereignisse muessen anklickbar sein.
+- Agenda und Kalender enthalten Meilensteine, aktive Pendenzen und Termine;
+  die Pendent-Zentrale zeigt ausschliesslich aktive Pendenzen.
+- Bestehende Daten werden idempotent migriert. Alte automatisch erzeugte
+  Dubletten werden storniert; manuell erfasste Termine bleiben erhalten.
 
 ## Reports und Tabellen
 

@@ -614,19 +614,31 @@ CREATE TABLE calendar_events (
     application_id BIGINT UNSIGNED NULL,
     contact_id BIGINT UNSIGNED NULL,
     title VARCHAR(255) NOT NULL,
-    event_type ENUM('task','follow_up','interview','deadline','meeting','reminder','other') NOT NULL,
+    event_type ENUM('task','follow_up','interview','deadline','meeting','reminder','milestone','other') NOT NULL,
+    entry_kind ENUM('action','appointment','milestone') NOT NULL DEFAULT 'appointment',
+    source_type VARCHAR(40) NULL,
+    source_id BIGINT UNSIGNED NULL,
+    source_key VARCHAR(100) NULL,
     starts_at DATETIME NOT NULL,
     ends_at DATETIME NULL,
     all_day TINYINT(1) NOT NULL DEFAULT 0,
     status ENUM('planned','completed','cancelled') NOT NULL DEFAULT 'planned',
     location VARCHAR(255) NULL,
     notes TEXT NULL,
+    completed_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_calendar_owner_start (owner_user_id, starts_at),
+    KEY idx_calendar_owner_kind (owner_user_id, entry_kind, status, starts_at),
+    UNIQUE KEY uq_calendar_source (owner_user_id, source_type, source_id, source_key),
     CONSTRAINT fk_calendar_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_calendar_application FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     CONSTRAINT fk_calendar_contact FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE app_migrations (
+    migration_key VARCHAR(100) NOT NULL PRIMARY KEY,
+    applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE google_calendar_import_links (
