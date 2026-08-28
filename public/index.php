@@ -503,6 +503,34 @@ try {
             'pt-BR' => 'Falha ao conectar Google: {error}',
             'es-MX' => 'Falló la conexión con Google: {error}',
         ],
+        'applications.autosave_hint' => [
+            'de-CH' => 'Änderungen werden automatisch gespeichert.',
+            'fr-CH' => 'Les modifications sont enregistrées automatiquement.',
+            'en-GB' => 'Changes are saved automatically.',
+            'pt-BR' => 'As alterações são salvas automaticamente.',
+            'es-MX' => 'Los cambios se guardan automáticamente.',
+        ],
+        'applications.autosave_saving' => [
+            'de-CH' => 'Änderungen werden gespeichert …',
+            'fr-CH' => 'Enregistrement des modifications…',
+            'en-GB' => 'Saving changes…',
+            'pt-BR' => 'Salvando alterações…',
+            'es-MX' => 'Guardando cambios…',
+        ],
+        'applications.autosave_saved' => [
+            'de-CH' => 'Alle Änderungen sind gespeichert.',
+            'fr-CH' => 'Toutes les modifications sont enregistrées.',
+            'en-GB' => 'All changes are saved.',
+            'pt-BR' => 'Todas as alterações foram salvas.',
+            'es-MX' => 'Todos los cambios están guardados.',
+        ],
+        'applications.autosave_error' => [
+            'de-CH' => 'Automatisches Speichern fehlgeschlagen. Bitte manuell speichern.',
+            'fr-CH' => 'Échec de l’enregistrement automatique. Enregistre manuellement.',
+            'en-GB' => 'Automatic saving failed. Please save manually.',
+            'pt-BR' => 'Falha ao salvar automaticamente. Salve manualmente.',
+            'es-MX' => 'Falló el guardado automático. Guarda manualmente.',
+        ],
     ] as $textKey => $translations) {
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
@@ -4068,6 +4096,16 @@ function plainText(string $value): string
     return trim((string) preg_replace('/\s+/u', ' ', $value));
 }
 
+function readableText(string $value): string
+{
+    $value = preg_replace('/<\s*br\s*\/?\s*>/iu', "\n", $value) ?? $value;
+    $value = preg_replace('/<\/(?:p|div|li|h[1-6])\s*>/iu', "\n", $value) ?? $value;
+    $value = repairMojibake(html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $value = preg_replace('/[ \t]+/u', ' ', $value) ?? $value;
+    $value = preg_replace('/\n{3,}/u', "\n\n", $value) ?? $value;
+    return trim($value);
+}
+
 function publicHttpUrl(string $url): bool
 {
     $parts = parse_url($url);
@@ -7481,7 +7519,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect($returnTo . '#mail-activity');
     }
 
-    if ($action === 'save_application') {
+    if (in_array($action, ['save_application', 'autosave_application'], true)) {
+        $isAutosave = $action === 'autosave_application';
         $id = (int) ($_POST['id'] ?? 0);
         $old = dbOne($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
         if (!$old) { http_response_code(404); exit('Not found'); }
@@ -7497,6 +7536,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $emailBody = trim((string) ($_POST['email_body'] ?? '')) ?: null;
         $applicationUrl = trim((string) ($_POST['application_url'] ?? '')) ?: null;
         if ($applicationUrl !== null && !filter_var($applicationUrl, FILTER_VALIDATE_URL)) {
+            if ($isAutosave) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(422);
+                echo json_encode(['ok' => false, 'message' => tr('applications.online_url_invalid')], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
             flash(tr('applications.online_url_invalid'), 'danger');
             redirect('/?page=applications&edit=' . $id . '#application-form');
         }
@@ -7553,6 +7598,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($status === 'sent') {
             ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
+        }
+        if ($isAutosave) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'message' => tr('applications.autosave_saved')], JSON_UNESCAPED_UNICODE);
+            exit;
         }
         flash(tr('applications.saved'));
         redirect('/?page=applications&edit=' . $id . '#application-form');
@@ -7700,7 +7750,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.15.79';
+$codeVersion = '1.15.80';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -9187,7 +9237,7 @@ startUiTranslationBuffer($appLocale);
             <label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> <?= e(tr('jobs.save_as_separate')) ?></label><?php endif; ?><button class="primary" name="action" value="save_job"><?= e(tr('common.save')) ?></button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>"><?= e(tr('applications.show')) ?></a></form><?php endif; ?></section>
-        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
+        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="job-readable-details"><article><h3><?= e(tr('common.description')) ?></h3><div class="readable-text" data-readable-target="description"><?= nl2br(e(readableText((string)($edit['description'] ?? '')))) ?></div></article><article><h3><?= e(tr('common.comment')) ?></h3><div class="readable-text" data-readable-target="job_notes"><?= nl2br(e(readableText((string)($edit['notes'] ?? '')))) ?></div></article></div><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><?= e($contact['company_name']) ?><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><script>(()=>{document.querySelectorAll('#new textarea[name="description"], #new textarea[name="job_notes"]').forEach(source=>{const target=document.querySelector(`[data-readable-target="${source.name}"]`);if(!target)return;source.addEventListener('input',()=>{target.textContent=source.value;});});})();</script><?php endif; ?>
         <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow"><?= e(tr('jobs.preparation')) ?></p><h2><?= e(tr('jobs.application_questions')) ?></h2></div><span><?= e(tr('jobs.questions_count', null, ['count' => (string) count($jobQuestions)])) ?></span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label><?= e(tr('jobs.question')) ?><textarea name="question_text" rows="3" required placeholder="<?= e(tr('jobs.question_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.answer_preparation')) ?><textarea name="answer_text" rows="4" placeholder="<?= e(tr('jobs.answer_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.sort_order')) ?><input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question"><?= e(tr('jobs.save_question')) ?></button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('<?= e(tr('jobs.delete_question_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question"><?= e(tr('common.delete')) ?></button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty"><?= e(tr('jobs.no_questions')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','title',tr('common.title'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company',tr('companies.company'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location',tr('jobs.location'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status',tr('common.status'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match',tr('jobs.match'),$jobSf,$jobPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?><small><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score ?>%</td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></span><span class="score"><?= $score ?>%</span></div><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line"><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary><?= e(tr('jobs.why_match', null, ['score' => (string) $score])) ?></summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>"><?= e(tr('jobs.original_document_open')) ?></a><?php endif; ?><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty"><?= e(tr('jobs.empty')) ?></div><?php endif; ?></section><?php endif; ?></div>
         </div>
@@ -9245,9 +9295,10 @@ startUiTranslationBuffer($appLocale);
                 <div><p class="eyebrow"><a class="record-link" href="/?page=companies&edit=<?= (int)$applicationEdit['company_id'] ?>"><?= e($applicationEdit['company_name']) ?></a></p><h2><a class="record-link" href="/?page=jobs&edit=<?= (int)$applicationEdit['job_id'] ?>#new"><?= e($applicationEdit['title']) ?></a></h2></div>
                 <a href="/?page=applications"><?= e(tr('common.close')) ?></a>
             </div>
-            <form method="post" class="stack">
+            <form method="post" class="stack" id="application-edit-form" data-application-autosave data-autosave-idle="<?= e(tr('applications.autosave_hint')) ?>" data-autosave-saving="<?= e(tr('applications.autosave_saving')) ?>" data-autosave-saved="<?= e(tr('applications.autosave_saved')) ?>" data-autosave-error="<?= e(tr('applications.autosave_error')) ?>">
                 <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
                 <input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>">
+                <div class="autosave-toolbar" role="status" aria-live="polite" data-autosave-status data-state="idle"><span class="autosave-indicator" aria-hidden="true"></span><strong><?= e(tr('applications.autosave_hint')) ?></strong><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button></div>
                 <div class="three">
                     <label><?= e(tr('common.status')) ?><select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
@@ -9282,6 +9333,78 @@ startUiTranslationBuffer($appLocale);
                 <label><?= e(tr('applications.internal_notes')) ?><textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
                 <div class="actions"><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button><button class="primary" name="action" value="submit_online_application"><?= e(tr('applications.submitted_online')) ?></button><button name="action" value="send_application_email"><?= e(tr('applications.send_email')) ?></button></div>
             </form>
+            <script>
+            (() => {
+                const form = document.querySelector('#application-edit-form[data-application-autosave]');
+                if (!form) return;
+                const status = form.querySelector('[data-autosave-status]');
+                const statusText = status?.querySelector('strong');
+                const labels = {
+                    idle: form.dataset.autosaveIdle || '',
+                    saving: form.dataset.autosaveSaving || '',
+                    saved: form.dataset.autosaveSaved || '',
+                    error: form.dataset.autosaveError || ''
+                };
+                let timer = 0;
+                let revision = 0;
+                let savedRevision = 0;
+                let requestRunning = false;
+                let manualSubmit = false;
+
+                const setState = state => {
+                    if (!status || !statusText) return;
+                    status.dataset.state = state;
+                    statusText.textContent = labels[state] || labels.idle;
+                };
+
+                const save = async () => {
+                    if (requestRunning || manualSubmit || revision === savedRevision) return;
+                    requestRunning = true;
+                    const requestedRevision = revision;
+                    setState('saving');
+                    const data = new FormData(form);
+                    data.set('action', 'autosave_application');
+                    data.delete('recipient_email');
+                    try {
+                        const response = await fetch('/?page=applications', {
+                            method: 'POST',
+                            body: data,
+                            credentials: 'same-origin',
+                            headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+                        });
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok || result.ok !== true) throw new Error(result.message || 'autosave');
+                        savedRevision = requestedRevision;
+                        setState('saved');
+                    } catch (error) {
+                        setState('error');
+                    } finally {
+                        requestRunning = false;
+                        if (!manualSubmit && revision !== requestedRevision) {
+                            window.clearTimeout(timer);
+                            timer = window.setTimeout(save, 900);
+                        }
+                    }
+                };
+
+                const schedule = event => {
+                    const field = event.target;
+                    if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) return;
+                    if (field.type === 'file' || field.name === 'recipient_email') return;
+                    revision += 1;
+                    setState('idle');
+                    window.clearTimeout(timer);
+                    timer = window.setTimeout(save, 900);
+                };
+
+                form.addEventListener('input', schedule);
+                form.addEventListener('change', schedule);
+                form.addEventListener('submit', () => {
+                    manualSubmit = true;
+                    window.clearTimeout(timer);
+                });
+            })();
+            </script>
             <?php if($history): ?><div class="history"><h3><?= e(tr('applications.status_history')) ?></h3><?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
         </section>
         <section class="panel contact-log" id="documents">

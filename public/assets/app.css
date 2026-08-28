@@ -338,6 +338,73 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
 .inner-split { grid-template-columns: minmax(0, 360px) minmax(0, 1fr); }
 .full-width { display: block; width: 100%; }
 
+.job-readable-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.job-readable-details article {
+    padding: 16px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+}
+
+.readable-text {
+    min-height: 4.5rem;
+    color: var(--text-soft);
+    line-height: 1.55;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.autosave-toolbar {
+    position: sticky;
+    top: 72px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-left: 5px solid var(--accent);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.autosave-toolbar strong { flex: 1 1 auto; }
+
+.autosave-indicator {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.autosave-toolbar[data-state="saving"] .autosave-indicator {
+    animation: autosave-pulse .8s ease-in-out infinite alternate;
+}
+
+.autosave-toolbar[data-state="saved"] {
+    border-left-color: var(--success);
+    background: var(--success-soft);
+}
+
+.autosave-toolbar[data-state="saved"] .autosave-indicator { background: var(--success); }
+.autosave-toolbar[data-state="error"] { border-left-color: var(--danger); background: var(--danger-soft); }
+.autosave-toolbar[data-state="error"] .autosave-indicator { background: var(--danger); }
+
+@keyframes autosave-pulse {
+    from { opacity: .35; transform: scale(.82); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 .page-head {
     display: flex;
     justify-content: space-between;
@@ -1624,4 +1691,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .filters input[name="q"] { min-width: 0; }
     .page-head { align-items: start; }
     .page-head h1 { font-size: 2rem; }
+    .job-readable-details { grid-template-columns: 1fr; }
+    .autosave-toolbar { top: 128px; flex-wrap: wrap; }
+    .autosave-toolbar strong { flex-basis: calc(100% - 28px); }
+    .autosave-toolbar button { width: 100%; }
 }
