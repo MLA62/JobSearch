@@ -108,6 +108,54 @@ try {
             'pt-BR' => 'O código de segurança não foi aceito. Use um novo código da entrada JeMa Jobs no autenticador e verifique se a data e a hora do dispositivo estão definidas automaticamente.',
             'es-MX' => 'No se aceptó el código de seguridad. Usa un código nuevo de la entrada JeMa Jobs en tu autenticador y comprueba que la fecha y la hora del dispositivo se configuren automáticamente.',
         ],
+        'applications.job_room_registration' => [
+            'de-CH' => 'Erfassung im Job-Room', 'fr-CH' => 'Saisie dans Job-Room', 'en-GB' => 'Job-Room registration',
+            'pt-BR' => 'Registro no Job-Room', 'es-MX' => 'Registro en Job-Room',
+        ],
+        'applications.job_room_not_recorded' => [
+            'de-CH' => 'Noch nicht im Job-Room erfasst', 'fr-CH' => 'Pas encore saisi dans Job-Room', 'en-GB' => 'Not yet recorded in Job-Room',
+            'pt-BR' => 'Ainda não registrado no Job-Room', 'es-MX' => 'Todavía no registrado en Job-Room',
+        ],
+        'applications.job_room_recorded' => [
+            'de-CH' => 'Im Job-Room erfasst', 'fr-CH' => 'Saisi dans Job-Room', 'en-GB' => 'Recorded in Job-Room',
+            'pt-BR' => 'Registrado no Job-Room', 'es-MX' => 'Registrado en Job-Room',
+        ],
+        'applications.job_room_unknown' => [
+            'de-CH' => 'Erfassung noch nicht bestätigt', 'fr-CH' => 'Saisie non confirmée', 'en-GB' => 'Registration not confirmed',
+            'pt-BR' => 'Registro não confirmado', 'es-MX' => 'Registro no confirmado',
+        ],
+        'applications.status.interview' => [
+            'de-CH' => 'Bewerbungsgespräche',
+            'fr-CH' => 'Entretiens d’embauche',
+            'en-GB' => 'Interviews',
+            'pt-BR' => 'Entrevistas',
+            'es-MX' => 'Entrevistas',
+        ],
+        'calendar.application_sent' => [
+            'de-CH' => 'Bewerbung gesendet',
+            'fr-CH' => 'Candidature envoyée',
+            'en-GB' => 'Application sent',
+            'pt-BR' => 'Candidatura enviada',
+            'es-MX' => 'Solicitud enviada',
+        ],
+        'applications.next_action' => [
+            'de-CH' => 'Nächster Kalendereintrag',
+            'fr-CH' => 'Prochain événement',
+            'en-GB' => 'Next calendar entry',
+            'pt-BR' => 'Próximo evento',
+            'es-MX' => 'Próximo evento',
+        ],
+        'applications.calendar_date_required' => [
+            'de-CH' => 'Bitte einen Termin für den Kalendereintrag angeben.',
+            'fr-CH' => 'Indique une date pour cet événement.',
+            'en-GB' => 'Please set a date for this calendar entry.',
+            'pt-BR' => 'Informe uma data para este evento.',
+            'es-MX' => 'Indica una fecha para este evento.',
+        ],
+        'applications.status.accepted' => [
+            'de-CH'=>'Zusage', 'fr-CH'=>'Réponse positive', 'en-GB'=>'Positive outcome',
+            'pt-BR'=>'Resposta positiva', 'es-MX'=>'Respuesta positiva',
+        ],
         'jobs.recorded_at' => [
             'de-CH' => 'Erfassungsdatum', 'fr-CH' => 'Date de saisie', 'en-GB' => 'Date recorded',
             'pt-BR' => 'Data de registro', 'es-MX' => 'Fecha de registro',
@@ -765,6 +813,7 @@ try {
     ensureColumn($db, 'applications', 'notes', '`notes` LONGTEXT NULL', 'next_action_at');
     ensureColumn($db, 'applications', 'job_room_result', "`job_room_result` ENUM('open','hired','rejected') NOT NULL DEFAULT 'open'", 'notes');
     ensureColumn($db, 'applications', 'job_room_interview', '`job_room_interview` TINYINT(1) NOT NULL DEFAULT 0', 'job_room_result');
+    ensureColumn($db, 'applications', 'job_room_registration', "`job_room_registration` ENUM('unknown','not_recorded','recorded') NOT NULL DEFAULT 'unknown'", 'job_room_interview');
     ensureColumn($db, 'companies', 'notes', '`notes` TEXT NULL', 'rating');
     ensureColumn($db, 'jobs', 'notes', '`notes` LONGTEXT NULL', 'description');
     $db->query("CREATE TABLE IF NOT EXISTS job_questions (
@@ -900,9 +949,6 @@ try {
     ensureColumn($db, 'application_documents', 'sort_order', '`sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0', 'purpose');
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
     modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
-    $db->query("UPDATE applications a SET a.next_action=NULL, a.next_action_at=NULL WHERE a.status IN ('accepted','rejected','withdrawn','closed') AND a.deleted_at IS NULL AND (a.next_action IS NOT NULL OR a.next_action_at IS NOT NULL)");
-    $db->query("UPDATE applications a SET a.next_action='await_response' WHERE a.status='sent' AND a.deleted_at IS NULL AND (a.next_action IS NULL OR a.next_action='' OR a.next_action IN ('Eingang bestätigen lassen','Antwort auf Bewerbung pendent'))");
-    $db->query("UPDATE applications a SET a.next_action_at=COALESCE(a.applied_at,a.updated_at,a.created_at,NOW()) WHERE a.status='sent' AND a.deleted_at IS NULL AND a.next_action='await_response' AND a.next_action_at IS NULL");
     foreach (dbAll($db, "SELECT a.id, a.user_id FROM applications a JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL WHERE a.status='sent' AND a.deleted_at IS NULL AND a.primary_contact_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM contact_logs l WHERE l.owner_user_id=a.user_id AND l.application_id=a.id AND l.contact_id=a.primary_contact_id AND l.subject='Bewerbung eingereicht') LIMIT 200") as $submittedApplication) {
         ensureSubmittedApplicationContactLog($db, (int) $submittedApplication['user_id'], (int) $submittedApplication['id']);
     }
@@ -999,6 +1045,13 @@ try {
         }
         $db->query("INSERT INTO app_migrations (migration_key) VALUES ('workflow_reconcile_v3')");
     }
+    $db->query("CREATE TABLE IF NOT EXISTS workflow_data_backups (
+        migration_key VARCHAR(100) NOT NULL, entity_type VARCHAR(40) NOT NULL, entity_id BIGINT UNSIGNED NOT NULL,
+        owner_user_id BIGINT UNSIGNED NOT NULL, payload LONGTEXT NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (migration_key, entity_type, entity_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    migrateWorkflowCalendarV5($db);
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
 }
@@ -3473,18 +3526,18 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
         if (in_array($sourceType, ['application_status', 'application_submission'], true)) {
             $workflowStatus = (string)($event['workflow_status'] ?: $event['source_key']);
             $status = $statusLabels[$workflowStatus] ?? $workflowStatus;
-            $title = tr('common.status') . ': ' . $status;
+            $title = $workflowStatus === 'sent' ? tr('calendar.application_sent') : $status;
             $type = tr('applications.status_history');
             $href = '/?page=applications&edit=' . (int)$event['application_id'] . '#application-form';
         } elseif (in_array($sourceType, ['application_next_action', 'application_action_done'], true)) {
             $title = $nextActionLabels[$title] ?? $title;
-            $type = tr('nav.pendents');
+            $type = tr('nav.calendar');
             $href = '/?page=applications&edit=' . (int)$event['application_id'] . '#application-form';
         } elseif ($sourceType === 'contact_log') {
             if ($title === 'follow_up') {
                 $title = $nextActionLabels['follow_up'] ?? $title;
             }
-            $type = tr('nav.pendents');
+            $type = tr('nav.calendar');
             $href = '/?page=contacts&edit_contact=' . (int)$event['contact_id'] . '#contact-log';
         }
         $contactName = trim((string)($event['first_name'] ?? '') . ' ' . (string)($event['last_name'] ?? ''));
@@ -3494,6 +3547,8 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
             'id' => (int) $event['id'],
             'entry_kind' => $entryKind,
             'source_type' => $sourceType,
+            'source_key' => (string)($event['source_key'] ?? ''),
+            'workflow_status' => (string)($event['workflow_status'] ?? $event['source_key'] ?? ''),
             'application_id' => (int)($event['application_id'] ?? 0),
             'raw_title' => (string)$event['title'],
             'applied_at' => (string)($event['applied_at'] ?? ''),
@@ -3511,7 +3566,7 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
             'href' => $href,
         ];
     }
-    return $rows;
+    return calendarExportRows($rows);
 }
 
 function calendarIcsEscape(string $value): string
@@ -3726,39 +3781,25 @@ function googleCalendarOwnsEvent(array $remote, string $source, int $id): bool
 function calendarExportRows(array $events): array
 {
     $rows = [];
-    $days = [];
+    $seen = [];
     foreach ($events as $event) {
-        // Waiting is a process state, not an appointment at the moment of submission.
-        if (($event['source_type'] ?? '') === 'application_next_action'
-            && ($event['raw_title'] ?? '') === 'await_response'
-            && !empty($event['applied_at']) && $event['starts_at'] === $event['applied_at']) {
-            continue;
+        $source = (string)($event['source_type'] ?? '');
+        if ($source === 'application_next_action' && ($event['raw_title'] ?? '') === 'await_response') { continue; }
+        if ($source === 'application_next_action'
+            && preg_match('/^(completed|closed)-[0-9]+$/', (string)($event['source_key'] ?? ''))) { continue; }
+        if (($event['entry_kind'] ?? '') === 'milestone') {
+            // Preparation and process changes stay in history; they are not appointments.
+            $status = (string)($event['workflow_status'] ?? $event['raw_title'] ?? '');
+            if (!in_array($status, ['sent', 'accepted', 'rejected'], true)) { continue; }
+            $key = (int)($event['application_id'] ?? 0) . ':' . $event['starts_at'] . ':' . $status;
+            if (!empty($event['application_id']) && isset($seen[$key])) { continue; }
+            $seen[$key] = true;
+            $event['all_day'] = 0;
+            $event['ends_at'] = $event['starts_at'];
         }
-        $applicationId = (int)($event['application_id'] ?? 0);
-        if (($event['entry_kind'] ?? '') !== 'milestone' || !$applicationId) {
-            $rows[] = $event;
-            continue;
-        }
-        $date = substr($event['starts_at'], 0, 10);
-        $key = $applicationId . ':' . $date;
-        if (!isset($days[$key])) {
-            $days[$key] = $event;
-            $days[$key]['source'] = 'application_day';
-            $days[$key]['all_day'] = 1;
-            $days[$key]['starts_at'] = $date . ' 00:00:00';
-            $days[$key]['ends_at'] = $date . ' 00:00:00';
-            $days[$key]['notes'] = '';
-            $days[$key]['milestones'] = [];
-        }
-        $days[$key]['id'] = min((int)$days[$key]['id'], (int)$event['id']);
-        $days[$key]['title'] = $event['title'];
-        $line = substr($event['starts_at'], 11, 5) . ' ' . $event['title'];
-        if (!isset($days[$key]['milestones'][$line])) {
-            $days[$key]['notes'] .= ($days[$key]['notes'] === '' ? '' : "\n") . trim($line . "\n" . ($event['notes'] ?? ''));
-            $days[$key]['milestones'][$line] = true;
-        }
+        $rows[] = $event;
     }
-    return array_merge($rows, array_values($days));
+    return $rows;
 }
 
 function calendarRemoteTimes(array $event, array $user): array
@@ -3791,6 +3832,9 @@ function googleCalendarLinkIsCurrent(?array $link, string $hash): bool
 
 function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, array $user): array
 {
+    if (!dbOne($db, "SELECT migration_key FROM app_migrations WHERE migration_key='workflow_calendar_v5'")) {
+        throw new RuntimeException('Calendar migration has not completed; synchronization paused');
+    }
     $settings = googleCalendarSettings($db, $userId);
     if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
         throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
@@ -3832,7 +3876,14 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
         }
         $payload = googleCalendarEventPayload($config, $event, $user);
         try {
-            $googleEventId = trim((string)($link['google_event_id'] ?? '')) ?: googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
+            $stableId = googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
+            if (($link['last_hash'] ?? '') === 'retired') {
+                // A cancelled legacy projection gets a reproducible replacement ID.
+                $stableId = hash('sha256', $stableId . ':timed-v5');
+                $googleEventId = $stableId;
+            } else {
+                $googleEventId = trim((string)($link['google_event_id'] ?? '')) ?: $stableId;
+            }
             $baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events';
             $remote = null;
             try {
@@ -3840,7 +3891,6 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
             } catch (RuntimeException $exception) {
                 if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
             }
-            $stableId = googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
             if ($remote === null && $googleEventId !== $stableId) {
                 $googleEventId = $stableId;
                 try {
@@ -3920,6 +3970,7 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
 
 function googleCalendarEventPayload(array $config, array $event, array $user): array
 {
+    $event['all_day'] = 0;
     $times = calendarRemoteTimes($event, $user);
     $description = trim((string) ($event['meta'] ?? '') . "\n" . (string) ($event['notes'] ?? ''));
     $href = (string) ($event['href'] ?? '');
@@ -3927,7 +3978,7 @@ function googleCalendarEventPayload(array $config, array $event, array $user): a
         $description = trim($description . "\n" . absoluteUrl($config, $href));
     }
     return [
-        'summary' => implode(' · ', array_filter([(string)($event['company_name'] ?? ''), (string)$event['title'], (string)($event['job_title'] ?? '')])),
+        'summary' => implode(' · ', array_filter([(string)($event['company_name'] ?? ''), (string)$event['title']])),
         'description' => $description,
         'location' => (string)($event['location'] ?? ''),
         'start' => $times['start'],
@@ -3944,7 +3995,7 @@ function googleCalendarEventPayload(array $config, array $event, array $user): a
 function googleCalendarSyncHash(array $event): string
 {
     return hash('sha256', json_encode([
-        'payload_version' => 3,
+        'payload_version' => 5,
         'all_day' => (int)($event['all_day'] ?? 0),
         'location' => (string)($event['location'] ?? ''),
         'entry_kind' => (string)($event['entry_kind'] ?? ''),
@@ -4535,7 +4586,6 @@ function applicationNextActionChoices(): array
         'create_cover_letter',
         'create_email_text',
         'send_application',
-        'await_response',
         'follow_up',
         'prepare_interview',
         'send_references',
@@ -4565,14 +4615,7 @@ function applicationNextActionOptions(): array
 
 function applicationDefaultNextAction(string $status): ?string
 {
-    return match ($status) {
-        'draft' => 'review_documents',
-        'ready' => 'send_application',
-        'sent', 'confirmed' => 'await_response',
-        'interview', 'assessment' => 'prepare_interview',
-        'offer' => 'review_offer',
-        default => null,
-    };
+    return null;
 }
 
 function applicationNextActionLabel(?string $nextAction): string
@@ -4586,7 +4629,7 @@ function applicationNextActionLabel(?string $nextAction): string
 
 function applicationStatusSequence(): array
 {
-    return ['draft', 'ready', 'sent', 'confirmed', 'interview', 'assessment', 'offer', 'accepted'];
+    return ['draft', 'ready', 'sent', 'interview', 'accepted', 'rejected'];
 }
 
 function applicationTerminalStatuses(): array
@@ -5936,6 +5979,48 @@ function applicationStatusIsTerminal(string $status): bool
     return in_array($status, ['accepted', 'rejected', 'withdrawn', 'closed'], true);
 }
 
+function migrateWorkflowCalendarV5(mysqli $db): void
+{
+    $key = 'workflow_calendar_v5';
+    if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$key])) { return; }
+    if ((int)(dbOne($db, "SELECT GET_LOCK('jema-workflow-v5', 10) acquired")['acquired'] ?? 0) !== 1) {
+        throw new RuntimeException('Workflow migration is already running');
+    }
+    try {
+        if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$key])) { return; }
+        $db->query("ALTER TABLE applications ALTER COLUMN job_room_registration SET DEFAULT 'not_recorded'");
+        $db->begin_transaction();
+        try {
+            foreach (['applications' => 'user_id', 'calendar_events' => 'owner_user_id'] as $table => $ownerColumn) {
+                $where = $table === 'applications' ? 'deleted_at IS NULL' : "source_type IS NOT NULL";
+                foreach (dbAll($db, "SELECT * FROM {$table} WHERE {$where} FOR UPDATE") as $row) {
+                    $payload = json_encode($row, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                    cascadeExec($db, 'INSERT IGNORE INTO workflow_data_backups (migration_key, entity_type, entity_id, owner_user_id, payload) VALUES (?, ?, ?, ?, ?)', 'ssiis', [$key, $table, (int)$row['id'], (int)$row[$ownerColumn], $payload]);
+                }
+            }
+            // Only retain a waiting date when it is distinct from the automatic submission date.
+            $db->query("UPDATE applications SET next_action_at=CASE
+                WHEN next_action_at=applied_at THEN NULL ELSE next_action_at END
+                WHERE deleted_at IS NULL AND next_action='await_response'");
+            $db->query("UPDATE applications SET next_action=CASE WHEN next_action_at IS NOT NULL THEN 'follow_up' ELSE NULL END
+                WHERE deleted_at IS NULL AND next_action='await_response'");
+            $db->query("UPDATE calendar_events SET status='cancelled', completed_at=NULL
+                WHERE source_type='application_next_action' AND status='completed'
+                AND (source_key=CONCAT('completed-',id) OR source_key=CONCAT('closed-',id))");
+            foreach (dbAll($db, 'SELECT id, user_id FROM applications WHERE deleted_at IS NULL ORDER BY id') as $row) {
+                syncApplicationWorkflow($db, (int)$row['user_id'], (int)$row['id']);
+            }
+            cascadeExec($db, 'INSERT INTO app_migrations (migration_key) VALUES (?)', 's', [$key]);
+            $db->commit();
+        } catch (Throwable $exception) {
+            $db->rollback();
+            throw $exception;
+        }
+    } finally {
+        dbOne($db, "SELECT RELEASE_LOCK('jema-workflow-v5') released");
+    }
+}
+
 function applicationNextActionEventType(string $nextAction): string
 {
     return match ($nextAction) {
@@ -5954,7 +6039,7 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
     }
 
     $historyRows = dbAll($db, 'SELECT id, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
-    if (!$historyRows) {
+    if (!$historyRows && (string)$application['status'] === 'draft') {
         $initialStatus = (string)$application['status'];
         $initialComment = null;
         $changedAt = (string)$application['created_at'];
@@ -5964,20 +6049,8 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
         $historyRows = dbAll($db, 'SELECT id, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
     }
 
-    $latestHistory = $historyRows ? $historyRows[array_key_last($historyRows)] : null;
-    if ($latestHistory && (string)$latestHistory['new_status'] !== (string)$application['status']) {
-        // Ältere Datenbestände konnten den aktuellen Status ohne Verlauf enthalten. Dieser Stand wird als Meilenstein nachgetragen.
-        $oldStatus = (string)$latestHistory['new_status'];
-        $currentStatus = (string)$application['status'];
-        $comment = null;
-        $changedAt = (string)($application['updated_at'] ?: $application['created_at']);
-        $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment, changed_at) VALUES (?, ?, ?, ?, ?, ?)');
-        $history->bind_param('iissss', $applicationId, $userId, $oldStatus, $currentStatus, $comment, $changedAt);
-        $history->execute();
-        $historyRows = dbAll($db, 'SELECT id, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
-    }
-
     $previousWorkflowStatus = null;
+    $submissionSeen = false;
     foreach ($historyRows as $historyRow) {
         $historyId = (int)$historyRow['id'];
         $workflowStatus = (string)$historyRow['new_status'];
@@ -5988,6 +6061,11 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
             continue;
         }
         $previousWorkflowStatus = $workflowStatus;
+        if ($workflowStatus === 'sent' && !$submissionSeen) {
+            // Der Versandzeitpunkt ist der Nachweis, nicht der Zeitpunkt der späteren Erfassung.
+            $changedAt = (string)($application['applied_at'] ?: $changedAt);
+            $submissionSeen = true;
+        }
         upsertWorkflowCalendarEvent(
             $db,
             $userId,
@@ -6008,18 +6086,22 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
             $changedAt
         );
     }
+    if (!$submissionSeen && !empty($application['applied_at'])) {
+        upsertWorkflowCalendarEvent($db, $userId, $applicationId, (int)($application['primary_contact_id'] ?? 0) ?: null,
+            'sent', 'milestone', 'milestone', 'application_submission', $applicationId, 'sent',
+            (string)$application['applied_at'], null, 0, 'completed', null, null, (string)$application['applied_at']);
+    } elseif ($submissionSeen || empty($application['applied_at'])) {
+        cascadeExec($db, "UPDATE calendar_events SET status='cancelled' WHERE owner_user_id=? AND source_type='application_submission' AND source_id=?", 'ii', [$userId, $applicationId]);
+    }
 
     $nextAction = trim((string)($application['next_action'] ?? ''));
     $nextActionAt = trim((string)($application['next_action_at'] ?? ''));
-    if ($nextActionAt === '') {
-        $nextActionAt = (string)($application['applied_at'] ?: $application['updated_at'] ?: $application['created_at']);
-    }
-    if ($nextAction !== '' && !applicationStatusIsTerminal((string)$application['status'])) {
+    if ($nextAction !== '' && $nextActionAt !== '') {
         $currentActionEvent = dbOne($db, "SELECT id, title, starts_at FROM calendar_events WHERE owner_user_id=? AND source_type='application_next_action' AND source_id=? AND source_key='current' LIMIT 1", 'ii', [$userId, $applicationId]);
         if ($currentActionEvent && (string)$currentActionEvent['title'] !== $nextAction) {
-            // Ein ersetzter nächster Schritt bleibt abgeschlossen als Prozessnachweis erhalten.
-            $archiveKey = 'completed-' . (int)$currentActionEvent['id'];
-            cascadeExec($db, "UPDATE calendar_events SET source_key=?, status='completed', completed_at=COALESCE(completed_at,NOW()) WHERE id=? AND owner_user_id=?", 'sii', [$archiveKey, (int)$currentActionEvent['id'], $userId]);
+            // Ersetzen ist kein Beleg für Erledigung.
+            $archiveKey = 'replaced-' . (int)$currentActionEvent['id'];
+            cascadeExec($db, "UPDATE calendar_events SET source_key=?, status='cancelled', completed_at=NULL WHERE id=? AND owner_user_id=?", 'sii', [$archiveKey, (int)$currentActionEvent['id'], $userId]);
         }
         upsertWorkflowCalendarEvent(
             $db,
@@ -6041,8 +6123,7 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
             null
         );
     } else {
-        $finalActionStatus = applicationStatusIsTerminal((string)$application['status']) ? 'completed' : 'cancelled';
-        cascadeExec($db, "UPDATE calendar_events SET source_key=CONCAT('closed-',id), status=?, completed_at=COALESCE(completed_at,NOW()) WHERE owner_user_id=? AND source_type='application_next_action' AND source_id=? AND source_key='current'", 'sii', [$finalActionStatus, $userId, $applicationId]);
+        cascadeExec($db, "UPDATE calendar_events SET status='cancelled', completed_at=NULL WHERE owner_user_id=? AND source_type='application_next_action' AND source_id=? AND source_key='current'", 'ii', [$userId, $applicationId]);
     }
 }
 
@@ -6246,6 +6327,7 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
 }
 
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
+if ($page === 'pendents') { redirect('/?page=calendar&view=agenda'); }
 $action = (string) ($_POST['action'] ?? '');
 if (isset($_GET['lang'])) {
     $_SESSION['locale'] = normalizeLocale((string) $_GET['lang']);
@@ -6858,7 +6940,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $notes = trim((string) ($_POST['event_notes'] ?? '')) ?: null;
         $location = trim((string) ($_POST['event_location'] ?? '')) ?: null;
         $status = array_key_exists((string) ($_POST['event_status'] ?? 'planned'), calendarStatusOptions()) ? (string) $_POST['event_status'] : 'planned';
-        $allDay = !empty($_POST['event_all_day']) ? 1 : 0;
+        $allDay = 0;
         $uid = userId();
         $stmt = $db->prepare("INSERT INTO calendar_events (owner_user_id, application_id, title, event_type, entry_kind, starts_at, ends_at, all_day, status, location, notes) VALUES (?, ?, ?, ?, 'appointment', ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param('iissssisss', $uid, $applicationId, $title, $eventType, $startsAt, $endsAt, $allDay, $status, $location, $notes);
@@ -6884,7 +6966,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $endsAt = $endsAt === '' ? date('Y-m-d H:i:s', strtotime($startsAt) + 1800) : str_replace('T', ' ', $endsAt) . (strlen($endsAt) === 16 ? ':00' : '');
         $eventType = in_array($_POST['event_type'] ?? '', ['task','follow_up','interview','deadline','meeting','reminder','other'], true) ? (string) $_POST['event_type'] : 'reminder';
         $status = array_key_exists((string) ($_POST['event_status'] ?? 'planned'), calendarStatusOptions()) ? (string) $_POST['event_status'] : 'planned';
-        $allDay = !empty($_POST['event_all_day']) ? 1 : 0;
+        $allDay = !empty($event['all_day']) && dbOne($db, 'SELECT calendar_event_id FROM google_calendar_import_links WHERE user_id=? AND calendar_event_id=?', 'ii', [$uid, $eventId]) ? 1 : 0;
         $applicationId = (int) ($_POST['application_id'] ?? 0) ?: null;
         $location = trim((string) ($_POST['event_location'] ?? '')) ?: null;
         $notes = trim((string) ($_POST['event_notes'] ?? '')) ?: null;
@@ -8307,8 +8389,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nextActionAt = null;
             if ($newStatus === 'sent') {
                 $appliedAt = $occurredAt;
-                $nextAction = 'await_response';
-                $nextActionAt = $occurredAt;
+                $nextAction = null;
+                $nextActionAt = null;
             }
             $stmt = $db->prepare('UPDATE applications SET status=?, applied_at=COALESCE(applied_at, ?), next_action=COALESCE(?, next_action), next_action_at=COALESCE(?, next_action_at) WHERE id=? AND user_id=?');
             $stmt->bind_param('ssssii', $newStatus, $appliedAt, $nextAction, $nextActionAt, $logApplicationId, $uid);
@@ -8327,10 +8409,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect($returnTo . '#mail-activity');
     }
 
+    if ($action === 'complete_application_action') {
+        $uid = userId();
+        $id = (int)($_POST['id'] ?? 0);
+        $db->begin_transaction();
+        try {
+            $row = dbOne($db, 'SELECT next_action FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL FOR UPDATE', 'ii', [$id, $uid]);
+            if ($row && !empty($row['next_action'])) {
+                cascadeExec($db, "UPDATE calendar_events SET source_key=CONCAT('done-',id), status='completed', completed_at=NOW()
+                    WHERE owner_user_id=? AND source_type='application_next_action' AND source_id=? AND source_key='current'", 'ii', [$uid, $id]);
+                cascadeExec($db, 'UPDATE applications SET next_action=NULL, next_action_at=NULL WHERE id=? AND user_id=?', 'ii', [$id, $uid]);
+                audit($db, $uid, 'complete', 'application_action', $id, null, ['action'=>$row['next_action']]);
+            }
+            $db->commit();
+        } catch (Throwable $exception) { $db->rollback(); throw $exception; }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
+        redirect('/?page=applications&edit=' . $id . '#application-form');
+    }
+
     if (in_array($action, ['save_application', 'autosave_application'], true)) {
         $isAutosave = $action === 'autosave_application';
         $id = (int) ($_POST['id'] ?? 0);
-        $old = dbOne($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
+        $old = dbOne($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, applied_at, next_action, next_action_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, userId()]);
         if (!$old) { http_response_code(404); exit('Not found'); }
         $allowedStatuses = ['draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed'];
         $allowedChannels = ['email','portal','website','mail','referral','other'];
@@ -8363,6 +8463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? (string)$_POST['job_room_result']
             : 'open';
         $jobRoomInterview = isset($_POST['job_room_interview']) ? 1 : 0;
+        $jobRoomRegistration = in_array($_POST['job_room_registration'] ?? '', ['unknown','not_recorded','recorded'], true) ? (string)$_POST['job_room_registration'] : null;
         $primaryContactId = (int) ($_POST['primary_contact_id'] ?? 0);
         $intermediaryCompanyId = (int) ($_POST['intermediary_company_id'] ?? 0);
         if ($intermediaryCompanyId > 0) {
@@ -8383,7 +8484,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($appliedAt) { $appliedAt = str_replace('T', ' ', $appliedAt) . (strlen($appliedAt) === 16 ? ':00' : ''); }
         if ($nextActionAt) { $nextActionAt = str_replace('T', ' ', $nextActionAt) . (strlen($nextActionAt) === 16 ? ':00' : ''); }
-        if ($status === 'sent' && !$appliedAt) { $appliedAt = date('Y-m-d H:i:s'); }
+        if ($appliedAt && !empty($old['applied_at']) && substr($appliedAt, 0, 16) === substr($old['applied_at'], 0, 16)) {
+            $appliedAt = $old['applied_at'];
+        }
+        if ($status === 'sent' && !$appliedAt) { $appliedAt = $old['applied_at'] ?: date('Y-m-d H:i:s'); }
         $statusChanged = (string)$old['status'] !== $status;
         if ($statusChanged) {
             if (in_array($status, ['interview', 'assessment'], true)) {
@@ -8395,23 +8499,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $jobRoomResult = 'rejected';
             }
         }
-        $actionWasUnchanged = $nextActionInput === trim((string)($old['next_action'] ?? ''));
-        if ($statusChanged && ($nextAction === null || $actionWasUnchanged)) {
-            $nextAction = applicationDefaultNextAction($status);
-            $nextActionAt = $nextAction !== null ? ($status === 'sent' ? ($appliedAt ?: date('Y-m-d H:i:s')) : date('Y-m-d H:i:s')) : null;
-        } elseif ($status === 'sent') {
-            $nextAction = $nextAction ?: 'await_response';
-            $nextActionAt = $nextActionAt ?: ($appliedAt ?: date('Y-m-d H:i:s'));
-        }
-        if (applicationStatusIsTerminal($status)) {
-            $nextAction = null;
-            $nextActionAt = null;
+        if ($nextAction === null) { $nextActionAt = null; }
+        if ($nextAction !== null && $nextActionAt === null) {
+            if ($isAutosave) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(422);
+                echo json_encode(['ok'=>false, 'message'=>tr('applications.calendar_date_required')], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            flash(tr('applications.calendar_date_required'), 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
         }
         $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=?, job_room_result=?, job_room_interview=? WHERE id=? AND user_id=?');
         $uid = userId();
         $applicationUpdateTypes = 'ii' . str_repeat('s', 14) . 'iii';
         $stmt->bind_param($applicationUpdateTypes, $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $jobRoomResult, $jobRoomInterview, $id, $uid);
         $stmt->execute();
+        if ($jobRoomRegistration !== null) {
+            cascadeExec($db, 'UPDATE applications SET job_room_registration=? WHERE id=? AND user_id=?', 'sii', [$jobRoomRegistration, $id, $uid]);
+        }
         if ($statusChanged) {
             $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: null;
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
@@ -8430,9 +8536,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ensureSubmittedApplicationContactLog($db, $uid, $id);
         }
         syncApplicationWorkflow($db, $uid, $id);
+        if ($statusChanged || ($old['applied_at'] ?? '') !== ($appliedAt ?? '') || ($old['next_action'] ?? '') !== ($nextAction ?? '') || ($old['next_action_at'] ?? '') !== ($nextActionAt ?? '')) {
+            syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
+        }
         if ($isAutosave) {
             header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['ok' => true, 'message' => tr('applications.autosave_saved')], JSON_UNESCAPED_UNICODE);
+            echo json_encode(['ok' => true, 'message' => tr('applications.autosave_saved'), 'applied_at' => $appliedAt, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt], JSON_UNESCAPED_UNICODE);
             exit;
         }
         flash(tr('applications.saved'));
@@ -8463,9 +8572,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$validContact) { $primaryContactId = 0; }
         }
         $status = 'sent';
-        $nextAction = 'await_response';
-        $stmt = $db->prepare('UPDATE applications SET primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?');
-        $stmt->bind_param('isssssssssssii', $primaryContactId, $status, $channel, $appliedAt, $nextAction, $appliedAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $coverLetter, $notes, $id, $uid);
+        $stmt = $db->prepare("UPDATE applications SET primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?,
+            next_action_at=CASE WHEN next_action IN ('send_application','await_response') THEN NULL ELSE next_action_at END,
+            next_action=CASE WHEN next_action IN ('send_application','await_response') THEN NULL ELSE next_action END,
+            application_url=?, portal_account=?, reference_number=?, online_notes=?, cover_letter_text=?, notes=? WHERE id=? AND user_id=?");
+        $stmt->bind_param('isssssssssii', $primaryContactId, $status, $channel, $appliedAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $coverLetter, $notes, $id, $uid);
         $stmt->execute();
         if ((string)$old['status'] !== $status) {
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
@@ -8483,7 +8594,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ensureSubmittedApplicationContactLog($db, $uid, $id);
         }
         ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
-        audit($db, $uid, 'submit', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl, 'next_action' => $nextAction, 'next_action_at' => $appliedAt]);
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
+        audit($db, $uid, 'submit', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl]);
         flash(tr('applications.online_submitted_logged'));
         redirect('/?page=applications&edit=' . $id . '#application-form');
     }
@@ -8529,9 +8641,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($sent) {
             $now = date('Y-m-d H:i:s');
             $sentStatus = 'sent';
-            $nextAction = 'await_response';
-            $stmt = $db->prepare('UPDATE applications SET status=?, channel="email", applied_at=COALESCE(applied_at, ?), next_action=?, next_action_at=COALESCE(applied_at, ?), email_subject=?, email_body=? WHERE id=? AND user_id=?');
-            $stmt->bind_param('ssssssii', $sentStatus, $now, $nextAction, $now, $subject, $body, $id, $uid);
+            $stmt = $db->prepare("UPDATE applications SET status=?, channel='email', applied_at=COALESCE(applied_at, ?),
+                next_action_at=CASE WHEN next_action IN ('send_application','await_response') THEN NULL ELSE next_action_at END,
+                next_action=CASE WHEN next_action IN ('send_application','await_response') THEN NULL ELSE next_action END,
+                email_subject=?, email_body=? WHERE id=? AND user_id=?");
+            $stmt->bind_param('ssssii', $sentStatus, $now, $subject, $body, $id, $uid);
             $stmt->execute();
             $oldStatus = (string) $application['status'];
             if ($oldStatus !== $sentStatus) {
@@ -8543,6 +8657,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit($db, $uid, 'send', 'outbound_email', $id, null, ['recipient' => $recipient, 'application_id' => $id, 'attachments' => count($attachments)]);
             ensureSubmittedApplicationContactLog($db, $uid, $id);
             ensureSubmittedApplicationCalendarEvent($db, $uid, $id);
+            syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
             flash(tr('applications.email_sent'));
         } else {
             flash(tr('flash.applications.smtp_missing_draft'), 'warning');
@@ -8591,7 +8706,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.16.3';
+$codeVersion = '1.17.0';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -8681,7 +8796,7 @@ if ($page === 'application_dossier') {
     $contactLogStatuses = contactLogStatusOptions();
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.js"></script></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.js"></script></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('dossier.title')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf"><?= e(tr('dossier.create_pdf')) ?></a></div>
@@ -8745,7 +8860,7 @@ if ($page === 'application_documents_temp') {
     }
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.js"></script></head>
+        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.js"></script></head>
     <body><main class="container"><section class="panel"><p class="eyebrow"><?= e(tr('application_docs.temp_folder')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line"><?= e(tr('application_docs.temp_folder_hint')) ?></p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>"><?= e(tr('application_docs.download_zip')) ?></a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -8992,7 +9107,7 @@ startUiTranslationBuffer($appLocale);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a77dcefb5c5e2e7efda9796f51094c27e7a5eab0/public/assets/layout.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e63e694357babf8d0fc4ead921d4747ef5e17d68/public/assets/layout.js"></script>
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
@@ -9003,7 +9118,7 @@ startUiTranslationBuffer($appLocale);
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.file')) ?></button><div class="menu-panel"><a href="/?page=dashboard"><?= e(tr('nav.dashboard')) ?></a><div class="submenu"><button type="button"><?= e(tr('nav.master_data')) ?></button><div class="submenu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><a href="/?page=documents"><?= e(tr('nav.documents')) ?></a><a href="/?page=profile_links"><?= e(tr('profile.links_title')) ?></a><a href="/?page=translations"><?= e(tr('nav.translations')) ?></a></div></div><a href="/?page=privacy"><?= e(tr('nav.privacy')) ?></a><a href="/?page=audit"><?= e(tr('nav.audit')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.crm')) ?></button><div class="menu-panel"><a href="/?page=companies"><?= e(tr('nav.companies')) ?></a><a href="/?page=contacts"><?= e(tr('nav.contacts')) ?></a><a href="/?page=sharing"><?= e(tr('nav.sharing')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=pendents"><?= e(tr('nav.pendents')) ?></a><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.planning')) ?></button><div class="menu-panel"><a href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.help')) ?></button><div class="menu-panel menu-panel-right"><a href="/?page=help"><?= e(tr('nav.help')) ?></a><a href="/?page=about"><?= e(tr('nav.about')) ?></a></div></div>
@@ -9174,7 +9289,7 @@ startUiTranslationBuffer($appLocale);
             ['label' => tr('dashboard.stats.jobs'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
             ['label' => tr('dashboard.stats.companies'), 'value' => count($companies), 'href' => '/?page=companies'],
             ['label' => tr('dashboard.stats.applications'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
-            ['label' => tr('dashboard.stats.pendents'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM calendar_events WHERE owner_user_id=? AND entry_kind='action' AND status='planned'", 'i', [userId()])['c'], 'href' => '/?page=pendents'],
+            ['label' => tr('nav.calendar'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM calendar_events WHERE owner_user_id=? AND entry_kind IN ('action','appointment') AND status='planned'", 'i', [userId()])['c'], 'href' => '/?page=calendar&view=agenda'],
         ]; ?>
         <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
@@ -9394,7 +9509,7 @@ startUiTranslationBuffer($appLocale);
     <?php elseif ($page === 'calendar'): ?>
         <?php
         $calendarViews = calendarViewOptions();
-        $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)$_GET['view'] : 'agenda';
+        $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)($_GET['view'] ?? 'agenda') : 'agenda';
         $anchor = calendarAnchorDate($currentUser);
         [$rangeStart, $rangeEnd, $prevStep, $nextStep] = calendarRange($calendarView, $anchor);
         syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
@@ -9487,7 +9602,7 @@ startUiTranslationBuffer($appLocale);
             <?php $monthStart=$rangeStart; $monthEnd=$rangeEnd; $monthDays=[]; for($d=$monthStart; $d <= $monthEnd; $d=$d->modify('+1 day')) { $monthDays[]=$d; } ?>
             <h2><?= e(tr('calendar.month_plan')) ?> <?= e($anchor->format('m.Y')) ?></h2><div class="month-grid"><div class="month-week-head"><?= e(tr('calendar.week_number_short')) ?></div><?php foreach([tr('weekday.mon_short'),tr('weekday.tue_short'),tr('weekday.wed_short'),tr('weekday.thu_short'),tr('weekday.fri_short'),tr('weekday.sat_short'),tr('weekday.sun_short')] as $wd): ?><div class="month-day-head"><?= e($wd) ?></div><?php endforeach; ?><?php foreach(array_chunk($monthDays,7) as $week): ?><div class="month-week-no"><?= e($week[0]->format('W')) ?></div><?php foreach($week as $day): $dateKey=$day->format('Y-m-d'); ?><div class="month-day <?= $day->format('m')===$anchor->format('m')?'':'is-muted' ?>"><div class="month-day-top"><strong><?= e($day->format('d.m.')) ?></strong><a class="calendar-add" href="<?= e($newEntryUrl($dateKey.'T09:00')) ?>">+</a></div><?php foreach(($eventsByDate[$dateKey] ?? []) as $event): ?><?= $renderEvent($event, !$isDayEntry($event)) ?><?php endforeach; ?></div><?php endforeach; ?><?php endforeach; ?></div>
         <?php endif; ?>
-        </section><?php $calendarFormEvent = $editCalendarEvent ?: ['id'=>0,'title'=>'','event_type'=>'reminder','starts_at'=>$newStart,'ends_at'=>'','all_day'=>0,'status'=>'planned','location'=>'','notes'=>'','application_id'=>0]; ?><details class="panel calendar-entry-panel" id="calendar-entry-form" <?= ($newStart !== '' || $editCalendarEvent) ? 'open' : '' ?>><summary><?= e($editCalendarEvent ? tr('calendar.edit_entry') : tr('calendar.create_entry')) ?></summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editCalendarEvent): ?><input type="hidden" name="event_id" value="<?= (int)$calendarFormEvent['id'] ?>"><?php endif; ?><label><?= e(tr('common.title')) ?><input name="event_title" value="<?= e((string)$calendarFormEvent['title']) ?>" required></label><div class="two"><label><?= e(tr('calendar.type')) ?><select name="event_type"><?php foreach(calendarEventTypeOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['event_type']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.status')) ?><select name="event_status"><?php foreach(calendarStatusOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['status']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label></div><div class="two"><label><?= e(tr('calendar.start')) ?><input type="datetime-local" name="starts_at" value="<?= e($calendarFormEvent['starts_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['starts_at'])) : '') ?>" required></label><label><?= e(tr('calendar.end')) ?><input type="datetime-local" name="ends_at" value="<?= e($calendarFormEvent['ends_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['ends_at'])) : '') ?>"></label></div><label class="check"><input type="checkbox" name="event_all_day" value="1" <?= (int)$calendarFormEvent['all_day']===1?'checked':'' ?>> <?= e(tr('calendar.all_day')) ?></label><label><?= e(tr('calendar.location')) ?><input name="event_location" value="<?= e((string)$calendarFormEvent['location']) ?>"></label><label><?= e(tr('applications.application')) ?><select name="application_id"><option value="0"><?= e(tr('calendar.no_link')) ?></option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>" <?= (int)$app['id']===(int)$calendarFormEvent['application_id']?'selected':'' ?>><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label><?= e(tr('contact_log.notes')) ?><textarea name="event_notes" rows="3"><?= e((string)$calendarFormEvent['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="<?= $editCalendarEvent ? 'update_calendar_event' : 'save_calendar_event' ?>"><?= e(tr('common.save')) ?></button><?php if($editCalendarEvent): ?><a class="button" href="/?page=calendar&view=<?= e($calendarView) ?>&date=<?= e($anchor->format('Y-m-d')) ?>"><?= e(tr('common.cancel')) ?></a><button name="action" value="delete_calendar_event" onclick="return confirm('<?= e(tr('calendar.delete_confirm')) ?>')"><?= e(tr('common.delete')) ?></button><?php endif; ?></div></form></details>
+        </section><?php $calendarFormEvent = $editCalendarEvent ?: ['id'=>0,'title'=>'','event_type'=>'reminder','starts_at'=>$newStart,'ends_at'=>'','all_day'=>0,'status'=>'planned','location'=>'','notes'=>'','application_id'=>0]; ?><details class="panel calendar-entry-panel" id="calendar-entry-form" <?= ($newStart !== '' || $editCalendarEvent) ? 'open' : '' ?>><summary><?= e($editCalendarEvent ? tr('calendar.edit_entry') : tr('calendar.create_entry')) ?></summary><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><?php if($editCalendarEvent): ?><input type="hidden" name="event_id" value="<?= (int)$calendarFormEvent['id'] ?>"><?php endif; ?><label><?= e(tr('common.title')) ?><input name="event_title" value="<?= e((string)$calendarFormEvent['title']) ?>" required></label><div class="two"><label><?= e(tr('calendar.type')) ?><select name="event_type"><?php foreach(calendarEventTypeOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['event_type']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.status')) ?><select name="event_status"><?php foreach(calendarStatusOptions() as $value=>$label): ?><option value="<?= e($value) ?>" <?= $value===(string)$calendarFormEvent['status']?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label></div><div class="two"><label><?= e(tr('calendar.start')) ?><input type="datetime-local" name="starts_at" value="<?= e($calendarFormEvent['starts_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['starts_at'])) : '') ?>" required></label><label><?= e(tr('calendar.end')) ?><input type="datetime-local" name="ends_at" value="<?= e($calendarFormEvent['ends_at'] ? date('Y-m-d\\TH:i', strtotime((string)$calendarFormEvent['ends_at'])) : '') ?>"></label></div><label><?= e(tr('calendar.location')) ?><input name="event_location" value="<?= e((string)$calendarFormEvent['location']) ?>"></label><label><?= e(tr('applications.application')) ?><select name="application_id"><option value="0"><?= e(tr('calendar.no_link')) ?></option><?php foreach($appsForCalendar as $app): ?><option value="<?= (int)$app['id'] ?>" <?= (int)$app['id']===(int)$calendarFormEvent['application_id']?'selected':'' ?>><?= e($app['title'].' · '.$app['company_name']) ?></option><?php endforeach; ?></select></label><label><?= e(tr('contact_log.notes')) ?><textarea name="event_notes" rows="3"><?= e((string)$calendarFormEvent['notes']) ?></textarea></label><div class="actions"><button class="primary" name="action" value="<?= $editCalendarEvent ? 'update_calendar_event' : 'save_calendar_event' ?>"><?= e(tr('common.save')) ?></button><?php if($editCalendarEvent): ?><a class="button" href="/?page=calendar&view=<?= e($calendarView) ?>&date=<?= e($anchor->format('Y-m-d')) ?>"><?= e(tr('common.cancel')) ?></a><button name="action" value="delete_calendar_event" onclick="return confirm('<?= e(tr('calendar.delete_confirm')) ?>')"><?= e(tr('common.delete')) ?></button><?php endif; ?></div></form></details>
         <?php if((int)($_GET['application_id'] ?? 0) > 0): ?><script>(()=>{const panel=document.querySelector('#calendar-entry-form');if(!panel)return;panel.open=true;const select=panel.querySelector('select[name="application_id"]');if(select)select.value=<?= (int)$_GET['application_id'] ?>;})();</script><?php endif; ?>
     <?php elseif ($page === 'translations'): ?>
         <?php
@@ -10115,6 +10230,7 @@ startUiTranslationBuffer($appLocale);
         <?php
         $appCompanyFilter=(int)($_GET['company_id'] ?? 0); $appJobFilter=(int)($_GET['job_id'] ?? 0); $todoOnly=!empty($_GET['todo']); $appView=($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
         $appSfFields = ['title'=>['label'=>tr('reports.field.job'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'status'=>['label'=>tr('common.status'),'expr'=>'a.status', 'choices'=>applicationStatusOptions()], 'job_room_result'=>['label'=>tr('applications.job_room_status'),'expr'=>'a.job_room_result', 'choices'=>['open'=>tr('job_room_helper.result.open'),'hired'=>tr('job_room_helper.result.hired'),'rejected'=>tr('job_room_helper.result.rejected')]], 'channel'=>['label'=>tr('applications.channel'),'expr'=>'a.channel', 'choices'=>applicationChannelOptions()], 'next_action'=>['label'=>tr('applications.next_action'),'expr'=>'CONCAT_WS(" ", a.next_action, a.next_action_at)']];
+        $appSfFields['applied_at'] = ['label'=>tr('applications.sent_at'),'expr'=>'a.applied_at','filter_expr'=>"CONCAT(DATE_FORMAT(a.applied_at, '%d.%m.%Y %H:%i'), ' ', a.applied_at)"];
         $appSf = sfState('applications', $appSfFields, ['sort'=>'title','dir'=>'asc']);
         $appPreserve = ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : '', 'edit'=>$_GET['edit'] ?? ''];
         $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.updated_at, j.title, j.company_id, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
@@ -10126,7 +10242,7 @@ startUiTranslationBuffer($appLocale);
         $apps=dbAll($db,$appSql,$appTypes,$appVals);
         $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
-        $workflowAppointments = $applicationEdit ? dbAll($db, "SELECT id, title, starts_at, ends_at, status FROM calendar_events WHERE owner_user_id=? AND application_id=? AND entry_kind='appointment' AND status<>'cancelled' ORDER BY starts_at ASC, id ASC", 'ii', [userId(), (int)$applicationEdit['id']]) : [];
+        $workflowAppointments = $applicationEdit ? dbAll($db, "SELECT id, title, starts_at, ends_at, status FROM calendar_events WHERE owner_user_id=? AND application_id=? AND entry_kind IN ('appointment','action') AND source_type IS NULL AND status<>'cancelled' ORDER BY starts_at ASC, id ASC", 'ii', [userId(), (int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
         $primaryContact = null;
         if ($applicationEdit && (int) ($applicationEdit['primary_contact_id'] ?? 0) > 0) {
@@ -10180,10 +10296,16 @@ startUiTranslationBuffer($appLocale);
                 <input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>">
                 <div class="autosave-toolbar" role="status" aria-live="polite" data-autosave-status data-state="idle"><span class="autosave-indicator" aria-hidden="true"></span><strong><?= e(tr('applications.autosave_hint')) ?></strong><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button></div>
                 <div class="three">
-                    <label><?= e(tr('common.status')) ?><select name="status"><?php foreach($applicationStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                    <label><?= e(tr('common.status')) ?><select name="status"><?php foreach(array_intersect_key($applicationStatuses, array_flip(array_merge(applicationStatusSequence(), ['rejected', (string)$applicationEdit['status']]))) as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.sent_at')) ?><input type="datetime-local" name="applied_at" value="<?= e($applicationEdit['applied_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
+                <?php $registration = dbOne($db, 'SELECT job_room_registration FROM applications WHERE id=? AND user_id=?', 'ii', [(int)$applicationEdit['id'], userId()])['job_room_registration'] ?? 'unknown'; ?>
+                <fieldset class="check"><legend><?= e(tr('applications.job_room_registration')) ?></legend>
+                    <label><input type="radio" name="job_room_registration" value="not_recorded" <?= $registration==='not_recorded'?'checked':'' ?>> <?= e(tr('applications.job_room_not_recorded')) ?></label>
+                    <label><input type="radio" name="job_room_registration" value="recorded" <?= $registration==='recorded'?'checked':'' ?>> <?= e(tr('applications.job_room_recorded')) ?></label>
+                    <?php if($registration==='unknown'): ?><label><input type="radio" name="job_room_registration" value="unknown" checked> <?= e(tr('applications.job_room_unknown')) ?></label><?php endif; ?>
+                </fieldset>
                 <fieldset class="check"><legend><?= e(tr('applications.job_room_status')) ?></legend>
                     <label><input type="checkbox" name="job_room_interview" value="1" <?= !empty($applicationEdit['job_room_interview'])?'checked':'' ?>> <?= e(tr('applications.job_room_interview')) ?></label>
                     <label><input type="radio" name="job_room_result" value="open" <?= ($applicationEdit['job_room_result'] ?? 'open')==='open'?'checked':'' ?>> <?= e(tr('job_room_helper.result.open')) ?></label>
@@ -10261,6 +10383,11 @@ startUiTranslationBuffer($appLocale);
                         const result = await response.json().catch(() => ({}));
                         if (!response.ok || result.ok !== true) throw new Error(result.message || 'autosave');
                         savedRevision = requestedRevision;
+                        if (revision === requestedRevision) {
+                            form.elements.applied_at.value = (result.applied_at || '').replace(' ', 'T');
+                            form.elements.next_action.value = result.next_action || '';
+                            form.elements.next_action_at.value = (result.next_action_at || '').replace(' ', 'T');
+                        }
                         setState('saved');
                     } catch (error) {
                         setState('error');
@@ -10307,23 +10434,20 @@ startUiTranslationBuffer($appLocale);
                             $isReachedWorkflowStatus = isset($reachedWorkflowStatuses[$workflowStatus]);
                         ?><li class="<?= $isCurrentWorkflowStatus ? 'is-current' : ($isReachedWorkflowStatus ? 'is-reached' : 'is-future') ?>"><span><?= e($applicationStatuses[$workflowStatus] ?? $workflowStatus) ?></span></li><?php endforeach; ?>
                     </ol>
-                    <div class="workflow-outcomes">
-                        <?php foreach(applicationTerminalStatuses() as $workflowStatus):
-                            $isCurrentWorkflowStatus = $workflowStatus === (string)$applicationEdit['status'];
-                            $isReachedWorkflowStatus = isset($reachedWorkflowStatuses[$workflowStatus]);
-                        ?><span class="<?= $isCurrentWorkflowStatus ? 'is-current' : ($isReachedWorkflowStatus ? 'is-reached' : 'is-future') ?>"><?= e($applicationStatuses[$workflowStatus] ?? $workflowStatus) ?></span><?php endforeach; ?>
-                    </div>
                     <?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?>
                     <?php if(!$history): ?><p class="empty"><?= e(tr('common.no_results')) ?></p><?php endif; ?>
                 </div>
                 <div class="history">
-                    <h3><?= e(tr('applications.next_action')) ?></h3>
-                    <?php if(trim((string)($applicationEdit['next_action'] ?? '')) !== ''): ?><article class="is-current"><strong><?= e($nextActionOptions[(string)$applicationEdit['next_action']] ?? (string)$applicationEdit['next_action']) ?></strong><?php if($applicationEdit['next_action_at']): ?><span><?= e(displayDateTime((string)$applicationEdit['next_action_at'], $currentUser)) ?></span><?php endif; ?></article><?php else: ?><p class="empty"><?= e(tr('applications.no_next_action')) ?></p><?php endif; ?>
-                </div>
-                <div class="history">
                     <div class="section-head compact"><h3><?= e(tr('nav.calendar')) ?></h3><a href="/?page=calendar&view=agenda&application_id=<?= (int)$applicationEdit['id'] ?>#calendar-entry-form"><?= e(tr('calendar.create_entry')) ?></a></div>
+                    <?php if(!empty($applicationEdit['next_action'])): ?>
+                    <article class="is-current">
+                        <div class="actions"><strong><?= e($nextActionOptions[(string)$applicationEdit['next_action']] ?? $applicationEdit['next_action']) ?></strong>
+                        <form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>"><button name="action" value="complete_application_action"><?= e(tr('calendar.status.completed')) ?></button></form></div>
+                        <?php if($applicationEdit['next_action_at']): ?><span><?= e(displayDateTime($applicationEdit['next_action_at'], $currentUser)) ?></span><?php endif; ?>
+                    </article>
+                    <?php endif; ?>
                     <?php foreach($workflowAppointments as $appointment): ?><article><strong><a href="/?page=calendar&edit_event=<?= (int)$appointment['id'] ?>#calendar-entry-form"><?= e($appointment['title']) ?></a></strong><span><?= e(displayDateTime((string)$appointment['starts_at'], $currentUser)) ?></span></article><?php endforeach; ?>
-                    <?php if(!$workflowAppointments): ?><p class="empty"><?= e(tr('common.no_results')) ?></p><?php endif; ?>
+                    <?php if(!$workflowAppointments && empty($applicationEdit['next_action'])): ?><p class="empty"><?= e(tr('common.no_results')) ?></p><?php endif; ?>
                 </div>
             </div>
         </section>
@@ -10424,7 +10548,7 @@ startUiTranslationBuffer($appLocale);
         </section>
         <?php endif; ?>
         <?php if($applicationEdit): ?><?= mailActivityFormHtml($db, userId(), $currentUser, 'application', (int)$applicationEdit['id']) ?><?php endif; ?>
-        <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('applications','title',tr('reports.field.job'),$appSf,$appPreserve) ?><?= sfHeader('applications','company',tr('companies.company'),$appSf,$appPreserve) ?><?= sfHeader('applications','status',tr('common.status'),$appSf,$appPreserve) ?><?= sfHeader('applications','channel',tr('applications.channel'),$appSf,$appPreserve) ?><?= sfHeader('applications','next_action',tr('applications.next_action'),$appSf,$appPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong><small><?= e($app['applied_at'] ? displayDateTime($app['applied_at'], $currentUser) : '') ?></small></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small><?= e(tr('companies.by')) ?> <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e(applicationChannelOptions()[(string)$app['channel']] ?? (string)$app['channel']) ?></td><td><?= e($nextActionLabel) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('applications.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="6" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · <?= e(tr('companies.by')) ?> <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong><?= e(tr('applications.next_action')) ?>:</strong> <?= e($nextActionLabel) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('applications.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2><?= e(tr('applications.empty_title')) ?></h2><p><?= e(tr('applications.empty_hint')) ?></p><a class="button primary" href="/?page=jobs"><?= e(tr('applications.to_jobs')) ?></a></div><?php endif; ?></section><?php endif; ?>
+        <?php if($appView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('applications','applied_at',tr('applications.sent_at'),$appSf,$appPreserve) ?><?= sfHeader('applications','title',tr('reports.field.job'),$appSf,$appPreserve) ?><?= sfHeader('applications','company',tr('companies.company'),$appSf,$appPreserve) ?><?= sfHeader('applications','status',tr('common.status'),$appSf,$appPreserve) ?><?= sfHeader('applications','channel',tr('applications.channel'),$appSf,$appPreserve) ?><?= sfHeader('applications','next_action',tr('applications.next_action'),$appSf,$appPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><tr class="<?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><td><?= e(displayDateTime($app['applied_at'], $currentUser)) ?></td><td><strong><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e($app['title']) ?></a></strong></td><td><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?><small><?= e(tr('companies.by')) ?> <?= e($app['intermediary_company_name']) ?></small><?php endif; ?></td><td><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></td><td><?= e(applicationChannelOptions()[(string)$app['channel']] ?? (string)$app['channel']) ?></td><td><?= e($nextActionLabel) ?><?php if($app['next_action_at']): ?><small><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></small><?php endif; ?></td><td class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('applications.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$apps): ?><tr><td colspan="7" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="application-list"><?php foreach($apps as $app): $nextActionLabel = $nextActionOptions[(string)$app['next_action']] ?? (string)$app['next_action']; ?><article class="application-card <?= $applicationEdit && (int)$applicationEdit['id']===(int)$app['id']?'is-selected':'' ?>"><p class="meta-line"><?= e(tr('applications.sent_at')) ?>: <?= e(displayDateTime($app['applied_at'], $currentUser)) ?></p><div class="job-top"><span class="badge"><?= e($applicationStatuses[$app['status']] ?? $app['status']) ?></span><?php if($app['next_action_at']): ?><span class="due"><?= e(displayDateTime($app['next_action_at'], $currentUser)) ?></span><?php endif; ?></div><h3><a href="/?page=jobs&edit=<?= (int)$app['job_id'] ?>#new"><?= e($app['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$app['company_id'] ?>"><?= e($app['company_name']) ?></a><?php if($app['intermediary_company_name']): ?> · <?= e(tr('companies.by')) ?> <a href="/?page=companies&edit=<?= (int)$app['intermediary_company_id'] ?>"><?= e($app['intermediary_company_name']) ?></a><?php endif; ?></p><?php if($app['next_action']): ?><p><strong><?= e(tr('applications.next_action')) ?>:</strong> <?= e($nextActionLabel) ?></p><?php endif; ?><div class="actions"><a href="/?page=applications&edit=<?= (int)$app['id'] ?>#application-form"><?= e(tr('common.edit')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('applications.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$app['id'] ?>"><button name="action" value="delete_application"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$apps): ?><div class="panel empty"><h2><?= e(tr('applications.empty_title')) ?></h2><p><?= e(tr('applications.empty_hint')) ?></p><a class="button primary" href="/?page=jobs"><?= e(tr('applications.to_jobs')) ?></a></div><?php endif; ?></section><?php endif; ?>
     <?php elseif ($page === 'contacts'): ?>
         <?php
         $contactCompanyFilter=(int)($_GET['company_id'] ?? 0);

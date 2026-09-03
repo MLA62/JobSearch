@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // Load only pure helpers, without production bootstrap or credentials.
-$source = file_get_contents(__DIR__ . '/../public/index.php');
+$source = file_get_contents($argv[1] ?? __DIR__ . '/../public/index.php');
 $wanted = array_flip(['sfApplySql', 'sfOrderSql', 'displayDateTime', 'localeForCountry']);
 $tokens = token_get_all($source);
 for ($i = 0; $i < count($tokens); $i++) {
