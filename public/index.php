@@ -101,6 +101,13 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
     foreach ([
+        'auth.totp_invalid' => [
+            'de-CH' => 'Der Sicherheitscode wurde nicht akzeptiert. Bitte verwende einen neuen Code aus dem Authenticator-Eintrag für JeMa Jobs und prüfe, ob Datum und Uhrzeit deines Geräts automatisch eingestellt sind.',
+            'fr-CH' => 'Le code de sécurité a été refusé. Utilise un nouveau code de l’entrée JeMa Jobs dans ton application d’authentification et vérifie que la date et l’heure de ton appareil sont réglées automatiquement.',
+            'en-GB' => 'The security code was not accepted. Use a new code from the JeMa Jobs entry in your authenticator and check that your device sets its date and time automatically.',
+            'pt-BR' => 'O código de segurança não foi aceito. Use um novo código da entrada JeMa Jobs no autenticador e verifique se a data e a hora do dispositivo estão definidas automaticamente.',
+            'es-MX' => 'No se aceptó el código de seguridad. Usa un código nuevo de la entrada JeMa Jobs en tu autenticador y comprueba que la fecha y la hora del dispositivo se configuren automáticamente.',
+        ],
         'jobs.recorded_at' => [
             'de-CH' => 'Erfassungsdatum', 'fr-CH' => 'Date de saisie', 'en-GB' => 'Date recorded',
             'pt-BR' => 'Data de registro', 'es-MX' => 'Fecha de registro',
@@ -8584,7 +8591,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.16.2';
+$codeVersion = '1.16.3';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
