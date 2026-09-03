@@ -12,6 +12,11 @@
     const topbar = document.querySelector('.topbar');
     if (topbar) new ResizeObserver(updateViewport).observe(topbar);
 
+    // Navigation targets keep link semantics; command links get button styling.
+    document.querySelectorAll('.actions a, .section-head > a, .auth-card > p > a, .help-quickstart article > a, .calendar-add, .filter-note > a:last-child').forEach(link => {
+        link.classList.add('button');
+    });
+
     // Editors retain their original form elements and listeners.
     document.querySelectorAll('.split').forEach(workspace => {
         const children = [...workspace.children];
