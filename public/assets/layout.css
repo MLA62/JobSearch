@@ -63,13 +63,14 @@ textarea { line-height: 1.5; }
 .admin-users-head > span { white-space: nowrap; }
 .admin-users-head > .button { justify-self: end; white-space: nowrap; }
 .table-wrap .layout-table td.admin-user-actions { white-space: normal; overflow: visible; text-overflow: clip; }
-.admin-users-table th:last-child, .admin-users-table td:last-child { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px rgba(20, 31, 48, .08); }
-.admin-users-table th:last-child { z-index: 3; }
+.admin-users-table table { min-width: 950px; }
+.admin-users-table th:last-child, .admin-users-table td:last-child { position: static; box-shadow: none; }
 .admin-users-table th:last-child, .admin-users-table td:last-child { width: 250px; min-width: 250px; }
 .admin-users-table th:first-child, .admin-users-table td:first-child { width: 220px; min-width: 220px; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .admin-users-table th:nth-child(2), .admin-users-table td:nth-child(2),
 .admin-users-table th:nth-child(3), .admin-users-table td:nth-child(3) { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
-.admin-users-table td:nth-child(4) { width: 42px; min-width: 42px; text-align: center; }
+.admin-users-table th:nth-child(4), .admin-users-table td:nth-child(4) { width: 110px; min-width: 110px; }
+.admin-users-table td:nth-child(4) { text-align: center; }
 .admin-users-table .admin-user-actions > a,
 .admin-users-table .admin-user-actions > form,
 .admin-users-table .admin-user-actions > button { display: inline-flex; margin: 0 6px 0 0; vertical-align: middle; }
