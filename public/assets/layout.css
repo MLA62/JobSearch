@@ -83,6 +83,14 @@ textarea { line-height: 1.5; }
 .layout-table td { overflow: hidden; text-overflow: ellipsis; }
 .layout-table td.layout-primary { width: 25%; }
 .layout-table td.layout-primary > strong { max-width: 100%; }
+.table-wrap .layout-table td.layout-primary,
+.table-wrap .layout-table td.layout-primary > strong,
+.table-wrap .layout-table td.layout-primary > strong > a {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
 .layout-table td.layout-actions { width: 12%; }
 .layout-table th.layout-primary { width: 25%; }
 .layout-table th.layout-actions { width: 12%; }
