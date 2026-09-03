@@ -31,15 +31,26 @@ input, select, textarea { min-width: 0; font-size: 1rem; }
 textarea { line-height: 1.5; }
 .import-form { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
 .table-wrap, .panel.table-wrap, .table-wrap:has(.sf-menu[open]) { max-width: 100%; overflow-x: auto; padding: 8px 0; }
-.table-wrap table { table-layout: auto; }
+.table-wrap table { table-layout: fixed; }
 .layout-table { width: 100%; border: 1px solid #c6d0da; border-radius: 0; border-spacing: 0; }
 .table-wrap .layout-table th, .table-wrap .layout-table td { display: table-cell; padding: 6px 10px; vertical-align: middle; white-space: nowrap; word-break: normal; overflow-wrap: normal; }
-.layout-table th { min-width: var(--column-min, 100px); text-transform: none; font-size: .85rem; }
+.layout-table th { min-width: 0; text-transform: none; font-size: .85rem; }
 .table-wrap .layout-table td, .table-wrap .layout-table td:not(:first-child) { font-size: .875rem; line-height: 1.4; }
 .layout-table td > small, .layout-table td > strong + small { display: inline; margin: 0 0 0 8px; font-size: inherit; line-height: inherit; }
 .layout-table td > small:only-child { margin-left: 0; }
 .layout-table .layout-primary > small { display: none; }
 .layout-table .layout-primary > strong { display: inline-block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.layout-table td { overflow: hidden; text-overflow: ellipsis; }
+.layout-table td.layout-primary { width: 25%; }
+.layout-table td.layout-primary > strong { max-width: 100%; }
+.layout-table td.layout-actions { width: 12%; }
+.layout-table th.layout-primary { width: 25%; }
+.layout-table th.layout-actions { width: 12%; }
+.layout-table td:nth-child(1), .layout-table th:nth-child(1) { width: 11%; }
+.layout-table td:nth-child(3), .layout-table th:nth-child(3) { width: 13%; }
+.layout-table td:nth-child(4), .layout-table th:nth-child(4) { width: 11%; }
+.layout-table td:nth-child(5), .layout-table th:nth-child(5) { width: 13%; }
+.layout-table td:nth-child(6), .layout-table th:nth-child(6) { width: 15%; }
 .layout-table .bulk-select-column { width: 36px; min-width: 36px; padding: 6px !important; }
 .layout-table .layout-actions > a, .layout-table .layout-actions > form,
 .layout-table .layout-actions > button { display: inline-flex; margin: 0 6px 0 0; vertical-align: middle; }
