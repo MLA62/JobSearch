@@ -64,6 +64,14 @@ h3 { font-size: 1.05rem; line-height: 1.35; }
 .workspace-editor .stack > label:has(textarea), .workspace-editor .stack > .actions,
 .workspace-editor .stack > fieldset { grid-column: 1 / -1; }
 .workspace-editor .stack > button { align-self: end; }
+.workspace-editor .job-editor-form, .job-editor-form { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.job-editor-form > .job-compact-fields { max-width: 540px; width: 100%; }
+.job-editor-form > .salary-row { max-width: 540px; width: 100%; align-items: start; }
+.job-editor-form .salary-row input, .job-editor-form .salary-row select { padding: 10px 12px; }
+.job-editor-form > .job-source-field { grid-column: 1 / -1; }
+@media (max-width: 700px) {
+    .workspace-editor .job-editor-form, .job-editor-form { grid-template-columns: minmax(0, 1fr); }
+}
 .split:not(.layout-workspace) { grid-template-columns: minmax(300px, 1fr) minmax(0, 2fr); }
 .contact-workspace, .company-path { grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); }
 iframe { display: block; width: 100%; max-width: 100%; border: 1px solid #d4dbe2; }
