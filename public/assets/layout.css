@@ -63,6 +63,9 @@ textarea { line-height: 1.5; }
 .admin-users-head > span { white-space: nowrap; }
 .admin-users-head > .button { justify-self: end; white-space: nowrap; }
 .admin-users-table .admin-user-actions { white-space: nowrap; overflow: visible; text-overflow: clip; }
+.admin-users-table th:last-child, .admin-users-table td:last-child { position: sticky; right: 0; z-index: 2; background: #fff; box-shadow: -6px 0 8px rgba(20, 31, 48, .08); }
+.admin-users-table th:last-child { z-index: 3; }
+.admin-users-table th:last-child, .admin-users-table td:last-child { width: 250px; min-width: 250px; }
 .admin-users-table .admin-user-actions > a,
 .admin-users-table .admin-user-actions > form,
 .admin-users-table .admin-user-actions > button { display: inline-flex; margin: 0 6px 0 0; vertical-align: middle; }
