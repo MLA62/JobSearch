@@ -1,198 +1,64 @@
-# JeMa Jobs - Deployment
+# Deployment und Betrieb
 
-Stand: 2026-08-28
+Stand: 2026-09-03. Zuletzt verifizierte Produktion: 1.18.0 / 541e02d.
+Kandidat dieser Dokumentationsrunde: 1.18.1, noch nicht produktiv bestaetigt.
+Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
-Produktversion: `1.16.0`
+## Freigabegrenzen
 
-Dieses Dokument beschreibt, wie JeMa Jobs produktiv oder in einer neuen
-Umgebung wieder aufgebaut wird. Secrets werden absichtlich nicht dokumentiert.
+Produktionsaenderungen erfolgen ueber cPanel Mail Control mit externer TOTP-Freigabe. Keine FTPS-Abkuerzungen, keine Zertifikatspruefung abschalten, keine alten Freigaben erneut verwenden. Die Zustimmung zu einer Codeaenderung ersetzt nicht die erforderliche externe Ausfuehrungsfreigabe.
 
-## Zielumgebung
+Niemals `config.php`, private Dateien, Datenbankinhalte oder Secrets aus dem Entwicklungsstand ueber die Produktion schreiben. Eine Workflow-Datenbereinigung ist ein eigener Vorgang mit Vorschau; sie gehoert nicht automatisch zum PHP-Deployment.
 
-- Domain: `https://jobs.jema.business`
-- PHP: 8.1+; produktiv wurde PHP 8.1.x beobachtet.
-- Datenbank: MariaDB 10.6.
-- Webroot enthaelt `index.php`, `assets/` und `storage/`.
-- Deployment erfolgt aktuell per explizitem FTPS auf Port 21.
-- FTP/FTPS-Server: `ftp.kerubina.net`.
-- FTP/FTPS-Benutzer, Passwort, Datenbankpasswort, SMTP-Passwoerter und
-  `app_key` gehoeren nicht in Git.
+## Produktionspfade und Abhaengigkeiten
 
-## Lokale Voraussetzungen
+- Webadresse: https://jobs.jema.business/
+- PHP-Einstieg: `public_html/jobs.jema.business/index.php`
+- Private Konfiguration und `storage/` bleiben auf dem Ziel unveraendert.
+- App-CSS und Layout-JavaScript sind auf Commit `a7ab08cd447c48223a4b586ae2fa92d133fd5ca6` gepinnt.
+- Layout-CSS ist auf `e729866c75285d61b2ac5f908a63a631a9c8b686` gepinnt.
+- Asset-URLs und Versionen vor jedem Release im tatsaechlichen PHP pruefen. Lokale Assetaenderung allein aendert keine gepinnte Produktionsdatei.
+- docs/, tests/, SQL und Entwicklerwerkzeuge gehoeren nicht in den oeffentlichen Webroot.
 
-- Git.
-- PHP CLI fuer Syntaxchecks.
-- `curl.exe` oder ein anderer FTPS-faehiger Client.
-- Zugriff auf das Repository `MLA62/JobSearch`.
+Baseline vor dieser Runde: SHA-256
+`938656618b21a799be18779eaccc5519e9ac32c3b2a4117745229802488905d3`,
+771985 Bytes, Serverzeit 2026-09-03T15:56:26+00:00.
+Diese Werte sind historische Vergleichswerte; vor einer neuen Proposal-Erstellung live erneut lesen.
 
-Empfohlene Checks vor jedem Deployment:
+## Releaseablauf
 
-```powershell
-php -l public/index.php
-git diff --check
-git status --short --branch
-```
+1. Sauberen Releaseumfang in Git pruefen; fremde lokale Aenderungen nicht mitnehmen oder verwerfen.
+2. Generatoren, PHP-Lint, Regressionen und Browserpruefungen aus TESTING.md ausfuehren.
+3. Kandidat committen, Remote-Erreichbarkeit des exakten Commits pruefen; Assetrevisionen unveraenderlich pinnen.
+4. Aktuelle Produktionsdatei read-only hashen, bei Bedarf fuer gezielten Rollback sichern. Bei unerwartetem Hash erst die Fremdaenderung klaeren.
+5. Genau die geprueften Bytes als cPanel-Schreibvorschlag mit Zielpfad und Overwrite bereitstellen.
+6. Benutzer fuehrt die externe Freigabe selbst aus. Keine TOTP-Codes anfordern, lesen oder eingeben.
+7. Erst die freigegebene Proposal-ID ausfuehren; Ergebnis und neuen Dateihash mit den lokalen Bytes vergleichen.
+8. Oeffentlichen HTTP-Check sowie angemeldete betroffene Seiten pruefen. Fuenf Sprachen, Desktop und schmales Fenster fuer Hilfereleases.
+9. Releaseprotokoll mit Commit, Ziel, Hash, Zeiten, Pruefumfang und offenen Punkten aktualisieren.
 
-Auf der lokalen Windows-Installation kann PHP auch ueber den installierten
-Winget-Pfad laufen, falls `php` nicht im PATH liegt.
+Nicht freigegeben, abgelaufen oder nicht angemeldet bedeutet **ausstehend**, nicht erfolgreich deployt.
 
-## Datenbank-Neuaufbau
+## Datenwirkung von 1.18.1
 
-1. In cPanel eine Datenbank `JeMaJobs` erstellen. Der produktive Name ist
-   erwartungsgemaess `kerubina_JeMaJobs`.
-2. Dedizierten Datenbankbenutzer mit starkem Passwort erstellen.
-3. Benutzer der Datenbank zuweisen.
-4. In phpMyAdmin `kerubina_JeMaJobs` auswaehlen.
-5. Importieren:
-   - `sql/jobsearch/01_schema.sql`
-   - `sql/jobsearch/02_views.sql`
-6. `sql/jobsearch/00_create_database.sql` nur verwenden, wenn die Umgebung
-   `CREATE DATABASE` erlaubt.
+Das Hilfe-Release fuegt beim ersten Request den geprueften Katalog in `ui_text_keys`/`ui_text_translations` ein bzw. aktualisiert die aufgefuehrten Hilfe-/Kontextkeys. Es verwendet einen Inhalts-Hash als Marker in `app_migrations`, eine DB-Sperre und eine Transaktion.
 
-Hinweis: `public/index.php` enthaelt zusaetzliche rueckwaertskompatible
-Runtime-Migrationen fuer produktive Weiterentwicklung. Ein Neuaufbau sollte
-trotzdem mit dem SQL-Schema beginnen.
+Betroffen sind ausschliesslich Hilfe- und Kontexttexte, keine Firmen, Bewerbungen, Konten oder Kalendertermine. Vorhandene Uebersetzungen dieser Keys werden durch die freigegebenen Texte ersetzt. Fuer einen exakten Text-Rollback die betroffenen UI-Zeilen vorab sichern; ein reiner PHP-Rollback stellt sie nicht zurueck. Nach erfolgreichem Seed erfolgen fuer denselben Hash keine erneuten Ueberschreibungen.
 
-## Konfiguration
+Die v6-Workflowbereinigung wird dadurch weder gestartet noch als abgeschlossen markiert.
 
-Auf dem Zielserver:
+## Betrieb und Fehler
 
-1. `public/config.example.php` nach `public/config.php` kopieren.
-2. Werte setzen:
-
-```php
-'app_name' => 'JeMa Jobs',
-'app_url' => 'https://jobs.jema.business',
-'app_version' => '1.16.0',
-'app_key' => '64-random-hex-characters',
-'admin_emails' => ['admin@jema.business'],
-'db_host' => 'localhost',
-'db_port' => 3306,
-'db_name' => 'kerubina_JeMaJobs',
-'db_user' => 'server-specific-user',
-'db_password' => 'server-secret',
-```
-
-3. Optional zentralen SMTP-Fallback setzen. Normale Benutzer-E-Mails laufen
-   ueber die SMTP-Einstellungen des jeweiligen Benutzers im Profil.
-4. `config.php` niemals committen.
-5. `app_key` nach Produktivstart nicht wechseln, sonst koennen verschluesselte
-   SMTP-Secrets nicht mehr entschluesselt werden.
-
-## Dateien deployen
-
-Produktiv relevante Dateien:
-
-- `public/index.php` -> `index.php`
-- `public/assets/app.css` -> `assets/app.css`
-- `public/assets/favicon.svg` -> `assets/favicon.svg`
-- `public/assets/qrcode.min.js` -> `assets/qrcode.min.js`
-- `public/assets/totp-qr.js` -> `assets/totp-qr.js`
-- `deploy/` nur, wenn Worker oder Installer benoetigt werden.
-- `sql/` nicht in den oeffentlichen Webroot deployen.
-- `docs/` und Markdown-Dateien sind Projektdokumentation, nicht zwingend Teil
-  des Webroots.
-
-Beispiel mit Platzhaltern:
-
-```powershell
-curl.exe -k --ssl-reqd --ftp-pasv --user "FTP_USER:FTP_PASSWORD" -T "public/index.php" "ftp://ftp.kerubina.net/index.php"
-curl.exe -k --ssl-reqd --ftp-pasv --user "FTP_USER:FTP_PASSWORD" -T "public/assets/app.css" "ftp://ftp.kerubina.net/assets/app.css"
-```
-
-Keine echten Zugangsdaten in Shell-History, Chat, Markdown oder Git speichern.
-
-## Live-Checks nach Deployment
-
-```powershell
-curl.exe -k -L -s -o NUL -w "%{http_code} %{size_download} %{url_effective}\n" "https://jobs.jema.business/?page=login"
-curl.exe -k -L -s "https://jobs.jema.business/?page=login" | Select-String -Pattern "app.css?v=|footer"
-```
-
-Erwartung:
-
-- HTTP `200`.
-- HTML ist nicht leer.
-- Footer zeigt die aktuelle Version.
-- Geschuetzte Seiten leiten ohne HTTP 500 zum Login.
-
-Nach manueller Anmeldung sollten stichprobenartig geprueft werden:
-
-- Dashboard
-- Hilfe mit Gluebirnen-Kontext-Hilfe
-- Profil
-- Jobsuche
-- Schnellimport
-- Bewerbungen
-- Dokumente
-- Pendent/Kalender
-- Admin-Benutzerverwaltung
-
-## Worker
-
-### Stellenausschreibungen fuer Jobs
-
-Die Anwendung rendert Quell-Webseiten nicht automatisch. Benutzer erstellen
-bei Bedarf selbst ein PDF oder Ganzseitenbild und laden es im bearbeiteten Job
-hoch. Erlaubt sind PDF, JPG, JPEG und PNG. Die Datei wird in der bestehenden
-Dokumentenablage gespeichert und kann dort geoeffnet, ersetzt oder geloescht
-werden. Dafuer ist kein Browser-Worker und kein Cronjob erforderlich.
-
-### Dokumenttextextraktion
-
-```sh
-php deploy/extract-document-texts.php --limit=20
-```
-
-Cron-Beispiel:
-
-```sh
-*/15 * * * * cd /home/kerubina/jobs.jema.business && php deploy/extract-document-texts.php --limit=20 >> var/log/document-texts.log 2>&1
-```
-
-PDF-Text benoetigt Poppler/`pdftotext`.
-
-## Einmaliger Web-Installer
-
-Wenn kein SSH verfuegbar ist, kann `deploy/installer/install.php` temporaer
-genutzt werden.
-
-Regeln:
-
-- Nur kurzfristig deployen.
-- Zufallstoken verwenden.
-- Nach Erfolg komplett vom Server entfernen.
-- SQL- und Config-Dateien nicht offen im Webroot belassen.
+- Bei PHP-Fehlern Serverlog und Hash pruefen; keine leeren Seiten als Erfolg akzeptieren.
+- Konfigurations-/DB-Ausfall liefert 503. Eine HTTP-200-Antwort allein belegt keine korrekte Authentisierung oder Fachfunktion.
+- Hilfeseed-Fehler werden geloggt; der naechste Request versucht erneut. Sichtbare Raw-Keys sind ein fehlgeschlagener Sprachcheck.
+- Datei-/DB-Sicherungen zugriffsgeschuetzt halten und Wiederherstellung regelmaessig getrennt testen.
+- Dokumenttextextraktion: `php deploy/extract-document-texts.php --limit=20`. PDF benoetigt `pdftotext`; Laufzeit und Cronintervall vom Betreiber konfigurieren, nicht stillschweigend installieren.
+- Ein temporaerer Installer braucht ein Zufallstoken und muss nach Verwendung entfernt werden.
+- Es gibt keinen erforderlichen Browser-Worker fuer Inserate; Benutzer laden PDF/Bild selbst hoch.
 
 ## Rollback
 
-1. Vor Deployment die zuletzt funktionierende `index.php` und `app.css`
-   sichern oder den letzten Git-Commit kennen.
-2. Bei HTTP 500 sofort vorherige Datei per FTPS zurueckspielen.
-3. Live-Check ausfuehren.
-4. Danach Ursache lokal beheben, linten und erneut deployen.
+Gezielt die vorherigen PHP-/Assetbytes ueber eine neue Freigabe wiederherstellen und Hash/Seiten pruefen. Nur die Daten zuruecknehmen, die nachweislich vom fehlerhaften Vorgang geaendert wurden. Kein pauschaler DB-Restore ueber zwischenzeitliche Benutzerarbeit.
 
-Keine destruktiven Datenbank-Rollbacks ohne explizite Sicherung und Freigabe.
-
-## GitHub-Synchronisation
-
-Nach erfolgreichem Live-Deployment:
-
-```powershell
-git status --short --branch
-git add <geaenderte-dateien>
-git commit -m "Beschreibende Nachricht"
-git push origin main
-git status --short --branch
-```
-
-Arbeitsbaum und GitHub sollen nach produktiven Aenderungen synchron sein.
-
-## Installationsnotizen
-
-- Erstinstallation: 2026-06-15.
-- Datenbank: `kerubina_JeMaJobs`.
-- Urspruenglicher Import: 31 Basistabellen und 4 Reporting-Views.
-- Runtime-Migrationen haben seitdem weitere Tabellen und Spalten ergaenzt,
-  unter anderem User Sessions, Support Grants, SMTP Settings, Jobplattformen,
-  Jobfragen, Kontaktlog-Anhaenge, Sharing, Uebersetzungen und Cleanup.
+Workflowbereinigung nutzt zeilenbezogene Sicherungen. Ein entsprechender Rueckweg muss diese pruefen und Konflikte behandeln, nicht die gesamte Produktivdatenbank ersetzen.

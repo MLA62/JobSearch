@@ -1,5 +1,7 @@
 # i18n-Testresultate JeMa Jobs 1.15.8
 
+> Historischer Stand. Am 2026-09-03 als Archiv eingeordnet; damalige Aussagen und Testergebnisse sind kein Nachweis fuer die aktuelle Version. Aktuelle Regeln: [WORKFLOW.md](WORKFLOW.md), Aufbau: [REBUILD.md](REBUILD.md), Pruefstand: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md). Alte Freigaben und Deploymentanweisungen nicht erneut verwenden.
+
 Erstellt: 2026-06-19 14:27:00 Europe/Zurich
 
 | Pruefung | Ergebnis | Detail |

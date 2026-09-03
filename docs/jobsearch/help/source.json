@@ -1,0 +1,2203 @@
+{
+  "version": "1.18.1",
+  "reviewed": "2026-09-03",
+  "locales": [
+    "de-CH",
+    "fr-CH",
+    "en-GB",
+    "pt-BR",
+    "es-MX"
+  ],
+  "topics": [
+    {
+      "id": "overview",
+      "pages": [
+        "dashboard"
+      ],
+      "category": "process",
+      "links": [
+        "jobs",
+        "applications",
+        "calendar"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Überblick",
+          "summary": "Profil, Stellen, Bewerbungen und Termine bilden deinen Arbeitsablauf.",
+          "steps": [
+            "Pflege zuerst dein Profil und die benötigten Dokumente.",
+            "Erfasse eine Stelle und bereite daraus eine Bewerbung vor.",
+            "Führe Bewerbung und Termine im jeweiligen Bereich weiter."
+          ],
+          "tips": [
+            "Der Stellenstatus ist nicht der Bewerbungsstatus. Ein gespeicherter Entwurf ist noch nicht versendet."
+          ]
+        },
+        "fr-CH": {
+          "title": "Vue d’ensemble",
+          "summary": "Profil, offres, candidatures et rendez-vous constituent ton parcours.",
+          "steps": [
+            "Complète d’abord ton profil et les documents nécessaires.",
+            "Enregistre une offre et prépare une candidature.",
+            "Suis la candidature et ses rendez-vous dans les rubriques correspondantes."
+          ],
+          "tips": [
+            "Le statut du poste diffère du statut de candidature. Enregistrer un brouillon ne l’envoie pas."
+          ]
+        },
+        "en-GB": {
+          "title": "Overview",
+          "summary": "Your profile, jobs, applications and appointments form the working process.",
+          "steps": [
+            "Complete your profile and required documents first.",
+            "Save a job and prepare an application from it.",
+            "Manage the application and its appointments in their respective sections."
+          ],
+          "tips": [
+            "A job status is separate from an application status. Saving a draft does not send it."
+          ]
+        },
+        "pt-BR": {
+          "title": "Visão geral",
+          "summary": "Perfil, vagas, candidaturas e compromissos formam seu processo.",
+          "steps": [
+            "Preencha primeiro o perfil e os documentos necessários.",
+            "Cadastre uma vaga e prepare uma candidatura.",
+            "Acompanhe a candidatura e seus compromissos nas respectivas áreas."
+          ],
+          "tips": [
+            "O status da vaga é diferente do status da candidatura. Salvar um rascunho não o envia."
+          ]
+        },
+        "es-MX": {
+          "title": "Vista general",
+          "summary": "Perfil, vacantes, solicitudes y citas forman tu proceso.",
+          "steps": [
+            "Completa primero tu perfil y los documentos necesarios.",
+            "Guarda una vacante y prepara una solicitud.",
+            "Gestiona la solicitud y sus citas en las secciones correspondientes."
+          ],
+          "tips": [
+            "El estado de la vacante es distinto del estado de la solicitud. Guardar un borrador no lo envía."
+          ]
+        }
+      }
+    },
+    {
+      "id": "profile",
+      "pages": [
+        "profile",
+        "profile_links"
+      ],
+      "category": "account",
+      "links": [
+        "profile",
+        "profile_links",
+        "documents"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Profil und Suchwünsche",
+          "summary": "Persönliche Angaben und Suchwünsche werden für deine Bewerbungsarbeit verwendet.",
+          "steps": [
+            "Pflege Kontaktdaten, Region, Zeitzone, App-Sprache und Profil-Links.",
+            "Erfasse gewünschte Tätigkeiten, Orte, Arbeitsmodell, Stellenarten und Pensum von/bis.",
+            "Ergänze Lohn, Verfügbarkeit, Benefits, Ausschlüsse und Sprachkenntnisse; speichere deine Änderungen."
+          ],
+          "tips": [
+            "Die App-Sprache übersetzt keine eigenen Texte oder Dokumente. Bern Stadt, Region Biel und Region Solothurn gehören zur Schweiz."
+          ]
+        },
+        "fr-CH": {
+          "title": "Profil et préférences",
+          "summary": "Tes coordonnées et préférences servent à préparer les candidatures.",
+          "steps": [
+            "Renseigne coordonnées, région, fuseau horaire, langue de l’application et liens de profil.",
+            "Indique fonctions, lieux, mode de travail, types de poste et taux d’activité minimum/maximum.",
+            "Complète salaire, disponibilité, avantages, exclusions et langues; enregistre les modifications."
+          ],
+          "tips": [
+            "La langue de l’application ne traduit pas tes textes ni tes documents. Bern Stadt, Region Biel et Region Solothurn sont en Suisse."
+          ]
+        },
+        "en-GB": {
+          "title": "Profile and preferences",
+          "summary": "Personal details and preferences support your application work.",
+          "steps": [
+            "Set contact details, region, time zone, app language and profile links.",
+            "Enter desired roles, locations, working arrangement, job types and minimum/maximum workload.",
+            "Add salary, availability, benefits, exclusions and language skills; save your changes."
+          ],
+          "tips": [
+            "Changing the app language does not translate your own text or documents. Bern Stadt, Region Biel and Region Solothurn are Swiss regions."
+          ]
+        },
+        "pt-BR": {
+          "title": "Perfil e preferências",
+          "summary": "Dados pessoais e preferências ajudam na preparação das candidaturas.",
+          "steps": [
+            "Preencha contatos, região, fuso horário, idioma do aplicativo e links do perfil.",
+            "Informe funções, locais, modelo de trabalho, tipos de vaga e carga mínima/máxima em porcentagem.",
+            "Acrescente salário, disponibilidade, benefícios, exclusões e idiomas; salve as alterações."
+          ],
+          "tips": [
+            "O idioma do aplicativo não traduz seus textos ou documentos. Bern Stadt, Region Biel e Region Solothurn pertencem à Suíça."
+          ]
+        },
+        "es-MX": {
+          "title": "Perfil y preferencias",
+          "summary": "Tus datos personales y preferencias ayudan a preparar solicitudes.",
+          "steps": [
+            "Completa contacto, región, zona horaria, idioma de la aplicación y enlaces del perfil.",
+            "Indica funciones, lugares, modalidad de trabajo, tipos de puesto y porcentaje mínimo/máximo de jornada.",
+            "Añade salario, disponibilidad, prestaciones, exclusiones e idiomas; guarda los cambios."
+          ],
+          "tips": [
+            "El idioma de la aplicación no traduce tus textos ni documentos. Bern Stadt, Region Biel y Region Solothurn pertenecen a Suiza."
+          ]
+        }
+      }
+    },
+    {
+      "id": "security",
+      "pages": [
+        "login",
+        "register",
+        "forgot_password",
+        "reset_password",
+        "two_factor"
+      ],
+      "category": "account",
+      "links": [
+        "profile"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Anmeldung und Sicherheit",
+          "summary": "Passwort und optionaler Authenticator schützen dein Konto.",
+          "steps": [
+            "Registriere dich oder melde dich mit deiner E-Mail-Adresse an.",
+            "Richte die Zwei-Faktor-Anmeldung im Profil ein und bestätige den Authenticator-Code.",
+            "Nutze bei vergessenem Passwort den Rücksetzablauf; prüfe bei ungültigen Codes die automatische Gerätezeit."
+          ],
+          "tips": [
+            "Teile Passwörter, Wiederherstellungslinks und Authenticator-Codes nicht mit Supportpersonen."
+          ]
+        },
+        "fr-CH": {
+          "title": "Connexion et sécurité",
+          "summary": "Un mot de passe et un authentificateur facultatif protègent ton compte.",
+          "steps": [
+            "Inscris-toi ou connecte-toi avec ton adresse e-mail.",
+            "Configure l’authentification à deux facteurs dans le profil et confirme le code.",
+            "Utilise la réinitialisation en cas d’oubli; si un code est refusé, vérifie l’heure automatique de l’appareil."
+          ],
+          "tips": [
+            "Ne communique ni mots de passe, ni liens de récupération, ni codes d’authentification au support."
+          ]
+        },
+        "en-GB": {
+          "title": "Sign-in and security",
+          "summary": "A password and optional authenticator protect your account.",
+          "steps": [
+            "Register or sign in with your email address.",
+            "Set up two-factor authentication in your profile and confirm the authenticator code.",
+            "Use password recovery if needed; check automatic device time when a code is rejected."
+          ],
+          "tips": [
+            "Do not share passwords, recovery links or authenticator codes with support staff."
+          ]
+        },
+        "pt-BR": {
+          "title": "Acesso e segurança",
+          "summary": "Uma senha e um autenticador opcional protegem sua conta.",
+          "steps": [
+            "Cadastre-se ou entre com seu endereço de e-mail.",
+            "Configure a autenticação em dois fatores no perfil e confirme o código.",
+            "Use a recuperação de senha quando necessário; confira a hora automática do dispositivo se o código for recusado."
+          ],
+          "tips": [
+            "Não compartilhe senhas, links de recuperação ou códigos com o suporte."
+          ]
+        },
+        "es-MX": {
+          "title": "Acceso y seguridad",
+          "summary": "Una contraseña y un autenticador opcional protegen tu cuenta.",
+          "steps": [
+            "Regístrate o inicia sesión con tu correo.",
+            "Configura la autenticación de dos factores en el perfil y confirma el código.",
+            "Usa la recuperación de contraseña si hace falta; revisa la hora automática del dispositivo cuando se rechace un código."
+          ],
+          "tips": [
+            "No compartas contraseñas, enlaces de recuperación ni códigos con soporte."
+          ]
+        }
+      }
+    },
+    {
+      "id": "documents",
+      "pages": [
+        "documents"
+      ],
+      "category": "account",
+      "links": [
+        "documents",
+        "applications"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Dokumente und Versionen",
+          "summary": "Stammdokumente und bewerbungsspezifische Unterlagen bleiben getrennt zuordenbar.",
+          "steps": [
+            "Lade eine Datei hoch und erfasse Titel, Typ und die tatsächliche Sprache des Dokumentes.",
+            "Bearbeite Metadaten oder ersetze die Datei als neue Version.",
+            "Ordne benötigte Unterlagen einer Bewerbung zu und prüfe sie vor Download oder Versand."
+          ],
+          "tips": [
+            "Die Dokumentsprache ist unabhängig von der App-Sprache. Eine Zuordnung ist noch kein Versand."
+          ]
+        },
+        "fr-CH": {
+          "title": "Documents et versions",
+          "summary": "Les documents de base et ceux propres à une candidature restent distincts.",
+          "steps": [
+            "Téléverse un fichier et indique son titre, son type et sa langue réelle.",
+            "Modifie les métadonnées ou remplace le fichier par une nouvelle version.",
+            "Associe les pièces nécessaires à une candidature et vérifie-les avant téléchargement ou envoi."
+          ],
+          "tips": [
+            "La langue du document est indépendante de celle de l’application. Associer un fichier ne l’envoie pas."
+          ]
+        },
+        "en-GB": {
+          "title": "Documents and versions",
+          "summary": "Master documents and application-specific files can be assigned separately.",
+          "steps": [
+            "Upload a file and specify its title, type and actual document language.",
+            "Edit metadata or replace the file with a new version.",
+            "Assign required files to an application and inspect them before downloading or sending."
+          ],
+          "tips": [
+            "Document language is independent of app language. Assigning a file does not send it."
+          ]
+        },
+        "pt-BR": {
+          "title": "Documentos e versões",
+          "summary": "Documentos gerais e arquivos específicos da candidatura podem ser associados separadamente.",
+          "steps": [
+            "Envie um arquivo e informe título, tipo e idioma real do documento.",
+            "Edite os metadados ou substitua o arquivo por uma nova versão.",
+            "Associe os arquivos necessários à candidatura e confira-os antes de baixar ou enviar."
+          ],
+          "tips": [
+            "O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia."
+          ]
+        },
+        "es-MX": {
+          "title": "Documentos y versiones",
+          "summary": "Los documentos generales y los específicos de una solicitud se pueden asociar por separado.",
+          "steps": [
+            "Carga un archivo e indica título, tipo e idioma real del documento.",
+            "Edita los metadatos o reemplaza el archivo con una nueva versión.",
+            "Asocia los archivos necesarios a la solicitud y revísalos antes de descargarlos o enviarlos."
+          ],
+          "tips": [
+            "El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía."
+          ]
+        }
+      }
+    },
+    {
+      "id": "search",
+      "pages": [
+        "job_platform_search"
+      ],
+      "category": "process",
+      "links": [
+        "job_platform_search",
+        "jobs#quick-import"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Stellen suchen",
+          "summary": "Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.",
+          "steps": [
+            "Prüfe Suchbegriffe, Orte und Plattformen.",
+            "Erzeuge den Rechercheprompt und führe die Recherche im externen Werkzeug aus.",
+            "Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport."
+          ],
+          "tips": [
+            "Suchresultate sind Vorschläge. Die App garantiert weder Erreichbarkeit noch Aktualität externer Inserate."
+          ]
+        },
+        "fr-CH": {
+          "title": "Rechercher des offres",
+          "summary": "Le prompt de recherche utilise tes préférences et les plateformes choisies.",
+          "steps": [
+            "Vérifie les mots-clés, lieux et plateformes.",
+            "Génère le prompt puis effectue la recherche dans l’outil externe.",
+            "Colle les liens directs vérifiés, un par ligne, dans l’import rapide."
+          ],
+          "tips": [
+            "Les résultats sont des propositions. L’application ne garantit pas la disponibilité ni l’actualité des annonces externes."
+          ]
+        },
+        "en-GB": {
+          "title": "Search for jobs",
+          "summary": "The research prompt uses your preferences and selected job platforms.",
+          "steps": [
+            "Check keywords, locations and platforms.",
+            "Generate the prompt and run the research in the external tool.",
+            "Paste verified direct advertisement URLs, one per line, into quick import."
+          ],
+          "tips": [
+            "Search results are suggestions. The app does not guarantee availability or freshness of external advertisements."
+          ]
+        },
+        "pt-BR": {
+          "title": "Pesquisar vagas",
+          "summary": "O prompt de pesquisa usa suas preferências e plataformas selecionadas.",
+          "steps": [
+            "Confira palavras-chave, locais e plataformas.",
+            "Gere o prompt e faça a pesquisa na ferramenta externa.",
+            "Cole os links diretos verificados, um por linha, na importação rápida."
+          ],
+          "tips": [
+            "Os resultados são sugestões. O aplicativo não garante a disponibilidade ou atualização dos anúncios externos."
+          ]
+        },
+        "es-MX": {
+          "title": "Buscar vacantes",
+          "summary": "El prompt de investigación utiliza tus preferencias y plataformas elegidas.",
+          "steps": [
+            "Revisa palabras clave, lugares y plataformas.",
+            "Genera el prompt y realiza la búsqueda en la herramienta externa.",
+            "Pega enlaces directos verificados, uno por línea, en la importación rápida."
+          ],
+          "tips": [
+            "Los resultados son sugerencias. La aplicación no garantiza la disponibilidad ni vigencia de anuncios externos."
+          ]
+        }
+      }
+    },
+    {
+      "id": "jobs",
+      "pages": [
+        "jobs"
+      ],
+      "category": "process",
+      "links": [
+        "jobs",
+        "companies"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Stellen erfassen und bearbeiten",
+          "summary": "Eine Stelle beschreibt das Angebot; eine Bewerbung dokumentiert deinen Bewerbungsprozess.",
+          "steps": [
+            "Erfasse die Stelle manuell oder prüfe Vorschläge aus Inserat-URLs beziehungsweise eingefügtem Text.",
+            "Prüfe Firma, vollständigen Jobtitel, Ort, Pensum von/bis, Arbeitsmodell, Vertrag, Lohn und Quelle.",
+            "Speichere die Stelle; lade bei Bedarf das Inserat als PDF oder Bild hoch und bereite eine Bewerbung vor."
+          ],
+          "tips": [
+            "Prüfe Dubletten vor dem Speichern. Importierte Angaben sind zu kontrollieren; der Match-Wert ist nur eine Orientierung."
+          ]
+        },
+        "fr-CH": {
+          "title": "Saisir et modifier une offre",
+          "summary": "L’offre décrit le poste; la candidature documente ta démarche.",
+          "steps": [
+            "Saisis l’offre ou vérifie les propositions issues de liens d’annonces ou de texte collé.",
+            "Contrôle entreprise, titre complet, lieu, taux minimum/maximum, mode de travail, contrat, salaire et source.",
+            "Enregistre; joins si nécessaire l’annonce en PDF ou en image et prépare une candidature."
+          ],
+          "tips": [
+            "Vérifie les doublons avant d’enregistrer. Les données importées doivent être contrôlées; le score de correspondance reste indicatif."
+          ]
+        },
+        "en-GB": {
+          "title": "Create and edit jobs",
+          "summary": "A job describes the offer; an application records your application process.",
+          "steps": [
+            "Enter a job manually or review proposals from advertisement URLs or pasted text.",
+            "Check company, full title, location, minimum/maximum workload, working arrangement, contract, salary and source.",
+            "Save the job; optionally upload the advertisement as PDF or image and prepare an application."
+          ],
+          "tips": [
+            "Check duplicates before saving. Verify imported information; the match score is only a guide."
+          ]
+        },
+        "pt-BR": {
+          "title": "Cadastrar e editar vagas",
+          "summary": "A vaga descreve a oferta; a candidatura registra seu processo.",
+          "steps": [
+            "Cadastre a vaga ou revise propostas obtidas de links de anúncios ou texto colado.",
+            "Confira empresa, título completo, local, carga mínima/máxima, modelo de trabalho, contrato, salário e fonte.",
+            "Salve; anexe o anúncio em PDF ou imagem se necessário e prepare uma candidatura."
+          ],
+          "tips": [
+            "Verifique duplicatas antes de salvar. Confira os dados importados; a pontuação de compatibilidade é apenas uma referência."
+          ]
+        },
+        "es-MX": {
+          "title": "Registrar y editar vacantes",
+          "summary": "La vacante describe la oferta; la solicitud registra tu proceso.",
+          "steps": [
+            "Captura la vacante o revisa propuestas obtenidas de enlaces de anuncios o texto pegado.",
+            "Comprueba empresa, título completo, lugar, jornada mínima/máxima, modalidad, contrato, salario y fuente.",
+            "Guarda; adjunta el anuncio en PDF o imagen si hace falta y prepara una solicitud."
+          ],
+          "tips": [
+            "Revisa duplicados antes de guardar. Verifica los datos importados; la puntuación de coincidencia es orientativa."
+          ]
+        }
+      }
+    },
+    {
+      "id": "companies",
+      "pages": [
+        "companies"
+      ],
+      "category": "crm",
+      "links": [
+        "companies",
+        "contacts"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Firmen und Vermittler",
+          "summary": "Firmen bündeln Adressen, Kontakte, Stellen und Bewerbungen.",
+          "steps": [
+            "Erfasse Name, Adresse, Region, Website und erreichbare Kontaktdaten.",
+            "Kennzeichne einen Personalvermittler nur, wenn die Firma tatsächlich vermittelt.",
+            "Öffne zugehörige Stellen, Bewerbungen oder Kontakte über die jeweiligen Links."
+          ],
+          "tips": [
+            "Eine Firmenverknüpfung ist keine Bewerbung. Strasse, PLZ/Ort und Telefon stehen getrennt in der Übersicht."
+          ]
+        },
+        "fr-CH": {
+          "title": "Entreprises et intermédiaires",
+          "summary": "Les entreprises regroupent adresses, contacts, offres et candidatures.",
+          "steps": [
+            "Renseigne nom, adresse, région, site et coordonnées.",
+            "Marque une entreprise comme intermédiaire uniquement si elle exerce ce rôle.",
+            "Ouvre les offres, candidatures ou contacts associés via leurs liens."
+          ],
+          "tips": [
+            "Un lien vers une entreprise n’est pas une candidature. Rue, NPA/localité et téléphone sont affichés séparément."
+          ]
+        },
+        "en-GB": {
+          "title": "Companies and recruiters",
+          "summary": "Companies group addresses, contacts, jobs and applications.",
+          "steps": [
+            "Enter the name, address, region, website and contact details.",
+            "Mark a company as a recruiter only when it actually serves that role.",
+            "Open related jobs, applications or contacts through their links."
+          ],
+          "tips": [
+            "A company relationship is not an application. Street, postcode/town and telephone appear separately."
+          ]
+        },
+        "pt-BR": {
+          "title": "Empresas e intermediários",
+          "summary": "Empresas reúnem endereços, contatos, vagas e candidaturas.",
+          "steps": [
+            "Preencha nome, endereço, região, site e dados de contato.",
+            "Marque uma empresa como intermediária somente quando ela exercer essa função.",
+            "Abra vagas, candidaturas ou contatos associados pelos respectivos links."
+          ],
+          "tips": [
+            "Um vínculo com uma empresa não é uma candidatura. Rua, CEP/cidade e telefone aparecem separados."
+          ]
+        },
+        "es-MX": {
+          "title": "Empresas e intermediarios",
+          "summary": "Las empresas agrupan direcciones, contactos, vacantes y solicitudes.",
+          "steps": [
+            "Completa nombre, dirección, región, sitio y datos de contacto.",
+            "Marca una empresa como intermediaria solo cuando cumpla esa función.",
+            "Abre vacantes, solicitudes o contactos asociados mediante sus enlaces."
+          ],
+          "tips": [
+            "Un vínculo con una empresa no es una solicitud. Calle, código postal/localidad y teléfono aparecen separados."
+          ]
+        }
+      }
+    },
+    {
+      "id": "contacts",
+      "pages": [
+        "contacts"
+      ],
+      "category": "crm",
+      "links": [
+        "contacts",
+        "companies"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Kontakte und Kontakt-Log",
+          "summary": "Ein Kontakt gehört zu einer Firma und kann mit einer Stelle oder Bewerbung verknüpft sein.",
+          "steps": [
+            "Erstelle oder bearbeite die Person mit Name, Funktion, Telefon, E-Mail und Sprache.",
+            "Erfasse Gespräche und Nachrichten im Kontakt-Log mit Kanal, Richtung, Zeitpunkt, Status und Notiz.",
+            "Ordne bei Bedarf eine Datei zu; plane Nachfassen oder Bewerbungsgespräche separat im Kalender."
+          ],
+          "tips": [
+            "Die Anzahl der Kontakt-Log-Einträge zählt Aktivitäten, nicht Bewerbungen. Offen/geplant ist eine Teilmenge dieser Einträge."
+          ]
+        },
+        "fr-CH": {
+          "title": "Contacts et journal",
+          "summary": "Un contact appartient à une entreprise et peut être lié à une offre ou candidature.",
+          "steps": [
+            "Crée ou modifie la personne avec nom, fonction, téléphone, e-mail et langue.",
+            "Consigne échanges et messages avec canal, direction, date, statut et note.",
+            "Ajoute un fichier si nécessaire; planifie relances et entretiens séparément dans le calendrier."
+          ],
+          "tips": [
+            "Le nombre d’entrées compte les activités, pas les candidatures. Les entrées ouvertes/planifiées en font partie."
+          ]
+        },
+        "en-GB": {
+          "title": "Contacts and contact log",
+          "summary": "A contact belongs to a company and may be linked to a job or application.",
+          "steps": [
+            "Create or edit the person’s name, role, telephone, email and language.",
+            "Record conversations and messages with channel, direction, time, status and notes.",
+            "Attach a file if needed; schedule follow-ups and interviews separately in the calendar."
+          ],
+          "tips": [
+            "The contact-log count measures activities, not applications. Open/planned entries are a subset of that count."
+          ]
+        },
+        "pt-BR": {
+          "title": "Contatos e histórico",
+          "summary": "Um contato pertence a uma empresa e pode estar vinculado a uma vaga ou candidatura.",
+          "steps": [
+            "Cadastre ou edite nome, função, telefone, e-mail e idioma da pessoa.",
+            "Registre conversas e mensagens com canal, direção, data, status e observações.",
+            "Anexe um arquivo se necessário; agende acompanhamentos e entrevistas separadamente no calendário."
+          ],
+          "tips": [
+            "A contagem do histórico representa atividades, não candidaturas. Registros abertos/planejados fazem parte desse total."
+          ]
+        },
+        "es-MX": {
+          "title": "Contactos y registro",
+          "summary": "Un contacto pertenece a una empresa y puede vincularse a una vacante o solicitud.",
+          "steps": [
+            "Crea o edita nombre, función, teléfono, correo e idioma de la persona.",
+            "Registra conversaciones y mensajes con canal, dirección, fecha, estado y notas.",
+            "Adjunta un archivo si hace falta; programa seguimientos y entrevistas por separado en el calendario."
+          ],
+          "tips": [
+            "El conteo del registro corresponde a actividades, no solicitudes. Las entradas abiertas/programadas son parte del total."
+          ]
+        }
+      }
+    },
+    {
+      "id": "applications",
+      "pages": [
+        "applications"
+      ],
+      "category": "process",
+      "links": [
+        "applications",
+        "calendar"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Bewerbungsworkflow",
+          "summary": "Entwurf → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
+          "steps": [
+            "Bereite die Bewerbung vor und prüfe Empfänger, Inhalte und zugeordnete Dokumente.",
+            "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
+            "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
+          ],
+          "tips": [
+            "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis."
+          ]
+        },
+        "fr-CH": {
+          "title": "Parcours de candidature",
+          "summary": "Brouillon → Prête → Envoyée → Entretiens → Acceptation ou refus.",
+          "steps": [
+            "Prépare la candidature et vérifie destinataire, contenu et documents associés.",
+            "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
+            "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
+          ],
+          "tips": [
+            "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi."
+          ]
+        },
+        "en-GB": {
+          "title": "Application workflow",
+          "summary": "Draft → Ready → Sent → Interviews → Accepted or rejected.",
+          "steps": [
+            "Prepare the application and check its recipient, content and assigned documents.",
+            "Record actual sending or external submission; status history receives timestamps.",
+            "Record each interview as a separate appointment and document acceptance or rejection."
+          ],
+          "tips": [
+            "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission."
+          ]
+        },
+        "pt-BR": {
+          "title": "Fluxo de candidatura",
+          "summary": "Rascunho → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
+          "steps": [
+            "Prepare a candidatura e confira destinatário, conteúdo e documentos associados.",
+            "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
+            "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
+          ],
+          "tips": [
+            "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio."
+          ]
+        },
+        "es-MX": {
+          "title": "Proceso de solicitud",
+          "summary": "Borrador → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
+          "steps": [
+            "Prepara la solicitud y revisa destinatario, contenido y documentos asociados.",
+            "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
+            "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
+          ],
+          "tips": [
+            "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío."
+          ]
+        }
+      }
+    },
+    {
+      "id": "online",
+      "pages": [],
+      "category": "process",
+      "links": [
+        "applications"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Onlinebewerbung und Unterlagen",
+          "summary": "Die eigentliche Einreichung erfolgt im externen Bewerbungsportal.",
+          "steps": [
+            "Öffne die hinterlegte Bewerbungs-URL und stelle die geprüften Unterlagen bereit.",
+            "Nutze Download, ZIP-Paket oder temporären Ordner für den externen Upload.",
+            "Bestätige die erfolgte Einreichung anschliessend in JeMa Jobs; ergänze Referenz und Notizen."
+          ],
+          "tips": [
+            "Ein Download oder das Öffnen des Portals reicht nicht als Versandnachweis. Die angezeigte nächste Aufgabe ist kein zusätzlicher Kalendereintrag."
+          ]
+        },
+        "fr-CH": {
+          "title": "Candidature en ligne",
+          "summary": "Le dépôt réel se fait dans le portail externe.",
+          "steps": [
+            "Ouvre l’URL de candidature et prépare les documents vérifiés.",
+            "Utilise téléchargement, archive ZIP ou dossier temporaire pour le dépôt externe.",
+            "Confirme ensuite le dépôt effectué dans JeMa Jobs et complète référence et notes."
+          ],
+          "tips": [
+            "Télécharger des fichiers ou ouvrir le portail ne prouve pas le dépôt. La prochaine tâche affichée ne crée pas un rendez-vous supplémentaire."
+          ]
+        },
+        "en-GB": {
+          "title": "Online applications",
+          "summary": "Actual submission takes place in the external application portal.",
+          "steps": [
+            "Open the saved application URL and prepare checked documents.",
+            "Use downloads, a ZIP package or the temporary folder for external upload.",
+            "Then confirm the completed submission in JeMa Jobs and add a reference and notes."
+          ],
+          "tips": [
+            "Downloading files or opening a portal does not prove submission. The displayed next task does not create an extra calendar event."
+          ]
+        },
+        "pt-BR": {
+          "title": "Candidatura online",
+          "summary": "A entrega real ocorre no portal externo de candidaturas.",
+          "steps": [
+            "Abra a URL cadastrada e prepare os documentos conferidos.",
+            "Use downloads, pacote ZIP ou pasta temporária para o envio externo.",
+            "Depois confirme a entrega realizada no JeMa Jobs e acrescente referência e observações."
+          ],
+          "tips": [
+            "Baixar arquivos ou abrir o portal não comprova entrega. A próxima tarefa exibida não cria um compromisso adicional."
+          ]
+        },
+        "es-MX": {
+          "title": "Solicitud en línea",
+          "summary": "La entrega real se realiza en el portal externo.",
+          "steps": [
+            "Abre la URL guardada y prepara los documentos revisados.",
+            "Utiliza descargas, un archivo ZIP o la carpeta temporal para cargarlos externamente.",
+            "Después confirma la entrega realizada en JeMa Jobs y añade referencia y notas."
+          ],
+          "tips": [
+            "Descargar archivos o abrir el portal no prueba la entrega. La siguiente tarea mostrada no crea una cita adicional."
+          ]
+        }
+      }
+    },
+    {
+      "id": "email",
+      "pages": [],
+      "category": "process",
+      "links": [
+        "profile",
+        "applications",
+        "contacts"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "E-Mail und Motivationsschreiben",
+          "summary": "E-Mail-Versand und das Erfassen einer erhaltenen Antwort sind verschiedene Aktionen.",
+          "steps": [
+            "Prüfe im Profil SMTP, Absender und Signatur; teste mit einer bewusst gewählten Testnachricht.",
+            "Prüfe vor dem Bewerbungsversand Empfänger, Betreff, Text und sämtliche Anhänge.",
+            "Nutze den Motivationsschreiben-Prompt mit Empfängerblock: Firma, Kontakt, Strasse Nr., PLZ Ort."
+          ],
+          "tips": [
+            "„E-Mail / Antwort erfassen“ protokolliert eine Nachricht, versendet sie aber nicht. Das Erfassen erzeugt keinen automatischen Nachfasstermin."
+          ]
+        },
+        "fr-CH": {
+          "title": "E-mail et lettre de motivation",
+          "summary": "Envoyer un e-mail et consigner une réponse reçue sont deux actions distinctes.",
+          "steps": [
+            "Vérifie SMTP, expéditeur et signature dans le profil; teste avec un message volontairement choisi.",
+            "Avant l’envoi, contrôle destinataire, objet, texte et toutes les pièces jointes.",
+            "Utilise le prompt de lettre avec le bloc destinataire: entreprise, contact, rue et numéro, NPA et localité."
+          ],
+          "tips": [
+            "La saisie d’un e-mail ou d’une réponse consigne un message sans l’envoyer. Elle ne crée pas automatiquement de relance."
+          ]
+        },
+        "en-GB": {
+          "title": "Email and cover letters",
+          "summary": "Sending email and recording a received reply are different actions.",
+          "steps": [
+            "Check SMTP, sender and signature in your profile; test with a deliberately chosen test message.",
+            "Before sending an application, verify recipient, subject, text and every attachment.",
+            "Use the cover-letter prompt with the recipient block: company, contact, street and number, postcode and town."
+          ],
+          "tips": [
+            "Recording an email or reply logs a message without sending it. Recording does not automatically schedule a follow-up."
+          ]
+        },
+        "pt-BR": {
+          "title": "E-mail e carta de apresentação",
+          "summary": "Enviar e-mail e registrar uma resposta recebida são ações diferentes.",
+          "steps": [
+            "Confira SMTP, remetente e assinatura no perfil; teste com uma mensagem escolhida conscientemente.",
+            "Antes de enviar a candidatura, confira destinatário, assunto, texto e todos os anexos.",
+            "Use o prompt da carta com o bloco do destinatário: empresa, contato, rua e número, CEP e cidade."
+          ],
+          "tips": [
+            "Registrar um e-mail ou resposta não envia a mensagem. O registro não agenda acompanhamento automaticamente."
+          ]
+        },
+        "es-MX": {
+          "title": "Correo y carta de presentación",
+          "summary": "Enviar un correo y registrar una respuesta recibida son acciones diferentes.",
+          "steps": [
+            "Revisa SMTP, remitente y firma en el perfil; prueba con un mensaje elegido conscientemente.",
+            "Antes de enviar la solicitud, comprueba destinatario, asunto, texto y todos los adjuntos.",
+            "Usa el prompt de la carta con el bloque del destinatario: empresa, contacto, calle y número, código postal y localidad."
+          ],
+          "tips": [
+            "Registrar un correo o respuesta no envía el mensaje. El registro no programa un seguimiento automático."
+          ]
+        }
+      }
+    },
+    {
+      "id": "calendar",
+      "pages": [
+        "calendar"
+      ],
+      "category": "process",
+      "links": [
+        "calendar"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Kalender und Nachfassen",
+          "summary": "Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.",
+          "steps": [
+            "Wähle Agenda, Tag, Arbeitswoche, Woche oder Monat; Heute führt zum aktuellen Datum.",
+            "Erfasse Nachfassen oder jedes einzelne Gespräch mit Datum und Uhrzeit, optional mit Bewerbung.",
+            "Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Export."
+          ],
+          "tips": [
+            "Heute ist in Monat und Wochenansichten grün markiert. Entwurf, Bereit, Bewerbung senden und Antwort pendent erzeugen keine Termine; Versand und Ergebnisse erscheinen als kurze Nachweise."
+          ]
+        },
+        "fr-CH": {
+          "title": "Calendrier et relances",
+          "summary": "Les relances et entretiens sont des rendez-vous explicitement datés.",
+          "steps": [
+            "Choisis agenda, jour, semaine ouvrée, semaine ou mois; Aujourd’hui revient à la date actuelle.",
+            "Saisis chaque relance ou entretien avec date et heure et, si nécessaire, une candidature.",
+            "Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export."
+          ],
+          "tips": [
+            "Aujourd’hui est marqué en vert dans les vues mensuelle et hebdomadaires. Préparation et attente de réponse ne créent pas de rendez-vous; envoi et résultats sont de brèves traces."
+          ]
+        },
+        "en-GB": {
+          "title": "Calendar and follow-ups",
+          "summary": "Follow-ups and interviews are explicitly dated appointments.",
+          "steps": [
+            "Choose agenda, day, workweek, week or month; Today returns to the current date.",
+            "Enter each follow-up or interview with date and time, optionally linked to an application.",
+            "Edit, reschedule or complete the existing appointment; use ICS to export."
+          ],
+          "tips": [
+            "Today is green in month and weekly views. Draft, Ready, sending tasks and waiting for a reply do not create appointments; submission and outcomes appear as short evidence entries."
+          ]
+        },
+        "pt-BR": {
+          "title": "Calendário e acompanhamento",
+          "summary": "Acompanhamentos e entrevistas são compromissos com data definida.",
+          "steps": [
+            "Escolha agenda, dia, semana útil, semana ou mês; Hoje retorna à data atual.",
+            "Cadastre cada acompanhamento ou entrevista com data e hora, vinculando uma candidatura se necessário.",
+            "Edite, reagende ou conclua o compromisso existente; use ICS para exportar."
+          ],
+          "tips": [
+            "Hoje aparece em verde no mês e nas semanas. Preparação e espera por resposta não criam compromissos; envio e resultados aparecem como registros breves."
+          ]
+        },
+        "es-MX": {
+          "title": "Calendario y seguimientos",
+          "summary": "Los seguimientos y entrevistas son citas con fecha explícita.",
+          "steps": [
+            "Elige agenda, día, semana laboral, semana o mes; Hoy vuelve a la fecha actual.",
+            "Registra cada seguimiento o entrevista con fecha y hora, vinculando una solicitud si hace falta.",
+            "Edita, reprograma o completa la cita existente; usa ICS para exportar."
+          ],
+          "tips": [
+            "Hoy aparece en verde en el mes y las semanas. Preparación y espera de respuesta no crean citas; envío y resultados aparecen como registros breves."
+          ]
+        }
+      }
+    },
+    {
+      "id": "calendar_sync",
+      "pages": [],
+      "category": "account",
+      "links": [
+        "profile",
+        "calendar"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Kalender verbinden",
+          "summary": "Ein ICS-Abonnement und der Google-Abgleich sind unterschiedliche Verbindungen.",
+          "steps": [
+            "Richte den Kalenderzugriff im Profil ein und behandle die private Feed-Adresse vertraulich.",
+            "Verbinde für Google dein Konto und wähle den gewünschten Zielkalender.",
+            "Prüfe die letzte Synchronisationsmeldung; bei einer ausstehenden Workflow-Bereinigung wende dich an den Admin."
+          ],
+          "tips": [
+            "Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden."
+          ]
+        },
+        "fr-CH": {
+          "title": "Connecter un calendrier",
+          "summary": "Un abonnement ICS et la synchronisation Google sont des connexions distinctes.",
+          "steps": [
+            "Configure l’accès dans le profil et garde l’adresse privée du flux confidentielle.",
+            "Pour Google, connecte ton compte et choisis le calendrier cible.",
+            "Vérifie le dernier résultat; si le nettoyage du processus est en attente, contacte l’admin."
+          ],
+          "tips": [
+            "Un fichier ICS téléchargé ne se met pas à jour seul. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa."
+          ]
+        },
+        "en-GB": {
+          "title": "Connect a calendar",
+          "summary": "An ICS subscription and Google synchronisation are different connections.",
+          "steps": [
+            "Set up calendar access in your profile and keep the private feed address confidential.",
+            "For Google, connect your account and select the target calendar.",
+            "Check the latest sync result; contact an admin if workflow migration is still pending."
+          ],
+          "tips": [
+            "A downloaded ICS file does not update itself. External events must not be deleted as JeMa-generated duplicates."
+          ]
+        },
+        "pt-BR": {
+          "title": "Conectar calendário",
+          "summary": "Assinatura ICS e sincronização com Google são conexões diferentes.",
+          "steps": [
+            "Configure o acesso no perfil e mantenha o endereço privado do feed em sigilo.",
+            "Para Google, conecte a conta e escolha o calendário de destino.",
+            "Confira o último resultado; procure o administrador se a revisão do fluxo estiver pendente."
+          ],
+          "tips": [
+            "Um arquivo ICS baixado não se atualiza sozinho. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa."
+          ]
+        },
+        "es-MX": {
+          "title": "Conectar un calendario",
+          "summary": "Una suscripción ICS y la sincronización con Google son conexiones diferentes.",
+          "steps": [
+            "Configura el acceso en el perfil y mantén confidencial la dirección privada del canal.",
+            "Para Google, conecta tu cuenta y selecciona el calendario de destino.",
+            "Revisa el último resultado; contacta al administrador si falta revisar los datos del proceso."
+          ],
+          "tips": [
+            "Un archivo ICS descargado no se actualiza solo. Los eventos externos no deben eliminarse como duplicados generados por JeMa."
+          ]
+        }
+      }
+    },
+    {
+      "id": "jobroom",
+      "pages": [
+        "job_room_helper"
+      ],
+      "category": "process",
+      "links": [
+        "job_room_helper",
+        "applications"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Job-Room",
+          "summary": "Die Job-Room-Erfassung ist vom Bewerbungsstatus getrennt.",
+          "steps": [
+            "Übertrage die benötigten Bewerbungsangaben mit der Job-Room-Hilfe in das externe Portal.",
+            "Kreuze „Im Job-Room erfasst“ erst an, wenn du die Erfassung vorgenommen hast.",
+            "Danach sind Vorstellungsgespräch und das Ergebnis Noch offen, Anstellung oder Absage sichtbar."
+          ],
+          "tips": [
+            "Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung."
+          ]
+        },
+        "fr-CH": {
+          "title": "Job-Room",
+          "summary": "La saisie dans Job-Room est distincte du statut de candidature.",
+          "steps": [
+            "Transfère les informations nécessaires vers le portail externe avec l’aide Job-Room.",
+            "Coche la confirmation uniquement après avoir effectué la saisie.",
+            "Les champs entretien et résultat ouvert, embauche ou refus deviennent alors visibles."
+          ],
+          "tips": [
+            "La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche."
+          ]
+        },
+        "en-GB": {
+          "title": "Job-Room",
+          "summary": "Job-Room registration is separate from application status.",
+          "steps": [
+            "Use the Job-Room helper to transfer required application details to the external portal.",
+            "Tick the registration confirmation only after completing the entry.",
+            "Interview and the outcome open, hired or rejected then become visible."
+          ],
+          "tips": [
+            "The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment."
+          ]
+        },
+        "pt-BR": {
+          "title": "Job-Room",
+          "summary": "O registro no Job-Room é separado do status da candidatura.",
+          "steps": [
+            "Use a ajuda do Job-Room para transferir os dados necessários ao portal externo.",
+            "Marque a confirmação somente depois de efetuar o registro.",
+            "Os campos de entrevista e resultado aberto, contratado ou recusado ficam visíveis."
+          ],
+          "tips": [
+            "A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação."
+          ]
+        },
+        "es-MX": {
+          "title": "Job-Room",
+          "summary": "El registro en Job-Room es independiente del estado de la solicitud.",
+          "steps": [
+            "Usa la ayuda de Job-Room para transferir los datos necesarios al portal externo.",
+            "Marca la confirmación únicamente después de completar el registro.",
+            "Entonces aparecen entrevista y resultado abierto, contratación o rechazo."
+          ],
+          "tips": [
+            "La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación."
+          ]
+        }
+      }
+    },
+    {
+      "id": "reports",
+      "pages": [
+        "reports"
+      ],
+      "category": "reports",
+      "links": [
+        "reports"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Listen, Filter und Auswertungen",
+          "summary": "Listen und gespeicherte Reports zeigen unterschiedliche Ausschnitte deiner Daten.",
+          "steps": [
+            "Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.",
+            "Lege für einen Report Datenbasis, Spalten, Filter und Reihenfolge fest und speichere ihn.",
+            "Prüfe die Vorschau und exportiere bei Bedarf als PDF."
+          ],
+          "tips": [
+            "Eine Tabellenzeile gehört zu einem Datensatz; lange Inhalte umbrechen. Bewerbungslisten zeigen Workflowdatum ohne Uhrzeit."
+          ]
+        },
+        "fr-CH": {
+          "title": "Listes, filtres et rapports",
+          "summary": "Les listes et rapports enregistrés présentent différentes vues de tes données.",
+          "steps": [
+            "Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.",
+            "Définis source, colonnes, filtres et ordre du rapport puis enregistre-le.",
+            "Vérifie l’aperçu et exporte en PDF si nécessaire."
+          ],
+          "tips": [
+            "Chaque ligne correspond à un enregistrement; les textes longs passent à la ligne. Les candidatures affichent la date du processus sans heure."
+          ]
+        },
+        "en-GB": {
+          "title": "Lists, filters and reports",
+          "summary": "Lists and saved reports provide different views of your data.",
+          "steps": [
+            "Select field filters and sorting in column headers; reset them when needed.",
+            "Choose the report’s data source, columns, filters and ordering, then save it.",
+            "Inspect the preview and export to PDF if needed."
+          ],
+          "tips": [
+            "One table row represents one record; long text wraps. Application lists show the workflow date without time."
+          ]
+        },
+        "pt-BR": {
+          "title": "Listas, filtros e relatórios",
+          "summary": "Listas e relatórios salvos mostram diferentes recortes dos dados.",
+          "steps": [
+            "Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.",
+            "Defina base, colunas, filtros e ordem do relatório e salve.",
+            "Confira a prévia e exporte em PDF se necessário."
+          ],
+          "tips": [
+            "Cada linha corresponde a um registro; textos longos quebram linha. Candidaturas mostram a data do processo sem horário."
+          ]
+        },
+        "es-MX": {
+          "title": "Listas, filtros e informes",
+          "summary": "Las listas e informes guardados presentan distintas vistas de tus datos.",
+          "steps": [
+            "Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.",
+            "Define origen, columnas, filtros y orden del informe y guárdalo.",
+            "Revisa la vista previa y exporta en PDF si lo necesitas."
+          ],
+          "tips": [
+            "Cada fila representa un registro; los textos largos pasan a otra línea. Las solicitudes muestran la fecha del proceso sin hora."
+          ]
+        }
+      }
+    },
+    {
+      "id": "dossier",
+      "pages": [
+        "application_dossier"
+      ],
+      "category": "reports",
+      "links": [
+        "applications"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Bewerbungsdossier",
+          "summary": "Das Dossier fasst die ausgewählte Bewerbung und ihre zugehörigen Angaben zusammen.",
+          "steps": [
+            "Öffne das Dossier aus der konkreten Bewerbung.",
+            "Prüfe Stelle, Firma, Kontakte, Unterlagen, Verlauf und zugeordnete Aktivitäten.",
+            "Nutze die Webansicht oder den PDF-Export für deine Dokumentation."
+          ],
+          "tips": [
+            "Kontakte derselben Firma können mehrere Bewerbungen betreuen. Aktivitäten müssen zum ausgewählten Vorgang gehören."
+          ]
+        },
+        "fr-CH": {
+          "title": "Dossier de candidature",
+          "summary": "Le dossier rassemble la candidature choisie et ses informations associées.",
+          "steps": [
+            "Ouvre le dossier depuis la candidature concernée.",
+            "Vérifie poste, entreprise, contacts, documents, historique et activités associées.",
+            "Utilise la vue web ou l’export PDF pour ta documentation."
+          ],
+          "tips": [
+            "Un contact d’entreprise peut gérer plusieurs candidatures. Les activités doivent correspondre au dossier choisi."
+          ]
+        },
+        "en-GB": {
+          "title": "Application dossier",
+          "summary": "The dossier brings together the selected application and related information.",
+          "steps": [
+            "Open the dossier from the specific application.",
+            "Check the job, company, contacts, documents, history and linked activities.",
+            "Use the web view or PDF export for your records."
+          ],
+          "tips": [
+            "A company contact may handle several applications. Activities must belong to the selected case."
+          ]
+        },
+        "pt-BR": {
+          "title": "Dossiê da candidatura",
+          "summary": "O dossiê reúne a candidatura selecionada e suas informações associadas.",
+          "steps": [
+            "Abra o dossiê a partir da candidatura específica.",
+            "Confira vaga, empresa, contatos, documentos, histórico e atividades vinculadas.",
+            "Use a visualização web ou a exportação PDF para seus registros."
+          ],
+          "tips": [
+            "Um contato pode cuidar de várias candidaturas. As atividades devem corresponder ao processo selecionado."
+          ]
+        },
+        "es-MX": {
+          "title": "Expediente de solicitud",
+          "summary": "El expediente reúne la solicitud seleccionada y su información relacionada.",
+          "steps": [
+            "Abre el expediente desde la solicitud concreta.",
+            "Revisa vacante, empresa, contactos, documentos, historial y actividades vinculadas.",
+            "Usa la vista web o la exportación PDF para tus registros."
+          ],
+          "tips": [
+            "Un contacto puede gestionar varias solicitudes. Las actividades deben corresponder al proceso seleccionado."
+          ]
+        }
+      }
+    },
+    {
+      "id": "sharing",
+      "pages": [
+        "sharing"
+      ],
+      "category": "account",
+      "links": [
+        "sharing"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Freigaben",
+          "summary": "Freigaben erlauben begrenzten Zugriff auf bewusst ausgewählte Inhalte.",
+          "steps": [
+            "Wähle den freizugebenden Datensatz und prüfe Empfänger, Laufzeit und Rechte.",
+            "Erstelle den Zugriff und gib den Link nur an den vorgesehenen Empfänger weiter.",
+            "Prüfe bestehende Freigaben und widerrufe nicht mehr benötigte Zugriffe."
+          ],
+          "tips": [
+            "Gäste sehen nur freigegebene Inhalte. Behandle Freigabelinks wie vertrauliche Zugangsdaten."
+          ]
+        },
+        "fr-CH": {
+          "title": "Partages",
+          "summary": "Les partages donnent un accès limité à des contenus choisis.",
+          "steps": [
+            "Sélectionne le contenu et vérifie destinataire, durée et droits.",
+            "Crée l’accès et transmets le lien uniquement au destinataire prévu.",
+            "Contrôle les partages existants et révoque ceux devenus inutiles."
+          ],
+          "tips": [
+            "Les invités ne voient que le contenu autorisé. Garde les liens de partage confidentiels."
+          ]
+        },
+        "en-GB": {
+          "title": "Sharing",
+          "summary": "Shares provide limited access to deliberately selected content.",
+          "steps": [
+            "Select the record and check recipient, expiry and permissions.",
+            "Create access and send the link only to the intended recipient.",
+            "Review existing shares and revoke access no longer needed."
+          ],
+          "tips": [
+            "Guests see only shared content. Treat share links as confidential credentials."
+          ]
+        },
+        "pt-BR": {
+          "title": "Compartilhamento",
+          "summary": "Compartilhamentos dão acesso limitado a conteúdos escolhidos.",
+          "steps": [
+            "Selecione o registro e confira destinatário, validade e permissões.",
+            "Crie o acesso e forneça o link apenas ao destinatário previsto.",
+            "Revise os compartilhamentos e revogue acessos desnecessários."
+          ],
+          "tips": [
+            "Convidados veem apenas conteúdo autorizado. Trate os links como credenciais confidenciais."
+          ]
+        },
+        "es-MX": {
+          "title": "Compartir",
+          "summary": "Los enlaces compartidos dan acceso limitado a contenido elegido.",
+          "steps": [
+            "Selecciona el registro y revisa destinatario, vigencia y permisos.",
+            "Crea el acceso y entrega el enlace solo al destinatario previsto.",
+            "Revisa los accesos existentes y revoca los innecesarios."
+          ],
+          "tips": [
+            "Los invitados solo ven contenido autorizado. Trata los enlaces como credenciales confidenciales."
+          ]
+        }
+      }
+    },
+    {
+      "id": "privacy",
+      "pages": [
+        "privacy"
+      ],
+      "category": "account",
+      "links": [
+        "privacy",
+        "sharing"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Datenschutz und Bereinigung",
+          "summary": "Deine Bewerbungsdaten sind privat; Exporte und Löschungen verlangen besondere Sorgfalt.",
+          "steps": [
+            "Prüfe vor einem Export, welche Inhalte enthalten sind.",
+            "Nutze bei einer Bereinigung zuerst die Vorschau der betroffenen Datensätze.",
+            "Prüfe Status und Umfang deiner Bereinigungsanfrage; die Vorschau allein löscht keine Daten."
+          ],
+          "tips": [
+            "Löschen kann abhängige Daten betreffen. Eine Sicherung ersetzt nicht die Prüfung der Auswahl."
+          ]
+        },
+        "fr-CH": {
+          "title": "Confidentialité et nettoyage",
+          "summary": "Tes données de candidature sont privées; exportation et suppression demandent de l’attention.",
+          "steps": [
+            "Vérifie le contenu d’un export avant de le partager.",
+            "Utilise d’abord l’aperçu des éléments concernés par un nettoyage.",
+            "Vérifie le statut et le périmètre de ta demande de nettoyage ; l’aperçu seul ne supprime aucune donnée."
+          ],
+          "tips": [
+            "Supprimer peut affecter des données liées. Une sauvegarde ne remplace pas la vérification de la sélection."
+          ]
+        },
+        "en-GB": {
+          "title": "Privacy and cleanup",
+          "summary": "Application data is private; exports and deletion require care.",
+          "steps": [
+            "Inspect the contents of an export before sharing it.",
+            "Use the affected-record preview before cleanup.",
+            "Check the status and scope of your cleanup request; the preview alone does not delete data."
+          ],
+          "tips": [
+            "Deletion can affect related data. A backup does not replace reviewing your selection."
+          ]
+        },
+        "pt-BR": {
+          "title": "Privacidade e limpeza",
+          "summary": "Dados de candidatura são privados; exportação e exclusão exigem cuidado.",
+          "steps": [
+            "Confira o conteúdo da exportação antes de compartilhar.",
+            "Use primeiro a prévia dos registros afetados pela limpeza.",
+            "Confira o status e o escopo da solicitação de limpeza; a prévia por si só não exclui dados."
+          ],
+          "tips": [
+            "Excluir pode afetar dados relacionados. Um backup não substitui a revisão da seleção."
+          ]
+        },
+        "es-MX": {
+          "title": "Privacidad y limpieza",
+          "summary": "Los datos de solicitudes son privados; exportar y eliminar requiere cuidado.",
+          "steps": [
+            "Revisa el contenido de una exportación antes de compartirla.",
+            "Consulta primero la vista previa de registros afectados por la limpieza.",
+            "Revisa el estado y el alcance de tu solicitud de limpieza; la vista previa por sí sola no elimina datos."
+          ],
+          "tips": [
+            "Eliminar puede afectar datos relacionados. Una copia no sustituye la revisión de la selección."
+          ]
+        }
+      }
+    },
+    {
+      "id": "admin",
+      "pages": [
+        "admin_users"
+      ],
+      "category": "admin",
+      "links": [
+        "admin_users",
+        "profile"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Benutzerverwaltung und Support",
+          "summary": "Admins verwalten Benutzer; Supportzugriff benötigt die aktive Freigabe des betroffenen Benutzers.",
+          "steps": [
+            "Eröffne neue Benutzer in der Benutzerverwaltung oder öffne Verwalten für ein bestehendes Konto.",
+            "Prüfe Benutzerangaben, Kontostatus und Adminrolle vor dem Speichern.",
+            "Nutze In Konto einklinken nur bei gültiger Supportfreigabe und beende die Supportumgebung anschliessend."
+          ],
+          "tips": [
+            "Eine Adminrolle allein erteilt keine Supportfreigabe. Das eigene Konto und sicherheitsrelevante Änderungen sind besonders geschützt."
+          ]
+        },
+        "fr-CH": {
+          "title": "Utilisateurs et support",
+          "summary": "Les admins gèrent les comptes; le support exige l’autorisation active de l’utilisateur concerné.",
+          "steps": [
+            "Crée un utilisateur ou ouvre la gestion d’un compte existant.",
+            "Vérifie coordonnées, statut du compte et rôle admin avant d’enregistrer.",
+            "Entre dans un compte uniquement avec une autorisation valide puis quitte la session de support."
+          ],
+          "tips": [
+            "Le rôle admin ne remplace pas l’autorisation de support. Le compte propre et les opérations sensibles sont protégés."
+          ]
+        },
+        "en-GB": {
+          "title": "Users and support",
+          "summary": "Admins manage users; support access requires the affected user’s active consent.",
+          "steps": [
+            "Create a user or open management for an existing account.",
+            "Check user details, account status and admin role before saving.",
+            "Enter a user account only with valid support consent, then end the support session."
+          ],
+          "tips": [
+            "An admin role alone does not grant support consent. Your own account and sensitive changes have additional protection."
+          ]
+        },
+        "pt-BR": {
+          "title": "Usuários e suporte",
+          "summary": "Administradores gerenciam contas; o suporte exige autorização ativa do usuário afetado.",
+          "steps": [
+            "Crie um usuário ou abra o gerenciamento de uma conta existente.",
+            "Confira dados, status da conta e função de administrador antes de salvar.",
+            "Entre na conta somente com autorização válida e encerre a sessão de suporte ao terminar."
+          ],
+          "tips": [
+            "Ser administrador não substitui a autorização de suporte. A própria conta e alterações sensíveis têm proteção adicional."
+          ]
+        },
+        "es-MX": {
+          "title": "Usuarios y soporte",
+          "summary": "Los administradores gestionan usuarios; el acceso de soporte requiere autorización activa del usuario afectado.",
+          "steps": [
+            "Crea un usuario o abre la gestión de una cuenta existente.",
+            "Revisa datos, estado de cuenta y rol de administrador antes de guardar.",
+            "Entra en la cuenta solo con autorización válida y termina después la sesión de soporte."
+          ],
+          "tips": [
+            "Ser administrador no sustituye el consentimiento de soporte. Tu propia cuenta y los cambios sensibles tienen protección adicional."
+          ]
+        }
+      }
+    },
+    {
+      "id": "platforms",
+      "pages": [
+        "admin_job_platforms"
+      ],
+      "category": "admin",
+      "links": [
+        "admin_job_platforms",
+        "job_platform_search"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Jobplattformen verwalten",
+          "summary": "Admins pflegen die Plattformen, die für Recherchepakete angeboten werden.",
+          "steps": [
+            "Erfasse Plattformname, Basis-URL und gegebenenfalls Suchvorlage.",
+            "Prüfe Reihenfolge, Aktivierung und verfügbare Angaben.",
+            "Teste die verwendeten Links, bevor du die Plattform für die Suche anbietest."
+          ],
+          "tips": [
+            "Eine Plattform ist eine Recherchequelle, kein automatischer Importauftrag und keine Garantie für aktuelle Stellen."
+          ]
+        },
+        "fr-CH": {
+          "title": "Gérer les plateformes",
+          "summary": "Les admins définissent les plateformes proposées pour la recherche.",
+          "steps": [
+            "Saisis nom, URL de base et modèle de recherche éventuel.",
+            "Vérifie ordre, activation et informations disponibles.",
+            "Teste les liens avant de proposer la plateforme."
+          ],
+          "tips": [
+            "Une plateforme est une source de recherche, pas un ordre d’importation automatique ni une garantie d’offres actuelles."
+          ]
+        },
+        "en-GB": {
+          "title": "Manage job platforms",
+          "summary": "Admins maintain the platforms offered in research packages.",
+          "steps": [
+            "Enter the platform name, base URL and any search template.",
+            "Check order, activation and available details.",
+            "Test the links before offering the platform for searches."
+          ],
+          "tips": [
+            "A platform is a research source, not an automatic import request or a guarantee of current jobs."
+          ]
+        },
+        "pt-BR": {
+          "title": "Gerenciar plataformas",
+          "summary": "Administradores mantêm as plataformas oferecidas na pesquisa.",
+          "steps": [
+            "Informe nome, URL base e eventual modelo de busca.",
+            "Confira ordem, ativação e informações disponíveis.",
+            "Teste os links antes de disponibilizar a plataforma."
+          ],
+          "tips": [
+            "Uma plataforma é fonte de pesquisa, não uma ordem de importação automática nem garantia de vagas atuais."
+          ]
+        },
+        "es-MX": {
+          "title": "Gestionar plataformas",
+          "summary": "Los administradores mantienen las plataformas ofrecidas para investigar.",
+          "steps": [
+            "Indica nombre, URL base y plantilla de búsqueda si corresponde.",
+            "Revisa orden, activación e información disponible.",
+            "Prueba los enlaces antes de ofrecer la plataforma."
+          ],
+          "tips": [
+            "Una plataforma es una fuente de investigación, no una orden de importación automática ni garantía de vacantes vigentes."
+          ]
+        }
+      }
+    },
+    {
+      "id": "translations",
+      "pages": [
+        "translations"
+      ],
+      "category": "account",
+      "links": [
+        "translations",
+        "profile"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Inhalte übersetzen",
+          "summary": "Datensatzübersetzungen sind von der Sprache der Benutzeroberfläche getrennt.",
+          "steps": [
+            "Wähle den eigenen Quelldatensatz und die Zielsprache.",
+            "Prüfe den erzeugten Übersetzungsprompt, bevor du Inhalte an ein externes Werkzeug weitergibst.",
+            "Übernimm und kontrolliere die Übersetzung, bevor du sie speicherst oder verwendest."
+          ],
+          "tips": [
+            "Ein Wechsel der App-Sprache übersetzt keine Stellenbeschreibung, Nachricht oder Dokumentdatei."
+          ]
+        },
+        "fr-CH": {
+          "title": "Traduire des contenus",
+          "summary": "La traduction d’un enregistrement est distincte de la langue de l’interface.",
+          "steps": [
+            "Choisis ton contenu source et la langue cible.",
+            "Vérifie le prompt avant de transmettre des données à un outil externe.",
+            "Relis la traduction avant de l’enregistrer ou de l’utiliser."
+          ],
+          "tips": [
+            "Changer la langue de l’application ne traduit ni annonce, ni message, ni fichier."
+          ]
+        },
+        "en-GB": {
+          "title": "Translate content",
+          "summary": "Record translations are separate from the interface language.",
+          "steps": [
+            "Choose your source record and target language.",
+            "Review the translation prompt before sharing content with an external tool.",
+            "Check the returned translation before saving or using it."
+          ],
+          "tips": [
+            "Changing app language does not translate job descriptions, messages or document files."
+          ]
+        },
+        "pt-BR": {
+          "title": "Traduzir conteúdo",
+          "summary": "Traduções de registros são separadas do idioma da interface.",
+          "steps": [
+            "Escolha seu registro de origem e o idioma de destino.",
+            "Revise o prompt antes de compartilhar conteúdo com uma ferramenta externa.",
+            "Confira a tradução antes de salvar ou usar."
+          ],
+          "tips": [
+            "Mudar o idioma do aplicativo não traduz descrições de vagas, mensagens ou arquivos."
+          ]
+        },
+        "es-MX": {
+          "title": "Traducir contenido",
+          "summary": "Las traducciones de registros son independientes del idioma de interfaz.",
+          "steps": [
+            "Elige tu registro de origen y el idioma de destino.",
+            "Revisa el prompt antes de compartir contenido con una herramienta externa.",
+            "Comprueba la traducción antes de guardarla o usarla."
+          ],
+          "tips": [
+            "Cambiar el idioma de la aplicación no traduce descripciones de vacantes, mensajes ni archivos."
+          ]
+        }
+      }
+    },
+    {
+      "id": "audit",
+      "pages": [
+        "audit"
+      ],
+      "category": "account",
+      "links": [
+        "audit"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Änderungsverlauf",
+          "summary": "Das Audit protokolliert ausgewählte Aktionen und unterstützt die Nachvollziehbarkeit.",
+          "steps": [
+            "Öffne den Verlauf und prüfe Zeitpunkt, Aktion und betroffenen Bereich.",
+            "Nutze verfügbare Filter, um eine konkrete Änderung zu finden.",
+            "Vergleiche den Eintrag bei Fragen mit dem betroffenen Datensatz."
+          ],
+          "tips": [
+            "Der Audit-Verlauf ist keine vollständige Datensicherung und kein automatischer Rückgängig-Befehl."
+          ]
+        },
+        "fr-CH": {
+          "title": "Historique des actions",
+          "summary": "L’audit consigne certaines actions pour assurer leur traçabilité.",
+          "steps": [
+            "Ouvre l’historique et vérifie date, action et domaine concerné.",
+            "Utilise les filtres pour retrouver une modification précise.",
+            "Compare l’entrée avec l’enregistrement concerné."
+          ],
+          "tips": [
+            "L’audit n’est ni une sauvegarde complète ni une commande automatique d’annulation."
+          ]
+        },
+        "en-GB": {
+          "title": "Action history",
+          "summary": "The audit records selected actions for traceability.",
+          "steps": [
+            "Open the history and inspect time, action and affected area.",
+            "Use available filters to locate a specific change.",
+            "Compare the entry with the affected record when investigating."
+          ],
+          "tips": [
+            "Audit history is not a full backup or an automatic undo command."
+          ]
+        },
+        "pt-BR": {
+          "title": "Histórico de ações",
+          "summary": "A auditoria registra ações selecionadas para rastreabilidade.",
+          "steps": [
+            "Abra o histórico e confira data, ação e área afetada.",
+            "Use os filtros disponíveis para localizar uma alteração.",
+            "Compare a entrada com o registro afetado em caso de dúvida."
+          ],
+          "tips": [
+            "A auditoria não é um backup completo nem um comando automático de desfazer."
+          ]
+        },
+        "es-MX": {
+          "title": "Historial de acciones",
+          "summary": "La auditoría registra acciones seleccionadas para permitir su seguimiento.",
+          "steps": [
+            "Abre el historial y revisa fecha, acción y sección afectada.",
+            "Usa los filtros disponibles para localizar un cambio concreto.",
+            "Compara la entrada con el registro afectado cuando investigues."
+          ],
+          "tips": [
+            "La auditoría no es una copia completa ni una orden automática para deshacer."
+          ]
+        }
+      }
+    },
+    {
+      "id": "workflow_review",
+      "pages": [
+        "workflow_review"
+      ],
+      "category": "admin",
+      "links": [
+        "workflow_review"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Bestehende Workflow-Daten prüfen",
+          "summary": "Die einmalige Bereinigung alter erzeugter Einträge ist vom Code-Deployment getrennt.",
+          "steps": [
+            "Prüfe als Admin die Vorschau mit Datensatz, Status und vorgesehener Aktion.",
+            "Lasse unbekannte Zuordnungen unverändert und bestätige nur den geprüften Plan.",
+            "Bei zwischenzeitlichen Änderungen lade die Vorschau neu; betroffene Daten werden vor der Änderung gesichert."
+          ],
+          "tips": [
+            "Die Bereinigung storniert überholte erzeugte Einträge statt sie endgültig zu löschen. Eine vollständige Datenbankwiederherstellung ist kein geeigneter Rückweg."
+          ]
+        },
+        "fr-CH": {
+          "title": "Réviser les anciennes données",
+          "summary": "Le nettoyage unique des entrées générées est séparé du déploiement du code.",
+          "steps": [
+            "Comme admin, vérifie l’aperçu des enregistrements, statuts et actions.",
+            "Conserve les cas inconnus et confirme uniquement le plan vérifié.",
+            "Si les données changent entre-temps, recharge l’aperçu; les éléments affectés sont sauvegardés avant modification."
+          ],
+          "tips": [
+            "Le nettoyage annule les anciennes entrées générées sans suppression définitive. Restaurer toute la base n’est pas un retour arrière adapté."
+          ]
+        },
+        "en-GB": {
+          "title": "Review existing workflow data",
+          "summary": "The one-time cleanup of generated legacy entries is separate from code deployment.",
+          "steps": [
+            "As an admin, review the records, statuses and proposed actions.",
+            "Preserve unknown cases and confirm only the reviewed plan.",
+            "Reload the preview if data changes meanwhile; affected records are backed up before modification."
+          ],
+          "tips": [
+            "Cleanup cancels obsolete generated entries rather than permanently deleting them. Restoring the entire database is not an appropriate rollback."
+          ]
+        },
+        "pt-BR": {
+          "title": "Revisar dados antigos do fluxo",
+          "summary": "A limpeza única de registros antigos gerados é separada da publicação do código.",
+          "steps": [
+            "Como administrador, revise registros, status e ações propostas.",
+            "Preserve casos desconhecidos e confirme somente o plano revisado.",
+            "Recarregue a prévia se os dados mudarem; registros afetados são copiados antes da alteração."
+          ],
+          "tips": [
+            "A limpeza cancela registros obsoletos gerados sem exclusão definitiva. Restaurar toda a base não é uma reversão adequada."
+          ]
+        },
+        "es-MX": {
+          "title": "Revisar datos anteriores del proceso",
+          "summary": "La limpieza única de registros antiguos generados es independiente de publicar el código.",
+          "steps": [
+            "Como administrador, revisa registros, estados y acciones propuestas.",
+            "Conserva los casos desconocidos y confirma solo el plan revisado.",
+            "Recarga la vista previa si los datos cambian; los registros afectados se respaldan antes de modificarse."
+          ],
+          "tips": [
+            "La limpieza cancela entradas obsoletas generadas sin eliminarlas definitivamente. Restaurar toda la base no es una reversión adecuada."
+          ]
+        }
+      }
+    },
+    {
+      "id": "help",
+      "pages": [
+        "help",
+        "about"
+      ],
+      "category": "account",
+      "links": [
+        "help",
+        "about"
+      ],
+      "text": {
+        "de-CH": {
+          "title": "Hilfe und Lizenz",
+          "summary": "JeMa Jobs ist proprietäre Software für ausdrücklich berechtigte Benutzer.",
+          "steps": [
+            "Suche ein Thema oder wähle eine Kategorie in der zentralen Hilfe.",
+            "Öffne die Glühbirne einer Seite für denselben themenbezogenen Ablauf.",
+            "Prüfe unter Über die angezeigte Version; beachte die Rechte und Einschränkungen der Lizenz."
+          ],
+          "tips": [
+            "Produktive Daten sind vertraulich. Die vollständige Lizenz steht in LICENSE.md; diese Hilfe ändert die Lizenzbedingungen nicht."
+          ]
+        },
+        "fr-CH": {
+          "title": "Aide et licence",
+          "summary": "JeMa Jobs est un logiciel propriétaire réservé aux utilisateurs autorisés.",
+          "steps": [
+            "Recherche un sujet ou choisis une catégorie dans l’aide centrale.",
+            "Ouvre l’ampoule d’une page pour consulter la procédure correspondante.",
+            "Consulte la version dans À propos et respecte les droits et restrictions de la licence."
+          ],
+          "tips": [
+            "Les données sont confidentielles. La licence complète figure dans LICENSE.md; cette aide ne la modifie pas."
+          ]
+        },
+        "en-GB": {
+          "title": "Help and licence",
+          "summary": "JeMa Jobs is proprietary software for explicitly authorised users.",
+          "steps": [
+            "Search for a topic or choose a category in central help.",
+            "Open a page’s lightbulb for the corresponding procedure.",
+            "Check the displayed version in About and observe the licence rights and restrictions."
+          ],
+          "tips": [
+            "Production data is confidential. The full licence is in LICENSE.md; this help does not alter its terms."
+          ]
+        },
+        "pt-BR": {
+          "title": "Ajuda e licença",
+          "summary": "JeMa Jobs é software proprietário para usuários expressamente autorizados.",
+          "steps": [
+            "Pesquise um tema ou escolha uma categoria na ajuda central.",
+            "Abra a lâmpada da página para consultar o procedimento correspondente.",
+            "Confira a versão em Sobre e respeite direitos e restrições da licença."
+          ],
+          "tips": [
+            "Dados de produção são confidenciais. A licença completa está em LICENSE.md; esta ajuda não altera seus termos."
+          ]
+        },
+        "es-MX": {
+          "title": "Ayuda y licencia",
+          "summary": "JeMa Jobs es software propietario para usuarios expresamente autorizados.",
+          "steps": [
+            "Busca un tema o elige una categoría en la ayuda central.",
+            "Abre la bombilla de una página para consultar el procedimiento correspondiente.",
+            "Consulta la versión en Acerca de y respeta los derechos y restricciones de licencia."
+          ],
+          "tips": [
+            "Los datos de producción son confidenciales. La licencia completa está en LICENSE.md; esta ayuda no modifica sus términos."
+          ]
+        }
+      }
+    }
+  ],
+  "ui": {
+    "help.category.process": {
+      "de-CH": "Bewerbungsprozess",
+      "fr-CH": "Candidatures",
+      "en-GB": "Application process",
+      "pt-BR": "Candidaturas",
+      "es-MX": "Solicitudes"
+    },
+    "help.category.account": {
+      "de-CH": "Konto und Daten",
+      "fr-CH": "Compte et données",
+      "en-GB": "Account and data",
+      "pt-BR": "Conta e dados",
+      "es-MX": "Cuenta y datos"
+    },
+    "help.category.crm": {
+      "de-CH": "Firmen und Kontakte",
+      "fr-CH": "Entreprises et contacts",
+      "en-GB": "Companies and contacts",
+      "pt-BR": "Empresas e contatos",
+      "es-MX": "Empresas y contactos"
+    },
+    "help.category.reports": {
+      "de-CH": "Auswertungen",
+      "fr-CH": "Rapports",
+      "en-GB": "Reports",
+      "pt-BR": "Relatórios",
+      "es-MX": "Informes"
+    },
+    "help.category.admin": {
+      "de-CH": "Administration",
+      "fr-CH": "Administration",
+      "en-GB": "Administration",
+      "pt-BR": "Administração",
+      "es-MX": "Administración"
+    },
+    "help.audience.user": {
+      "de-CH": "Benutzer",
+      "fr-CH": "Utilisateur",
+      "en-GB": "User",
+      "pt-BR": "Usuário",
+      "es-MX": "Usuario"
+    },
+    "help.audience.admin": {
+      "de-CH": "Admin",
+      "fr-CH": "Admin",
+      "en-GB": "Admin",
+      "pt-BR": "Administrador",
+      "es-MX": "Administrador"
+    },
+    "help.hero_eyebrow": {
+      "de-CH": "Hilfe",
+      "fr-CH": "Aide",
+      "en-GB": "Help",
+      "pt-BR": "Ajuda",
+      "es-MX": "Ayuda"
+    },
+    "help.hero_title": {
+      "de-CH": "JeMa Jobs Hilfe",
+      "fr-CH": "Aide JeMa Jobs",
+      "en-GB": "JeMa Jobs help",
+      "pt-BR": "Ajuda do JeMa Jobs",
+      "es-MX": "Ayuda de JeMa Jobs"
+    },
+    "help.hero_intro": {
+      "de-CH": "Abläufe, Daten und Einstellungen nach Themen.",
+      "fr-CH": "Procédures, données et réglages par thème.",
+      "en-GB": "Processes, data and settings by topic.",
+      "pt-BR": "Processos, dados e configurações por tema.",
+      "es-MX": "Procesos, datos y ajustes por tema."
+    },
+    "help.search_label": {
+      "de-CH": "Thema suchen",
+      "fr-CH": "Rechercher un sujet",
+      "en-GB": "Search topics",
+      "pt-BR": "Pesquisar temas",
+      "es-MX": "Buscar temas"
+    },
+    "help.search_placeholder": {
+      "de-CH": "Suchbegriff",
+      "fr-CH": "Terme de recherche",
+      "en-GB": "Search term",
+      "pt-BR": "Termo de pesquisa",
+      "es-MX": "Término de búsqueda"
+    },
+    "help.search_button": {
+      "de-CH": "Suchen",
+      "fr-CH": "Rechercher",
+      "en-GB": "Search",
+      "pt-BR": "Pesquisar",
+      "es-MX": "Buscar"
+    },
+    "help.reset_button": {
+      "de-CH": "Zurücksetzen",
+      "fr-CH": "Réinitialiser",
+      "en-GB": "Reset",
+      "pt-BR": "Redefinir",
+      "es-MX": "Restablecer"
+    },
+    "help.search_status_initial": {
+      "de-CH": "Alle Themen",
+      "fr-CH": "Tous les sujets",
+      "en-GB": "All topics",
+      "pt-BR": "Todos os temas",
+      "es-MX": "Todos los temas"
+    },
+    "help.categories_label": {
+      "de-CH": "Kategorien",
+      "fr-CH": "Catégories",
+      "en-GB": "Categories",
+      "pt-BR": "Categorias",
+      "es-MX": "Categorías"
+    },
+    "help.flow_label": {
+      "de-CH": "Bewerbungsprozess",
+      "fr-CH": "Parcours de candidature",
+      "en-GB": "Application process",
+      "pt-BR": "Processo de candidatura",
+      "es-MX": "Proceso de solicitud"
+    },
+    "help.topic_count": {
+      "de-CH": "{count} Themen",
+      "fr-CH": "{count} sujets",
+      "en-GB": "{count} topics",
+      "pt-BR": "{count} temas",
+      "es-MX": "{count} temas"
+    },
+    "help.steps_title": {
+      "de-CH": "Vorgehen",
+      "fr-CH": "Procédure",
+      "en-GB": "Steps",
+      "pt-BR": "Etapas",
+      "es-MX": "Pasos"
+    },
+    "help.tips_title": {
+      "de-CH": "Wichtig",
+      "fr-CH": "Important",
+      "en-GB": "Important",
+      "pt-BR": "Importante",
+      "es-MX": "Importante"
+    },
+    "help.empty_title": {
+      "de-CH": "Keine passenden Themen",
+      "fr-CH": "Aucun sujet correspondant",
+      "en-GB": "No matching topics",
+      "pt-BR": "Nenhum tema encontrado",
+      "es-MX": "No hay temas coincidentes"
+    },
+    "help.empty_hint": {
+      "de-CH": "Ändere den Suchbegriff oder setze die Suche zurück.",
+      "fr-CH": "Modifie le terme ou réinitialise la recherche.",
+      "en-GB": "Change the search term or reset the search.",
+      "pt-BR": "Altere o termo ou redefina a pesquisa.",
+      "es-MX": "Cambia el término o restablece la búsqueda."
+    },
+    "help.status.topic": {
+      "de-CH": "Thema",
+      "fr-CH": "sujet",
+      "en-GB": "topic",
+      "pt-BR": "tema",
+      "es-MX": "tema"
+    },
+    "help.status.topics": {
+      "de-CH": "Themen",
+      "fr-CH": "sujets",
+      "en-GB": "topics",
+      "pt-BR": "temas",
+      "es-MX": "temas"
+    },
+    "help.status.visible": {
+      "de-CH": "sichtbar",
+      "fr-CH": "visibles",
+      "en-GB": "visible",
+      "pt-BR": "visíveis",
+      "es-MX": "visibles"
+    },
+    "help.status.search": {
+      "de-CH": "Suche",
+      "fr-CH": "Recherche",
+      "en-GB": "Search",
+      "pt-BR": "Pesquisa",
+      "es-MX": "Búsqueda"
+    },
+    "help.status.jump": {
+      "de-CH": "Kategorie",
+      "fr-CH": "Catégorie",
+      "en-GB": "Category",
+      "pt-BR": "Categoria",
+      "es-MX": "Categoría"
+    },
+    "help.quick_eyebrow": {
+      "de-CH": "Direktzugriff",
+      "fr-CH": "Accès direct",
+      "en-GB": "Quick access",
+      "pt-BR": "Acesso rápido",
+      "es-MX": "Acceso rápido"
+    },
+    "help.quick_title": {
+      "de-CH": "Häufige Abläufe",
+      "fr-CH": "Procédures fréquentes",
+      "en-GB": "Common workflows",
+      "pt-BR": "Processos frequentes",
+      "es-MX": "Procesos frecuentes"
+    },
+    "help.license_eyebrow": {
+      "de-CH": "Lizenz",
+      "fr-CH": "Licence",
+      "en-GB": "Licence",
+      "pt-BR": "Licença",
+      "es-MX": "Licencia"
+    },
+    "help.license_title": {
+      "de-CH": "Nutzungsrechte",
+      "fr-CH": "Droits d’utilisation",
+      "en-GB": "Usage rights",
+      "pt-BR": "Direitos de uso",
+      "es-MX": "Derechos de uso"
+    },
+    "help.license_badge": {
+      "de-CH": "Proprietär",
+      "fr-CH": "Propriétaire",
+      "en-GB": "Proprietary",
+      "pt-BR": "Proprietário",
+      "es-MX": "Propietario"
+    },
+    "help.license_body1": {
+      "de-CH": "JeMa Jobs ist proprietäre Software. Alle Rechte sind vorbehalten.",
+      "fr-CH": "JeMa Jobs est un logiciel propriétaire. Tous droits réservés.",
+      "en-GB": "JeMa Jobs is proprietary software. All rights reserved.",
+      "pt-BR": "JeMa Jobs é software proprietário. Todos os direitos reservados.",
+      "es-MX": "JeMa Jobs es software propietario. Todos los derechos reservados."
+    },
+    "help.license_body2": {
+      "de-CH": "Nutzung nur mit ausdrücklicher Berechtigung. Produktive Daten bleiben vertraulich; die vollständige Lizenz gilt unverändert.",
+      "fr-CH": "Utilisation uniquement avec autorisation explicite. Les données restent confidentielles; la licence complète reste applicable.",
+      "en-GB": "Use requires explicit authorisation. Production data remains confidential; the full licence continues to apply.",
+      "pt-BR": "O uso exige autorização expressa. Os dados permanecem confidenciais; a licença completa continua válida.",
+      "es-MX": "El uso requiere autorización expresa. Los datos siguen siendo confidenciales; la licencia completa continúa vigente."
+    },
+    "context.help": {
+      "de-CH": "Hilfe zu dieser Seite",
+      "fr-CH": "Aide de cette page",
+      "en-GB": "Help for this page",
+      "pt-BR": "Ajuda desta página",
+      "es-MX": "Ayuda de esta página"
+    },
+    "context.close": {
+      "de-CH": "Schliessen",
+      "fr-CH": "Fermer",
+      "en-GB": "Close",
+      "pt-BR": "Fechar",
+      "es-MX": "Cerrar"
+    },
+    "context.how_to": {
+      "de-CH": "Vorgehen",
+      "fr-CH": "Procédure",
+      "en-GB": "Steps",
+      "pt-BR": "Etapas",
+      "es-MX": "Pasos"
+    },
+    "context.remember": {
+      "de-CH": "Wichtig",
+      "fr-CH": "Important",
+      "en-GB": "Important",
+      "pt-BR": "Importante",
+      "es-MX": "Importante"
+    },
+    "context.all_topics": {
+      "de-CH": "Alle Hilfethemen",
+      "fr-CH": "Tous les sujets d’aide",
+      "en-GB": "All help topics",
+      "pt-BR": "Todos os temas de ajuda",
+      "es-MX": "Todos los temas de ayuda"
+    },
+    "help.flow.profile.title": {
+      "de-CH": "Profil und Suchwünsche",
+      "fr-CH": "Profil et préférences",
+      "en-GB": "Profile and preferences",
+      "pt-BR": "Perfil e preferências",
+      "es-MX": "Perfil y preferencias"
+    },
+    "help.flow.profile.text": {
+      "de-CH": "Persönliche Angaben und Suchwünsche werden für deine Bewerbungsarbeit verwendet.",
+      "fr-CH": "Tes coordonnées et préférences servent à préparer les candidatures.",
+      "en-GB": "Personal details and preferences support your application work.",
+      "pt-BR": "Dados pessoais e preferências ajudam na preparação das candidaturas.",
+      "es-MX": "Tus datos personales y preferencias ayudan a preparar solicitudes."
+    },
+    "help.flow.search.title": {
+      "de-CH": "Stellen suchen",
+      "fr-CH": "Rechercher des offres",
+      "en-GB": "Search for jobs",
+      "pt-BR": "Pesquisar vagas",
+      "es-MX": "Buscar vacantes"
+    },
+    "help.flow.search.text": {
+      "de-CH": "Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.",
+      "fr-CH": "Le prompt de recherche utilise tes préférences et les plateformes choisies.",
+      "en-GB": "The research prompt uses your preferences and selected job platforms.",
+      "pt-BR": "O prompt de pesquisa usa suas preferências e plataformas selecionadas.",
+      "es-MX": "El prompt de investigación utiliza tus preferencias y plataformas elegidas."
+    },
+    "help.flow.import.title": {
+      "de-CH": "Stellen erfassen und bearbeiten",
+      "fr-CH": "Saisir et modifier une offre",
+      "en-GB": "Create and edit jobs",
+      "pt-BR": "Cadastrar e editar vagas",
+      "es-MX": "Registrar y editar vacantes"
+    },
+    "help.flow.import.text": {
+      "de-CH": "Eine Stelle beschreibt das Angebot; eine Bewerbung dokumentiert deinen Bewerbungsprozess.",
+      "fr-CH": "L’offre décrit le poste; la candidature documente ta démarche.",
+      "en-GB": "A job describes the offer; an application records your application process.",
+      "pt-BR": "A vaga descreve a oferta; a candidatura registra seu processo.",
+      "es-MX": "La vacante describe la oferta; la solicitud registra tu proceso."
+    },
+    "help.flow.apply.title": {
+      "de-CH": "Bewerbungsworkflow",
+      "fr-CH": "Parcours de candidature",
+      "en-GB": "Application workflow",
+      "pt-BR": "Fluxo de candidatura",
+      "es-MX": "Proceso de solicitud"
+    },
+    "help.flow.apply.text": {
+      "de-CH": "Entwurf → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
+      "fr-CH": "Brouillon → Prête → Envoyée → Entretiens → Acceptation ou refus.",
+      "en-GB": "Draft → Ready → Sent → Interviews → Accepted or rejected.",
+      "pt-BR": "Rascunho → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
+      "es-MX": "Borrador → Lista → Enviada → Entrevistas → Aceptada o rechazada."
+    },
+    "help.flow.follow.title": {
+      "de-CH": "Kalender und Nachfassen",
+      "fr-CH": "Calendrier et relances",
+      "en-GB": "Calendar and follow-ups",
+      "pt-BR": "Calendário e acompanhamento",
+      "es-MX": "Calendario y seguimientos"
+    },
+    "help.flow.follow.text": {
+      "de-CH": "Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.",
+      "fr-CH": "Les relances et entretiens sont des rendez-vous explicitement datés.",
+      "en-GB": "Follow-ups and interviews are explicitly dated appointments.",
+      "pt-BR": "Acompanhamentos e entrevistas são compromissos com data definida.",
+      "es-MX": "Los seguimientos y entrevistas son citas con fecha explícita."
+    },
+    "help.flow.dossier.title": {
+      "de-CH": "Bewerbungsdossier",
+      "fr-CH": "Dossier de candidature",
+      "en-GB": "Application dossier",
+      "pt-BR": "Dossiê da candidatura",
+      "es-MX": "Expediente de solicitud"
+    },
+    "help.flow.dossier.text": {
+      "de-CH": "Das Dossier fasst die ausgewählte Bewerbung und ihre zugehörigen Angaben zusammen.",
+      "fr-CH": "Le dossier rassemble la candidature choisie et ses informations associées.",
+      "en-GB": "The dossier brings together the selected application and related information.",
+      "pt-BR": "O dossiê reúne a candidatura selecionada e suas informações associadas.",
+      "es-MX": "El expediente reúne la solicitud seleccionada y su información relacionada."
+    },
+    "help.quick.search.title": {
+      "de-CH": "Stellen suchen",
+      "fr-CH": "Rechercher des offres",
+      "en-GB": "Search for jobs",
+      "pt-BR": "Pesquisar vagas",
+      "es-MX": "Buscar vacantes"
+    },
+    "help.quick.search.body": {
+      "de-CH": "Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.",
+      "fr-CH": "Le prompt de recherche utilise tes préférences et les plateformes choisies.",
+      "en-GB": "The research prompt uses your preferences and selected job platforms.",
+      "pt-BR": "O prompt de pesquisa usa suas preferências e plataformas selecionadas.",
+      "es-MX": "El prompt de investigación utiliza tus preferencias y plataformas elegidas."
+    },
+    "help.quick.search.link": {
+      "de-CH": "Stellen suchen",
+      "fr-CH": "Rechercher des offres",
+      "en-GB": "Search for jobs",
+      "pt-BR": "Pesquisar vagas",
+      "es-MX": "Buscar vacantes"
+    },
+    "help.quick.apply.title": {
+      "de-CH": "Onlinebewerbung und Unterlagen",
+      "fr-CH": "Candidature en ligne",
+      "en-GB": "Online applications",
+      "pt-BR": "Candidatura online",
+      "es-MX": "Solicitud en línea"
+    },
+    "help.quick.apply.body": {
+      "de-CH": "Die eigentliche Einreichung erfolgt im externen Bewerbungsportal.",
+      "fr-CH": "Le dépôt réel se fait dans le portail externe.",
+      "en-GB": "Actual submission takes place in the external application portal.",
+      "pt-BR": "A entrega real ocorre no portal externo de candidaturas.",
+      "es-MX": "La entrega real se realiza en el portal externo."
+    },
+    "help.quick.apply.link": {
+      "de-CH": "Onlinebewerbung und Unterlagen",
+      "fr-CH": "Candidature en ligne",
+      "en-GB": "Online applications",
+      "pt-BR": "Candidatura online",
+      "es-MX": "Solicitud en línea"
+    },
+    "help.quick.track.title": {
+      "de-CH": "Kalender und Nachfassen",
+      "fr-CH": "Calendrier et relances",
+      "en-GB": "Calendar and follow-ups",
+      "pt-BR": "Calendário e acompanhamento",
+      "es-MX": "Calendario y seguimientos"
+    },
+    "help.quick.track.body": {
+      "de-CH": "Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.",
+      "fr-CH": "Les relances et entretiens sont des rendez-vous explicitement datés.",
+      "en-GB": "Follow-ups and interviews are explicitly dated appointments.",
+      "pt-BR": "Acompanhamentos e entrevistas são compromissos com data definida.",
+      "es-MX": "Los seguimientos y entrevistas son citas con fecha explícita."
+    },
+    "help.quick.track.link": {
+      "de-CH": "Kalender und Nachfassen",
+      "fr-CH": "Calendrier et relances",
+      "en-GB": "Calendar and follow-ups",
+      "pt-BR": "Calendário e acompanhamento",
+      "es-MX": "Calendario y seguimientos"
+    },
+    "help.link.profile_links": {
+      "de-CH": "Profil-Links",
+      "fr-CH": "Liens de profil",
+      "en-GB": "Profile links",
+      "pt-BR": "Links do perfil",
+      "es-MX": "Enlaces del perfil"
+    },
+    "help.link.help": {
+      "de-CH": "Alle Hilfethemen",
+      "fr-CH": "Tous les sujets d’aide",
+      "en-GB": "All help topics",
+      "pt-BR": "Todos os temas de ajuda",
+      "es-MX": "Todos los temas de ayuda"
+    },
+    "help.link.about": {
+      "de-CH": "Über JeMa Jobs",
+      "fr-CH": "À propos de JeMa Jobs",
+      "en-GB": "About JeMa Jobs",
+      "pt-BR": "Sobre o JeMa Jobs",
+      "es-MX": "Acerca de JeMa Jobs"
+    }
+  }
+}

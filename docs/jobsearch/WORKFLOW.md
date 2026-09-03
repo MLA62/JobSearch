@@ -1,58 +1,88 @@
-# Bewerbungsprozess und Kalender
+# Bewerbungsworkflow und Kalender
 
-Beschlossen am 03.09.2026. Umsetzung: Release 1.17.0.
+Stand: 03.09.2026. Aktuelles Verhalten ab 1.18.0; Hilfe-Dokumentation 1.18.1.
 
-## Prozess
+## Statusvertrag
 
-Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage.
-Ein Statuswechsel schreibt automatisch einen Zeitstempel in den Verlauf.
-Mehrere Bewerbungsgespraeche und Kontakte bleiben einzeln mit ihren eigenen
-Terminen und Notizen erfassbar; sie erfordern keinen neuen Status.
-Historische Sonderstatus werden erhalten und nicht in andere Ergebnisse umgedeutet.
+| Statuscode | Anzeige | Aktion und Nachweis |
+|---|---|---|
+| draft | Entwurf | Vorbereitung, kein Versandnachweis, keine automatische Terminierung |
+| ready | Bereit | Unterlagen bereit; angezeigte Aufgabe Bewerbung senden ist kein Termin |
+| sent | Gesendet | Tatsaechlicher Versand/extern bestaetigte Einreichung, applied_at |
+| interview | Bewerbungsgespraeche | Phase; mehrere unabhaengige datierte Gespraeche |
+| accepted | Zusage | Ergebnis im Verlauf und kurzer Kalendernachweis |
+| rejected | Absage | Ergebnis im Verlauf und kurzer Kalendernachweis |
 
-## Ein Kalender
+Dies ist die fachliche Reihenfolge, keine starre Pflicht, jede Phase zu durchlaufen:
+Absage oder Zusage kann direkt nach Versand eintreffen.
+confirmed, assessment, offer, withdrawn und closed sind lesbare Altdaten, keine neuen Standardoptionen.
+Ein vorhandener Sonderstatus darf erhalten bleiben, bis er bewusst fachlich geklaert wird.
 
-Es gibt keinen getrennten Aufgaben- oder Pendenzenbereich. Ein Kalendereintrag
-hat einen konkreten Zeitpunkt. Geplante Gespraeche und Nachfassaktionen sind
-bearbeitbar, verschiebbar und abschliessbar. Der Abschluss eines bestehenden
-Eintrags erzeugt keinen weiteren Termin. Undatierte Altdaten bleiben bei der
-Bewerbung erhalten, bis ein Datum angegeben oder der Eintrag entfernt wird.
+## Schreibwege und Zeiten
 
-Gesendet, Zusage und Absage erscheinen automatisch als kurze, nicht blockierende
-Nachweise ohne Alarm. Der Versand verwendet applied_at, nicht den Zeitpunkt
-einer spaeteren Erfassung. Entwurf und Bereit bleiben ausschliesslich im Verlauf.
-Antwort pendent ist kein Termin. JeMa erzeugt keine Ganztagseintraege.
-Private importierte Google-Eintraege werden nicht im Rahmen der Bereinigung geaendert.
+- Start aus einer Stelle legt einen Entwurf an.
+- Normales Speichern/Autosave schreibt nur bei geaendertem Status einen Verlaufseintrag.
+- E-Mail-Versand und externe Einreichung benutzen je Bewerbung denselben Advisory-Lock.
+- Externe Einreichung ist eine bewusste Bestaetigung des Benutzers, keine Browserautomatisierung.
+- Draft/ready haben keine sichtbare applied_at-Behauptung. Wechsel zur Vorbereitung setzt sie im aktuellen Code auf NULL.
+- Bei sent ohne vorhandenen Zeitpunkt setzt die Erfassung die aktuelle Benutzerzeit.
+- Korrektur eines Zeitpunktes ist moeglich; unveraenderte Minuten behalten vorhandene Sekunden.
+- Interview/Ergebnis ohne angewiesenen Versandzeitpunkt erfinden keinen Versand.
+- SMTP plus Datenbank ist keine gemeinsame verteilte Transaktion: bei unklarem Versandfehler
+  zuerst Ausgang/protokollierte Nachricht pruefen, nicht blind erneut senden.
 
-## Job-Room
+## Workflowdatum
 
-Erfassung und Ergebnis sind unabhaengig. Neue Bewerbungen starten mit
-not_recorded. Bestehende Bewerbungen starten mit unknown, da ein bisheriges
-Ergebnis keine bestaetigte Erfassung im Portal belegt. recorded wird bewusst
-gesetzt. Ein Gespraech bedeutet weder Zusage noch Anstellung.
+GREATEST aus Erfassungsdatum, juengstem Statuswechsel, tatsaechlichem Versanddatum (ausser Vorbereitung)
+und groesstem Startdatum beruecksichtigter, nicht stornierter, verknuepfter Nicht-Meilenstein-Termine.
+Die Terminquellen sind manuell, workflow_appointment, contact_log sowie ausdrueckliches follow_up
+aus application_next_action. updated_at/Autosave zaehlt nicht.
+Das kann ein zukuenftiges Datum sein. Es ist nicht MIN(naechster offener Termin).
 
-## Migration und Rueckweg
+Bewerbungstabelle: Workflowdatum | Job | Firma | Status | Kanal | Aktionen.
+Datum ohne Uhrzeit; CSV/PDF dieselben fuenf Datenfelder ohne Aktionsspalte.
+Karten und Dossier verwenden dieselbe Sicht; tatsaechlicher Versand nur bei vorhandenem Nachweis.
 
-workflow_calendar_v5 ist durch einen Datenbank-Lock und einen einmaligen
-Migrationsmarker geschuetzt. Vor fachlichen Aenderungen werden Anwendungen
-und erzeugte Kalendereintraege in workflow_data_backups gesichert. Aenderungen
-und Migrationsmarker erfolgen in einer Transaktion; Fehler rollen diese zurueck.
+## Kalender
 
-Automatische Antwort-Wartetermine am Versandzeitpunkt werden entfernt.
-Abweichende ausdrueckliche Wartedaten werden als Nachfassen erhalten.
-Alte automatische completed-/closed-Eintraege werden storniert, nicht geloescht.
-Tatsaechliche Versandzeitpunkte und Statushistorien bleiben erhalten.
+Agenda, Tag, Arbeitswoche Montag-Freitag, Woche Montag-Sonntag und Monat.
+Nachfassen und jedes Gespraech erhalten eigenes Datum/Uhrzeit; Ende liegt nach Start, Standarddauer 30 Minuten.
+Keine neu erzeugten Ganztagseintraege. Historische/importierte Ganztagsdaten bleiben unterscheidbar.
+Mitternacht ist nicht automatisch ganztags.
+Heute wird anhand der Benutzerzeitzone bestimmt, nicht anhand des Navigationsdatums.
 
-Google-Eintraege werden anhand ihrer JeMa-Eigentuemerkennung aktualisiert.
-Ueberholte verknuepfte Projektionen werden erst nach erfolgreichem Export
-storniert, mit vorheriger Sicherung und Versionspruefung. Private Termine und
-Eintraege mit Teilnehmern werden nicht automatisch bereinigt.
-Eine Wiederherstellung darf nur gezielt anhand der Sicherungen erfolgen;
-kein vollstaendiger Datenbank-Rollback ueber inzwischen neue Benutzerdaten.
+Kein Termin fuer Entwurf, Bereit, review_documents, send_application, await_response oder prepare_interview.
+Gesendet/Zusage/Absage werden als kurze transparente Nachweise ohne Alarm projiziert.
+Wiederholte Projektion aktualisiert dieselbe Quelle; sie erzeugt keine zweite Statuskopie.
+Ein Interviewstatus allein erzeugt keinen Gesprächstermin. Ein bewusst angelegter Interviewtermin
+kann eine gesendete/bestaetigte Bewerbung in die Gespraechsphase bringen, nicht ein Ergebnis zuruecksetzen.
+Abschluss aendert denselben Termin. Loeschen im Kalender storniert; Meilensteine nicht als freie Termine editieren.
+Formular-Request-IDs schuetzen neue Termine gegen Wiederholung desselben Submit.
 
-## Pruefung
+## Kontakt-Log und Job-Room
 
-Vor Freigabe: PHP-Syntax, Projektionstests, Formular- und Datumsfiltertests,
-responsive Workflow-Darstellung. Nach Freigabe: Release-Hash, migrierte
-Kalenderliste, Job-Room-Feld, Datumsfilter, Google-Abgleich und Wiederholung
-ohne weitere Neuanlagen. Testdaten duerfen keine echten Bewerbungen versenden.
+Eine Nachricht/Antwort protokollieren ist nicht E-Mail senden.
+Kontakt-Log-Follow-up-Felder sind Altbestand. Neue Formulare und Projektion erzeugen daraus keine Termine.
+Keine zusaetzliche automatisch angelegte Aktivitaet allein fuer Bewerbung eingereicht.
+Kontaktzaehler: Anzahl Logzeilen der Person; offen/geplant ist deren Teilmenge, keine Anzahl Bewerbungen.
+
+Im Job-Room erfasst: Checkbox. Erst danach Vorstellungsgespraech und Noch offen/Anstellung/Absage sichtbar.
+Ausblenden loescht bereits gespeicherte Ergebnisse nicht. Ankreuzen ist keine API-Uebertragung an Job-Room.
+
+## Bestandsmigration v6
+
+Die produktive Ausfuehrung von workflow_calendar_v6 ist in dieser Dokumentation NICHT bestaetigt.
+Die Adminseite workflow_review zeigt den konkreten Plan. Ein Hash bindet die Bestaetigung an diesen Plan.
+Advisory-Lock, erneute gesperrte Pruefung und Transaktion; Sicherung in workflow_data_backups VOR Aenderung.
+Marker und Aenderungen gemeinsam committen, Fehler rollen zurueck; erneute Ausfuehrung ist wirkungslos.
+Alte erzeugte Vorbereitungs-/Dublettenereignisse stornieren, eindeutige datierte Follow-ups entkoppeln
+oder wiederherstellen, bekannte next_action-Felder bereinigen. Unbekannte Werte erhalten.
+Manuelle Termine und fremde Kalenderdaten nicht pauschal zusammenlegen oder loeschen.
+
+Google-Synchronisation ist bis zum v6-Marker gesperrt. Rueckweg: betroffene gesicherte Datensaetze
+gezielt pruefen/wiederherstellen; keine pauschale Ruecksicherung ueber spaetere Benutzerarbeit.
+
+## Querverweise
+
+[Programmlogik](PROGRAMMDOKUMENTATION.md), [Datenmodell](DATA_MODEL.md),
+[Tests](TESTING.md), [Neuaufbau](REBUILD.md), [Hilfe](help/de-CH.md).

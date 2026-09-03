@@ -1,126 +1,54 @@
 # JeMa Jobs
 
-JeMa Jobs ist ein produktives, privates Job-CRM fuer `https://jobs.jema.business`.
-Die Anwendung verwaltet den kompletten Bewerbungsprozess von der Profilpflege
-ueber Jobsuche, Schnellimport, Firmen, Kontakte, Bewerbungen, Dokumente,
-Kontaktlog, Pendent, Kalender, Reports, Dossier und Admin-Support bis zur
-Nachverfolgung.
+Stand: 03.09.2026. Produktiv bestaetigt: 1.18.0, Quellstand 541e02d.
+Dokumentation und Hilfe dieser Aenderung: Zielrelease 1.18.1; noch nicht als deployed zu verstehen.
 
-Aktueller dokumentierter Stand: Version `1.16.0`.
+Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
+Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
+Nachfassen und mehrere Gespraeche sind eigenstaendige datierte Termine.
+Es gibt keinen separaten Aufgaben-/Pendenzenbereich.
 
-## Lizenz
+## Dokumentationsweg
 
-JeMa Jobs ist proprietaere Software. Alle Rechte sind vorbehalten.
-Nutzung, Betrieb, Weitergabe, Vervielfaeltigung oder Ableitung sind nur mit
-ausdruecklicher Berechtigung erlaubt.
+1. [Anforderungen](docs/jobsearch/REQUIREMENTS.md): verbindliches Produktverhalten.
+2. [Programmdokumentation](docs/jobsearch/PROGRAMMDOKUMENTATION.md): Module, Felder, Berechtigungen, Integrationen.
+3. [Workflow](docs/jobsearch/WORKFLOW.md): Status, Zeitstempel, Kalender und Legacy-Migration.
+4. [Neuaufbau](docs/jobsearch/REBUILD.md): Umsetzungsschritte und Abnahmekriterien.
+5. [Datenbankreferenz](docs/jobsearch/DATA_MODEL.md): vollstaendige SQL-Dateien und Runtime-Erweiterungen.
+6. [Schnittstellen](docs/jobsearch/INTERFACES.md): Seiten, POST-Aktionen, Formulare und Funktionen.
+7. [Sprachkonzept](docs/jobsearch/DB_I18N_CONCEPT.md): Laufzeitauflosung und Hilfekatalog.
+8. [Deployment](docs/jobsearch/DEPLOYMENT.md), [Tests](docs/jobsearch/TESTING.md) und [Audit](docs/jobsearch/DOCUMENTATION_AUDIT.md).
+9. [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md), [Release 1.18.0](docs/jobsearch/RELEASE-1.18.0.md).
 
-Siehe [LICENSE.md](LICENSE.md).
+[Deutsche Hilfe](docs/jobsearch/help/de-CH.md), [fr-CH](docs/jobsearch/help/fr-CH.md),
+[en-GB](docs/jobsearch/help/en-GB.md), [pt-BR](docs/jobsearch/help/pt-BR.md),
+[es-MX](docs/jobsearch/help/es-MX.md).
 
-## Zielplattform
+## Technischer Aufbau
 
-- PHP 8.1+; die produktive Domain wurde mit PHP 8.1.x beobachtet.
-- MariaDB 10.6.
-- Klassisches Shared Hosting mit `public/index.php` als Front Controller.
-- Keine Composer-Abhaengigkeiten im produktiven Kern.
-- Responsive Browser-Oberflaeche fuer Desktop, Tablet und Mobile.
-- Produktive UI-Sprache in Version `1.16.0`: UI-Texte muessen aus
-  `ui_text_keys` und `ui_text_translations` kommen. PHP- und Resource-Dateien
-  enthalten keine Uebersetzungswoerterbuecher mehr.
-- UI-Texte werden schrittweise in die Datenbanktabellen `ui_text_keys` und
-  `ui_text_translations` migriert. Das Audit-Werkzeug
-  `tools/jobsearch_i18n_audit.php` zeigt verbliebene Hardcode-Kandidaten.
+- PHP 8.1+, MariaDB-kompatible SQL-Syntax, utf8mb4, HTTPS.
+- Front Controller: public/index.php; keine Composer-Abhaengigkeit im Kern.
+- Styles: public/assets/app.css und layout.css; Verhalten: layout.js sowie Inline-JavaScript.
+- Konfiguration: public/config.php, nicht versioniert; Muster: public/config.example.php.
+- Dateien: public/storage/documents und temporaere Bewerbungspakete; Zugriff ausschliesslich autorisiert.
+- UI-Texte: ui_text_keys und ui_text_translations; lokale Seeds und Hilfe werden in diese Tabellen eingespielt.
+- Hilfetextquelle: docs/jobsearch/help/source.json. Generierte Hilfetexte niemals separat bearbeiten.
+- SQL-Basisschema plus bedingte Runtime-Erweiterungen. Historische ALTER-Dateien sind keine lineare Neuinstallationsliste.
 
-## Repository-Struktur
+## Arbeiten am Projekt
 
-```text
-public/
-  index.php              Zentrale produktive Anwendung
-  assets/app.css         Globales Windows-11-nahes Design
-  assets/favicon.svg     App-Icon
-  assets/qrcode.min.js   QR-Code-Bibliothek fuer TOTP
-  assets/totp-qr.js      TOTP-QR-Initialisierung
-  config.example.php     Beispiel fuer serverseitige Konfiguration
+Lies AGENTS.md. Bestehende Benutzerdateien und nicht zugehoerige Aenderungen nicht ueberschreiben.
+Vor Auslieferung PHP-Lint, fachliche Regressionen, Sprach- und Browserpruefungen ausfuehren.
+Generierte Inhalte mit php -n tools/build_help.php und php -n tools/build_reference.php aktualisieren;
+mit --check auf Uebereinstimmung pruefen. Details in TESTING.md.
 
-sql/jobsearch/
-  00_create_database.sql Optionale Datenbankanlage
-  01_schema.sql          Basis-Schema
-  02_views.sql           Reporting-Views
+Produktive Aenderungen ausschliesslich ueber cPanel Mail Control:
+Proposal, externe Freigabe, Ausfuehrung, Hashvergleich und angemeldete Live-Pruefung.
+Ein erfolgreiches Git-Push ist kein Deployment. CSS/JS werden mit unveraenderlichem Commit referenziert.
+Keine Zugangsdaten, produktiven Datensaetze oder Datenbankdumps in Git.
 
-deploy/
-  installer/             Einmaliger Web-Installer fuer Hosts ohne SSH
-  extract-document-texts.php
+## Lizenz und Grenzen
 
-docs/
-  jobsearch/REQUIREMENTS.md
-  jobsearch/PRODUCT_DECISIONS.md
-  jobsearch/DEPLOYMENT.md
-```
-
-## Produktumfang
-
-Der aktuelle produktive Kern umfasst:
-
-- Registrierung, Login, Passwort-Reset, TOTP-2FA und Admin-Reset fuer Passwort
-  und 2FA.
-- Benutzerverwaltung mit Online-Status und Rollen.
-- Explizit freigegebener ADMIN Support mit farblich markierter Umgebung.
-- Benutzerprofile mit Kontaktdaten, Social Links, Sprachkenntnissen,
-  Suchpraeferenzen, SMTP-Einstellungen und Sicherheitsbereich.
-- Versionierte Stammdokumente und bewerbungsspezifische Dokumente.
-- Firmen mit Kommentaren, Beziehungen, Vermittlungsbezug und Verknuepfungen.
-- Kontakte mit Nachname-Sortierung, Kontaktlog, Wiedervorlage und Anhaengen.
-- Jobs mit Schnellimport aus URLs oder Text, Lohn, Quelle, Kommentar,
-  scrollfreier Leseansicht fuer Beschreibung und Kommentar,
-  manueller Ablage der Stellenausschreibung als PDF oder Bild, Fragen und
-  Dublettenhinweis.
-- Admin-gepflegte Jobplattformen und benutzerseitige ChatGPT-Rechercheprompts
-  fuer direkte Stellenlinks.
-- Bewerbungen mit Auto-Speichern, sichtbarem Speicherstatus,
-  Onlinebewerbungsfluss, E-Mail-Fluss, Dokumentzuordnung, Portalpaket,
-  temporaerem Dokumentordner, vollstaendiger Attachment-Pruefung vor dem
-  E-Mail-Versand, gesperrter Empfaengeradresse bei Kontaktzuordnung,
-  Einreichungsprotokoll und Pendent.
-- Pendent-Zentrale und Kalender mit Agenda, Tages-, Wochen- und Monatsmatrix
-  sowie ICS-Export.
-- Reports mit Tabellenansicht, Filtern, Sortierung, Speicherung und PDF-Export.
-- Bewerbungsdossier als Webseite mit PDF-Moeglichkeit.
-- Zentrale Hilfe mit Suche, Prozessgrafik, Lizenzsektion und kontextuellen
-  Gluebirnen-Hilfen als modale Popups.
-- Audit-Log, Cleanup-Vorschau und private Datenisolation pro Benutzer.
-
-## Wiederaufbau aus diesem Repository
-
-1. Eine leere MariaDB-Datenbank `kerubina_JeMaJobs` bereitstellen.
-2. `sql/jobsearch/01_schema.sql` importieren.
-3. `sql/jobsearch/02_views.sql` importieren.
-4. `public/config.example.php` auf dem Zielserver als `public/config.php`
-   kopieren und echte Werte eintragen.
-5. `public/` als Webroot oder in den bestehenden Webroot deployen.
-6. Schreibrechte fuer `public/storage/` sicherstellen, wenn Uploads und
-   temporare Bewerbungsunterlagen im Webroot-Layout genutzt werden.
-7. Die Domain per HTTPS ausliefern.
-8. Login, Registrierung, Passwort-Reset, Profil, Dokumentupload, Schnellimport
-   und Hilfe testen.
-9. Optional die Dokumenttextextraktion per Cron aktivieren.
-
-Die Anwendung fuehrt mehrere rueckwaertskompatible Runtime-Migrationen in
-`public/index.php` aus. Fuer einen reproduzierbaren Neuaufbau sollte trotzdem
-das SQL-Schema aktuell gehalten und importiert werden.
-
-## Produktiver Betrieb
-
-- Keine Secrets in Git speichern.
-- FTP-/FTPS-, Datenbank-, SMTP- und App-Schluessel nur serverseitig pflegen.
-- Produktive Benutzerdaten sind real und vertraulich.
-- Aenderungen an Login, 2FA, Passwort-Reset, Dokumenten, Bewerbungen,
-  Supportzugriff und Adminfunktionen vor Deployment immer linten und live
-  pruefen.
-- Sichtbare Version im Footer muss bei Aenderungen erhoeht werden.
-
-## Dokumentation
-
-- [Anforderungen](docs/jobsearch/REQUIREMENTS.md)
-- [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md)
-- [Deployment](docs/jobsearch/DEPLOYMENT.md)
-- [Historische PDF-Migration](docs/rendered-job-pdf-migration-2026-06-16.md)
-- [Lizenz](LICENSE.md)
+Proprietaere Software; [LICENSE.md](LICENSE.md) gilt unveraendert.
+Historische Versionsberichte dokumentieren damalige Aussagen, nicht den heutigen Funktionsumfang.
+Offene technische Unterschiede zum Zielverhalten sind in PROGRAMMDOKUMENTATION.md aufgefuehrt.

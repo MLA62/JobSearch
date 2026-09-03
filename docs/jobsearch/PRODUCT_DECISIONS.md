@@ -1,194 +1,36 @@
-# JeMa Jobs - Produktentscheidungen
+# Produktentscheidungen
 
-Stand: 2026-06-19
+Stand: 03.09.2026, Zielrelease 1.18.1. Verbindliche Entscheidungen vor historischen Release-Notizen.
 
-Produktversion: `1.15.22`
+| Bereich | Entscheidung | Grund |
+|---|---|---|
+| Workflow | Sechs Status, Bewerbungsgespraeche im Plural | Mehrere Gespraeche sind normale Wiederholungen |
+| Termine | Ein Kalender, ausdrueckliches Datum/Uhrzeit | Kein paralleler Pendenzenprozess |
+| Vorbereitung | Naechste Aufgabe darf angezeigt werden, erzeugt keinen Termin | Vorbereitung ist kein Versand |
+| Datum | Workflowdatum = juengstes relevantes Workflowdatum; Anzeige nur Datum | Einheitliche Listen/Karten/Exporte |
+| Versand | Nur echter Versand-/Einreichungsnachweis, Zeitpunkt erhalten | Keine irrefuehrende Behauptung bei Bereit |
+| Verlauf | Statuswechsel protokollieren, Autosave nicht als Wechsel | Nachvollziehbarkeit ohne Dubletten |
+| Job-Room | Erfassung bewusst bestaetigen, Ergebnis separat | Ergebnis beweist keine Portal-Erfassung |
+| Legacy | Unklare Werte erhalten; Vorschau und Sicherung vor Bereinigung | Schutz echter Benutzerdaten |
+| Kontakte | Aktivitaetszaehler und verknuepfte Stellen trennen | 2 Eintraege bedeutet nicht 2 Bewerbungen |
+| Tabelle | Echte Zeilen/Spalten, Umbruch statt Abschneiden | Lesbarkeit bei wenig Platz |
+| Auswahl | Keine automatisch eingefuegten Auswahlkaestchen | Keine ungenutzte Spalte |
+| Darstellung | Orange fuer Aktionen, Gruen fuer heutigen Kalendertag | Orientierung ohne Statusverwechslung |
+| Sprachdaten | Stabile Keys, DB-Aufloesung, versionierte Hilfeseeds | Reproduzierbare Inhalte in fuenf Sprachen |
+| Hilfe | Themen anhand stabiler IDs statt Stichwort-Zufall | Passende Kontext-Hilfe pro Seite |
+| Deployment | cPanel-Proposal und externe Freigabe | Keine Umgehung produktiver Kontrollen |
+| Assets | Unveraenderliche Commit-URLs | Kein Mix aus alten und neuen Layouts |
+| Dokumentation | Historie bewahren und als historisch markieren | Alte Testergebnisse nicht als neue Nachweise ausgeben |
 
-Dieses Dokument beschreibt verbindliche Produktentscheidungen. Es dient als
-Grundlage, um JeMa Jobs aus dem Repository und der Dokumentation wieder
-aufzubauen.
+## Nicht genehmigte Automatismen
 
-## Produktstatus
+Kein Versand aus Speichern, kein Nachfassdatum aus Versandzeitpunkt, kein Interviewdatum nur aus Status.
+Kein automatisches Zusammenlegen verschiedener Bewerbungen derselben Firma.
+Keine Supportfreigabe allein durch Adminrolle. Keine oeffentlichen Dateipfade fuer private Dokumente.
+Kein Wiederherstellen ganzer Datenbankstaende ueber neuere Benutzerdaten.
 
-- JeMa Jobs ist produktiv.
-- Es existieren reale produktive Benutzer.
-- Aenderungen muessen rueckwaertskompatibel und datenbewusst erfolgen.
-- Der Begriff `Prototyp` darf in der Benutzeroberflaeche nicht mehr verwendet
-  werden.
-- Sichtbare Versionen beginnen nicht mit `0.`.
+## Aenderungsdisziplin
 
-## Lizenzmodell
-
-- JeMa Jobs ist proprietaere Software.
-- Alle Rechte bleiben beim Rechteinhaber.
-- Keine Open-Source-Lizenz.
-- Keine Weitergabe, Veroeffentlichung, Vervielfaeltigung oder abgeleitete
-  Nutzung ohne ausdrueckliche schriftliche Erlaubnis.
-- Die Hilfe enthaelt eine kurze Lizenzsektion.
-- Das Repository enthaelt `LICENSE.md` als kanonische Lizenznotiz.
-
-## UI- und Designentscheidungen
-
-- Orientierung am Microsoft-Windows-11-Stil mit hoeherem Kontrast als die
-  Minimalvorgaben.
-- Akzentfarbe ist Orange, nicht Blau.
-- Eingabefelder haben sichtbaren Hintergrund und klare Raender.
-- Aktive Auswahlen und selektierte Datensaetze muessen deutlich erkennbar sein.
-- Tabellenlinien, Rahmen und Zeilentrennung muessen konsequent sichtbar sein.
-- Kartenansichten werden dort, wo sinnvoll, durch Tabellenansichten ergaenzt.
-- Technische IDs werden nicht in fachlichen Listen oder Reports angezeigt.
-- Kontext-Hilfe erscheint ueber eine leuchtende Gluebirne und ein modales
-  Popup.
-- Die Topnavigation verwendet Windows-nahe Menuegruppen mit Pulldowns.
-
-## Mehrsprachigkeit
-
-- Stand Version `1.15.22`: UI-Texte werden im Laufzeitpfad ueber DB-Keys
-  gelesen. PHP- und Resource-Dateien duerfen keine Uebersetzungswoerterbuecher
-  mehr enthalten.
-- Stand Version `1.15.22`: PDF-Ausgaben uebersetzen Titel, Tabellenkoepfe,
-  Zeilenwerte und Standard-Metatexte ueber dieselbe DB-Phrasenlogik.
-- Stand Version `1.15.22`: `tr()` liest UI-Texte aus den Tabellen
-  `ui_text_keys` und `ui_text_translations`. Fehlende bisherige `tr()`-Keys
-  fallen sichtbar auf ihren Key zurueck und duerfen nicht mehr aus PHP-Katalogen
-  befuellt werden.
-- Das Werkzeug `tools/jobsearch_i18n_audit.php` liefert die Arbeitsliste der
-  noch direkt im PHP vorhandenen sichtbaren Textkandidaten.
-- Die App verwendet eine zentrale Sprachbibliothek in `public/index.php`.
-- Produktive Locale-Codes sind `de-CH`, `fr-CH`, `en-GB`, `pt-BR` und
-  `es-MX`.
-- Veraltete Werte `de`, `fr`, `en`, `pt` und `es` werden per
-  Runtime-Migration auf die produktiven Locale-Codes normalisiert.
-- Login und Registrierung zeigen eine kompakte Flaggenauswahl; im Profil
-  wird die App- und Dokumentensprache als Stammdatum gepflegt.
-
-## Identitaet, Login und Support
-
-- Registrierung ist erlaubt.
-- Benutzer koennen sich anmelden und ihr Passwort zuruecksetzen.
-- TOTP-2FA ist im Profil verfuegbar.
-- Aktivierte 2FA muss beim Login erzwungen werden.
-- Admins koennen Benutzer loeschen, Passwoerter zuruecksetzen und 2FA
-  zuruecksetzen.
-- Benutzer koennen ADMIN Support explizit freigeben.
-- Admins duerfen nur mit aktiver Freigabe in eine Benutzerumgebung wechseln.
-- Waehrend Support ist die Kopfzeile farblich anders.
-- Der Admin sieht, in welcher Umgebung er arbeitet.
-- Benutzer koennen die Freigabe jederzeit widerrufen.
-
-## E-Mail
-
-- Benutzer pflegen eigene SMTP-Einstellungen im Profil.
-- Benutzerbezogene E-Mails werden ueber die SMTP-Konfiguration des jeweiligen
-  Benutzers verschickt.
-- Zentrale SMTP-Konfiguration ist nur Fallback fuer systemeigene Flows.
-- Interne E-Mails wie Registrierung oder Passwort-Reset duerfen verschickt
-  werden, sofern SMTP aktiv ist.
-- SMTP-Passwoerter werden verschluesselt gespeichert.
-
-## Datenisolation und Sicherheit
-
-- Jeder Benutzer besitzt seine eigenen Firmen, Jobs, Kontakte, Bewerbungen,
-  Dokumente, Reports und Kalenderdaten.
-- Abfragen muessen immer auf den authentifizierten Benutzer scoped sein, ausser
-  es gibt eine explizite Freigabe.
-- Admin Support ist eine kontrollierte Ausnahme mit Auditpflicht.
-- Audit-Log ist unveraenderbar.
-- Produktionsdaten duerfen nicht durch Test- oder Migrationslogik geloescht
-  oder ueberschrieben werden.
-
-## Jobsuche und Import
-
-- Vollautomatisches Scraping externer Jobportale ist nicht der Standardweg.
-- Der robuste Standardweg ist:
-  1. Profilpraeferenzen pflegen.
-  2. In der App einen ChatGPT-Rechercheprompt erzeugen.
-  3. ChatGPT mit Web-Recherche direkte Stellenlinks liefern lassen.
-  4. Eine unformatierte Linkliste in den Schnellimport einfuegen.
-  5. Jobvorschlaege pruefen und speichern.
-- Der Prompt verlangt ausschliesslich Direkt-URLs, eine URL pro Zeile, ohne
-  Markdown, Nummerierung, Titel oder Erklaerungen.
-- Admins pflegen die Liste der Jobplattformen.
-- Jobplattformen sind Prioritaeten fuer die Recherche, keine Garantie fuer
-  direkte Inserat-URLs.
-- Schnellimport zeigt beim Erstellen eines Vorschlags einen Fortschrittsbalken.
-
-## Bewerbungen
-
-- Onlinebewerbung ist der wichtigste Zielprozess, weil viele Firmen eigene
-  Formulare nutzen.
-- Eine Bewerbung kann ohne konkreten Kontakt existieren.
-- Unterlagen muessen fuer Webformulare leicht bereitgestellt werden:
-  Drag-and-drop, temporaerer Ordner, ZIP-Paket, Download.
-- Nach Einreichung einer Bewerbung wird automatisch protokolliert:
-  - Kontaktlog-Aktivitaet
-  - Pendent `Antwort auf Bewerbung pendent`
-  - Zeitpunkt der Einreichung
-  - Sichtbarkeit in Agenda/Kalender
-- Bei E-Mail-Bewerbungen werden Unterlagen als Attachments behandelt, sofern
-  sie zugeordnet sind.
-
-## Firmen, Kontakte und Kontaktlog
-
-- Firmen koennen automatisch aus Importen entstehen.
-- Firmen, Personen und Jobs haben Kommentarfelder.
-- Kontakte werden immer nach Nachname sortiert.
-- Das Kontaktlog gehoert direkt zu Kontakten und ist auch aus Bewerbungen
-  sichtbar.
-- Kontaktlog-Eintraege koennen Kanaele, Zeitpunkte, Wiedervorlagen, Status,
-  Mitteilung und Anhaenge enthalten.
-
-## Kalender und Pendent
-
-- Der Begriff lautet `Pendent`, nicht `Offene Schritte`.
-- Der Bewerbungsworkflow wird in drei klar getrennten Ebenen gefuehrt:
-  `Meilenstein`, `Pendent` und `Termin`.
-- Der Statusverlauf ist der Prozessnachweis und die Grundlage fuer RAV- und
-  Job-Room-Auswertungen. Statusaenderungen werden nicht als offene Aufgaben
-  behandelt.
-- Pro Bewerbung gibt es hoechstens ein aktuelles Pendent. Fruehere Pendenzen
-  bleiben abgeschlossen nachvollziehbar.
-- Nachfassen und andere Wiedervorlagen aus dem Kontaktlog werden ebenfalls als
-  Pendent materialisiert. Vorstellungsgespraeche und manuelle Ereignisse sind
-  Termine und bleiben unabhaengig vom Bewerbungsstatus bearbeitbar.
-- Agenda ist tabellarisch.
-- Tages-, Wochen- und Monatsansichten sind Matrixansichten, keine einfachen
-  Listen.
-- Eintraege ohne Uhrzeit werden als Tageseintraege oben angezeigt.
-- ICS-Export ist pro Ansicht verfuegbar.
-
-## Dokumente und Dossier
-
-- Dokumente sind versioniert.
-- Stammdokumente und bewerbungsspezifische Dokumente werden unterschieden.
-- Bewerbungsdossier fasst Firma, Kontakte, Job, Bewerbung, Fragen, Dokumente
-  und Aktivitaeten zusammen.
-- Dossier kann als Webseite angezeigt und als PDF genutzt werden.
-
-## Reports, Tabellen, Sortierung und Filter
-
-- Tabellen haben Sort- und Filtersteuerung pro Feld.
-- Dropdown-basierte Felder bieten Mehrfachauswahlfilter.
-- Filter und Sortierung bleiben innerhalb der Session und ueber Ansichten
-  hinweg erhalten.
-- PDF-Reports muessen optisch lesbar sein: Rahmen, Spaltenlinien,
-  gebaenderte Zeilen.
-
-## Hilfe
-
-- Zentrale Hilfe ist eine produktive Wissensbasis.
-- Die Hilfe hat Suche, Kategorien, Prozessgrafik, Kurzablaeufe und ausfuehrliche
-  Themen.
-- Kontext-Hilfe wird dort angezeigt, wo sie den Arbeitsfluss direkt verbessert.
-- Kontext-Hilfe nutzt eine leuchtende Gluebirne und ein modales Popup.
-- Die Hilfe enthaelt eine Lizenzsektion.
-
-## Deployment-Entscheidungen
-
-- Produktive Deployments erfolgen aktuell per explizitem FTPS.
-- Secrets werden nicht in Git gespeichert.
-- Vor jedem Deployment:
-  - `php -l public/index.php`
-  - `git diff --check`
-  - gezielte Live-HTTP-Pruefung
-- Nach Deployment werden GitHub und lokale Arbeitskopie synchron gehalten.
+Ein Request kann Quellcode und Dokumentation betreffen, aber eine Freigabe gilt fuer den
+exakten Deployment-Inhalt. Ausstehende Datenbereinigung nicht in ein Layout-Deployment einschleusen.
+Alle Angaben zur Umsetzung muessen zwischen lokal, freigegeben, deployed und live geprueft unterscheiden.

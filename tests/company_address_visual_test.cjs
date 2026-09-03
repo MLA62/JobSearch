@@ -7,7 +7,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     const page = await browser.newPage();
     for (const width of [390, 1000, 2048]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto('http://127.0.0.1:8127/tests/table_fixture.php');
+      await page.goto((process.env.JEMA_TEST_URL || 'http://127.0.0.1:8127') + '/tests/table_fixture.php');
       const table = page.locator('[data-bulk-action="bulk_delete_companies"] table');
       assert.equal(await table.locator('input[type=checkbox]').count(), 0);
       const address = table.locator('tbody tr').first().locator('td').nth(1);

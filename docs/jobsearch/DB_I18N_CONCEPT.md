@@ -1,139 +1,61 @@
-# DB-basiertes Uebersetzungskonzept
+# Sprachen, UI-Texte und Hilfe
 
-Stand: 2026-06-19
+Stand: 2026-09-03, Hilfe-Kandidat 1.18.1.
+Dieses Dokument ersetzt das fruehere reine Zielbild durch die tatsaechliche Architektur.
 
-## Ziel
+## Sprachen und Daten
 
-JeMa Jobs verwendet kuenftig keine statischen UI-Textkataloge mehr in PHP,
-Markdown, JavaScript oder anderen Ressourcendateien. Sprachrelevante
-Oberflaechentexte werden als Daten in der Datenbank gepflegt und zur Laufzeit
-ueber stabile Text-Keys geladen.
+Unterstuetzt: `de-CH`, `fr-CH`, `en-GB`, `pt-BR`, `es-MX`.
+`normalizeLocale()` normalisiert bekannte Varianten. `currentLocale()` bevorzugt die Sitzung, danach die Benutzereinstellung, danach Browser/Standard. Sprachewechsel per `lang` setzt die Sitzung; Profilpflege speichert die bevorzugte Sprache.
 
-Das bisherige HTML-Nachuebersetzen und wachsende Fallback-Arrays sind nur noch
-Altbestand und werden schrittweise entfernt.
+App-Sprache, Dokumentsprache, Kontakt-/Bewerbungssprache und Uebersetzung eigener Inhalte sind getrennt. Eigene Namen, Nachrichten, Dateien und Stellenbeschreibungen werden bei einem Sprachewechsel nicht umgeschrieben.
 
-## Grundregeln
+## DB-Laufzeit
 
-- Sichtbarer UI-Text wird ueber einen stabilen Key referenziert.
-- Der Code kennt den Key, aber nicht den eigentlichen Text.
-- Texte und Uebersetzungen liegen in `ui_text_keys` und
-  `ui_text_translations`.
-- Die Standardsprache ist weiter `de-CH`.
-- Fehlende Uebersetzungen fallen kontrolliert auf `de-CH` zurueck.
-- Fehlende Keys werden als technischer Fehler protokolliert und im Adminbereich
-  sichtbar gemacht.
-- Neue UI-Texte duerfen nicht mehr hartcodiert werden.
-- Kommentare im Code bleiben Deutsch.
-- Markdown-Dokumentation bleibt Deutsch und ist nicht Teil der UI-Uebersetzung.
+- `ui_text_keys`: stabiler Key, Namespace, Standardsprache, Aktivierung.
+- `ui_text_translations`: Text je Locale mit Freigabestatus.
+- `ui_text_cache_versions`: vorhandene Infrastruktur; nicht mit einem voll implementierten globalen Cache gleichsetzen.
+- `tr(string $key, ?string $locale = null, array $replace = [])`: freigegebene DB-Texte der Sprache, dann de-CH, sonst Key selbst; Platzhalter wie `{count}` ersetzen.
+- Pro Request werden Sprachkataloge zwischengespeichert. Kein PHP-Woerterbuch als stiller Runtime-Fallback fuer fehlende Keys.
+- `translateUiHtml()` ist Legacy-Nachuebersetzung auf DB-Basis, nicht die Zielarchitektur fuer neue Masken.
+- Die Seite `translations` bearbeitet eigene Datensatzuebersetzungen; sie ist keine vollstaendige UI-Key-Verwaltung.
 
-## Datenmodell
+Die alte Behauptung, im PHP existierten keinerlei Textkataloge mehr, war falsch. Der Einstiegspunkt enthaelt versionierte Initial-/Reparaturseeds, die in die DB geschrieben werden. Neue Hilfe verwendet denselben DB-Laufzeitweg mit nachvollziehbarer, einmaliger Seedmigration.
 
-`languages`
+## Eine Quelle fuer alle Hilfen
 
-Bestehende Tabelle fuer aktive Sprachen und Sortierung.
+`docs/jobsearch/help/source.json` ist die redaktionelle Quelle mit 24 stabilen Themen-IDs, Seitenzuordnungen, Kategorien, Links und Texten in allen fuenf Sprachen.
 
-`ui_text_keys`
+Pro Thema: Titel, Zusammenfassung, konkrete Schritte, Hinweise. Hilfe-Chrome, Kategorien und Kurzuebersichten sind ebenfalls vollstaendig lokalisiert.
 
-Enthaelt den stabilen Pointer:
+`php -n tools/build_help.php` erzeugt:
+- den markierten `helpTranslationSeeds()`-/`helpTopicDefinitions()`-Block in public/index.php;
+- fuenf lesbare Markdown-Handbuecher unter help/.
 
-- `text_key`: eindeutiger technischer Key, z. B. `nav.dashboard`
-- `namespace`: Bereich, z. B. `nav`, `auth`, `profile`, `jobs`
-- `description`: fachlicher Hinweis fuer Admins
-- `default_locale`: normalerweise `de-CH`
-- `is_active`: erlaubt Ausphasung ohne Datenverlust
+`php -n tools/build_help.php --check` meldet veraltete generierte Dateien als Fehler. Nicht in generierten Texten von Hand korrigieren.
 
-`ui_text_translations`
+`seedReviewedHelp()` nimmt nur den Hilfe-/Kontextkatalog auf. Ein SHA-256-Migrationsmarker, Advisory Lock und Transaktion verhindern Teilupdates und staendiges Ueberschreiben. Alte Initialseeds ueberschreiben verwaltete Hilfekeys nicht wieder. Aenderungen an diesen Keys werden bei einem neuen Inhaltshash bewusst erneut freigegeben.
 
-Enthaelt den eigentlichen Text pro Sprache:
+`localizedHelpTopics()` baut die zentrale Hilfe aus den DB-Texten. `localizedContextHelpTopics()` verwendet dieselben Themen nach exakten Seiten-IDs. Keine erratene Zuordnung ueber englische Titel. Links in Kontextfenstern fuehren zum passenden Themenanker.
 
-- `text_key_id`
-- `locale`
-- `text_value`
-- `status`: `draft`, `review`, `approved`, `archived`
-- Audit-Felder fuer Bearbeitung und Freigabe
+## Inhaltlicher Vertrag
 
-`ui_text_cache_versions`
+Die Hilfe erklaert den aktuellen Arbeitsablauf: Stellen und Bewerbungen getrennt, sechs neue Statuswerte, kein Versanddatum fuer Entwurf/Bereit, explizite Termine statt Pendenzen, Kontaktlog-Zaehlungen, Job-Room ohne automatische Uebermittlung, Benutzer-Supportfreigabe und echte Dokumentsprache.
 
-Erlaubt schnelles Invalidieren pro Sprache, sobald ein Admin Texte aendert.
+Die Suche umfasst Titel, Zusammenfassung, Schritte und Hinweise. Seitenthemen und Kategorien muessen auch nach einem Sprachwechsel funktionieren. Technische GET-Endpunkte ohne eigene Maske brauchen keine kuenstliche Hilfeseite.
 
-## Laufzeit
+## Pflege und Pruefung
 
-1. Beim ersten `t('key')` pro Request wird die aktive Sprache bestimmt.
-2. Alle genehmigten Texte dieser Sprache werden einmal aus der DB geladen.
-3. Die genehmigten `de-CH`-Texte werden als Fallback ebenfalls geladen.
-4. Der Request nutzt danach nur noch den Speicher-Cache.
-5. Platzhalter werden erst nach der Key-Aufloesung ersetzt.
+1. Sachverhalt in Handler, Formular und Anzeige abgleichen.
+2. Alle fuenf Sprachfassungen und benoetigte UI-Keys gemeinsam in source.json aendern.
+3. Generatoren ausfuehren und Diff pruefen.
+4. Vollstaendigkeit, Platzhalter, Verweise, Kontextzuordnung und Browserdarstellung testen.
+5. Freigegebenen Katalog zusammen mit Code deployen; anschliessend alle Sprachen mit DB-Laufzeit pruefen.
 
-Beispiel:
+Tests mit Mock-Katalogen belegen keine korrekten Produktions-DB-Werte. Fallback auf Deutsch kann fehlende Uebersetzungen kaschieren; deshalb im Test jede Locale vor dem Fallback auf Vollstaendigkeit pruefen.
 
-```php
-t('dashboard.greeting', ['name' => $displayName])
-```
+## Grenzen
 
-Der Code enthaelt dabei nur `dashboard.greeting`, nicht den Text.
+Der gesamte historische UI-Katalog ist nicht als vollstaendiger sauberer Seed im Repo enthalten. Fuer einen identischen Neuaufbau ist ein bereinigter Export der genehmigten UI-Texte erforderlich. Keine privaten Datensatztexte/Secrets dabei exportieren.
 
-## Performance
-
-- Pro Request maximal zwei DB-Ladevorgaenge fuer UI-Texte:
-  - aktive Sprache
-  - `de-CH` als Fallback
-- Keine Einzelabfrage pro Text.
-- Optionaler Datei-/APCu-Cache kann spaeter ergaenzt werden, bleibt aber
-  abgeleitet aus der DB und nicht Quelle der Wahrheit.
-- `ui_text_cache_versions` dient zur schnellen Cache-Invalidierung.
-
-## Admin-Pflege
-
-Der Adminbereich braucht eine Uebersetzungsverwaltung mit:
-
-- Liste aller Keys nach Namespace
-- Filter nach Sprache, Status, fehlender Uebersetzung
-- Bearbeiten des Textwerts je Sprache
-- Statuswechsel `draft` -> `review` -> `approved`
-- Anzeige, ob ein Key in einer Sprache fehlt
-- Export/Import fuer Uebersetzer
-- Audit, wer wann welchen Text geaendert oder freigegeben hat
-
-## Migration
-
-Phase 1: Tabellen anlegen
-
-- Migration `sql/jobsearch/14_ui_translation_store.sql` importieren.
-
-Phase 2: zentrale Runtime einfuehren
-
-- Neue Funktion `t($key, $replace = [], $locale = null)` liest aus der DB.
-- Bestehendes `tr()` wird intern auf `t()` umgeleitet.
-- Statische Kataloge sind kein erlaubter Runtime-Fallback.
-
-Phase 3: Keys uebernehmen
-
-- Bestehende Keys muessen in der Datenbank vorhanden sein.
-- Der Code wird auf reine Key-Nutzung umgestellt.
-- Keine neuen Texte werden mehr in PHP aufgenommen.
-
-Phase 4: Legacy entfernen
-
-- Stand Version `1.15.22`: PHP- und Resource-Dateien enthalten keine
-  Uebersetzungswoerterbuecher mehr. Leere Kompatibilitaetsfunktionen duerfen
-  nur bestehen bleiben, solange alte Aufrufstellen noch aufgeraeumt werden.
-- `public/i18n/ui_legacy.php` ist entfernt.
-- `translateUiHtml()` darf nur DB-Inhalte aus `ui_text_keys` und
-  `ui_text_translations` verwenden.
-
-## Qualitaetskriterien
-
-- Kein sichtbarer UI-Text darf neu hartcodiert werden.
-- Ein Test scannt PHP/JS/Views auf neue sichtbare Literaltexte.
-- Jede unterstuetzte Sprache muss denselben Key-Bestand haben.
-- Fehlende Uebersetzungen sind im Adminbereich sichtbar.
-- Der Login muss ohne Datenbankfehler weiterhin robust bleiben; bei DB-Ausfall
-  wird ein minimaler deutscher Fehlertext aus einer technischen Notfallkonstante
-  angezeigt, nicht als normaler UI-Katalog.
-
-## Nicht-Ziele
-
-- Bewerbungsinhalte, Firmen, Kontakte, Jobs und Dokumente sind Benutzerdaten und
-  bleiben nicht Teil der UI-Sprachtabelle.
-- Markdown-Dokumentation bleibt Deutsch.
-- Code-Kommentare bleiben Deutsch.
+Diese Runde aktualisiert saemtliche Hilfethemen und Kontexttexte. Sie behauptet nicht, alle uebrigen Legacy-Beschriftungen der Anwendung oder alle gespeicherten Benutzeruebersetzungen korrigiert zu haben.

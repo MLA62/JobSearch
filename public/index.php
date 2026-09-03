@@ -99,6 +99,7 @@ try {
         changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("INSERT IGNORE INTO ui_text_cache_versions (locale, version) SELECT code, 1 FROM languages WHERE is_active = 1");
+    $managedHelpTexts = helpTranslationSeeds();
     foreach ([
         'auth.totp_invalid' => [
             'de-CH' => 'Der Sicherheitscode wurde nicht akzeptiert. Bitte verwende einen neuen Code aus dem Authenticator-Eintrag für JeMa Jobs und prüfe, ob Datum und Uhrzeit deines Geräts automatisch eingestellt sind.',
@@ -1128,6 +1129,7 @@ try {
             'es-MX' => 'Documento asignado sin nombre de archivo',
         ],
     ] as $textKey => $translations) {
+        if (isset($managedHelpTexts[$textKey])) { continue; }
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
         $defaultLocale = 'de-CH';
         $stmt = $db->prepare('INSERT INTO ui_text_keys (text_key, namespace, default_locale) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE namespace=VALUES(namespace), is_active=1');
@@ -1941,240 +1943,2129 @@ function startUiTranslationBuffer(string $locale): void
     ob_start(static fn(string $buffer): string => translateUiHtml($buffer, $locale));
 }
 
+// BEGIN GENERATED HELP
+function helpTranslationSeeds(): array
+{
+    static $catalog = array (
+  'context.all_topics' =>
+  array (
+    'de-CH' => 'Alle Hilfethemen',
+    'fr-CH' => 'Tous les sujets d’aide',
+    'en-GB' => 'All help topics',
+    'pt-BR' => 'Todos os temas de ajuda',
+    'es-MX' => 'Todos los temas de ayuda',
+  ),
+  'context.close' =>
+  array (
+    'de-CH' => 'Schliessen',
+    'fr-CH' => 'Fermer',
+    'en-GB' => 'Close',
+    'pt-BR' => 'Fechar',
+    'es-MX' => 'Cerrar',
+  ),
+  'context.help' =>
+  array (
+    'de-CH' => 'Hilfe zu dieser Seite',
+    'fr-CH' => 'Aide de cette page',
+    'en-GB' => 'Help for this page',
+    'pt-BR' => 'Ajuda desta página',
+    'es-MX' => 'Ayuda de esta página',
+  ),
+  'context.how_to' =>
+  array (
+    'de-CH' => 'Vorgehen',
+    'fr-CH' => 'Procédure',
+    'en-GB' => 'Steps',
+    'pt-BR' => 'Etapas',
+    'es-MX' => 'Pasos',
+  ),
+  'context.remember' =>
+  array (
+    'de-CH' => 'Wichtig',
+    'fr-CH' => 'Important',
+    'en-GB' => 'Important',
+    'pt-BR' => 'Importante',
+    'es-MX' => 'Importante',
+  ),
+  'help.audience.admin' =>
+  array (
+    'de-CH' => 'Admin',
+    'fr-CH' => 'Admin',
+    'en-GB' => 'Admin',
+    'pt-BR' => 'Administrador',
+    'es-MX' => 'Administrador',
+  ),
+  'help.audience.user' =>
+  array (
+    'de-CH' => 'Benutzer',
+    'fr-CH' => 'Utilisateur',
+    'en-GB' => 'User',
+    'pt-BR' => 'Usuário',
+    'es-MX' => 'Usuario',
+  ),
+  'help.categories_label' =>
+  array (
+    'de-CH' => 'Kategorien',
+    'fr-CH' => 'Catégories',
+    'en-GB' => 'Categories',
+    'pt-BR' => 'Categorias',
+    'es-MX' => 'Categorías',
+  ),
+  'help.category.account' =>
+  array (
+    'de-CH' => 'Konto und Daten',
+    'fr-CH' => 'Compte et données',
+    'en-GB' => 'Account and data',
+    'pt-BR' => 'Conta e dados',
+    'es-MX' => 'Cuenta y datos',
+  ),
+  'help.category.admin' =>
+  array (
+    'de-CH' => 'Administration',
+    'fr-CH' => 'Administration',
+    'en-GB' => 'Administration',
+    'pt-BR' => 'Administração',
+    'es-MX' => 'Administración',
+  ),
+  'help.category.crm' =>
+  array (
+    'de-CH' => 'Firmen und Kontakte',
+    'fr-CH' => 'Entreprises et contacts',
+    'en-GB' => 'Companies and contacts',
+    'pt-BR' => 'Empresas e contatos',
+    'es-MX' => 'Empresas y contactos',
+  ),
+  'help.category.process' =>
+  array (
+    'de-CH' => 'Bewerbungsprozess',
+    'fr-CH' => 'Candidatures',
+    'en-GB' => 'Application process',
+    'pt-BR' => 'Candidaturas',
+    'es-MX' => 'Solicitudes',
+  ),
+  'help.category.reports' =>
+  array (
+    'de-CH' => 'Auswertungen',
+    'fr-CH' => 'Rapports',
+    'en-GB' => 'Reports',
+    'pt-BR' => 'Relatórios',
+    'es-MX' => 'Informes',
+  ),
+  'help.empty_hint' =>
+  array (
+    'de-CH' => 'Ändere den Suchbegriff oder setze die Suche zurück.',
+    'fr-CH' => 'Modifie le terme ou réinitialise la recherche.',
+    'en-GB' => 'Change the search term or reset the search.',
+    'pt-BR' => 'Altere o termo ou redefina a pesquisa.',
+    'es-MX' => 'Cambia el término o restablece la búsqueda.',
+  ),
+  'help.empty_title' =>
+  array (
+    'de-CH' => 'Keine passenden Themen',
+    'fr-CH' => 'Aucun sujet correspondant',
+    'en-GB' => 'No matching topics',
+    'pt-BR' => 'Nenhum tema encontrado',
+    'es-MX' => 'No hay temas coincidentes',
+  ),
+  'help.flow.apply.text' =>
+  array (
+    'de-CH' => 'Entwurf → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.',
+    'fr-CH' => 'Brouillon → Prête → Envoyée → Entretiens → Acceptation ou refus.',
+    'en-GB' => 'Draft → Ready → Sent → Interviews → Accepted or rejected.',
+    'pt-BR' => 'Rascunho → Pronta → Enviada → Entrevistas → Aceita ou recusada.',
+    'es-MX' => 'Borrador → Lista → Enviada → Entrevistas → Aceptada o rechazada.',
+  ),
+  'help.flow.apply.title' =>
+  array (
+    'de-CH' => 'Bewerbungsworkflow',
+    'fr-CH' => 'Parcours de candidature',
+    'en-GB' => 'Application workflow',
+    'pt-BR' => 'Fluxo de candidatura',
+    'es-MX' => 'Proceso de solicitud',
+  ),
+  'help.flow.dossier.text' =>
+  array (
+    'de-CH' => 'Das Dossier fasst die ausgewählte Bewerbung und ihre zugehörigen Angaben zusammen.',
+    'fr-CH' => 'Le dossier rassemble la candidature choisie et ses informations associées.',
+    'en-GB' => 'The dossier brings together the selected application and related information.',
+    'pt-BR' => 'O dossiê reúne a candidatura selecionada e suas informações associadas.',
+    'es-MX' => 'El expediente reúne la solicitud seleccionada y su información relacionada.',
+  ),
+  'help.flow.dossier.title' =>
+  array (
+    'de-CH' => 'Bewerbungsdossier',
+    'fr-CH' => 'Dossier de candidature',
+    'en-GB' => 'Application dossier',
+    'pt-BR' => 'Dossiê da candidatura',
+    'es-MX' => 'Expediente de solicitud',
+  ),
+  'help.flow.follow.text' =>
+  array (
+    'de-CH' => 'Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.',
+    'fr-CH' => 'Les relances et entretiens sont des rendez-vous explicitement datés.',
+    'en-GB' => 'Follow-ups and interviews are explicitly dated appointments.',
+    'pt-BR' => 'Acompanhamentos e entrevistas são compromissos com data definida.',
+    'es-MX' => 'Los seguimientos y entrevistas son citas con fecha explícita.',
+  ),
+  'help.flow.follow.title' =>
+  array (
+    'de-CH' => 'Kalender und Nachfassen',
+    'fr-CH' => 'Calendrier et relances',
+    'en-GB' => 'Calendar and follow-ups',
+    'pt-BR' => 'Calendário e acompanhamento',
+    'es-MX' => 'Calendario y seguimientos',
+  ),
+  'help.flow.import.text' =>
+  array (
+    'de-CH' => 'Eine Stelle beschreibt das Angebot; eine Bewerbung dokumentiert deinen Bewerbungsprozess.',
+    'fr-CH' => 'L’offre décrit le poste; la candidature documente ta démarche.',
+    'en-GB' => 'A job describes the offer; an application records your application process.',
+    'pt-BR' => 'A vaga descreve a oferta; a candidatura registra seu processo.',
+    'es-MX' => 'La vacante describe la oferta; la solicitud registra tu proceso.',
+  ),
+  'help.flow.import.title' =>
+  array (
+    'de-CH' => 'Stellen erfassen und bearbeiten',
+    'fr-CH' => 'Saisir et modifier une offre',
+    'en-GB' => 'Create and edit jobs',
+    'pt-BR' => 'Cadastrar e editar vagas',
+    'es-MX' => 'Registrar y editar vacantes',
+  ),
+  'help.flow.profile.text' =>
+  array (
+    'de-CH' => 'Persönliche Angaben und Suchwünsche werden für deine Bewerbungsarbeit verwendet.',
+    'fr-CH' => 'Tes coordonnées et préférences servent à préparer les candidatures.',
+    'en-GB' => 'Personal details and preferences support your application work.',
+    'pt-BR' => 'Dados pessoais e preferências ajudam na preparação das candidaturas.',
+    'es-MX' => 'Tus datos personales y preferencias ayudan a preparar solicitudes.',
+  ),
+  'help.flow.profile.title' =>
+  array (
+    'de-CH' => 'Profil und Suchwünsche',
+    'fr-CH' => 'Profil et préférences',
+    'en-GB' => 'Profile and preferences',
+    'pt-BR' => 'Perfil e preferências',
+    'es-MX' => 'Perfil y preferencias',
+  ),
+  'help.flow.search.text' =>
+  array (
+    'de-CH' => 'Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.',
+    'fr-CH' => 'Le prompt de recherche utilise tes préférences et les plateformes choisies.',
+    'en-GB' => 'The research prompt uses your preferences and selected job platforms.',
+    'pt-BR' => 'O prompt de pesquisa usa suas preferências e plataformas selecionadas.',
+    'es-MX' => 'El prompt de investigación utiliza tus preferencias y plataformas elegidas.',
+  ),
+  'help.flow.search.title' =>
+  array (
+    'de-CH' => 'Stellen suchen',
+    'fr-CH' => 'Rechercher des offres',
+    'en-GB' => 'Search for jobs',
+    'pt-BR' => 'Pesquisar vagas',
+    'es-MX' => 'Buscar vacantes',
+  ),
+  'help.flow_label' =>
+  array (
+    'de-CH' => 'Bewerbungsprozess',
+    'fr-CH' => 'Parcours de candidature',
+    'en-GB' => 'Application process',
+    'pt-BR' => 'Processo de candidatura',
+    'es-MX' => 'Proceso de solicitud',
+  ),
+  'help.hero_eyebrow' =>
+  array (
+    'de-CH' => 'Hilfe',
+    'fr-CH' => 'Aide',
+    'en-GB' => 'Help',
+    'pt-BR' => 'Ajuda',
+    'es-MX' => 'Ayuda',
+  ),
+  'help.hero_intro' =>
+  array (
+    'de-CH' => 'Abläufe, Daten und Einstellungen nach Themen.',
+    'fr-CH' => 'Procédures, données et réglages par thème.',
+    'en-GB' => 'Processes, data and settings by topic.',
+    'pt-BR' => 'Processos, dados e configurações por tema.',
+    'es-MX' => 'Procesos, datos y ajustes por tema.',
+  ),
+  'help.hero_title' =>
+  array (
+    'de-CH' => 'JeMa Jobs Hilfe',
+    'fr-CH' => 'Aide JeMa Jobs',
+    'en-GB' => 'JeMa Jobs help',
+    'pt-BR' => 'Ajuda do JeMa Jobs',
+    'es-MX' => 'Ayuda de JeMa Jobs',
+  ),
+  'help.license_badge' =>
+  array (
+    'de-CH' => 'Proprietär',
+    'fr-CH' => 'Propriétaire',
+    'en-GB' => 'Proprietary',
+    'pt-BR' => 'Proprietário',
+    'es-MX' => 'Propietario',
+  ),
+  'help.license_body1' =>
+  array (
+    'de-CH' => 'JeMa Jobs ist proprietäre Software. Alle Rechte sind vorbehalten.',
+    'fr-CH' => 'JeMa Jobs est un logiciel propriétaire. Tous droits réservés.',
+    'en-GB' => 'JeMa Jobs is proprietary software. All rights reserved.',
+    'pt-BR' => 'JeMa Jobs é software proprietário. Todos os direitos reservados.',
+    'es-MX' => 'JeMa Jobs es software propietario. Todos los derechos reservados.',
+  ),
+  'help.license_body2' =>
+  array (
+    'de-CH' => 'Nutzung nur mit ausdrücklicher Berechtigung. Produktive Daten bleiben vertraulich; die vollständige Lizenz gilt unverändert.',
+    'fr-CH' => 'Utilisation uniquement avec autorisation explicite. Les données restent confidentielles; la licence complète reste applicable.',
+    'en-GB' => 'Use requires explicit authorisation. Production data remains confidential; the full licence continues to apply.',
+    'pt-BR' => 'O uso exige autorização expressa. Os dados permanecem confidenciais; a licença completa continua válida.',
+    'es-MX' => 'El uso requiere autorización expresa. Los datos siguen siendo confidenciales; la licencia completa continúa vigente.',
+  ),
+  'help.license_eyebrow' =>
+  array (
+    'de-CH' => 'Lizenz',
+    'fr-CH' => 'Licence',
+    'en-GB' => 'Licence',
+    'pt-BR' => 'Licença',
+    'es-MX' => 'Licencia',
+  ),
+  'help.license_title' =>
+  array (
+    'de-CH' => 'Nutzungsrechte',
+    'fr-CH' => 'Droits d’utilisation',
+    'en-GB' => 'Usage rights',
+    'pt-BR' => 'Direitos de uso',
+    'es-MX' => 'Derechos de uso',
+  ),
+  'help.link.about' =>
+  array (
+    'de-CH' => 'Über JeMa Jobs',
+    'fr-CH' => 'À propos de JeMa Jobs',
+    'en-GB' => 'About JeMa Jobs',
+    'pt-BR' => 'Sobre o JeMa Jobs',
+    'es-MX' => 'Acerca de JeMa Jobs',
+  ),
+  'help.link.help' =>
+  array (
+    'de-CH' => 'Alle Hilfethemen',
+    'fr-CH' => 'Tous les sujets d’aide',
+    'en-GB' => 'All help topics',
+    'pt-BR' => 'Todos os temas de ajuda',
+    'es-MX' => 'Todos los temas de ayuda',
+  ),
+  'help.link.profile_links' =>
+  array (
+    'de-CH' => 'Profil-Links',
+    'fr-CH' => 'Liens de profil',
+    'en-GB' => 'Profile links',
+    'pt-BR' => 'Links do perfil',
+    'es-MX' => 'Enlaces del perfil',
+  ),
+  'help.quick.apply.body' =>
+  array (
+    'de-CH' => 'Die eigentliche Einreichung erfolgt im externen Bewerbungsportal.',
+    'fr-CH' => 'Le dépôt réel se fait dans le portail externe.',
+    'en-GB' => 'Actual submission takes place in the external application portal.',
+    'pt-BR' => 'A entrega real ocorre no portal externo de candidaturas.',
+    'es-MX' => 'La entrega real se realiza en el portal externo.',
+  ),
+  'help.quick.apply.link' =>
+  array (
+    'de-CH' => 'Onlinebewerbung und Unterlagen',
+    'fr-CH' => 'Candidature en ligne',
+    'en-GB' => 'Online applications',
+    'pt-BR' => 'Candidatura online',
+    'es-MX' => 'Solicitud en línea',
+  ),
+  'help.quick.apply.title' =>
+  array (
+    'de-CH' => 'Onlinebewerbung und Unterlagen',
+    'fr-CH' => 'Candidature en ligne',
+    'en-GB' => 'Online applications',
+    'pt-BR' => 'Candidatura online',
+    'es-MX' => 'Solicitud en línea',
+  ),
+  'help.quick.search.body' =>
+  array (
+    'de-CH' => 'Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.',
+    'fr-CH' => 'Le prompt de recherche utilise tes préférences et les plateformes choisies.',
+    'en-GB' => 'The research prompt uses your preferences and selected job platforms.',
+    'pt-BR' => 'O prompt de pesquisa usa suas preferências e plataformas selecionadas.',
+    'es-MX' => 'El prompt de investigación utiliza tus preferencias y plataformas elegidas.',
+  ),
+  'help.quick.search.link' =>
+  array (
+    'de-CH' => 'Stellen suchen',
+    'fr-CH' => 'Rechercher des offres',
+    'en-GB' => 'Search for jobs',
+    'pt-BR' => 'Pesquisar vagas',
+    'es-MX' => 'Buscar vacantes',
+  ),
+  'help.quick.search.title' =>
+  array (
+    'de-CH' => 'Stellen suchen',
+    'fr-CH' => 'Rechercher des offres',
+    'en-GB' => 'Search for jobs',
+    'pt-BR' => 'Pesquisar vagas',
+    'es-MX' => 'Buscar vacantes',
+  ),
+  'help.quick.track.body' =>
+  array (
+    'de-CH' => 'Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.',
+    'fr-CH' => 'Les relances et entretiens sont des rendez-vous explicitement datés.',
+    'en-GB' => 'Follow-ups and interviews are explicitly dated appointments.',
+    'pt-BR' => 'Acompanhamentos e entrevistas são compromissos com data definida.',
+    'es-MX' => 'Los seguimientos y entrevistas son citas con fecha explícita.',
+  ),
+  'help.quick.track.link' =>
+  array (
+    'de-CH' => 'Kalender und Nachfassen',
+    'fr-CH' => 'Calendrier et relances',
+    'en-GB' => 'Calendar and follow-ups',
+    'pt-BR' => 'Calendário e acompanhamento',
+    'es-MX' => 'Calendario y seguimientos',
+  ),
+  'help.quick.track.title' =>
+  array (
+    'de-CH' => 'Kalender und Nachfassen',
+    'fr-CH' => 'Calendrier et relances',
+    'en-GB' => 'Calendar and follow-ups',
+    'pt-BR' => 'Calendário e acompanhamento',
+    'es-MX' => 'Calendario y seguimientos',
+  ),
+  'help.quick_eyebrow' =>
+  array (
+    'de-CH' => 'Direktzugriff',
+    'fr-CH' => 'Accès direct',
+    'en-GB' => 'Quick access',
+    'pt-BR' => 'Acesso rápido',
+    'es-MX' => 'Acceso rápido',
+  ),
+  'help.quick_title' =>
+  array (
+    'de-CH' => 'Häufige Abläufe',
+    'fr-CH' => 'Procédures fréquentes',
+    'en-GB' => 'Common workflows',
+    'pt-BR' => 'Processos frequentes',
+    'es-MX' => 'Procesos frecuentes',
+  ),
+  'help.reset_button' =>
+  array (
+    'de-CH' => 'Zurücksetzen',
+    'fr-CH' => 'Réinitialiser',
+    'en-GB' => 'Reset',
+    'pt-BR' => 'Redefinir',
+    'es-MX' => 'Restablecer',
+  ),
+  'help.search_button' =>
+  array (
+    'de-CH' => 'Suchen',
+    'fr-CH' => 'Rechercher',
+    'en-GB' => 'Search',
+    'pt-BR' => 'Pesquisar',
+    'es-MX' => 'Buscar',
+  ),
+  'help.search_label' =>
+  array (
+    'de-CH' => 'Thema suchen',
+    'fr-CH' => 'Rechercher un sujet',
+    'en-GB' => 'Search topics',
+    'pt-BR' => 'Pesquisar temas',
+    'es-MX' => 'Buscar temas',
+  ),
+  'help.search_placeholder' =>
+  array (
+    'de-CH' => 'Suchbegriff',
+    'fr-CH' => 'Terme de recherche',
+    'en-GB' => 'Search term',
+    'pt-BR' => 'Termo de pesquisa',
+    'es-MX' => 'Término de búsqueda',
+  ),
+  'help.search_status_initial' =>
+  array (
+    'de-CH' => 'Alle Themen',
+    'fr-CH' => 'Tous les sujets',
+    'en-GB' => 'All topics',
+    'pt-BR' => 'Todos os temas',
+    'es-MX' => 'Todos los temas',
+  ),
+  'help.status.jump' =>
+  array (
+    'de-CH' => 'Kategorie',
+    'fr-CH' => 'Catégorie',
+    'en-GB' => 'Category',
+    'pt-BR' => 'Categoria',
+    'es-MX' => 'Categoría',
+  ),
+  'help.status.search' =>
+  array (
+    'de-CH' => 'Suche',
+    'fr-CH' => 'Recherche',
+    'en-GB' => 'Search',
+    'pt-BR' => 'Pesquisa',
+    'es-MX' => 'Búsqueda',
+  ),
+  'help.status.topic' =>
+  array (
+    'de-CH' => 'Thema',
+    'fr-CH' => 'sujet',
+    'en-GB' => 'topic',
+    'pt-BR' => 'tema',
+    'es-MX' => 'tema',
+  ),
+  'help.status.topics' =>
+  array (
+    'de-CH' => 'Themen',
+    'fr-CH' => 'sujets',
+    'en-GB' => 'topics',
+    'pt-BR' => 'temas',
+    'es-MX' => 'temas',
+  ),
+  'help.status.visible' =>
+  array (
+    'de-CH' => 'sichtbar',
+    'fr-CH' => 'visibles',
+    'en-GB' => 'visible',
+    'pt-BR' => 'visíveis',
+    'es-MX' => 'visibles',
+  ),
+  'help.steps_title' =>
+  array (
+    'de-CH' => 'Vorgehen',
+    'fr-CH' => 'Procédure',
+    'en-GB' => 'Steps',
+    'pt-BR' => 'Etapas',
+    'es-MX' => 'Pasos',
+  ),
+  'help.tips_title' =>
+  array (
+    'de-CH' => 'Wichtig',
+    'fr-CH' => 'Important',
+    'en-GB' => 'Important',
+    'pt-BR' => 'Importante',
+    'es-MX' => 'Importante',
+  ),
+  'help.topic_count' =>
+  array (
+    'de-CH' => '{count} Themen',
+    'fr-CH' => '{count} sujets',
+    'en-GB' => '{count} topics',
+    'pt-BR' => '{count} temas',
+    'es-MX' => '{count} temas',
+  ),
+  'help.v2.admin.steps.0' =>
+  array (
+    'de-CH' => 'Eröffne neue Benutzer in der Benutzerverwaltung oder öffne Verwalten für ein bestehendes Konto.',
+    'fr-CH' => 'Crée un utilisateur ou ouvre la gestion d’un compte existant.',
+    'en-GB' => 'Create a user or open management for an existing account.',
+    'pt-BR' => 'Crie um usuário ou abra o gerenciamento de uma conta existente.',
+    'es-MX' => 'Crea un usuario o abre la gestión de una cuenta existente.',
+  ),
+  'help.v2.admin.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe Benutzerangaben, Kontostatus und Adminrolle vor dem Speichern.',
+    'fr-CH' => 'Vérifie coordonnées, statut du compte et rôle admin avant d’enregistrer.',
+    'en-GB' => 'Check user details, account status and admin role before saving.',
+    'pt-BR' => 'Confira dados, status da conta e função de administrador antes de salvar.',
+    'es-MX' => 'Revisa datos, estado de cuenta y rol de administrador antes de guardar.',
+  ),
+  'help.v2.admin.steps.2' =>
+  array (
+    'de-CH' => 'Nutze In Konto einklinken nur bei gültiger Supportfreigabe und beende die Supportumgebung anschliessend.',
+    'fr-CH' => 'Entre dans un compte uniquement avec une autorisation valide puis quitte la session de support.',
+    'en-GB' => 'Enter a user account only with valid support consent, then end the support session.',
+    'pt-BR' => 'Entre na conta somente com autorização válida e encerre a sessão de suporte ao terminar.',
+    'es-MX' => 'Entra en la cuenta solo con autorización válida y termina después la sesión de soporte.',
+  ),
+  'help.v2.admin.summary' =>
+  array (
+    'de-CH' => 'Admins verwalten Benutzer; Supportzugriff benötigt die aktive Freigabe des betroffenen Benutzers.',
+    'fr-CH' => 'Les admins gèrent les comptes; le support exige l’autorisation active de l’utilisateur concerné.',
+    'en-GB' => 'Admins manage users; support access requires the affected user’s active consent.',
+    'pt-BR' => 'Administradores gerenciam contas; o suporte exige autorização ativa do usuário afetado.',
+    'es-MX' => 'Los administradores gestionan usuarios; el acceso de soporte requiere autorización activa del usuario afectado.',
+  ),
+  'help.v2.admin.tips.0' =>
+  array (
+    'de-CH' => 'Eine Adminrolle allein erteilt keine Supportfreigabe. Das eigene Konto und sicherheitsrelevante Änderungen sind besonders geschützt.',
+    'fr-CH' => 'Le rôle admin ne remplace pas l’autorisation de support. Le compte propre et les opérations sensibles sont protégés.',
+    'en-GB' => 'An admin role alone does not grant support consent. Your own account and sensitive changes have additional protection.',
+    'pt-BR' => 'Ser administrador não substitui a autorização de suporte. A própria conta e alterações sensíveis têm proteção adicional.',
+    'es-MX' => 'Ser administrador no sustituye el consentimiento de soporte. Tu propia cuenta y los cambios sensibles tienen protección adicional.',
+  ),
+  'help.v2.admin.title' =>
+  array (
+    'de-CH' => 'Benutzerverwaltung und Support',
+    'fr-CH' => 'Utilisateurs et support',
+    'en-GB' => 'Users and support',
+    'pt-BR' => 'Usuários e suporte',
+    'es-MX' => 'Usuarios y soporte',
+  ),
+  'help.v2.applications.steps.0' =>
+  array (
+    'de-CH' => 'Bereite die Bewerbung vor und prüfe Empfänger, Inhalte und zugeordnete Dokumente.',
+    'fr-CH' => 'Prépare la candidature et vérifie destinataire, contenu et documents associés.',
+    'en-GB' => 'Prepare the application and check its recipient, content and assigned documents.',
+    'pt-BR' => 'Prepare a candidatura e confira destinatário, conteúdo e documentos associados.',
+    'es-MX' => 'Prepara la solicitud y revisa destinatario, contenido y documentos asociados.',
+  ),
+  'help.v2.applications.steps.1' =>
+  array (
+    'de-CH' => 'Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.',
+    'fr-CH' => 'Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.',
+    'en-GB' => 'Record actual sending or external submission; status history receives timestamps.',
+    'pt-BR' => 'Registre o envio real ou a entrega externa; o histórico recebe data e hora.',
+    'es-MX' => 'Registra el envío real o la entrega externa; el historial conserva fecha y hora.',
+  ),
+  'help.v2.applications.steps.2' =>
+  array (
+    'de-CH' => 'Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis.',
+    'fr-CH' => 'Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus.',
+    'en-GB' => 'Record each interview as a separate appointment and document acceptance or rejection.',
+    'pt-BR' => 'Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa.',
+    'es-MX' => 'Registra cada entrevista como cita independiente y documenta la aceptación o rechazo.',
+  ),
+  'help.v2.applications.summary' =>
+  array (
+    'de-CH' => 'Entwurf → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.',
+    'fr-CH' => 'Brouillon → Prête → Envoyée → Entretiens → Acceptation ou refus.',
+    'en-GB' => 'Draft → Ready → Sent → Interviews → Accepted or rejected.',
+    'pt-BR' => 'Rascunho → Pronta → Enviada → Entrevistas → Aceita ou recusada.',
+    'es-MX' => 'Borrador → Lista → Enviada → Entrevistas → Aceptada o rechazada.',
+  ),
+  'help.v2.applications.tips.0' =>
+  array (
+    'de-CH' => 'Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.',
+    'fr-CH' => 'La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.',
+    'en-GB' => 'Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.',
+    'pt-BR' => 'A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.',
+    'es-MX' => 'La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.',
+  ),
+  'help.v2.applications.title' =>
+  array (
+    'de-CH' => 'Bewerbungsworkflow',
+    'fr-CH' => 'Parcours de candidature',
+    'en-GB' => 'Application workflow',
+    'pt-BR' => 'Fluxo de candidatura',
+    'es-MX' => 'Proceso de solicitud',
+  ),
+  'help.v2.audit.steps.0' =>
+  array (
+    'de-CH' => 'Öffne den Verlauf und prüfe Zeitpunkt, Aktion und betroffenen Bereich.',
+    'fr-CH' => 'Ouvre l’historique et vérifie date, action et domaine concerné.',
+    'en-GB' => 'Open the history and inspect time, action and affected area.',
+    'pt-BR' => 'Abra o histórico e confira data, ação e área afetada.',
+    'es-MX' => 'Abre el historial y revisa fecha, acción y sección afectada.',
+  ),
+  'help.v2.audit.steps.1' =>
+  array (
+    'de-CH' => 'Nutze verfügbare Filter, um eine konkrete Änderung zu finden.',
+    'fr-CH' => 'Utilise les filtres pour retrouver une modification précise.',
+    'en-GB' => 'Use available filters to locate a specific change.',
+    'pt-BR' => 'Use os filtros disponíveis para localizar uma alteração.',
+    'es-MX' => 'Usa los filtros disponibles para localizar un cambio concreto.',
+  ),
+  'help.v2.audit.steps.2' =>
+  array (
+    'de-CH' => 'Vergleiche den Eintrag bei Fragen mit dem betroffenen Datensatz.',
+    'fr-CH' => 'Compare l’entrée avec l’enregistrement concerné.',
+    'en-GB' => 'Compare the entry with the affected record when investigating.',
+    'pt-BR' => 'Compare a entrada com o registro afetado em caso de dúvida.',
+    'es-MX' => 'Compara la entrada con el registro afectado cuando investigues.',
+  ),
+  'help.v2.audit.summary' =>
+  array (
+    'de-CH' => 'Das Audit protokolliert ausgewählte Aktionen und unterstützt die Nachvollziehbarkeit.',
+    'fr-CH' => 'L’audit consigne certaines actions pour assurer leur traçabilité.',
+    'en-GB' => 'The audit records selected actions for traceability.',
+    'pt-BR' => 'A auditoria registra ações selecionadas para rastreabilidade.',
+    'es-MX' => 'La auditoría registra acciones seleccionadas para permitir su seguimiento.',
+  ),
+  'help.v2.audit.tips.0' =>
+  array (
+    'de-CH' => 'Der Audit-Verlauf ist keine vollständige Datensicherung und kein automatischer Rückgängig-Befehl.',
+    'fr-CH' => 'L’audit n’est ni une sauvegarde complète ni une commande automatique d’annulation.',
+    'en-GB' => 'Audit history is not a full backup or an automatic undo command.',
+    'pt-BR' => 'A auditoria não é um backup completo nem um comando automático de desfazer.',
+    'es-MX' => 'La auditoría no es una copia completa ni una orden automática para deshacer.',
+  ),
+  'help.v2.audit.title' =>
+  array (
+    'de-CH' => 'Änderungsverlauf',
+    'fr-CH' => 'Historique des actions',
+    'en-GB' => 'Action history',
+    'pt-BR' => 'Histórico de ações',
+    'es-MX' => 'Historial de acciones',
+  ),
+  'help.v2.calendar.steps.0' =>
+  array (
+    'de-CH' => 'Wähle Agenda, Tag, Arbeitswoche, Woche oder Monat; Heute führt zum aktuellen Datum.',
+    'fr-CH' => 'Choisis agenda, jour, semaine ouvrée, semaine ou mois; Aujourd’hui revient à la date actuelle.',
+    'en-GB' => 'Choose agenda, day, workweek, week or month; Today returns to the current date.',
+    'pt-BR' => 'Escolha agenda, dia, semana útil, semana ou mês; Hoje retorna à data atual.',
+    'es-MX' => 'Elige agenda, día, semana laboral, semana o mes; Hoy vuelve a la fecha actual.',
+  ),
+  'help.v2.calendar.steps.1' =>
+  array (
+    'de-CH' => 'Erfasse Nachfassen oder jedes einzelne Gespräch mit Datum und Uhrzeit, optional mit Bewerbung.',
+    'fr-CH' => 'Saisis chaque relance ou entretien avec date et heure et, si nécessaire, une candidature.',
+    'en-GB' => 'Enter each follow-up or interview with date and time, optionally linked to an application.',
+    'pt-BR' => 'Cadastre cada acompanhamento ou entrevista com data e hora, vinculando uma candidatura se necessário.',
+    'es-MX' => 'Registra cada seguimiento o entrevista con fecha y hora, vinculando una solicitud si hace falta.',
+  ),
+  'help.v2.calendar.steps.2' =>
+  array (
+    'de-CH' => 'Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Export.',
+    'fr-CH' => 'Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export.',
+    'en-GB' => 'Edit, reschedule or complete the existing appointment; use ICS to export.',
+    'pt-BR' => 'Edite, reagende ou conclua o compromisso existente; use ICS para exportar.',
+    'es-MX' => 'Edita, reprograma o completa la cita existente; usa ICS para exportar.',
+  ),
+  'help.v2.calendar.summary' =>
+  array (
+    'de-CH' => 'Nachfassen und Bewerbungsgespräche sind ausdrücklich datierte Termine.',
+    'fr-CH' => 'Les relances et entretiens sont des rendez-vous explicitement datés.',
+    'en-GB' => 'Follow-ups and interviews are explicitly dated appointments.',
+    'pt-BR' => 'Acompanhamentos e entrevistas são compromissos com data definida.',
+    'es-MX' => 'Los seguimientos y entrevistas son citas con fecha explícita.',
+  ),
+  'help.v2.calendar.tips.0' =>
+  array (
+    'de-CH' => 'Heute ist in Monat und Wochenansichten grün markiert. Entwurf, Bereit, Bewerbung senden und Antwort pendent erzeugen keine Termine; Versand und Ergebnisse erscheinen als kurze Nachweise.',
+    'fr-CH' => 'Aujourd’hui est marqué en vert dans les vues mensuelle et hebdomadaires. Préparation et attente de réponse ne créent pas de rendez-vous; envoi et résultats sont de brèves traces.',
+    'en-GB' => 'Today is green in month and weekly views. Draft, Ready, sending tasks and waiting for a reply do not create appointments; submission and outcomes appear as short evidence entries.',
+    'pt-BR' => 'Hoje aparece em verde no mês e nas semanas. Preparação e espera por resposta não criam compromissos; envio e resultados aparecem como registros breves.',
+    'es-MX' => 'Hoy aparece en verde en el mes y las semanas. Preparación y espera de respuesta no crean citas; envío y resultados aparecen como registros breves.',
+  ),
+  'help.v2.calendar.title' =>
+  array (
+    'de-CH' => 'Kalender und Nachfassen',
+    'fr-CH' => 'Calendrier et relances',
+    'en-GB' => 'Calendar and follow-ups',
+    'pt-BR' => 'Calendário e acompanhamento',
+    'es-MX' => 'Calendario y seguimientos',
+  ),
+  'help.v2.calendar_sync.steps.0' =>
+  array (
+    'de-CH' => 'Richte den Kalenderzugriff im Profil ein und behandle die private Feed-Adresse vertraulich.',
+    'fr-CH' => 'Configure l’accès dans le profil et garde l’adresse privée du flux confidentielle.',
+    'en-GB' => 'Set up calendar access in your profile and keep the private feed address confidential.',
+    'pt-BR' => 'Configure o acesso no perfil e mantenha o endereço privado do feed em sigilo.',
+    'es-MX' => 'Configura el acceso en el perfil y mantén confidencial la dirección privada del canal.',
+  ),
+  'help.v2.calendar_sync.steps.1' =>
+  array (
+    'de-CH' => 'Verbinde für Google dein Konto und wähle den gewünschten Zielkalender.',
+    'fr-CH' => 'Pour Google, connecte ton compte et choisis le calendrier cible.',
+    'en-GB' => 'For Google, connect your account and select the target calendar.',
+    'pt-BR' => 'Para Google, conecte a conta e escolha o calendário de destino.',
+    'es-MX' => 'Para Google, conecta tu cuenta y selecciona el calendario de destino.',
+  ),
+  'help.v2.calendar_sync.steps.2' =>
+  array (
+    'de-CH' => 'Prüfe die letzte Synchronisationsmeldung; bei einer ausstehenden Workflow-Bereinigung wende dich an den Admin.',
+    'fr-CH' => 'Vérifie le dernier résultat; si le nettoyage du processus est en attente, contacte l’admin.',
+    'en-GB' => 'Check the latest sync result; contact an admin if workflow migration is still pending.',
+    'pt-BR' => 'Confira o último resultado; procure o administrador se a revisão do fluxo estiver pendente.',
+    'es-MX' => 'Revisa el último resultado; contacta al administrador si falta revisar los datos del proceso.',
+  ),
+  'help.v2.calendar_sync.summary' =>
+  array (
+    'de-CH' => 'Ein ICS-Abonnement und der Google-Abgleich sind unterschiedliche Verbindungen.',
+    'fr-CH' => 'Un abonnement ICS et la synchronisation Google sont des connexions distinctes.',
+    'en-GB' => 'An ICS subscription and Google synchronisation are different connections.',
+    'pt-BR' => 'Assinatura ICS e sincronização com Google são conexões diferentes.',
+    'es-MX' => 'Una suscripción ICS y la sincronización con Google son conexiones diferentes.',
+  ),
+  'help.v2.calendar_sync.tips.0' =>
+  array (
+    'de-CH' => 'Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden.',
+    'fr-CH' => 'Un fichier ICS téléchargé ne se met pas à jour seul. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa.',
+    'en-GB' => 'A downloaded ICS file does not update itself. External events must not be deleted as JeMa-generated duplicates.',
+    'pt-BR' => 'Um arquivo ICS baixado não se atualiza sozinho. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa.',
+    'es-MX' => 'Un archivo ICS descargado no se actualiza solo. Los eventos externos no deben eliminarse como duplicados generados por JeMa.',
+  ),
+  'help.v2.calendar_sync.title' =>
+  array (
+    'de-CH' => 'Kalender verbinden',
+    'fr-CH' => 'Connecter un calendrier',
+    'en-GB' => 'Connect a calendar',
+    'pt-BR' => 'Conectar calendário',
+    'es-MX' => 'Conectar un calendario',
+  ),
+  'help.v2.companies.steps.0' =>
+  array (
+    'de-CH' => 'Erfasse Name, Adresse, Region, Website und erreichbare Kontaktdaten.',
+    'fr-CH' => 'Renseigne nom, adresse, région, site et coordonnées.',
+    'en-GB' => 'Enter the name, address, region, website and contact details.',
+    'pt-BR' => 'Preencha nome, endereço, região, site e dados de contato.',
+    'es-MX' => 'Completa nombre, dirección, región, sitio y datos de contacto.',
+  ),
+  'help.v2.companies.steps.1' =>
+  array (
+    'de-CH' => 'Kennzeichne einen Personalvermittler nur, wenn die Firma tatsächlich vermittelt.',
+    'fr-CH' => 'Marque une entreprise comme intermédiaire uniquement si elle exerce ce rôle.',
+    'en-GB' => 'Mark a company as a recruiter only when it actually serves that role.',
+    'pt-BR' => 'Marque uma empresa como intermediária somente quando ela exercer essa função.',
+    'es-MX' => 'Marca una empresa como intermediaria solo cuando cumpla esa función.',
+  ),
+  'help.v2.companies.steps.2' =>
+  array (
+    'de-CH' => 'Öffne zugehörige Stellen, Bewerbungen oder Kontakte über die jeweiligen Links.',
+    'fr-CH' => 'Ouvre les offres, candidatures ou contacts associés via leurs liens.',
+    'en-GB' => 'Open related jobs, applications or contacts through their links.',
+    'pt-BR' => 'Abra vagas, candidaturas ou contatos associados pelos respectivos links.',
+    'es-MX' => 'Abre vacantes, solicitudes o contactos asociados mediante sus enlaces.',
+  ),
+  'help.v2.companies.summary' =>
+  array (
+    'de-CH' => 'Firmen bündeln Adressen, Kontakte, Stellen und Bewerbungen.',
+    'fr-CH' => 'Les entreprises regroupent adresses, contacts, offres et candidatures.',
+    'en-GB' => 'Companies group addresses, contacts, jobs and applications.',
+    'pt-BR' => 'Empresas reúnem endereços, contatos, vagas e candidaturas.',
+    'es-MX' => 'Las empresas agrupan direcciones, contactos, vacantes y solicitudes.',
+  ),
+  'help.v2.companies.tips.0' =>
+  array (
+    'de-CH' => 'Eine Firmenverknüpfung ist keine Bewerbung. Strasse, PLZ/Ort und Telefon stehen getrennt in der Übersicht.',
+    'fr-CH' => 'Un lien vers une entreprise n’est pas une candidature. Rue, NPA/localité et téléphone sont affichés séparément.',
+    'en-GB' => 'A company relationship is not an application. Street, postcode/town and telephone appear separately.',
+    'pt-BR' => 'Um vínculo com uma empresa não é uma candidatura. Rua, CEP/cidade e telefone aparecem separados.',
+    'es-MX' => 'Un vínculo con una empresa no es una solicitud. Calle, código postal/localidad y teléfono aparecen separados.',
+  ),
+  'help.v2.companies.title' =>
+  array (
+    'de-CH' => 'Firmen und Vermittler',
+    'fr-CH' => 'Entreprises et intermédiaires',
+    'en-GB' => 'Companies and recruiters',
+    'pt-BR' => 'Empresas e intermediários',
+    'es-MX' => 'Empresas e intermediarios',
+  ),
+  'help.v2.contacts.steps.0' =>
+  array (
+    'de-CH' => 'Erstelle oder bearbeite die Person mit Name, Funktion, Telefon, E-Mail und Sprache.',
+    'fr-CH' => 'Crée ou modifie la personne avec nom, fonction, téléphone, e-mail et langue.',
+    'en-GB' => 'Create or edit the person’s name, role, telephone, email and language.',
+    'pt-BR' => 'Cadastre ou edite nome, função, telefone, e-mail e idioma da pessoa.',
+    'es-MX' => 'Crea o edita nombre, función, teléfono, correo e idioma de la persona.',
+  ),
+  'help.v2.contacts.steps.1' =>
+  array (
+    'de-CH' => 'Erfasse Gespräche und Nachrichten im Kontakt-Log mit Kanal, Richtung, Zeitpunkt, Status und Notiz.',
+    'fr-CH' => 'Consigne échanges et messages avec canal, direction, date, statut et note.',
+    'en-GB' => 'Record conversations and messages with channel, direction, time, status and notes.',
+    'pt-BR' => 'Registre conversas e mensagens com canal, direção, data, status e observações.',
+    'es-MX' => 'Registra conversaciones y mensajes con canal, dirección, fecha, estado y notas.',
+  ),
+  'help.v2.contacts.steps.2' =>
+  array (
+    'de-CH' => 'Ordne bei Bedarf eine Datei zu; plane Nachfassen oder Bewerbungsgespräche separat im Kalender.',
+    'fr-CH' => 'Ajoute un fichier si nécessaire; planifie relances et entretiens séparément dans le calendrier.',
+    'en-GB' => 'Attach a file if needed; schedule follow-ups and interviews separately in the calendar.',
+    'pt-BR' => 'Anexe um arquivo se necessário; agende acompanhamentos e entrevistas separadamente no calendário.',
+    'es-MX' => 'Adjunta un archivo si hace falta; programa seguimientos y entrevistas por separado en el calendario.',
+  ),
+  'help.v2.contacts.summary' =>
+  array (
+    'de-CH' => 'Ein Kontakt gehört zu einer Firma und kann mit einer Stelle oder Bewerbung verknüpft sein.',
+    'fr-CH' => 'Un contact appartient à une entreprise et peut être lié à une offre ou candidature.',
+    'en-GB' => 'A contact belongs to a company and may be linked to a job or application.',
+    'pt-BR' => 'Um contato pertence a uma empresa e pode estar vinculado a uma vaga ou candidatura.',
+    'es-MX' => 'Un contacto pertenece a una empresa y puede vincularse a una vacante o solicitud.',
+  ),
+  'help.v2.contacts.tips.0' =>
+  array (
+    'de-CH' => 'Die Anzahl der Kontakt-Log-Einträge zählt Aktivitäten, nicht Bewerbungen. Offen/geplant ist eine Teilmenge dieser Einträge.',
+    'fr-CH' => 'Le nombre d’entrées compte les activités, pas les candidatures. Les entrées ouvertes/planifiées en font partie.',
+    'en-GB' => 'The contact-log count measures activities, not applications. Open/planned entries are a subset of that count.',
+    'pt-BR' => 'A contagem do histórico representa atividades, não candidaturas. Registros abertos/planejados fazem parte desse total.',
+    'es-MX' => 'El conteo del registro corresponde a actividades, no solicitudes. Las entradas abiertas/programadas son parte del total.',
+  ),
+  'help.v2.contacts.title' =>
+  array (
+    'de-CH' => 'Kontakte und Kontakt-Log',
+    'fr-CH' => 'Contacts et journal',
+    'en-GB' => 'Contacts and contact log',
+    'pt-BR' => 'Contatos e histórico',
+    'es-MX' => 'Contactos y registro',
+  ),
+  'help.v2.documents.steps.0' =>
+  array (
+    'de-CH' => 'Lade eine Datei hoch und erfasse Titel, Typ und die tatsächliche Sprache des Dokumentes.',
+    'fr-CH' => 'Téléverse un fichier et indique son titre, son type et sa langue réelle.',
+    'en-GB' => 'Upload a file and specify its title, type and actual document language.',
+    'pt-BR' => 'Envie um arquivo e informe título, tipo e idioma real do documento.',
+    'es-MX' => 'Carga un archivo e indica título, tipo e idioma real del documento.',
+  ),
+  'help.v2.documents.steps.1' =>
+  array (
+    'de-CH' => 'Bearbeite Metadaten oder ersetze die Datei als neue Version.',
+    'fr-CH' => 'Modifie les métadonnées ou remplace le fichier par une nouvelle version.',
+    'en-GB' => 'Edit metadata or replace the file with a new version.',
+    'pt-BR' => 'Edite os metadados ou substitua o arquivo por uma nova versão.',
+    'es-MX' => 'Edita los metadatos o reemplaza el archivo con una nueva versión.',
+  ),
+  'help.v2.documents.steps.2' =>
+  array (
+    'de-CH' => 'Ordne benötigte Unterlagen einer Bewerbung zu und prüfe sie vor Download oder Versand.',
+    'fr-CH' => 'Associe les pièces nécessaires à une candidature et vérifie-les avant téléchargement ou envoi.',
+    'en-GB' => 'Assign required files to an application and inspect them before downloading or sending.',
+    'pt-BR' => 'Associe os arquivos necessários à candidatura e confira-os antes de baixar ou enviar.',
+    'es-MX' => 'Asocia los archivos necesarios a la solicitud y revísalos antes de descargarlos o enviarlos.',
+  ),
+  'help.v2.documents.summary' =>
+  array (
+    'de-CH' => 'Stammdokumente und bewerbungsspezifische Unterlagen bleiben getrennt zuordenbar.',
+    'fr-CH' => 'Les documents de base et ceux propres à une candidature restent distincts.',
+    'en-GB' => 'Master documents and application-specific files can be assigned separately.',
+    'pt-BR' => 'Documentos gerais e arquivos específicos da candidatura podem ser associados separadamente.',
+    'es-MX' => 'Los documentos generales y los específicos de una solicitud se pueden asociar por separado.',
+  ),
+  'help.v2.documents.tips.0' =>
+  array (
+    'de-CH' => 'Die Dokumentsprache ist unabhängig von der App-Sprache. Eine Zuordnung ist noch kein Versand.',
+    'fr-CH' => 'La langue du document est indépendante de celle de l’application. Associer un fichier ne l’envoie pas.',
+    'en-GB' => 'Document language is independent of app language. Assigning a file does not send it.',
+    'pt-BR' => 'O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia.',
+    'es-MX' => 'El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía.',
+  ),
+  'help.v2.documents.title' =>
+  array (
+    'de-CH' => 'Dokumente und Versionen',
+    'fr-CH' => 'Documents et versions',
+    'en-GB' => 'Documents and versions',
+    'pt-BR' => 'Documentos e versões',
+    'es-MX' => 'Documentos y versiones',
+  ),
+  'help.v2.dossier.steps.0' =>
+  array (
+    'de-CH' => 'Öffne das Dossier aus der konkreten Bewerbung.',
+    'fr-CH' => 'Ouvre le dossier depuis la candidature concernée.',
+    'en-GB' => 'Open the dossier from the specific application.',
+    'pt-BR' => 'Abra o dossiê a partir da candidatura específica.',
+    'es-MX' => 'Abre el expediente desde la solicitud concreta.',
+  ),
+  'help.v2.dossier.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe Stelle, Firma, Kontakte, Unterlagen, Verlauf und zugeordnete Aktivitäten.',
+    'fr-CH' => 'Vérifie poste, entreprise, contacts, documents, historique et activités associées.',
+    'en-GB' => 'Check the job, company, contacts, documents, history and linked activities.',
+    'pt-BR' => 'Confira vaga, empresa, contatos, documentos, histórico e atividades vinculadas.',
+    'es-MX' => 'Revisa vacante, empresa, contactos, documentos, historial y actividades vinculadas.',
+  ),
+  'help.v2.dossier.steps.2' =>
+  array (
+    'de-CH' => 'Nutze die Webansicht oder den PDF-Export für deine Dokumentation.',
+    'fr-CH' => 'Utilise la vue web ou l’export PDF pour ta documentation.',
+    'en-GB' => 'Use the web view or PDF export for your records.',
+    'pt-BR' => 'Use a visualização web ou a exportação PDF para seus registros.',
+    'es-MX' => 'Usa la vista web o la exportación PDF para tus registros.',
+  ),
+  'help.v2.dossier.summary' =>
+  array (
+    'de-CH' => 'Das Dossier fasst die ausgewählte Bewerbung und ihre zugehörigen Angaben zusammen.',
+    'fr-CH' => 'Le dossier rassemble la candidature choisie et ses informations associées.',
+    'en-GB' => 'The dossier brings together the selected application and related information.',
+    'pt-BR' => 'O dossiê reúne a candidatura selecionada e suas informações associadas.',
+    'es-MX' => 'El expediente reúne la solicitud seleccionada y su información relacionada.',
+  ),
+  'help.v2.dossier.tips.0' =>
+  array (
+    'de-CH' => 'Kontakte derselben Firma können mehrere Bewerbungen betreuen. Aktivitäten müssen zum ausgewählten Vorgang gehören.',
+    'fr-CH' => 'Un contact d’entreprise peut gérer plusieurs candidatures. Les activités doivent correspondre au dossier choisi.',
+    'en-GB' => 'A company contact may handle several applications. Activities must belong to the selected case.',
+    'pt-BR' => 'Um contato pode cuidar de várias candidaturas. As atividades devem corresponder ao processo selecionado.',
+    'es-MX' => 'Un contacto puede gestionar varias solicitudes. Las actividades deben corresponder al proceso seleccionado.',
+  ),
+  'help.v2.dossier.title' =>
+  array (
+    'de-CH' => 'Bewerbungsdossier',
+    'fr-CH' => 'Dossier de candidature',
+    'en-GB' => 'Application dossier',
+    'pt-BR' => 'Dossiê da candidatura',
+    'es-MX' => 'Expediente de solicitud',
+  ),
+  'help.v2.email.steps.0' =>
+  array (
+    'de-CH' => 'Prüfe im Profil SMTP, Absender und Signatur; teste mit einer bewusst gewählten Testnachricht.',
+    'fr-CH' => 'Vérifie SMTP, expéditeur et signature dans le profil; teste avec un message volontairement choisi.',
+    'en-GB' => 'Check SMTP, sender and signature in your profile; test with a deliberately chosen test message.',
+    'pt-BR' => 'Confira SMTP, remetente e assinatura no perfil; teste com uma mensagem escolhida conscientemente.',
+    'es-MX' => 'Revisa SMTP, remitente y firma en el perfil; prueba con un mensaje elegido conscientemente.',
+  ),
+  'help.v2.email.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe vor dem Bewerbungsversand Empfänger, Betreff, Text und sämtliche Anhänge.',
+    'fr-CH' => 'Avant l’envoi, contrôle destinataire, objet, texte et toutes les pièces jointes.',
+    'en-GB' => 'Before sending an application, verify recipient, subject, text and every attachment.',
+    'pt-BR' => 'Antes de enviar a candidatura, confira destinatário, assunto, texto e todos os anexos.',
+    'es-MX' => 'Antes de enviar la solicitud, comprueba destinatario, asunto, texto y todos los adjuntos.',
+  ),
+  'help.v2.email.steps.2' =>
+  array (
+    'de-CH' => 'Nutze den Motivationsschreiben-Prompt mit Empfängerblock: Firma, Kontakt, Strasse Nr., PLZ Ort.',
+    'fr-CH' => 'Utilise le prompt de lettre avec le bloc destinataire: entreprise, contact, rue et numéro, NPA et localité.',
+    'en-GB' => 'Use the cover-letter prompt with the recipient block: company, contact, street and number, postcode and town.',
+    'pt-BR' => 'Use o prompt da carta com o bloco do destinatário: empresa, contato, rua e número, CEP e cidade.',
+    'es-MX' => 'Usa el prompt de la carta con el bloque del destinatario: empresa, contacto, calle y número, código postal y localidad.',
+  ),
+  'help.v2.email.summary' =>
+  array (
+    'de-CH' => 'E-Mail-Versand und das Erfassen einer erhaltenen Antwort sind verschiedene Aktionen.',
+    'fr-CH' => 'Envoyer un e-mail et consigner une réponse reçue sont deux actions distinctes.',
+    'en-GB' => 'Sending email and recording a received reply are different actions.',
+    'pt-BR' => 'Enviar e-mail e registrar uma resposta recebida são ações diferentes.',
+    'es-MX' => 'Enviar un correo y registrar una respuesta recibida son acciones diferentes.',
+  ),
+  'help.v2.email.tips.0' =>
+  array (
+    'de-CH' => '„E-Mail / Antwort erfassen“ protokolliert eine Nachricht, versendet sie aber nicht. Das Erfassen erzeugt keinen automatischen Nachfasstermin.',
+    'fr-CH' => 'La saisie d’un e-mail ou d’une réponse consigne un message sans l’envoyer. Elle ne crée pas automatiquement de relance.',
+    'en-GB' => 'Recording an email or reply logs a message without sending it. Recording does not automatically schedule a follow-up.',
+    'pt-BR' => 'Registrar um e-mail ou resposta não envia a mensagem. O registro não agenda acompanhamento automaticamente.',
+    'es-MX' => 'Registrar un correo o respuesta no envía el mensaje. El registro no programa un seguimiento automático.',
+  ),
+  'help.v2.email.title' =>
+  array (
+    'de-CH' => 'E-Mail und Motivationsschreiben',
+    'fr-CH' => 'E-mail et lettre de motivation',
+    'en-GB' => 'Email and cover letters',
+    'pt-BR' => 'E-mail e carta de apresentação',
+    'es-MX' => 'Correo y carta de presentación',
+  ),
+  'help.v2.help.steps.0' =>
+  array (
+    'de-CH' => 'Suche ein Thema oder wähle eine Kategorie in der zentralen Hilfe.',
+    'fr-CH' => 'Recherche un sujet ou choisis une catégorie dans l’aide centrale.',
+    'en-GB' => 'Search for a topic or choose a category in central help.',
+    'pt-BR' => 'Pesquise um tema ou escolha uma categoria na ajuda central.',
+    'es-MX' => 'Busca un tema o elige una categoría en la ayuda central.',
+  ),
+  'help.v2.help.steps.1' =>
+  array (
+    'de-CH' => 'Öffne die Glühbirne einer Seite für denselben themenbezogenen Ablauf.',
+    'fr-CH' => 'Ouvre l’ampoule d’une page pour consulter la procédure correspondante.',
+    'en-GB' => 'Open a page’s lightbulb for the corresponding procedure.',
+    'pt-BR' => 'Abra a lâmpada da página para consultar o procedimento correspondente.',
+    'es-MX' => 'Abre la bombilla de una página para consultar el procedimiento correspondiente.',
+  ),
+  'help.v2.help.steps.2' =>
+  array (
+    'de-CH' => 'Prüfe unter Über die angezeigte Version; beachte die Rechte und Einschränkungen der Lizenz.',
+    'fr-CH' => 'Consulte la version dans À propos et respecte les droits et restrictions de la licence.',
+    'en-GB' => 'Check the displayed version in About and observe the licence rights and restrictions.',
+    'pt-BR' => 'Confira a versão em Sobre e respeite direitos e restrições da licença.',
+    'es-MX' => 'Consulta la versión en Acerca de y respeta los derechos y restricciones de licencia.',
+  ),
+  'help.v2.help.summary' =>
+  array (
+    'de-CH' => 'JeMa Jobs ist proprietäre Software für ausdrücklich berechtigte Benutzer.',
+    'fr-CH' => 'JeMa Jobs est un logiciel propriétaire réservé aux utilisateurs autorisés.',
+    'en-GB' => 'JeMa Jobs is proprietary software for explicitly authorised users.',
+    'pt-BR' => 'JeMa Jobs é software proprietário para usuários expressamente autorizados.',
+    'es-MX' => 'JeMa Jobs es software propietario para usuarios expresamente autorizados.',
+  ),
+  'help.v2.help.tips.0' =>
+  array (
+    'de-CH' => 'Produktive Daten sind vertraulich. Die vollständige Lizenz steht in LICENSE.md; diese Hilfe ändert die Lizenzbedingungen nicht.',
+    'fr-CH' => 'Les données sont confidentielles. La licence complète figure dans LICENSE.md; cette aide ne la modifie pas.',
+    'en-GB' => 'Production data is confidential. The full licence is in LICENSE.md; this help does not alter its terms.',
+    'pt-BR' => 'Dados de produção são confidenciais. A licença completa está em LICENSE.md; esta ajuda não altera seus termos.',
+    'es-MX' => 'Los datos de producción son confidenciales. La licencia completa está en LICENSE.md; esta ayuda no modifica sus términos.',
+  ),
+  'help.v2.help.title' =>
+  array (
+    'de-CH' => 'Hilfe und Lizenz',
+    'fr-CH' => 'Aide et licence',
+    'en-GB' => 'Help and licence',
+    'pt-BR' => 'Ajuda e licença',
+    'es-MX' => 'Ayuda y licencia',
+  ),
+  'help.v2.jobroom.steps.0' =>
+  array (
+    'de-CH' => 'Übertrage die benötigten Bewerbungsangaben mit der Job-Room-Hilfe in das externe Portal.',
+    'fr-CH' => 'Transfère les informations nécessaires vers le portail externe avec l’aide Job-Room.',
+    'en-GB' => 'Use the Job-Room helper to transfer required application details to the external portal.',
+    'pt-BR' => 'Use a ajuda do Job-Room para transferir os dados necessários ao portal externo.',
+    'es-MX' => 'Usa la ayuda de Job-Room para transferir los datos necesarios al portal externo.',
+  ),
+  'help.v2.jobroom.steps.1' =>
+  array (
+    'de-CH' => 'Kreuze „Im Job-Room erfasst“ erst an, wenn du die Erfassung vorgenommen hast.',
+    'fr-CH' => 'Coche la confirmation uniquement après avoir effectué la saisie.',
+    'en-GB' => 'Tick the registration confirmation only after completing the entry.',
+    'pt-BR' => 'Marque a confirmação somente depois de efetuar o registro.',
+    'es-MX' => 'Marca la confirmación únicamente después de completar el registro.',
+  ),
+  'help.v2.jobroom.steps.2' =>
+  array (
+    'de-CH' => 'Danach sind Vorstellungsgespräch und das Ergebnis Noch offen, Anstellung oder Absage sichtbar.',
+    'fr-CH' => 'Les champs entretien et résultat ouvert, embauche ou refus deviennent alors visibles.',
+    'en-GB' => 'Interview and the outcome open, hired or rejected then become visible.',
+    'pt-BR' => 'Os campos de entrevista e resultado aberto, contratado ou recusado ficam visíveis.',
+    'es-MX' => 'Entonces aparecen entrevista y resultado abierto, contratación o rechazo.',
+  ),
+  'help.v2.jobroom.summary' =>
+  array (
+    'de-CH' => 'Die Job-Room-Erfassung ist vom Bewerbungsstatus getrennt.',
+    'fr-CH' => 'La saisie dans Job-Room est distincte du statut de candidature.',
+    'en-GB' => 'Job-Room registration is separate from application status.',
+    'pt-BR' => 'O registro no Job-Room é separado do status da candidatura.',
+    'es-MX' => 'El registro en Job-Room es independiente del estado de la solicitud.',
+  ),
+  'help.v2.jobroom.tips.0' =>
+  array (
+    'de-CH' => 'Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung.',
+    'fr-CH' => 'La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche.',
+    'en-GB' => 'The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment.',
+    'pt-BR' => 'A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação.',
+    'es-MX' => 'La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación.',
+  ),
+  'help.v2.jobroom.title' =>
+  array (
+    'de-CH' => 'Job-Room',
+    'fr-CH' => 'Job-Room',
+    'en-GB' => 'Job-Room',
+    'pt-BR' => 'Job-Room',
+    'es-MX' => 'Job-Room',
+  ),
+  'help.v2.jobs.steps.0' =>
+  array (
+    'de-CH' => 'Erfasse die Stelle manuell oder prüfe Vorschläge aus Inserat-URLs beziehungsweise eingefügtem Text.',
+    'fr-CH' => 'Saisis l’offre ou vérifie les propositions issues de liens d’annonces ou de texte collé.',
+    'en-GB' => 'Enter a job manually or review proposals from advertisement URLs or pasted text.',
+    'pt-BR' => 'Cadastre a vaga ou revise propostas obtidas de links de anúncios ou texto colado.',
+    'es-MX' => 'Captura la vacante o revisa propuestas obtenidas de enlaces de anuncios o texto pegado.',
+  ),
+  'help.v2.jobs.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe Firma, vollständigen Jobtitel, Ort, Pensum von/bis, Arbeitsmodell, Vertrag, Lohn und Quelle.',
+    'fr-CH' => 'Contrôle entreprise, titre complet, lieu, taux minimum/maximum, mode de travail, contrat, salaire et source.',
+    'en-GB' => 'Check company, full title, location, minimum/maximum workload, working arrangement, contract, salary and source.',
+    'pt-BR' => 'Confira empresa, título completo, local, carga mínima/máxima, modelo de trabalho, contrato, salário e fonte.',
+    'es-MX' => 'Comprueba empresa, título completo, lugar, jornada mínima/máxima, modalidad, contrato, salario y fuente.',
+  ),
+  'help.v2.jobs.steps.2' =>
+  array (
+    'de-CH' => 'Speichere die Stelle; lade bei Bedarf das Inserat als PDF oder Bild hoch und bereite eine Bewerbung vor.',
+    'fr-CH' => 'Enregistre; joins si nécessaire l’annonce en PDF ou en image et prépare une candidature.',
+    'en-GB' => 'Save the job; optionally upload the advertisement as PDF or image and prepare an application.',
+    'pt-BR' => 'Salve; anexe o anúncio em PDF ou imagem se necessário e prepare uma candidatura.',
+    'es-MX' => 'Guarda; adjunta el anuncio en PDF o imagen si hace falta y prepara una solicitud.',
+  ),
+  'help.v2.jobs.summary' =>
+  array (
+    'de-CH' => 'Eine Stelle beschreibt das Angebot; eine Bewerbung dokumentiert deinen Bewerbungsprozess.',
+    'fr-CH' => 'L’offre décrit le poste; la candidature documente ta démarche.',
+    'en-GB' => 'A job describes the offer; an application records your application process.',
+    'pt-BR' => 'A vaga descreve a oferta; a candidatura registra seu processo.',
+    'es-MX' => 'La vacante describe la oferta; la solicitud registra tu proceso.',
+  ),
+  'help.v2.jobs.tips.0' =>
+  array (
+    'de-CH' => 'Prüfe Dubletten vor dem Speichern. Importierte Angaben sind zu kontrollieren; der Match-Wert ist nur eine Orientierung.',
+    'fr-CH' => 'Vérifie les doublons avant d’enregistrer. Les données importées doivent être contrôlées; le score de correspondance reste indicatif.',
+    'en-GB' => 'Check duplicates before saving. Verify imported information; the match score is only a guide.',
+    'pt-BR' => 'Verifique duplicatas antes de salvar. Confira os dados importados; a pontuação de compatibilidade é apenas uma referência.',
+    'es-MX' => 'Revisa duplicados antes de guardar. Verifica los datos importados; la puntuación de coincidencia es orientativa.',
+  ),
+  'help.v2.jobs.title' =>
+  array (
+    'de-CH' => 'Stellen erfassen und bearbeiten',
+    'fr-CH' => 'Saisir et modifier une offre',
+    'en-GB' => 'Create and edit jobs',
+    'pt-BR' => 'Cadastrar e editar vagas',
+    'es-MX' => 'Registrar y editar vacantes',
+  ),
+  'help.v2.online.steps.0' =>
+  array (
+    'de-CH' => 'Öffne die hinterlegte Bewerbungs-URL und stelle die geprüften Unterlagen bereit.',
+    'fr-CH' => 'Ouvre l’URL de candidature et prépare les documents vérifiés.',
+    'en-GB' => 'Open the saved application URL and prepare checked documents.',
+    'pt-BR' => 'Abra a URL cadastrada e prepare os documentos conferidos.',
+    'es-MX' => 'Abre la URL guardada y prepara los documentos revisados.',
+  ),
+  'help.v2.online.steps.1' =>
+  array (
+    'de-CH' => 'Nutze Download, ZIP-Paket oder temporären Ordner für den externen Upload.',
+    'fr-CH' => 'Utilise téléchargement, archive ZIP ou dossier temporaire pour le dépôt externe.',
+    'en-GB' => 'Use downloads, a ZIP package or the temporary folder for external upload.',
+    'pt-BR' => 'Use downloads, pacote ZIP ou pasta temporária para o envio externo.',
+    'es-MX' => 'Utiliza descargas, un archivo ZIP o la carpeta temporal para cargarlos externamente.',
+  ),
+  'help.v2.online.steps.2' =>
+  array (
+    'de-CH' => 'Bestätige die erfolgte Einreichung anschliessend in JeMa Jobs; ergänze Referenz und Notizen.',
+    'fr-CH' => 'Confirme ensuite le dépôt effectué dans JeMa Jobs et complète référence et notes.',
+    'en-GB' => 'Then confirm the completed submission in JeMa Jobs and add a reference and notes.',
+    'pt-BR' => 'Depois confirme a entrega realizada no JeMa Jobs e acrescente referência e observações.',
+    'es-MX' => 'Después confirma la entrega realizada en JeMa Jobs y añade referencia y notas.',
+  ),
+  'help.v2.online.summary' =>
+  array (
+    'de-CH' => 'Die eigentliche Einreichung erfolgt im externen Bewerbungsportal.',
+    'fr-CH' => 'Le dépôt réel se fait dans le portail externe.',
+    'en-GB' => 'Actual submission takes place in the external application portal.',
+    'pt-BR' => 'A entrega real ocorre no portal externo de candidaturas.',
+    'es-MX' => 'La entrega real se realiza en el portal externo.',
+  ),
+  'help.v2.online.tips.0' =>
+  array (
+    'de-CH' => 'Ein Download oder das Öffnen des Portals reicht nicht als Versandnachweis. Die angezeigte nächste Aufgabe ist kein zusätzlicher Kalendereintrag.',
+    'fr-CH' => 'Télécharger des fichiers ou ouvrir le portail ne prouve pas le dépôt. La prochaine tâche affichée ne crée pas un rendez-vous supplémentaire.',
+    'en-GB' => 'Downloading files or opening a portal does not prove submission. The displayed next task does not create an extra calendar event.',
+    'pt-BR' => 'Baixar arquivos ou abrir o portal não comprova entrega. A próxima tarefa exibida não cria um compromisso adicional.',
+    'es-MX' => 'Descargar archivos o abrir el portal no prueba la entrega. La siguiente tarea mostrada no crea una cita adicional.',
+  ),
+  'help.v2.online.title' =>
+  array (
+    'de-CH' => 'Onlinebewerbung und Unterlagen',
+    'fr-CH' => 'Candidature en ligne',
+    'en-GB' => 'Online applications',
+    'pt-BR' => 'Candidatura online',
+    'es-MX' => 'Solicitud en línea',
+  ),
+  'help.v2.overview.steps.0' =>
+  array (
+    'de-CH' => 'Pflege zuerst dein Profil und die benötigten Dokumente.',
+    'fr-CH' => 'Complète d’abord ton profil et les documents nécessaires.',
+    'en-GB' => 'Complete your profile and required documents first.',
+    'pt-BR' => 'Preencha primeiro o perfil e os documentos necessários.',
+    'es-MX' => 'Completa primero tu perfil y los documentos necesarios.',
+  ),
+  'help.v2.overview.steps.1' =>
+  array (
+    'de-CH' => 'Erfasse eine Stelle und bereite daraus eine Bewerbung vor.',
+    'fr-CH' => 'Enregistre une offre et prépare une candidature.',
+    'en-GB' => 'Save a job and prepare an application from it.',
+    'pt-BR' => 'Cadastre uma vaga e prepare uma candidatura.',
+    'es-MX' => 'Guarda una vacante y prepara una solicitud.',
+  ),
+  'help.v2.overview.steps.2' =>
+  array (
+    'de-CH' => 'Führe Bewerbung und Termine im jeweiligen Bereich weiter.',
+    'fr-CH' => 'Suis la candidature et ses rendez-vous dans les rubriques correspondantes.',
+    'en-GB' => 'Manage the application and its appointments in their respective sections.',
+    'pt-BR' => 'Acompanhe a candidatura e seus compromissos nas respectivas áreas.',
+    'es-MX' => 'Gestiona la solicitud y sus citas en las secciones correspondientes.',
+  ),
+  'help.v2.overview.summary' =>
+  array (
+    'de-CH' => 'Profil, Stellen, Bewerbungen und Termine bilden deinen Arbeitsablauf.',
+    'fr-CH' => 'Profil, offres, candidatures et rendez-vous constituent ton parcours.',
+    'en-GB' => 'Your profile, jobs, applications and appointments form the working process.',
+    'pt-BR' => 'Perfil, vagas, candidaturas e compromissos formam seu processo.',
+    'es-MX' => 'Perfil, vacantes, solicitudes y citas forman tu proceso.',
+  ),
+  'help.v2.overview.tips.0' =>
+  array (
+    'de-CH' => 'Der Stellenstatus ist nicht der Bewerbungsstatus. Ein gespeicherter Entwurf ist noch nicht versendet.',
+    'fr-CH' => 'Le statut du poste diffère du statut de candidature. Enregistrer un brouillon ne l’envoie pas.',
+    'en-GB' => 'A job status is separate from an application status. Saving a draft does not send it.',
+    'pt-BR' => 'O status da vaga é diferente do status da candidatura. Salvar um rascunho não o envia.',
+    'es-MX' => 'El estado de la vacante es distinto del estado de la solicitud. Guardar un borrador no lo envía.',
+  ),
+  'help.v2.overview.title' =>
+  array (
+    'de-CH' => 'Überblick',
+    'fr-CH' => 'Vue d’ensemble',
+    'en-GB' => 'Overview',
+    'pt-BR' => 'Visão geral',
+    'es-MX' => 'Vista general',
+  ),
+  'help.v2.platforms.steps.0' =>
+  array (
+    'de-CH' => 'Erfasse Plattformname, Basis-URL und gegebenenfalls Suchvorlage.',
+    'fr-CH' => 'Saisis nom, URL de base et modèle de recherche éventuel.',
+    'en-GB' => 'Enter the platform name, base URL and any search template.',
+    'pt-BR' => 'Informe nome, URL base e eventual modelo de busca.',
+    'es-MX' => 'Indica nombre, URL base y plantilla de búsqueda si corresponde.',
+  ),
+  'help.v2.platforms.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe Reihenfolge, Aktivierung und verfügbare Angaben.',
+    'fr-CH' => 'Vérifie ordre, activation et informations disponibles.',
+    'en-GB' => 'Check order, activation and available details.',
+    'pt-BR' => 'Confira ordem, ativação e informações disponíveis.',
+    'es-MX' => 'Revisa orden, activación e información disponible.',
+  ),
+  'help.v2.platforms.steps.2' =>
+  array (
+    'de-CH' => 'Teste die verwendeten Links, bevor du die Plattform für die Suche anbietest.',
+    'fr-CH' => 'Teste les liens avant de proposer la plateforme.',
+    'en-GB' => 'Test the links before offering the platform for searches.',
+    'pt-BR' => 'Teste os links antes de disponibilizar a plataforma.',
+    'es-MX' => 'Prueba los enlaces antes de ofrecer la plataforma.',
+  ),
+  'help.v2.platforms.summary' =>
+  array (
+    'de-CH' => 'Admins pflegen die Plattformen, die für Recherchepakete angeboten werden.',
+    'fr-CH' => 'Les admins définissent les plateformes proposées pour la recherche.',
+    'en-GB' => 'Admins maintain the platforms offered in research packages.',
+    'pt-BR' => 'Administradores mantêm as plataformas oferecidas na pesquisa.',
+    'es-MX' => 'Los administradores mantienen las plataformas ofrecidas para investigar.',
+  ),
+  'help.v2.platforms.tips.0' =>
+  array (
+    'de-CH' => 'Eine Plattform ist eine Recherchequelle, kein automatischer Importauftrag und keine Garantie für aktuelle Stellen.',
+    'fr-CH' => 'Une plateforme est une source de recherche, pas un ordre d’importation automatique ni une garantie d’offres actuelles.',
+    'en-GB' => 'A platform is a research source, not an automatic import request or a guarantee of current jobs.',
+    'pt-BR' => 'Uma plataforma é fonte de pesquisa, não uma ordem de importação automática nem garantia de vagas atuais.',
+    'es-MX' => 'Una plataforma es una fuente de investigación, no una orden de importación automática ni garantía de vacantes vigentes.',
+  ),
+  'help.v2.platforms.title' =>
+  array (
+    'de-CH' => 'Jobplattformen verwalten',
+    'fr-CH' => 'Gérer les plateformes',
+    'en-GB' => 'Manage job platforms',
+    'pt-BR' => 'Gerenciar plataformas',
+    'es-MX' => 'Gestionar plataformas',
+  ),
+  'help.v2.privacy.steps.0' =>
+  array (
+    'de-CH' => 'Prüfe vor einem Export, welche Inhalte enthalten sind.',
+    'fr-CH' => 'Vérifie le contenu d’un export avant de le partager.',
+    'en-GB' => 'Inspect the contents of an export before sharing it.',
+    'pt-BR' => 'Confira o conteúdo da exportação antes de compartilhar.',
+    'es-MX' => 'Revisa el contenido de una exportación antes de compartirla.',
+  ),
+  'help.v2.privacy.steps.1' =>
+  array (
+    'de-CH' => 'Nutze bei einer Bereinigung zuerst die Vorschau der betroffenen Datensätze.',
+    'fr-CH' => 'Utilise d’abord l’aperçu des éléments concernés par un nettoyage.',
+    'en-GB' => 'Use the affected-record preview before cleanup.',
+    'pt-BR' => 'Use primeiro a prévia dos registros afetados pela limpeza.',
+    'es-MX' => 'Consulta primero la vista previa de registros afectados por la limpieza.',
+  ),
+  'help.v2.privacy.steps.2' =>
+  array (
+    'de-CH' => 'Prüfe Status und Umfang deiner Bereinigungsanfrage; die Vorschau allein löscht keine Daten.',
+    'fr-CH' => 'Vérifie le statut et le périmètre de ta demande de nettoyage ; l’aperçu seul ne supprime aucune donnée.',
+    'en-GB' => 'Check the status and scope of your cleanup request; the preview alone does not delete data.',
+    'pt-BR' => 'Confira o status e o escopo da solicitação de limpeza; a prévia por si só não exclui dados.',
+    'es-MX' => 'Revisa el estado y el alcance de tu solicitud de limpieza; la vista previa por sí sola no elimina datos.',
+  ),
+  'help.v2.privacy.summary' =>
+  array (
+    'de-CH' => 'Deine Bewerbungsdaten sind privat; Exporte und Löschungen verlangen besondere Sorgfalt.',
+    'fr-CH' => 'Tes données de candidature sont privées; exportation et suppression demandent de l’attention.',
+    'en-GB' => 'Application data is private; exports and deletion require care.',
+    'pt-BR' => 'Dados de candidatura são privados; exportação e exclusão exigem cuidado.',
+    'es-MX' => 'Los datos de solicitudes son privados; exportar y eliminar requiere cuidado.',
+  ),
+  'help.v2.privacy.tips.0' =>
+  array (
+    'de-CH' => 'Löschen kann abhängige Daten betreffen. Eine Sicherung ersetzt nicht die Prüfung der Auswahl.',
+    'fr-CH' => 'Supprimer peut affecter des données liées. Une sauvegarde ne remplace pas la vérification de la sélection.',
+    'en-GB' => 'Deletion can affect related data. A backup does not replace reviewing your selection.',
+    'pt-BR' => 'Excluir pode afetar dados relacionados. Um backup não substitui a revisão da seleção.',
+    'es-MX' => 'Eliminar puede afectar datos relacionados. Una copia no sustituye la revisión de la selección.',
+  ),
+  'help.v2.privacy.title' =>
+  array (
+    'de-CH' => 'Datenschutz und Bereinigung',
+    'fr-CH' => 'Confidentialité et nettoyage',
+    'en-GB' => 'Privacy and cleanup',
+    'pt-BR' => 'Privacidade e limpeza',
+    'es-MX' => 'Privacidad y limpieza',
+  ),
+  'help.v2.profile.steps.0' =>
+  array (
+    'de-CH' => 'Pflege Kontaktdaten, Region, Zeitzone, App-Sprache und Profil-Links.',
+    'fr-CH' => 'Renseigne coordonnées, région, fuseau horaire, langue de l’application et liens de profil.',
+    'en-GB' => 'Set contact details, region, time zone, app language and profile links.',
+    'pt-BR' => 'Preencha contatos, região, fuso horário, idioma do aplicativo e links do perfil.',
+    'es-MX' => 'Completa contacto, región, zona horaria, idioma de la aplicación y enlaces del perfil.',
+  ),
+  'help.v2.profile.steps.1' =>
+  array (
+    'de-CH' => 'Erfasse gewünschte Tätigkeiten, Orte, Arbeitsmodell, Stellenarten und Pensum von/bis.',
+    'fr-CH' => 'Indique fonctions, lieux, mode de travail, types de poste et taux d’activité minimum/maximum.',
+    'en-GB' => 'Enter desired roles, locations, working arrangement, job types and minimum/maximum workload.',
+    'pt-BR' => 'Informe funções, locais, modelo de trabalho, tipos de vaga e carga mínima/máxima em porcentagem.',
+    'es-MX' => 'Indica funciones, lugares, modalidad de trabajo, tipos de puesto y porcentaje mínimo/máximo de jornada.',
+  ),
+  'help.v2.profile.steps.2' =>
+  array (
+    'de-CH' => 'Ergänze Lohn, Verfügbarkeit, Benefits, Ausschlüsse und Sprachkenntnisse; speichere deine Änderungen.',
+    'fr-CH' => 'Complète salaire, disponibilité, avantages, exclusions et langues; enregistre les modifications.',
+    'en-GB' => 'Add salary, availability, benefits, exclusions and language skills; save your changes.',
+    'pt-BR' => 'Acrescente salário, disponibilidade, benefícios, exclusões e idiomas; salve as alterações.',
+    'es-MX' => 'Añade salario, disponibilidad, prestaciones, exclusiones e idiomas; guarda los cambios.',
+  ),
+  'help.v2.profile.summary' =>
+  array (
+    'de-CH' => 'Persönliche Angaben und Suchwünsche werden für deine Bewerbungsarbeit verwendet.',
+    'fr-CH' => 'Tes coordonnées et préférences servent à préparer les candidatures.',
+    'en-GB' => 'Personal details and preferences support your application work.',
+    'pt-BR' => 'Dados pessoais e preferências ajudam na preparação das candidaturas.',
+    'es-MX' => 'Tus datos personales y preferencias ayudan a preparar solicitudes.',
+  ),
+  'help.v2.profile.tips.0' =>
+  array (
+    'de-CH' => 'Die App-Sprache übersetzt keine eigenen Texte oder Dokumente. Bern Stadt, Region Biel und Region Solothurn gehören zur Schweiz.',
+    'fr-CH' => 'La langue de l’application ne traduit pas tes textes ni tes documents. Bern Stadt, Region Biel et Region Solothurn sont en Suisse.',
+    'en-GB' => 'Changing the app language does not translate your own text or documents. Bern Stadt, Region Biel and Region Solothurn are Swiss regions.',
+    'pt-BR' => 'O idioma do aplicativo não traduz seus textos ou documentos. Bern Stadt, Region Biel e Region Solothurn pertencem à Suíça.',
+    'es-MX' => 'El idioma de la aplicación no traduce tus textos ni documentos. Bern Stadt, Region Biel y Region Solothurn pertenecen a Suiza.',
+  ),
+  'help.v2.profile.title' =>
+  array (
+    'de-CH' => 'Profil und Suchwünsche',
+    'fr-CH' => 'Profil et préférences',
+    'en-GB' => 'Profile and preferences',
+    'pt-BR' => 'Perfil e preferências',
+    'es-MX' => 'Perfil y preferencias',
+  ),
+  'help.v2.reports.steps.0' =>
+  array (
+    'de-CH' => 'Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.',
+    'fr-CH' => 'Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.',
+    'en-GB' => 'Select field filters and sorting in column headers; reset them when needed.',
+    'pt-BR' => 'Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.',
+    'es-MX' => 'Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.',
+  ),
+  'help.v2.reports.steps.1' =>
+  array (
+    'de-CH' => 'Lege für einen Report Datenbasis, Spalten, Filter und Reihenfolge fest und speichere ihn.',
+    'fr-CH' => 'Définis source, colonnes, filtres et ordre du rapport puis enregistre-le.',
+    'en-GB' => 'Choose the report’s data source, columns, filters and ordering, then save it.',
+    'pt-BR' => 'Defina base, colunas, filtros e ordem do relatório e salve.',
+    'es-MX' => 'Define origen, columnas, filtros y orden del informe y guárdalo.',
+  ),
+  'help.v2.reports.steps.2' =>
+  array (
+    'de-CH' => 'Prüfe die Vorschau und exportiere bei Bedarf als PDF.',
+    'fr-CH' => 'Vérifie l’aperçu et exporte en PDF si nécessaire.',
+    'en-GB' => 'Inspect the preview and export to PDF if needed.',
+    'pt-BR' => 'Confira a prévia e exporte em PDF se necessário.',
+    'es-MX' => 'Revisa la vista previa y exporta en PDF si lo necesitas.',
+  ),
+  'help.v2.reports.summary' =>
+  array (
+    'de-CH' => 'Listen und gespeicherte Reports zeigen unterschiedliche Ausschnitte deiner Daten.',
+    'fr-CH' => 'Les listes et rapports enregistrés présentent différentes vues de tes données.',
+    'en-GB' => 'Lists and saved reports provide different views of your data.',
+    'pt-BR' => 'Listas e relatórios salvos mostram diferentes recortes dos dados.',
+    'es-MX' => 'Las listas e informes guardados presentan distintas vistas de tus datos.',
+  ),
+  'help.v2.reports.tips.0' =>
+  array (
+    'de-CH' => 'Eine Tabellenzeile gehört zu einem Datensatz; lange Inhalte umbrechen. Bewerbungslisten zeigen Workflowdatum ohne Uhrzeit.',
+    'fr-CH' => 'Chaque ligne correspond à un enregistrement; les textes longs passent à la ligne. Les candidatures affichent la date du processus sans heure.',
+    'en-GB' => 'One table row represents one record; long text wraps. Application lists show the workflow date without time.',
+    'pt-BR' => 'Cada linha corresponde a um registro; textos longos quebram linha. Candidaturas mostram a data do processo sem horário.',
+    'es-MX' => 'Cada fila representa un registro; los textos largos pasan a otra línea. Las solicitudes muestran la fecha del proceso sin hora.',
+  ),
+  'help.v2.reports.title' =>
+  array (
+    'de-CH' => 'Listen, Filter und Auswertungen',
+    'fr-CH' => 'Listes, filtres et rapports',
+    'en-GB' => 'Lists, filters and reports',
+    'pt-BR' => 'Listas, filtros e relatórios',
+    'es-MX' => 'Listas, filtros e informes',
+  ),
+  'help.v2.search.steps.0' =>
+  array (
+    'de-CH' => 'Prüfe Suchbegriffe, Orte und Plattformen.',
+    'fr-CH' => 'Vérifie les mots-clés, lieux et plateformes.',
+    'en-GB' => 'Check keywords, locations and platforms.',
+    'pt-BR' => 'Confira palavras-chave, locais e plataformas.',
+    'es-MX' => 'Revisa palabras clave, lugares y plataformas.',
+  ),
+  'help.v2.search.steps.1' =>
+  array (
+    'de-CH' => 'Erzeuge den Rechercheprompt und führe die Recherche im externen Werkzeug aus.',
+    'fr-CH' => 'Génère le prompt puis effectue la recherche dans l’outil externe.',
+    'en-GB' => 'Generate the prompt and run the research in the external tool.',
+    'pt-BR' => 'Gere o prompt e faça a pesquisa na ferramenta externa.',
+    'es-MX' => 'Genera el prompt y realiza la búsqueda en la herramienta externa.',
+  ),
+  'help.v2.search.steps.2' =>
+  array (
+    'de-CH' => 'Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport.',
+    'fr-CH' => 'Colle les liens directs vérifiés, un par ligne, dans l’import rapide.',
+    'en-GB' => 'Paste verified direct advertisement URLs, one per line, into quick import.',
+    'pt-BR' => 'Cole os links diretos verificados, um por linha, na importação rápida.',
+    'es-MX' => 'Pega enlaces directos verificados, uno por línea, en la importación rápida.',
+  ),
+  'help.v2.search.summary' =>
+  array (
+    'de-CH' => 'Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.',
+    'fr-CH' => 'Le prompt de recherche utilise tes préférences et les plateformes choisies.',
+    'en-GB' => 'The research prompt uses your preferences and selected job platforms.',
+    'pt-BR' => 'O prompt de pesquisa usa suas preferências e plataformas selecionadas.',
+    'es-MX' => 'El prompt de investigación utiliza tus preferencias y plataformas elegidas.',
+  ),
+  'help.v2.search.tips.0' =>
+  array (
+    'de-CH' => 'Suchresultate sind Vorschläge. Die App garantiert weder Erreichbarkeit noch Aktualität externer Inserate.',
+    'fr-CH' => 'Les résultats sont des propositions. L’application ne garantit pas la disponibilité ni l’actualité des annonces externes.',
+    'en-GB' => 'Search results are suggestions. The app does not guarantee availability or freshness of external advertisements.',
+    'pt-BR' => 'Os resultados são sugestões. O aplicativo não garante a disponibilidade ou atualização dos anúncios externos.',
+    'es-MX' => 'Los resultados son sugerencias. La aplicación no garantiza la disponibilidad ni vigencia de anuncios externos.',
+  ),
+  'help.v2.search.title' =>
+  array (
+    'de-CH' => 'Stellen suchen',
+    'fr-CH' => 'Rechercher des offres',
+    'en-GB' => 'Search for jobs',
+    'pt-BR' => 'Pesquisar vagas',
+    'es-MX' => 'Buscar vacantes',
+  ),
+  'help.v2.security.steps.0' =>
+  array (
+    'de-CH' => 'Registriere dich oder melde dich mit deiner E-Mail-Adresse an.',
+    'fr-CH' => 'Inscris-toi ou connecte-toi avec ton adresse e-mail.',
+    'en-GB' => 'Register or sign in with your email address.',
+    'pt-BR' => 'Cadastre-se ou entre com seu endereço de e-mail.',
+    'es-MX' => 'Regístrate o inicia sesión con tu correo.',
+  ),
+  'help.v2.security.steps.1' =>
+  array (
+    'de-CH' => 'Richte die Zwei-Faktor-Anmeldung im Profil ein und bestätige den Authenticator-Code.',
+    'fr-CH' => 'Configure l’authentification à deux facteurs dans le profil et confirme le code.',
+    'en-GB' => 'Set up two-factor authentication in your profile and confirm the authenticator code.',
+    'pt-BR' => 'Configure a autenticação em dois fatores no perfil e confirme o código.',
+    'es-MX' => 'Configura la autenticación de dos factores en el perfil y confirma el código.',
+  ),
+  'help.v2.security.steps.2' =>
+  array (
+    'de-CH' => 'Nutze bei vergessenem Passwort den Rücksetzablauf; prüfe bei ungültigen Codes die automatische Gerätezeit.',
+    'fr-CH' => 'Utilise la réinitialisation en cas d’oubli; si un code est refusé, vérifie l’heure automatique de l’appareil.',
+    'en-GB' => 'Use password recovery if needed; check automatic device time when a code is rejected.',
+    'pt-BR' => 'Use a recuperação de senha quando necessário; confira a hora automática do dispositivo se o código for recusado.',
+    'es-MX' => 'Usa la recuperación de contraseña si hace falta; revisa la hora automática del dispositivo cuando se rechace un código.',
+  ),
+  'help.v2.security.summary' =>
+  array (
+    'de-CH' => 'Passwort und optionaler Authenticator schützen dein Konto.',
+    'fr-CH' => 'Un mot de passe et un authentificateur facultatif protègent ton compte.',
+    'en-GB' => 'A password and optional authenticator protect your account.',
+    'pt-BR' => 'Uma senha e um autenticador opcional protegem sua conta.',
+    'es-MX' => 'Una contraseña y un autenticador opcional protegen tu cuenta.',
+  ),
+  'help.v2.security.tips.0' =>
+  array (
+    'de-CH' => 'Teile Passwörter, Wiederherstellungslinks und Authenticator-Codes nicht mit Supportpersonen.',
+    'fr-CH' => 'Ne communique ni mots de passe, ni liens de récupération, ni codes d’authentification au support.',
+    'en-GB' => 'Do not share passwords, recovery links or authenticator codes with support staff.',
+    'pt-BR' => 'Não compartilhe senhas, links de recuperação ou códigos com o suporte.',
+    'es-MX' => 'No compartas contraseñas, enlaces de recuperación ni códigos con soporte.',
+  ),
+  'help.v2.security.title' =>
+  array (
+    'de-CH' => 'Anmeldung und Sicherheit',
+    'fr-CH' => 'Connexion et sécurité',
+    'en-GB' => 'Sign-in and security',
+    'pt-BR' => 'Acesso e segurança',
+    'es-MX' => 'Acceso y seguridad',
+  ),
+  'help.v2.sharing.steps.0' =>
+  array (
+    'de-CH' => 'Wähle den freizugebenden Datensatz und prüfe Empfänger, Laufzeit und Rechte.',
+    'fr-CH' => 'Sélectionne le contenu et vérifie destinataire, durée et droits.',
+    'en-GB' => 'Select the record and check recipient, expiry and permissions.',
+    'pt-BR' => 'Selecione o registro e confira destinatário, validade e permissões.',
+    'es-MX' => 'Selecciona el registro y revisa destinatario, vigencia y permisos.',
+  ),
+  'help.v2.sharing.steps.1' =>
+  array (
+    'de-CH' => 'Erstelle den Zugriff und gib den Link nur an den vorgesehenen Empfänger weiter.',
+    'fr-CH' => 'Crée l’accès et transmets le lien uniquement au destinataire prévu.',
+    'en-GB' => 'Create access and send the link only to the intended recipient.',
+    'pt-BR' => 'Crie o acesso e forneça o link apenas ao destinatário previsto.',
+    'es-MX' => 'Crea el acceso y entrega el enlace solo al destinatario previsto.',
+  ),
+  'help.v2.sharing.steps.2' =>
+  array (
+    'de-CH' => 'Prüfe bestehende Freigaben und widerrufe nicht mehr benötigte Zugriffe.',
+    'fr-CH' => 'Contrôle les partages existants et révoque ceux devenus inutiles.',
+    'en-GB' => 'Review existing shares and revoke access no longer needed.',
+    'pt-BR' => 'Revise os compartilhamentos e revogue acessos desnecessários.',
+    'es-MX' => 'Revisa los accesos existentes y revoca los innecesarios.',
+  ),
+  'help.v2.sharing.summary' =>
+  array (
+    'de-CH' => 'Freigaben erlauben begrenzten Zugriff auf bewusst ausgewählte Inhalte.',
+    'fr-CH' => 'Les partages donnent un accès limité à des contenus choisis.',
+    'en-GB' => 'Shares provide limited access to deliberately selected content.',
+    'pt-BR' => 'Compartilhamentos dão acesso limitado a conteúdos escolhidos.',
+    'es-MX' => 'Los enlaces compartidos dan acceso limitado a contenido elegido.',
+  ),
+  'help.v2.sharing.tips.0' =>
+  array (
+    'de-CH' => 'Gäste sehen nur freigegebene Inhalte. Behandle Freigabelinks wie vertrauliche Zugangsdaten.',
+    'fr-CH' => 'Les invités ne voient que le contenu autorisé. Garde les liens de partage confidentiels.',
+    'en-GB' => 'Guests see only shared content. Treat share links as confidential credentials.',
+    'pt-BR' => 'Convidados veem apenas conteúdo autorizado. Trate os links como credenciais confidenciais.',
+    'es-MX' => 'Los invitados solo ven contenido autorizado. Trata los enlaces como credenciales confidenciales.',
+  ),
+  'help.v2.sharing.title' =>
+  array (
+    'de-CH' => 'Freigaben',
+    'fr-CH' => 'Partages',
+    'en-GB' => 'Sharing',
+    'pt-BR' => 'Compartilhamento',
+    'es-MX' => 'Compartir',
+  ),
+  'help.v2.translations.steps.0' =>
+  array (
+    'de-CH' => 'Wähle den eigenen Quelldatensatz und die Zielsprache.',
+    'fr-CH' => 'Choisis ton contenu source et la langue cible.',
+    'en-GB' => 'Choose your source record and target language.',
+    'pt-BR' => 'Escolha seu registro de origem e o idioma de destino.',
+    'es-MX' => 'Elige tu registro de origen y el idioma de destino.',
+  ),
+  'help.v2.translations.steps.1' =>
+  array (
+    'de-CH' => 'Prüfe den erzeugten Übersetzungsprompt, bevor du Inhalte an ein externes Werkzeug weitergibst.',
+    'fr-CH' => 'Vérifie le prompt avant de transmettre des données à un outil externe.',
+    'en-GB' => 'Review the translation prompt before sharing content with an external tool.',
+    'pt-BR' => 'Revise o prompt antes de compartilhar conteúdo com uma ferramenta externa.',
+    'es-MX' => 'Revisa el prompt antes de compartir contenido con una herramienta externa.',
+  ),
+  'help.v2.translations.steps.2' =>
+  array (
+    'de-CH' => 'Übernimm und kontrolliere die Übersetzung, bevor du sie speicherst oder verwendest.',
+    'fr-CH' => 'Relis la traduction avant de l’enregistrer ou de l’utiliser.',
+    'en-GB' => 'Check the returned translation before saving or using it.',
+    'pt-BR' => 'Confira a tradução antes de salvar ou usar.',
+    'es-MX' => 'Comprueba la traducción antes de guardarla o usarla.',
+  ),
+  'help.v2.translations.summary' =>
+  array (
+    'de-CH' => 'Datensatzübersetzungen sind von der Sprache der Benutzeroberfläche getrennt.',
+    'fr-CH' => 'La traduction d’un enregistrement est distincte de la langue de l’interface.',
+    'en-GB' => 'Record translations are separate from the interface language.',
+    'pt-BR' => 'Traduções de registros são separadas do idioma da interface.',
+    'es-MX' => 'Las traducciones de registros son independientes del idioma de interfaz.',
+  ),
+  'help.v2.translations.tips.0' =>
+  array (
+    'de-CH' => 'Ein Wechsel der App-Sprache übersetzt keine Stellenbeschreibung, Nachricht oder Dokumentdatei.',
+    'fr-CH' => 'Changer la langue de l’application ne traduit ni annonce, ni message, ni fichier.',
+    'en-GB' => 'Changing app language does not translate job descriptions, messages or document files.',
+    'pt-BR' => 'Mudar o idioma do aplicativo não traduz descrições de vagas, mensagens ou arquivos.',
+    'es-MX' => 'Cambiar el idioma de la aplicación no traduce descripciones de vacantes, mensajes ni archivos.',
+  ),
+  'help.v2.translations.title' =>
+  array (
+    'de-CH' => 'Inhalte übersetzen',
+    'fr-CH' => 'Traduire des contenus',
+    'en-GB' => 'Translate content',
+    'pt-BR' => 'Traduzir conteúdo',
+    'es-MX' => 'Traducir contenido',
+  ),
+  'help.v2.workflow_review.steps.0' =>
+  array (
+    'de-CH' => 'Prüfe als Admin die Vorschau mit Datensatz, Status und vorgesehener Aktion.',
+    'fr-CH' => 'Comme admin, vérifie l’aperçu des enregistrements, statuts et actions.',
+    'en-GB' => 'As an admin, review the records, statuses and proposed actions.',
+    'pt-BR' => 'Como administrador, revise registros, status e ações propostas.',
+    'es-MX' => 'Como administrador, revisa registros, estados y acciones propuestas.',
+  ),
+  'help.v2.workflow_review.steps.1' =>
+  array (
+    'de-CH' => 'Lasse unbekannte Zuordnungen unverändert und bestätige nur den geprüften Plan.',
+    'fr-CH' => 'Conserve les cas inconnus et confirme uniquement le plan vérifié.',
+    'en-GB' => 'Preserve unknown cases and confirm only the reviewed plan.',
+    'pt-BR' => 'Preserve casos desconhecidos e confirme somente o plano revisado.',
+    'es-MX' => 'Conserva los casos desconocidos y confirma solo el plan revisado.',
+  ),
+  'help.v2.workflow_review.steps.2' =>
+  array (
+    'de-CH' => 'Bei zwischenzeitlichen Änderungen lade die Vorschau neu; betroffene Daten werden vor der Änderung gesichert.',
+    'fr-CH' => 'Si les données changent entre-temps, recharge l’aperçu; les éléments affectés sont sauvegardés avant modification.',
+    'en-GB' => 'Reload the preview if data changes meanwhile; affected records are backed up before modification.',
+    'pt-BR' => 'Recarregue a prévia se os dados mudarem; registros afetados são copiados antes da alteração.',
+    'es-MX' => 'Recarga la vista previa si los datos cambian; los registros afectados se respaldan antes de modificarse.',
+  ),
+  'help.v2.workflow_review.summary' =>
+  array (
+    'de-CH' => 'Die einmalige Bereinigung alter erzeugter Einträge ist vom Code-Deployment getrennt.',
+    'fr-CH' => 'Le nettoyage unique des entrées générées est séparé du déploiement du code.',
+    'en-GB' => 'The one-time cleanup of generated legacy entries is separate from code deployment.',
+    'pt-BR' => 'A limpeza única de registros antigos gerados é separada da publicação do código.',
+    'es-MX' => 'La limpieza única de registros antiguos generados es independiente de publicar el código.',
+  ),
+  'help.v2.workflow_review.tips.0' =>
+  array (
+    'de-CH' => 'Die Bereinigung storniert überholte erzeugte Einträge statt sie endgültig zu löschen. Eine vollständige Datenbankwiederherstellung ist kein geeigneter Rückweg.',
+    'fr-CH' => 'Le nettoyage annule les anciennes entrées générées sans suppression définitive. Restaurer toute la base n’est pas un retour arrière adapté.',
+    'en-GB' => 'Cleanup cancels obsolete generated entries rather than permanently deleting them. Restoring the entire database is not an appropriate rollback.',
+    'pt-BR' => 'A limpeza cancela registros obsoletos gerados sem exclusão definitiva. Restaurar toda a base não é uma reversão adequada.',
+    'es-MX' => 'La limpieza cancela entradas obsoletas generadas sin eliminarlas definitivamente. Restaurar toda la base no es una reversión adecuada.',
+  ),
+  'help.v2.workflow_review.title' =>
+  array (
+    'de-CH' => 'Bestehende Workflow-Daten prüfen',
+    'fr-CH' => 'Réviser les anciennes données',
+    'en-GB' => 'Review existing workflow data',
+    'pt-BR' => 'Revisar dados antigos do fluxo',
+    'es-MX' => 'Revisar datos anteriores del proceso',
+  ),
+);
+    return $catalog;
+}
+
+function helpTopicDefinitions(): array
+{
+    return array (
+  0 =>
+  array (
+    'id' => 'overview',
+    'pages' =>
+    array (
+      0 => 'dashboard',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'jobs',
+      1 => 'applications',
+      2 => 'calendar',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  1 =>
+  array (
+    'id' => 'profile',
+    'pages' =>
+    array (
+      0 => 'profile',
+      1 => 'profile_links',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'profile',
+      1 => 'profile_links',
+      2 => 'documents',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  2 =>
+  array (
+    'id' => 'security',
+    'pages' =>
+    array (
+      0 => 'login',
+      1 => 'register',
+      2 => 'forgot_password',
+      3 => 'reset_password',
+      4 => 'two_factor',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'profile',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  3 =>
+  array (
+    'id' => 'documents',
+    'pages' =>
+    array (
+      0 => 'documents',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'documents',
+      1 => 'applications',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  4 =>
+  array (
+    'id' => 'search',
+    'pages' =>
+    array (
+      0 => 'job_platform_search',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'job_platform_search',
+      1 => 'jobs#quick-import',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  5 =>
+  array (
+    'id' => 'jobs',
+    'pages' =>
+    array (
+      0 => 'jobs',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'jobs',
+      1 => 'companies',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  6 =>
+  array (
+    'id' => 'companies',
+    'pages' =>
+    array (
+      0 => 'companies',
+    ),
+    'category' => 'crm',
+    'links' =>
+    array (
+      0 => 'companies',
+      1 => 'contacts',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  7 =>
+  array (
+    'id' => 'contacts',
+    'pages' =>
+    array (
+      0 => 'contacts',
+    ),
+    'category' => 'crm',
+    'links' =>
+    array (
+      0 => 'contacts',
+      1 => 'companies',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  8 =>
+  array (
+    'id' => 'applications',
+    'pages' =>
+    array (
+      0 => 'applications',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'applications',
+      1 => 'calendar',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  9 =>
+  array (
+    'id' => 'online',
+    'pages' =>
+    array (
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'applications',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  10 =>
+  array (
+    'id' => 'email',
+    'pages' =>
+    array (
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'profile',
+      1 => 'applications',
+      2 => 'contacts',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  11 =>
+  array (
+    'id' => 'calendar',
+    'pages' =>
+    array (
+      0 => 'calendar',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'calendar',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  12 =>
+  array (
+    'id' => 'calendar_sync',
+    'pages' =>
+    array (
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'profile',
+      1 => 'calendar',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  13 =>
+  array (
+    'id' => 'jobroom',
+    'pages' =>
+    array (
+      0 => 'job_room_helper',
+    ),
+    'category' => 'process',
+    'links' =>
+    array (
+      0 => 'job_room_helper',
+      1 => 'applications',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  14 =>
+  array (
+    'id' => 'reports',
+    'pages' =>
+    array (
+      0 => 'reports',
+    ),
+    'category' => 'reports',
+    'links' =>
+    array (
+      0 => 'reports',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  15 =>
+  array (
+    'id' => 'dossier',
+    'pages' =>
+    array (
+      0 => 'application_dossier',
+    ),
+    'category' => 'reports',
+    'links' =>
+    array (
+      0 => 'applications',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  16 =>
+  array (
+    'id' => 'sharing',
+    'pages' =>
+    array (
+      0 => 'sharing',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'sharing',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  17 =>
+  array (
+    'id' => 'privacy',
+    'pages' =>
+    array (
+      0 => 'privacy',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'privacy',
+      1 => 'sharing',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  18 =>
+  array (
+    'id' => 'admin',
+    'pages' =>
+    array (
+      0 => 'admin_users',
+    ),
+    'category' => 'admin',
+    'links' =>
+    array (
+      0 => 'admin_users',
+      1 => 'profile',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  19 =>
+  array (
+    'id' => 'platforms',
+    'pages' =>
+    array (
+      0 => 'admin_job_platforms',
+    ),
+    'category' => 'admin',
+    'links' =>
+    array (
+      0 => 'admin_job_platforms',
+      1 => 'job_platform_search',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  20 =>
+  array (
+    'id' => 'translations',
+    'pages' =>
+    array (
+      0 => 'translations',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'translations',
+      1 => 'profile',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  21 =>
+  array (
+    'id' => 'audit',
+    'pages' =>
+    array (
+      0 => 'audit',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'audit',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  22 =>
+  array (
+    'id' => 'workflow_review',
+    'pages' =>
+    array (
+      0 => 'workflow_review',
+    ),
+    'category' => 'admin',
+    'links' =>
+    array (
+      0 => 'workflow_review',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+  23 =>
+  array (
+    'id' => 'help',
+    'pages' =>
+    array (
+      0 => 'help',
+      1 => 'about',
+    ),
+    'category' => 'account',
+    'links' =>
+    array (
+      0 => 'help',
+      1 => 'about',
+    ),
+    'step_count' => 3,
+    'tip_count' => 1,
+  ),
+);
+}
+// END GENERATED HELP
+
+function seedReviewedHelp(mysqli $db): void
+{
+    $catalog = helpTranslationSeeds();
+    $migrationKey = 'help_content_' . hash('sha256', json_encode($catalog, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+    if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$migrationKey])) { return; }
+    if ((int)(dbOne($db, "SELECT GET_LOCK('jema-help-content',10) acquired")['acquired'] ?? 0) !== 1) { throw new RuntimeException('Help update is busy'); }
+    try {
+        $db->begin_transaction();
+        try {
+            if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$migrationKey])) { $db->commit(); return; }
+            foreach ($catalog as $key => $translations) {
+                $namespace = explode('.', $key, 2)[0];
+                $stmt = $db->prepare("INSERT INTO ui_text_keys (text_key,namespace,default_locale) VALUES (?,?,'de-CH') ON DUPLICATE KEY UPDATE is_active=1");
+                $stmt->bind_param('ss',$key,$namespace); $stmt->execute();
+                $id = (int)dbOne($db,'SELECT id FROM ui_text_keys WHERE text_key=?','s',[$key])['id'];
+                $stmt = $db->prepare("INSERT INTO ui_text_translations (text_key_id,locale,text_value,status) VALUES (?,?,?,'approved') ON DUPLICATE KEY UPDATE text_value=VALUES(text_value),status='approved'");
+                foreach ($translations as $locale => $value) { $stmt->bind_param('iss',$id,$locale,$value); $stmt->execute(); }
+            }
+            $stmt = $db->prepare('INSERT INTO app_migrations (migration_key) VALUES (?)');
+            $stmt->bind_param('s',$migrationKey); $stmt->execute();
+            $db->commit();
+        } catch (Throwable $error) { $db->rollback(); throw $error; }
+    } finally { $db->query("SELECT RELEASE_LOCK('jema-help-content')"); }
+}
+
 function localizedHelpTopics(string $locale): array
 {
     $locale = normalizeLocale($locale);
-    return [
-        [
-            'category' => tr('help.flow.profile.title', $locale),
-            'audience' => tr('nav.account', $locale),
-            'title' => tr('help.flow.profile.title', $locale),
-            'summary' => tr('help.flow.profile.text', $locale),
-            'steps' => [tr('profile.app_language_hint', $locale), tr('help.quick.search.body', $locale), tr('help.flow.profile.text', $locale)],
-            'tips' => [tr('help.hero_intro', $locale)],
-            'links' => [[tr('nav.profile', $locale), '/?page=profile'], [tr('nav.documents', $locale), '/?page=documents']],
-            'keywords' => 'profile documents preferences security',
-        ],
-        [
-            'category' => tr('help.flow.search.title', $locale),
-            'audience' => tr('nav.application', $locale),
-            'title' => tr('help.quick.search.title', $locale),
-            'summary' => tr('help.flow.search.text', $locale),
-            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.search.text', $locale), tr('help.flow.import.text', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'links' => [[tr('help.quick.search.link', $locale), '/?page=job_platform_search'], [tr('dashboard.create_job', $locale), '/?page=jobs#quick-import']],
-            'keywords' => 'search portals prompt direct links import',
-        ],
-        [
-            'category' => tr('help.flow.import.title', $locale),
-            'audience' => tr('nav.jobs', $locale),
-            'title' => tr('help.flow.import.title', $locale),
-            'summary' => tr('help.flow.import.text', $locale),
-            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale), tr('help.flow.apply.text', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'links' => [[tr('nav.jobs', $locale), '/?page=jobs'], [tr('dashboard.create_job', $locale), '/?page=jobs#quick-import']],
-            'keywords' => 'jobs import quick import duplicate company proposal',
-        ],
-        [
-            'category' => tr('nav.crm', $locale),
-            'audience' => tr('nav.companies', $locale),
-            'title' => tr('nav.companies', $locale),
-            'summary' => tr('help.flow.import.text', $locale),
-            'steps' => [tr('help.flow.import.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('help.quick.track.body', $locale)],
-            'links' => [[tr('nav.companies', $locale), '/?page=companies']],
-            'keywords' => 'company companies employer crm contacts reports',
-        ],
-        [
-            'category' => tr('help.flow.apply.title', $locale),
-            'audience' => tr('nav.applications', $locale),
-            'title' => tr('help.quick.apply.title', $locale),
-            'summary' => tr('help.flow.apply.text', $locale),
-            'steps' => [tr('help.quick.apply.body', $locale), tr('help.flow.apply.text', $locale), tr('help.flow.follow.text', $locale)],
-            'tips' => [tr('dashboard.next_body', $locale)],
-            'links' => [[tr('help.quick.apply.link', $locale), '/?page=applications']],
-            'keywords' => 'application online documents submission',
-        ],
-        [
-            'category' => tr('help.flow.apply.title', $locale),
-            'audience' => tr('nav.applications', $locale),
-            'title' => tr('help.flow.apply.text', $locale),
-            'summary' => tr('help.quick.apply.body', $locale),
-            'steps' => [tr('help.flow.apply.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('help.quick.track.body', $locale)],
-            'links' => [[tr('nav.applications', $locale), '/?page=applications']],
-            'keywords' => 'online application web form submit documents package',
-        ],
-        [
-            'category' => tr('nav.documents', $locale),
-            'audience' => tr('nav.documents', $locale),
-            'title' => tr('nav.documents', $locale),
-            'summary' => tr('help.flow.profile.text', $locale),
-            'steps' => [tr('help.flow.profile.text', $locale), tr('help.quick.apply.body', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('profile.app_language_hint', $locale)],
-            'links' => [[tr('nav.documents', $locale), '/?page=documents'], [tr('nav.profile', $locale), '/?page=profile#documents']],
-            'keywords' => 'documents files attachments versions profile application',
-        ],
-        [
-            'category' => tr('help.flow.follow.title', $locale),
-            'audience' => tr('nav.planning', $locale),
-            'title' => tr('help.quick.track.title', $locale),
-            'summary' => tr('help.flow.follow.text', $locale),
-            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale)],
-            'tips' => [tr('help.status.jump', $locale) . ': ' . tr('help.flow.follow.title', $locale)],
-            'links' => [[tr('help.quick.track.link', $locale), '/?page=calendar'], [tr('nav.calendar', $locale), '/?page=calendar']],
-            'keywords' => 'follow up pending calendar contact log',
-        ],
-        [
-            'category' => tr('help.flow.dossier.title', $locale),
-            'audience' => tr('nav.reporting', $locale),
-            'title' => tr('help.flow.dossier.title', $locale),
-            'summary' => tr('help.flow.dossier.text', $locale),
-            'steps' => [tr('help.flow.dossier.text', $locale), tr('help.license_body2', $locale)],
-            'tips' => [tr('help.quick.track.body', $locale)],
-            'links' => [[tr('nav.reports', $locale), '/?page=reports'], [tr('nav.applications', $locale), '/?page=applications']],
-            'keywords' => 'dossier reports pdf documentation',
-        ],
-        [
-            'category' => tr('nav.crm', $locale),
-            'audience' => tr('nav.contacts', $locale),
-            'title' => tr('nav.contacts', $locale),
-            'summary' => tr('help.flow.follow.text', $locale),
-            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('dashboard.next_body', $locale)],
-            'links' => [[tr('nav.contacts', $locale), '/?page=contacts'], [tr('nav.calendar', $locale), '/?page=calendar']],
-            'keywords' => 'contacts contact log crm follow up attachment',
-        ],
-        [
-            'category' => tr('nav.planning', $locale),
-            'audience' => tr('nav.planning', $locale),
-            'title' => tr('nav.calendar', $locale),
-            'summary' => tr('help.flow.follow.text', $locale),
-            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.status.jump', $locale) . ': ' . tr('nav.calendar', $locale)],
-            'tips' => [tr('dashboard.next_body', $locale)],
-            'links' => [[tr('nav.calendar', $locale), '/?page=calendar']],
-            'keywords' => 'pending pendents calendar agenda reminder ics',
-        ],
-        [
-            'category' => tr('nav.reporting', $locale),
-            'audience' => tr('nav.reporting', $locale),
-            'title' => tr('nav.reports', $locale),
-            'summary' => tr('help.flow.dossier.text', $locale),
-            'steps' => [tr('help.flow.dossier.text', $locale), tr('help.quick.track.body', $locale), tr('help.license_body2', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'links' => [[tr('nav.reports', $locale), '/?page=reports']],
-            'keywords' => 'reports reporting pdf export tables filters',
-        ],
-        [
-            'category' => tr('nav.account', $locale),
-            'audience' => tr('support.admin', $locale),
-            'title' => tr('nav.admin_users', $locale),
-            'summary' => tr('support.granted_hint', $locale),
-            'steps' => [tr('support.granted', $locale), tr('support.admin', $locale), tr('support.stop', $locale)],
-            'tips' => [tr('help.license_body2', $locale)],
-            'links' => [[tr('nav.admin_users', $locale), '/?page=admin_users'], [tr('nav.admin_job_platforms', $locale), '/?page=admin_job_platforms']],
-            'keywords' => 'admin users support security two factor password',
-        ],
-        [
-            'category' => tr('help.license_eyebrow', $locale),
-            'audience' => tr('nav.help', $locale),
-            'title' => tr('help.license_title', $locale),
-            'summary' => tr('help.license_body1', $locale),
-            'steps' => [tr('help.license_body1', $locale), tr('help.license_body2', $locale)],
-            'tips' => [tr('help.license_badge', $locale)],
-            'links' => [[tr('nav.about', $locale), '/?page=about']],
-            'keywords' => 'license privacy support',
-        ],
-    ];
+    $definitions = helpTopicDefinitions();
+    $topics = [];
+    foreach ($definitions as $definition) {
+        $prefix = 'help.v2.'.$definition['id'].'.';
+        $steps = []; $tips = []; $links = [];
+        for ($i=0; $i<$definition['step_count']; $i++) { $steps[] = tr($prefix.'steps.'.$i,$locale); }
+        for ($i=0; $i<$definition['tip_count']; $i++) { $tips[] = tr($prefix.'tips.'.$i,$locale); }
+        foreach ($definition['links'] as $page) {
+            $basePage = explode('#',$page,2)[0];
+            foreach ($definitions as $target) {
+                if (in_array($basePage,$target['pages'],true)) {
+                    $labelKey = isset(helpTranslationSeeds()['help.link.'.$basePage]) ? 'help.link.'.$basePage : 'help.v2.'.$target['id'].'.title';
+                    $links[] = [tr($labelKey,$locale),'/?page='.$page];
+                    break;
+                }
+            }
+        }
+        $topics[] = [
+            'id'=>$definition['id'], 'pages'=>$definition['pages'],
+            'category'=>tr('help.category.'.$definition['category'],$locale),
+            'audience'=>tr('help.audience.'.($definition['category']==='admin'?'admin':'user'),$locale),
+            'title'=>tr($prefix.'title',$locale), 'summary'=>tr($prefix.'summary',$locale),
+            'steps'=>$steps, 'tips'=>$tips, 'links'=>$links,
+            'keywords'=>implode(' ',array_merge($steps,$tips)),
+        ];
+    }
+    return $topics;
 }
 
 function localizedContextHelpTopics(string $locale): array
 {
-    $locale = normalizeLocale($locale);
-    $topics = localizedHelpTopics($locale);
-    $findTopic = static function (string $keyword) use ($topics): array {
-        foreach ($topics as $topic) {
-            if (str_contains((string) ($topic['keywords'] ?? ''), $keyword)) {
-                return $topic;
-            }
+    $contexts = [];
+    foreach (localizedHelpTopics($locale) as $topic) {
+        foreach ($topic['pages'] as $page) {
+            $contexts[$page] = [
+                'title'=>$topic['title'], 'intro'=>$topic['summary'],
+                'steps'=>$topic['steps'], 'tips'=>$topic['tips'],
+                'link'=>[$topic['title'],'/?page=help#help-topic-'.$topic['id']],
+            ];
         }
-        return $topics[0] ?? ['title' => '', 'summary' => '', 'steps' => [], 'tips' => []];
-    };
-    $fromTopic = static function (array $topic, string $linkLabel, string $href): array {
-        return [
-            'title' => (string) ($topic['title'] ?? ''),
-            'intro' => (string) ($topic['summary'] ?? ''),
-            'steps' => array_values(array_slice((array) ($topic['steps'] ?? []), 0, 4)),
-            'tips' => array_values(array_slice((array) ($topic['tips'] ?? []), 0, 2)),
-            'link' => [$linkLabel, $href],
-        ];
-    };
-    $profile = $findTopic('profile');
-    $search = $findTopic('search');
-    $apply = $findTopic('application');
-    $follow = $findTopic('follow');
-    $dossier = $findTopic('dossier');
-    $license = $findTopic('license');
-
-    return [
-        'dashboard' => [
-            'title' => tr('nav.dashboard', $locale),
-            'intro' => tr('dashboard.next_body', $locale),
-            'steps' => [tr('help.quick.track.body', $locale), tr('help.quick.search.body', $locale), tr('help.quick.apply.body', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'link' => [tr('context.all_topics', $locale), '/?page=help'],
-        ],
-        'profile' => $fromTopic($profile, tr('nav.profile', $locale), '/?page=profile'),
-        'documents' => [
-            'title' => tr('nav.documents', $locale),
-            'intro' => tr('help.flow.profile.text', $locale),
-            'steps' => [tr('help.flow.profile.text', $locale), tr('help.quick.apply.body', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('profile.app_language_hint', $locale)],
-            'link' => [tr('nav.documents', $locale), '/?page=documents'],
-        ],
-        'job_platform_search' => $fromTopic($search, tr('help.quick.search.link', $locale), '/?page=job_platform_search'),
-        'jobs' => [
-            'title' => tr('nav.jobs', $locale),
-            'intro' => tr('help.flow.import.text', $locale),
-            'steps' => [tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale), tr('help.flow.apply.text', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'link' => [tr('nav.jobs', $locale), '/?page=jobs'],
-        ],
-        'applications' => $fromTopic($apply, tr('help.quick.apply.link', $locale), '/?page=applications'),
-        'companies' => [
-            'title' => tr('nav.companies', $locale),
-            'intro' => tr('help.flow.import.text', $locale),
-            'steps' => [tr('help.flow.import.text', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('help.quick.track.body', $locale)],
-            'link' => [tr('nav.companies', $locale), '/?page=companies'],
-        ],
-        'contacts' => [
-            'title' => tr('nav.contacts', $locale),
-            'intro' => tr('help.flow.follow.text', $locale),
-            'steps' => [tr('help.quick.track.body', $locale), tr('help.flow.follow.text', $locale), tr('help.flow.dossier.text', $locale)],
-            'tips' => [tr('dashboard.next_body', $locale)],
-            'link' => [tr('nav.contacts', $locale), '/?page=contacts'],
-        ],
-        'pendents' => $fromTopic($follow, tr('nav.calendar', $locale), '/?page=calendar'),
-        'calendar' => $fromTopic($follow, tr('nav.calendar', $locale), '/?page=calendar&view=agenda'),
-        'reports' => $fromTopic($dossier, tr('nav.reports', $locale), '/?page=reports'),
-        'admin_users' => [
-            'title' => tr('nav.admin_users', $locale),
-            'intro' => tr('support.granted_hint', $locale),
-            'steps' => [tr('support.granted', $locale), tr('support.admin', $locale), tr('support.stop', $locale)],
-            'tips' => [tr('help.license_body2', $locale)],
-            'link' => [tr('nav.admin_users', $locale), '/?page=admin_users'],
-        ],
-        'admin_job_platforms' => [
-            'title' => tr('nav.admin_job_platforms', $locale),
-            'intro' => tr('help.flow.search.text', $locale),
-            'steps' => [tr('help.flow.search.text', $locale), tr('help.quick.search.body', $locale), tr('help.flow.import.text', $locale)],
-            'tips' => [tr('help.search_status_initial', $locale)],
-            'link' => [tr('nav.admin_job_platforms', $locale), '/?page=admin_job_platforms'],
-        ],
-        'privacy' => $fromTopic($license, tr('nav.privacy', $locale), '/?page=privacy'),
-        'sharing' => $fromTopic($license, tr('nav.sharing', $locale), '/?page=sharing'),
-    ];
+    }
+    return $contexts;
 }
 
 function redirect(string $path = '/'): never
@@ -6600,6 +8491,7 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
     return (string) ob_get_clean();
 }
 
+try { seedReviewedHelp($db); } catch (Throwable $error) { error_log('Help content update failed: '.$error->getMessage()); }
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 if ($page === 'pendents') { redirect('/?page=calendar&view=agenda'); }
 $action = (string) ($_POST['action'] ?? '');
@@ -9049,7 +10941,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.18.0';
+$codeVersion = '1.18.1';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -10909,49 +12801,38 @@ startUiTranslationBuffer($appLocale);
         $helpTopics = localizedHelpTopics($appLocale);
         $helpCategories = array_values(array_unique(array_map(static fn(array $topic): string => $topic['category'], $helpTopics)));
         ?>
-        <div class="page-head"><div><p class="eyebrow"><?= e(tr('support.title')) ?></p><h1><?= e(tr('nav.help')) ?></h1></div><span><?= e(tr('help.topic_count', null, ['count' => count($helpTopics)])) ?></span></div>
-        <section class="panel help-hero">
-            <div>
-                <p class="eyebrow"><?= e(tr('help.hero_eyebrow')) ?></p>
-                <h2><?= e(tr('help.hero_title')) ?></h2>
-                <p><?= e(tr('help.hero_intro')) ?></p>
-            </div>
+        <div class="page-head help-page-head"><div><h1><?= e(tr('help.hero_title')) ?></h1></div><span><?= e(tr('help.topic_count', null, ['count' => count($helpTopics)])) ?></span></div>
+        <style>
+        .help-page-head.context-help-host { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; position: relative; padding: 0 64px 0 0; }
+        .help-page-head .context-help-bar { position: absolute; top: 0; right: 0; margin: 0; }
+        .help-grid > .help-topic { margin: 0; }
+        .help-workspace { padding: 16px 0; border-top: 1px solid #d5dde5; margin-bottom: 20px; }
+        .help-workspace .help-search-box { max-width: none; padding: 0; border: 0; background: transparent; }
+        .help-workspace .help-search-row { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+        .help-workspace label { flex: 1 1 280px; max-width: 640px; min-width: 0; }
+        .help-workspace .help-search-actions { margin: 0 0 2px; }
+        .help-workspace .help-filter-chips { margin-top: 12px; }
+        .help-workspace .help-search-status { margin: 10px 0 0; }
+        .help-workspace input { width: 100%; }
+        </style>
+        <section class="help-workspace">
             <div class="help-search-box">
-                <label><?= e(tr('help.search_label')) ?><input id="help-search" placeholder="<?= e(tr('help.search_placeholder')) ?>"></label>
-                <div class="help-search-actions">
-                    <button type="button" data-help-search-submit><?= e(tr('help.search_button')) ?></button>
-                    <button type="button" data-help-reset><?= e(tr('help.reset_button')) ?></button>
+                <div class="help-search-row">
+                    <label><?= e(tr('help.search_label')) ?><input id="help-search" placeholder="<?= e(tr('help.search_placeholder')) ?>"></label>
+                    <div class="help-search-actions">
+                        <button type="button" data-help-search-submit><?= e(tr('help.search_button')) ?></button>
+                        <button type="button" data-help-reset><?= e(tr('help.reset_button')) ?></button>
+                    </div>
                 </div>
-                <p class="help-search-status" id="help-search-status" aria-live="polite"><?= e(tr('help.search_status_initial')) ?></p>
                 <div class="help-filter-chips" aria-label="<?= e(tr('help.categories_label')) ?>">
                     <?php foreach($helpCategories as $category): ?><button type="button" data-help-chip="<?= e($category) ?>"><?= e($category) ?></button><?php endforeach; ?>
                 </div>
+                <p class="help-search-status" id="help-search-status" aria-live="polite"><?= e(tr('help.search_status_initial')) ?></p>
             </div>
-        </section>
-        <section class="help-flow" aria-label="<?= e(tr('help.flow_label')) ?>">
-            <a href="/?page=profile"><span>1</span><strong><?= e(tr('help.flow.profile.title')) ?></strong><small><?= e(tr('help.flow.profile.text')) ?></small></a>
-            <a href="/?page=job_platform_search"><span>2</span><strong><?= e(tr('help.flow.search.title')) ?></strong><small><?= e(tr('help.flow.search.text')) ?></small></a>
-            <a href="/?page=jobs#new"><span>3</span><strong><?= e(tr('help.flow.import.title')) ?></strong><small><?= e(tr('help.flow.import.text')) ?></small></a>
-            <a href="/?page=applications"><span>4</span><strong><?= e(tr('help.flow.apply.title')) ?></strong><small><?= e(tr('help.flow.apply.text')) ?></small></a>
-            <a href="/?page=pendents"><span>5</span><strong><?= e(tr('help.flow.follow.title')) ?></strong><small><?= e(tr('help.flow.follow.text')) ?></small></a>
-            <a href="/?page=reports"><span>6</span><strong><?= e(tr('help.flow.dossier.title')) ?></strong><small><?= e(tr('help.flow.dossier.text')) ?></small></a>
-        </section>
-        <section class="help-quickstart panel">
-            <div class="section-head"><div><p class="eyebrow"><?= e(tr('help.quick_eyebrow')) ?></p><h2><?= e(tr('help.quick_title')) ?></h2></div></div>
-            <div class="three">
-                <article><h3><?= e(tr('help.quick.search.title')) ?></h3><p><?= e(tr('help.quick.search.body')) ?></p><a href="/?page=job_platform_search"><?= e(tr('help.quick.search.link')) ?></a></article>
-                <article><h3><?= e(tr('help.quick.apply.title')) ?></h3><p><?= e(tr('help.quick.apply.body')) ?></p><a href="/?page=applications"><?= e(tr('help.quick.apply.link')) ?></a></article>
-                <article><h3><?= e(tr('help.quick.track.title')) ?></h3><p><?= e(tr('help.quick.track.body')) ?></p><a href="/?page=reminders"><?= e(tr('help.quick.track.link')) ?></a></article>
-            </div>
-        </section>
-        <section class="panel license-panel">
-            <div class="section-head"><div><p class="eyebrow"><?= e(tr('help.license_eyebrow')) ?></p><h2><?= e(tr('help.license_title')) ?></h2></div><span><?= e(tr('help.license_badge')) ?></span></div>
-            <p><?= e(tr('help.license_body1')) ?></p>
-            <p><?= e(tr('help.license_body2')) ?></p>
         </section>
         <section class="help-grid" id="help-topics">
             <?php foreach($helpTopics as $index => $topic): ?>
-                <article class="panel help-topic" data-help-category="<?= e($topic['category']) ?>" data-help-search="<?= e(mb_strtolower($topic['category'].' '.$topic['audience'].' '.$topic['title'].' '.$topic['summary'].' '.$topic['keywords'])) ?>">
+                <article id="help-topic-<?= e($topic['id']) ?>" class="panel help-topic" data-help-category="<?= e($topic['category']) ?>" data-help-search="<?= e(mb_strtolower($topic['category'].' '.$topic['audience'].' '.$topic['title'].' '.$topic['summary'].' '.$topic['keywords'])) ?>">
                     <div class="help-topic-head"><span><?= (int)$index + 1 ?></span><div><small><?= e($topic['category']) ?> · <?= e($topic['audience']) ?></small><h2><?= e($topic['title']) ?></h2></div></div>
                     <p><?= e($topic['summary']) ?></p>
                     <h3><?= e(tr('help.steps_title')) ?></h3>

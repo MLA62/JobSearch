@@ -1,237 +1,85 @@
-# JeMa Jobs - Anforderungen
+# Anforderungen
 
-Stand: 2026-06-19
+Stand: 03.09.2026. Zielbeschreibung fuer 1.18.1 auf Basis des produktiven Standes 1.18.0.
+Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
-Produktversion: `1.15.22`
+## Produkt und Grenzen
 
-JeMa Jobs ist kein Prototyp mehr, sondern eine produktive Webanwendung mit
-realen Benutzern und vertraulichen Bewerbungsdaten.
+Privates CRM fuer Stellensuche, Bewerbungsunterlagen, Firmen, Kontakte, Bewerbungen, Termine und Auswertungen.
+Keine automatische Bewerbung bei fremden Portalen, keine erfundenen Stellenlinks, kein automatischer Job-Room-Versand.
+Alle Benutzerinhalte sind vertraulich. Proprietaere Lizenz, kein implizites Recht zur Weitergabe.
+Der aktuelle Code bleibt Referenz fuer bestehende Datenformate, nicht fuer versehentliche historische UI-Fehler.
 
-## Grundsaetze
+## Identitaet und Rollen
 
-- Alle produktiven Benutzerdaten sind vertraulich.
-- Benutzer sehen nur ihre eigenen CRM-, Bewerbungs-, Dokument- und
-  Kalenderdaten.
-- Administrative Eingriffe muessen minimal, nachvollziehbar und auditiert sein.
-- Jede produktive Aenderung muss lokal geprueft, per FTPS deployed und nach
-  Moeglichkeit nach GitHub synchronisiert werden.
-- Die sichtbare Versionsnummer wird im Footer angezeigt und muss bei
-  produktiven Aenderungen erhoeht werden.
-- Die Anwendung ist proprietaer. Alle Rechte sind vorbehalten.
+- Registrierung, E-Mail-Verifikation, Login, Abmeldung, Passwort-Reset und optionale TOTP-2FA.
+- Passwoerter gehasht; SMTP- und Google-Secrets verschluesselt; keine Geheimnisse in Protokollen.
+- Benutzer besitzen ihre eigenen CRM-Daten. Jede Abfrage und jede Mutation muss die effektive Besitzer-ID pruefen.
+- Admins verwalten Benutzer, Kontostatus und Rollen. Das eigene Konto darf nicht versehentlich entmachtet werden.
+- Support-Impersonation verlangt eine aktive, widerrufbare Benutzerfreigabe und einen sichtbaren Supportkontext.
+- Gastfreigaben gelten nur fuer expliziten Inhalt, definierte Rechte und Laufzeit.
+- Server prueft Berechtigungen und CSRF unabhaengig von versteckten oder deaktivierten Buttons.
 
-## Plattform
+## Profil
 
-- Webanwendung unter `https://jobs.jema.business`.
-- PHP 8.1+.
-- MariaDB 10.6.
-- UTF-8/`utf8mb4` fuer Anwendungstabellen.
-- Responsive Layout fuer Desktop, Tablet und Mobile.
-- Keine clientseitige Abhaengigkeit fuer kritische Sicherheitsentscheidungen.
+Name, E-Mail, Kontaktwege, Adresse, Region/Land, Zeitzone, App-/Dokumentensprache, Links und Sprachkenntnisse.
+Suchwuensche: Taetigkeiten, Orte, Arbeitsmodell, Stellenarten, Pensum minimum/maximum,
+Lohn und Periode, Benefits, Ausschluesse, Reiseanteil und Verfuegbarkeit.
+Pensum 0 bis 100, minimum <= maximum; leere Angaben bleiben unbekannt.
+Vor Ort, Hybrid und Remote sind unterscheidbar. Nur vor Ort darf nicht als Remote bezeichnet werden.
+Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
-## Identitaet und Sicherheit
+## Firmen, Stellen und Kontakte
 
-- Benutzer koennen sich registrieren und anmelden.
-- Passwoerter werden mit `password_hash()` gespeichert.
-- Passwort-Reset ist vorhanden.
-- Wenn SMTP aktiv ist, werden interne E-Mails wie Registrierung und Reset per
-  E-Mail verschickt.
-- Wenn E-Mail-Versand nicht moeglich ist, muss der Ablauf sichtbar und
-  kontrolliert bleiben.
-- TOTP-2FA kann im Profil aktiviert werden.
-- Aktivierte TOTP-2FA muss beim Login zwingend geprueft werden.
-- Admins koennen fuer Benutzer Passwort und 2FA zuruecksetzen.
-- Benutzer koennen ADMIN Support explizit freigeben und jederzeit widerrufen.
-- Waehrend ADMIN Support muessen Benutzer- und Admin-Umgebung farblich
-  markiert sein.
-- Admins sehen in der Benutzerverwaltung, wer aktuell online ist.
+- Firma: Name, Adresse, Website, Telefon, Region/Land, Kommentar, optionale Vermittlerrolle und Beziehungen.
+- Stelle: Firma, vollstaendiger mehrzeiliger Titel, Ort, Pensum von/bis, Arbeitsmodell,
+  Stellenart, Vertragsdauer und Befristung, Lohn, Quell-URL, Beschreibung, Notizen, Fragen und Status.
+- Schnellimport verarbeitet URLs oder Text zu pruefbaren Vorschlaegen. Originalinhalte und Quelle bleiben nachvollziehbar.
+- Dublettenpruefung ist benutzerbezogen; kein Zusammenlegen unterschiedlicher Stellen allein aufgrund gleicher Firma.
+- Ein Kontakt gehoert zur Firma, optional zur Stelle/Bewerbung; Sortierung primaer Nachname.
+- Kontakt-Log: Kanal, Richtung, Zeitpunkt, Status, Betreff, Text, Ergebnis und Anhaenge.
+- Kontaktaktivitaeten sind weder automatisch ein Versand noch automatisch ein Nachfasstermin.
+- Eintragszahlen muessen sagen, was gezaehlt wird. Offen/geplant ist Teil der Kontakt-Log-Gesamtzahl.
+- Firmenname ist als Firmenlink nutzbar; technische Zuordnungswoerter nicht als unklare Information darstellen.
 
-## Benutzerprofil
+## Bewerbung und Kalender
 
-- Profil enthaelt Name, E-Mail, Telefon, Adresse, Region, Zeitzone und Sprache.
-- Profil enthaelt Social Links: LinkedIn, Facebook, X und andere.
-- Profil enthaelt Sprachkenntnisse.
-- Profil enthaelt Suchpraeferenzen:
-  - Rollen/Taetigkeiten
-  - Orte/Regionen
-  - Arbeitsmodell
-  - Stellenarten
-  - Pensum
-  - Lohn
-  - Level/Lage
-  - Benefits
-  - Ausschluesse
-  - Reiseanteil
-  - Verfuegbarkeit
-- Benutzer koennen eigene SMTP-Einstellungen pflegen.
+Der ausfuehrliche Vertrag steht in WORKFLOW.md.
+Status: Entwurf, Bereit, Gesendet, Bewerbungsgespraeche, Zusage, Absage.
+Mehrere Gespraeche erzeugen mehrere Termine, nicht mehrere Statuscodes.
+Ein echter Statuswechsel schreibt einen Zeitstempel; blosses Speichern erzeugt keinen Statuswechsel.
+Entwurf/Bereit behaupten keinen Versand; ein erfolgreicher Versand hat einen echten, stabilen Zeitpunkt.
+Kein zusaetzlicher Kontakt-Log-Eintrag allein zur Verdoppelung des Versandnachweises.
+Keine Kalendertermine aus Entwurf, Bereit, Bewerbung senden, Antwort pendent oder Vorbereitung.
+Nachfassen muss explizit terminiert werden. Versand und Ergebnisse sind kurze transparente Nachweise ohne Alarm.
+Heute ist in Monats-, Arbeitswochen- und Wochenansicht farblich markiert, unabhaengig vom gewaelten Datum.
+Job-Room-Erfassung ist ein eigener boolescher Sachverhalt; Ergebnisfelder erscheinen nur bei aktiver Erfassung.
+Historische unklare Status und Daten nicht blind umdeuten oder loeschen.
 
-## Mehrsprachigkeit
+## Dokumente, Kommunikation und Integrationen
 
-- Stand Version `1.15.22`: UI-Texte muessen im Laufzeitpfad ueber DB-Keys
-  kommen. PHP- und Resource-Dateien duerfen keine Uebersetzungswoerterbuecher
-  mehr enthalten.
-- PDF-Ausgaben muessen dieselbe DB-Uebersetzung fuer Titel, Tabellenkoepfe,
-  Zeilenwerte und Standard-Metatexte verwenden.
-- `tr()` muss UI-Texte primaer aus der Datenbank lesen.
-- Fehlende alte `tr()`-Fallbacks duerfen waehrend der Migration automatisch in
-  der Datenbank registriert werden.
-- Neue sichtbare UI-Texte duerfen nicht mehr ohne DB-Key eingefuehrt werden;
-  `tools/jobsearch_i18n_audit.php` dient als Kontrollwerkzeug.
-- Unterstuetzte App-Sprachen sind Deutsch Schweiz (`de-CH`), Franzoesisch
-  Schweiz (`fr-CH`), English UK (`en-GB`), Brasilianisch-Portugiesisch
-  (`pt-BR`) und Mexikanisch-Spanisch (`es-MX`).
-- Sichtbare UI-Texte werden nicht mehr als statische Textkataloge in PHP,
-  JavaScript, Markdown oder anderen Ressourcen-Dateien gepflegt.
-- Sichtbare UI-Texte werden ueber stabile Keys aus der Datenbank gelesen.
-- Die Datenbanktabellen fuer UI-Texte sind `ui_text_keys` und
-  `ui_text_translations`; `languages` bleibt die fuehrende Sprachtabelle.
-- Der Code darf neue sichtbare UI-Texte nur noch per Key referenzieren.
-- Vor dem Login wird die Sprache anhand der Browsersprache gewaehlt, sofern
-  sie unterstuetzt ist; sonst gilt Deutsch Schweiz.
-- Beim Login gibt es eine kleine Flaggenauswahl.
-- Registrierte Benutzer koennen die App- und Dokumentensprache im Profil
-  anpassen.
-- Sprachwerte werden als Locale-Codes gespeichert, nicht als unklare
-  Kurzkuerzel.
+Versionierte Stammdokumente und bewerbungsspezifische Dateien, jeweils Typ, Titel und tatsaechliche Dokumentsprache.
+Dokumentzuordnungen mit Zweck/Reihenfolge, Einzel-Download, ZIP und zeitlich begrenzter Dateibereitstellung.
+Vor E-Mail-Versand Empfaenger, Text und ALLE Anhaenge pruefen. Fehlende zugeordnete Datei ist ein Fehler.
+Online-Einreichung findet im fremden Portal statt; JeMa protokolliert erst die bestaetigte Einreichung.
+Motivationsschreiben-Prompt enthaelt kopierbaren Empfaengerblock: Firma / Kontakt / Strasse Nr. / PLZ Ort.
+SMTP-Einstellungen benutzerbezogen; IMAP-Ablage gesendeter Nachrichten ist gesondert konfigurierbar.
+ICS-Export, privater ICS-Feed und Google-Abgleich sind verschiedene Funktionen.
+Fremde Kalenderdaten nicht bei der Bereinigung automatisch erzeugter JeMa-Daten veraendern.
 
-## Dokumente
+## Darstellung und Hilfe
 
-- Stammdokumente werden versioniert verwaltet.
-- Bewerbungsdokumente koennen einer Bewerbung zugeordnet werden.
-- Dokumente haben Typ, Titel, Sprache, Beschreibung, Version und Datei.
-- Benutzer koennen Dokumente bearbeiten, ersetzen, herunterladen und loeschen.
-- Bei Bewerbungen koennen mehrere Stammdokumente gesammelt zugeordnet werden.
-- Fuer Onlinebewerbungen muessen Drag-and-drop-Download, temporaerer Ordner und
-  Portalpaket ZIP unterstuetzt werden.
+Eine Tabelle hat eine Zeile pro Datensatz und echte Spalten, keine eingebauten Detailkarten.
+Inhalte duerfen innerhalb der Zellen umbrechen; Name, Titel, Adresse und Befehle nicht abschneiden.
+Keine zwecklosen Auswahlspalten. Fachliche Checkboxen (Admin, Job-Room, Dokumentzuordnung) bleiben.
+Befehle als erkennbare Buttons; Links fuer Datensatznavigation, URL und E-Mail.
+Kompakte Koepfe mit Titel, Anzahl und zugehoerigen Aktionen; keine frei schwebenden Bedienfelder.
+UI in de-CH, fr-CH, en-GB, pt-BR, es-MX; Sprachwechsel darf keine Benutzerdaten uebersetzen.
+Hilfe und Kontext-Popups verwenden dieselben ueberprueften Inhalte in allen fuenf Sprachen.
+Suchen muss auch Informationen in Schritten und Hinweisen finden, nicht nur Ueberschriften.
 
-## Firmen und Kontakte
+## Nachweis der Fertigstellung
 
-- Firmen koennen manuell erfasst oder beim Jobimport automatisch erzeugt werden.
-- Firmen haben Kommentar- und Verknuepfungsinformationen.
-- Kontakte gehoeren zu Firmen und optional zu Jobs oder Bewerbungen.
-- Kontakte muessen nach Nachname sortiert sein.
-- Kontakte haben ein Kontaktlog.
-- Kontaktlog-Eintraege enthalten:
-  - Kanal: E-Mail, extern, vor Ort, Telefon, Video Call, WhatsApp, SMS, andere
-  - Richtung
-  - Datum/Uhrzeit
-  - Wiedervorlage Datum/Uhrzeit
-  - Betreff
-  - Status: geplant, offen, erledigt, abgebrochen
-  - mehrzeilige Mitteilung
-  - Ergebnis/naechster Schritt
-  - Anhaenge ueber Dokumentablage
-- Bewerbungsereignisse muessen im Kontaktlog sichtbar werden, auch wenn kein
-  klassischer Ansprechpartner vorhanden ist.
-
-## Jobs und Jobsuche
-
-- Jobs koennen manuell erfasst, aus einer URL importiert oder aus Text
-  vorgeschlagen werden.
-- Der Schnellimport akzeptiert eine URL, mehrere URLs oder kopierten
-  Ausschreibungstext.
-- Beim Klick auf `Vorschlag erstellen` muss Fortschritt sichtbar sein.
-- Jobdaten enthalten Firma, Titel, Ort, Arbeitsmodell, Stellenart,
-  Vertragsdauer, Lohn, Status, Quell-URL, Beschreibung, Kommentar und Fragen.
-- Eine vom Benutzer erstellte Stellenausschreibung kann dem Job als PDF, JPG,
-  JPEG oder PNG zugeordnet, geoeffnet, ersetzt und geloescht werden.
-- Quell-URL ist klickbar.
-- ID-Werte duerfen in Benutzerlisten und Reports nicht als fachliche Information
-  erscheinen.
-- Der Admin pflegt eine Liste von Jobplattformen.
-- Benutzer koennen auf Basis ihrer Profilpraeferenzen einen
-  ChatGPT-Rechercheprompt erstellen.
-- Der Prompt muss direkte Stellenlinks verlangen:
-  - eine URL pro Zeile
-  - keine Nummerierung
-  - kein Markdown
-  - keine Erklaerungen
-  - keine erfundenen Links
-- Von ChatGPT gelieferte Direktlinks werden im Schnellimport verarbeitet.
-
-## Bewerbungen
-
-- Aus einem Job kann eine Bewerbung vorbereitet werden.
-- Bewerbungen unterstuetzen Onlinebewerbung, E-Mail-Bewerbung und andere Kanaele.
-- Onlinebewerbungen benoetigen Webformular-URL, Portalhinweise,
-  Referenznummer, Notizen und Kopieren-Buttons.
-- Viele Bewerbungen erfolgen direkt in Formularen der Firmen; der Workflow muss
-  darauf optimiert sein.
-- Nach Einreichung einer Bewerbung muss automatisch entstehen:
-  - Kontaktlog-Aktivitaet
-  - Kalender-/Agenda-Sichtbarkeit
-  - Pendent mit Text `Antwort auf Bewerbung pendent`
-  - Zeitpunkt der Einreichung als Bezugszeitpunkt
-- Bewerbungspakete muessen Dokumente fuer externen Upload bereitstellen.
-- Bewerbungsdossier muss alle relevanten Informationen zusammenfassen:
-  Firma, Kontakte, Job, Bewerbung, Dokumente, Fragen und Aktivitaeten.
-
-## Pendent und Kalender
-
-- `Pendent` ist die zentrale Aufgabenliste.
-- Bewerbungsstatus, Pendenzen und Termine sind fachlich getrennte Datentypen:
-  - Ein Bewerbungsstatus ist ein unveraenderbarer Prozessmeilenstein.
-  - Der naechste Schritt ist genau ein aktives Pendent pro Bewerbung.
-  - Ein Termin ist ein eigenstaendiges Ereignis, zum Beispiel Nachfassen,
-    Vorstellungsgespraech, Assessment oder Besprechung.
-- Jeder echte Statuswechsel wird mit Zeitpunkt im Statusverlauf und im Kalender
-  als abgeschlossener Meilenstein sichtbar.
-- Ersetzt ein Benutzer den naechsten Schritt, wird der bisherige Schritt
-  abgeschlossen und der neue Schritt als aktives Pendent materialisiert.
-- Terminale Stati (`Angenommen`, `Abgelehnt`, `Zurueckgezogen`, `Geschlossen`)
-  schliessen das aktive Pendent der Bewerbung.
-- Das Job-Room-Ergebnis folgt bei eindeutigen Stati automatisch:
-  Vorstellungsgespraech/Assessment markiert das Gespraech, `Angenommen` setzt
-  `Anstellung`, `Abgelehnt` setzt `Absage`.
-- Daten koennen gefiltert und sortiert werden.
-- Kalender bietet:
-  - Agenda als Tabelle
-  - Tagesplan mit Uhrzeitachse
-  - Arbeitswochen-/Wochenplan als Matrix
-  - Monatsplan als Monatsmatrix
-  - Kalenderwochenanzeige
-  - Tageseintraege ohne Uhrzeit oben
-  - ICS-Export je Ansicht
-- Ereignisse muessen anklickbar sein.
-- Agenda und Kalender enthalten Meilensteine, aktive Pendenzen und Termine;
-  die Pendent-Zentrale zeigt ausschliesslich aktive Pendenzen.
-- Bestehende Daten werden idempotent migriert. Alte automatisch erzeugte
-  Dubletten werden storniert; manuell erfasste Termine bleiben erhalten.
-
-## Reports und Tabellen
-
-- Wo Daten als Karten erscheinen, muss eine Tabellenansicht moeglich sein, wenn
-  es fachlich sinnvoll ist.
-- Tabellen koennen sortiert und gefiltert werden.
-- Sort/Filter-Zustand bleibt session- und darstellungsuebergreifend erhalten.
-- Dropdown-Felder nutzen Filter mit Mehrfachauswahl.
-- Tabellen koennen als PDF exportiert werden.
-- Reports koennen gespeichert, angezeigt, bearbeitet, geloescht und exportiert
-  werden.
-- Reports muessen grafisch sauber sein: gebaenderte Zeilen, Rahmen und
-  Spaltenlinien.
-
-## Hilfe
-
-- Zentrale Hilfe mit Suche, Kategorien und Prozessuebersicht.
-- Kontextuelle Hilfe auf sinnvollen Seiten ueber leuchtende Gluebirne.
-- Hilfetext erscheint modal und kann per Button, Hintergrundklick oder Escape
-  geschlossen werden.
-- Hilfe enthaelt eine Lizenzsektion.
-- Hilfe muss produktiv formuliert sein und darf nicht auf einen Prototyp
-  verweisen.
-
-## Admin
-
-- Admins verwalten Benutzer, Rollen, Status, Passwort, 2FA und Support.
-- Admins verwalten Jobplattformen.
-- Admins duerfen sich nur mit expliziter Benutzerfreigabe in eine Umgebung
-  einklinken.
-- Admins sehen, welche Umgebung sie gerade benutzen.
-- Adminhandlungen muessen auditiert werden.
-
-## Nicht-Ziele im aktuellen Stand
-
-- Vollautomatisches Scraping von Jobportalen ohne erlaubte Schnittstelle.
-- Speicherung von Klartext-Passwoertern.
-- Open-Source-Weitergabe.
-- Direkter Browserzugriff auf Dokumentdateien ohne Autorisierungspruefung.
+Lokale Tests und dokumentierter Quellstand; kontrolliertes Deployment; Server-Hash;
+angemeldete Abnahme der betroffenen Masken in allen erforderlichen Sprach-/Ansichtskombinationen.
+Offene Datenmigration und nicht ausgefuehrte Tests ausdruecklich als offen benennen.

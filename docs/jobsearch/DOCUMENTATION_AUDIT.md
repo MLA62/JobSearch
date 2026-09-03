@@ -1,0 +1,64 @@
+# Dokumentationsaudit
+
+Stand: 2026-09-03. Ausgangspunkt: verifizierter Releasecode 541e02d / 1.18.0.
+Zielstand: 1.18.1. Deployment und angemeldete Liveabnahme dieses Zielstands sind ausstehend.
+
+## Umfang
+
+Alle Markdown-Dateien dieses Release-Repositories wurden eingeordnet und gegen den aktuellen Code-/Produktvertrag geprueft. Fremde Repositories und persoenliche Notizen ausserhalb von JeMa Jobs sind nicht Teil des Auftrags.
+
+| Datei(en) | Ergebnis dieser Runde |
+| --- | --- |
+| README.md | Aktueller Einstieg, Versions-/Produktionsgrenze, Aufbaupfade und Pruefbefehle |
+| AGENTS.md | Dokumentationspflege, Generatoren und Freigabegrenzen ergaenzt |
+| LICENSE.md | Gelesen, unveraendert; keine Rechte oder Lizenzbedingungen neu formuliert |
+| REQUIREMENTS.md | Fachliche Anforderungen, Rollen, Masken, Workflow und Layout aktualisiert |
+| PRODUCT_DECISIONS.md | Verbindliche aktuelle Entscheidungen und verworfene Altlogik |
+| WORKFLOW.md | Status, Datum, Kalender, Kontakte, Versand und Migration konsolidiert |
+| DEPLOYMENT.md | Veraltete FTPS-/unsichere TLS-Anweisungen ersetzt; externer cPanel-Freigabeweg und Datenwirkungen |
+| DB_I18N_CONCEPT.md | Tatsaechliche DB-Laufzeit/Seeds, Sprachewechsel und gemeinsame Hilfequelle |
+| PROGRAMMDOKUMENTATION.md | Neu: Architektur, Module, Relationen, Validierungen, Integrationen, bekannte Grenzen |
+| REBUILD.md | Neu: Neuimplementierung, leere Umgebung, benoetigte Artefakte und Wiederherstellung |
+| DATA_MODEL.md | Neu: Generierte SQL-/Runtime-DDL-Referenz mit ausdruecklicher Legacy-Abgrenzung |
+| INTERFACES.md | Neu: Generiertes Seiten-, Aktions-, Formularfeld- und Funktionsinventar |
+| TESTING.md | Neu: Reproduzierbare Tests, Browsermatrix, Fachabnahme und verbleibende Grenzen |
+| help/de-CH.md, fr-CH.md, en-GB.md, pt-BR.md, es-MX.md | Neu: 24 Themen je Sprache, identisch zur Quelle fuer die Anwendungshilfe |
+| I18N_SUMMARY_1.15.8.md | Als historisch markiert, neue Referenzen; alte Ergebnisbehauptungen nicht wiederverwendet |
+| I18N_TEST_RESULTS_1.15.8.md | Als historisch markiert; keine neue Testabnahme vorgetaeuscht |
+| I18N_USE_CASES_1.15.8.md | Historische 160 Faelle erhalten; aktueller Ersatz in TESTING.md |
+| I18N_LINE_AUDIT_1.15.8.md | Historisches Zeileninventar erhalten; alte Dateipfade nicht als aktueller Code behauptet |
+| RELEASE-1.18.0.md | Historischer Releasebeleg erhalten und eingeordnet; neuere Produktionsbasis siehe DEPLOYMENT.md |
+| releases/1.16.2.md, 1.16.3.md, 1.17.0.md, 1.17.1.md | Historische Belege erhalten, Archivhinweis und aktuelle Referenzen ergaenzt |
+| releases/1.18.1.md | Kandidatenumfang und noch ausstehende Freigabe dokumentiert |
+| DOCUMENTATION_AUDIT.md | Diese nachvollziehbare Inventur |
+
+## Hilfeabdeckung
+
+24 eigenstaendige Themen, 120 Sprachfassungen:
+Ueberblick, Profil, Sicherheit, Dokumente, Stellensuche, Jobs, Firmen, Kontakte,
+Bewerbungen, Onlinebewerbung, E-Mail/Motivationsschreiben, Kalender,
+Kalenderanbindung, Job-Room, Reports, Dossier, Freigaben, Datenschutz,
+Benutzerverwaltung, Plattformverwaltung, Datensatzuebersetzung, Audit,
+Workflowbereinigung und Hilfe/Lizenz.
+
+Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentralen Thema. Technische Export-/Callback-Endpunkte besitzen keine eigene kuenstliche Maske. Sicherheitsthemen sind zentral verfuegbar; die Glühbirne wird im aktuellen Layout nur bei angemeldeten Benutzern gezeigt.
+
+Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
+
+## Pruefstand
+
+- 3248 Inhalts-/Locale-/Kontextpruefungen bestanden.
+- 1049 Hilfeseed-Pruefungen mit simulierter DB bestanden, einschliesslich Teilfehler-Rollback und Wiederholung.
+- Alle 16 PHP-Testdateien im aktuellen Kandidaten bestanden.
+- Browser: 15 Hilfeansichten (5 Sprachen x 3 Breiten) und 135 Kontextdialoge (27 Seiten x 5 Sprachen) bestanden. Suche, Leerzustand, Reset, Kategorien, vollstaendige Texte/Links, Fokus und Escape geprueft.
+- Desktop-, Mobil- und Dialogbilder tatsaechlich angesehen. Ueberfluessige Einfuehrungsbloecke entfernt, Suchfeld-/Themen-IDs getrennt und Themenverweise eindeutig beschriftet.
+- 29 Markdown-Dateien und 60 lokale Dokumentationslinks geprueft.
+- Hilfe-/Referenzgeneratoren mit --check und git diff --check bestanden; PHP-Syntax geprueft.
+- Zusaetzliche Browserregressionen: 40 Workflowansichten, 3 Firmenadressansichten und 15 Aktionsbutton-Faelle bestanden.
+- Keine echten Bewerbungen, Benutzerinformationen, Dateien oder Kalenderdaten durch Tests geaendert; keine E-Mail versendet.
+
+## Offene Nachweise
+
+Produktionsfreigabe, serverseitiger Kandidatenhash und angemeldete Liveabnahme in allen Sprachen stehen aus. Die Bestandsdatenmigration v6 ist nicht Teil dieser Runde und weiterhin nicht als ausgefuehrt belegt.
+
+Die Dokumentation benennt verbleibende technische Schulden: historische SQL-Views, nicht vollstaendig versionierter allgemeiner UI-Katalog, einzelne Legacy-Beschriftungen ausserhalb der Hilfe und fehlender realer Neuinstallations-/Restore-Test. Sie verschweigt diese Luecken nicht und behauptet keine perfekte 1:1-Reproduktion allein aus Markdown.
