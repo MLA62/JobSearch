@@ -5719,6 +5719,9 @@ function regionChoices(): array
 {
     return [
         'CH' => [
+            'Bern Stadt',
+            'Region Biel',
+            'Region Solothurn',
             'Seeland',
             'Mittelland',
             'Zürcher Oberland',
