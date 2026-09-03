@@ -6,7 +6,8 @@ body { background: #f5f6f7; }
 h1, .page-head h1 { font-size: 2rem; line-height: 1.18; }
 h2 { font-size: 1.3rem; line-height: 1.3; }
 h3 { font-size: 1.05rem; line-height: 1.35; }
-.page-head, .section-head { gap: 16px; flex-wrap: wrap; }
+.page-head, .section-head { gap: 16px; flex-wrap: wrap; align-items: center; }
+.page-head { margin-bottom: 8px; }
 .panel { border: 0; border-top: 1px solid #d4dbe2; border-radius: 0; box-shadow: none; padding: 20px; }
 .panel + .panel { margin-top: 16px; }
 .panel .panel { padding: 16px 0; }
@@ -57,6 +58,16 @@ textarea { line-height: 1.5; }
 .layout-table .layout-actions button, .layout-table .layout-actions a { padding: 4px 6px; white-space: nowrap; text-align: left; line-height: 1.4; }
 .layout-table td.link-list > a { display: inline; margin-right: 10px; }
 .layout-table td .badge { display: inline-flex; width: auto; min-width: 0; padding: 2px 6px; font-size: .75rem; line-height: 1.3; border-radius: 3px; }
+.admin-users-head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; margin-bottom: 8px; }
+.admin-users-head h1 { margin: 0; }
+.admin-users-head > span { white-space: nowrap; }
+.admin-users-head > .button { justify-self: end; white-space: nowrap; }
+.admin-users-table .admin-user-actions { white-space: nowrap; overflow: visible; text-overflow: clip; }
+.admin-users-table .admin-user-actions > a,
+.admin-users-table .admin-user-actions > form,
+.admin-users-table .admin-user-actions > button { display: inline-flex; margin: 0 6px 0 0; vertical-align: middle; }
+.admin-users-table .admin-user-actions .meta-line { display: inline; margin-left: 2px; }
+.admin-users-table .admin-impersonate-button[disabled] { opacity: .55; cursor: not-allowed; }
 .sf-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .sf-head > span { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
 .sf-menu { flex: none; width: 26px; }
@@ -98,6 +109,9 @@ textarea { line-height: 1.5; }
     .import-form, .two, .three, .job-readable-details { grid-template-columns: minmax(0, 1fr); }
     .sf-form { left: 12px; right: auto; }
     .page-head.context-help-host { padding-right: 64px; }
+    .admin-users-table .admin-user-actions { white-space: normal; }
+    .admin-users-head { grid-template-columns: minmax(0, 1fr) auto; }
+    .admin-users-head > .button { grid-column: 1 / -1; justify-self: start; }
 }
 @media print {
     .workspace-editor:not([open]), .layout-table thead .sf-menu, .bulk-select-column { display: none; }
