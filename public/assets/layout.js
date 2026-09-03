@@ -50,7 +50,6 @@
             });
         }
         table.classList.add('layout-table');
-        let minimum = 0;
         headers.forEach((header, index) => {
             const field = header.querySelector('[name="sf_field"]')?.value || '';
             const label = header.querySelector('.sf-head > span')?.textContent.trim() || header.textContent.trim();
@@ -59,8 +58,7 @@
             const primary = /^(title|name|job|job_title)$/.test(field);
             const actions = !selection && !field && index === headers.length - 1 &&
                 !!table.tBodies[0]?.querySelector('td:last-child button, td:last-child a');
-            const width = selection ? 44 : date ? 144 : primary ? 264 : actions ? 172 : field === 'match' ? 88 : 176;
-            minimum += width;
+            const width = selection ? 36 : date ? 144 : primary ? 240 : actions ? 160 : field === 'match' ? 72 : 120;
             header.style.setProperty('--column-min', width + 'px');
             if (date) header.classList.add('layout-date');
             if (actions) header.classList.add('layout-actions');
@@ -71,12 +69,9 @@
                 if (date) cell.classList.add('layout-date');
                 if (primary) cell.classList.add('layout-primary');
                 if (actions) cell.classList.add('layout-actions');
+                if (primary) cell.title = cell.textContent.trim();
             });
         });
-        const wrapper = table.closest('.table-wrap');
-        const resize = () => table.classList.toggle('is-records', wrapper.clientWidth < minimum);
-        new ResizeObserver(resize).observe(wrapper);
-        resize();
     });
 
     // Keep filter popovers inside the visible area, including phone landscape.

@@ -30,55 +30,37 @@ iframe { display: block; width: 100%; max-width: 100%; border: 1px solid #d4dbe2
 input, select, textarea { min-width: 0; font-size: 1rem; }
 textarea { line-height: 1.5; }
 .import-form { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
-.table-wrap { max-width: 100%; overflow: visible; padding: 16px 0; }
+.table-wrap, .panel.table-wrap, .table-wrap:has(.sf-menu[open]) { max-width: 100%; overflow-x: auto; padding: 8px 0; }
 .table-wrap table { table-layout: auto; }
-.table-wrap:not(:has(.layout-table)) { overflow-x: auto; }
-.layout-table { table-layout: auto; border: 1px solid #c6d0da; overflow: visible; }
-.layout-table th, .layout-table td { padding: 12px; word-break: normal; overflow-wrap: break-word; }
-.layout-table th { min-width: var(--column-min, 130px); text-transform: none; font-size: .85rem; vertical-align: middle; }
-.layout-table td, .table-wrap .layout-table td:not(:first-child) { font-size: .95rem; line-height: 1.45; }
-.layout-table td > small { display: block; margin-top: 5px; line-height: 1.4; }
-.layout-table td > strong + small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.layout-table .bulk-select-column { width: 44px; min-width: 44px; }
-.layout-table td.layout-date { white-space: nowrap; }
-.layout-table .layout-primary { min-width: 230px; }
-.layout-table .layout-actions { min-width: 156px; }
+.layout-table { width: 100%; border: 1px solid #c6d0da; border-radius: 0; border-spacing: 0; }
+.table-wrap .layout-table th, .table-wrap .layout-table td { display: table-cell; padding: 6px 10px; vertical-align: middle; white-space: nowrap; word-break: normal; overflow-wrap: normal; }
+.layout-table th { min-width: var(--column-min, 100px); text-transform: none; font-size: .85rem; }
+.table-wrap .layout-table td, .table-wrap .layout-table td:not(:first-child) { font-size: .875rem; line-height: 1.4; }
+.layout-table td > small, .layout-table td > strong + small { display: inline; margin: 0 0 0 8px; font-size: inherit; line-height: inherit; }
+.layout-table td > small:only-child { margin-left: 0; }
+.layout-table .layout-primary > small { display: none; }
+.layout-table .layout-primary > strong { display: inline-block; max-width: 360px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.layout-table .bulk-select-column { width: 36px; min-width: 36px; padding: 6px !important; }
 .layout-table .layout-actions > a, .layout-table .layout-actions > form,
-.layout-table .layout-actions > button { display: block; margin: 0 0 6px; }
-.layout-table .layout-actions button, .layout-table .layout-actions a { padding: 6px; white-space: normal; text-align: left; line-height: 1.4; }
-.layout-table td.link-list { display: table-cell; }
-.sf-head { display: grid; grid-template-columns: minmax(0, 1fr) 36px; align-items: center; gap: 10px; }
-.sf-head > span { overflow-wrap: normal; word-break: normal; hyphens: auto; }
-.sf-menu { flex: none; width: 36px; }
-.sf-button { display: grid; place-items: center; width: 36px; min-width: 36px; height: 36px; padding: 0; margin: 0; line-height: 1; }
-.sf-form { width: min(320px, calc(100vw - 24px)); max-height: calc(var(--viewport-height) - 32px); overflow: auto; z-index: 50; }
-.layout-table.is-records, .layout-table.is-records thead,
-.layout-table.is-records tbody { display: block; width: 100%; border: 0; }
-.layout-table.is-records thead > tr { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; }
-.layout-table.is-records th { display: block; min-width: 0; flex: 1 1 165px; border: 1px solid #c6d0da; border-radius: 5px; padding: 9px 12px; }
-.layout-table.is-records th.bulk-select-column { flex: 0 0 44px; align-content: center; padding: 10px !important; }
-.layout-table.is-records th:empty { display: none; }
-.layout-table.is-records th.layout-date { flex-basis: 210px; }
-.layout-table.is-records th.layout-actions { display: none; }
-.layout-table.is-records tbody > tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid #c6d0da; border-radius: 6px; margin: 0 0 12px; overflow: hidden; }
-.layout-table.is-records td, .layout-table.is-records td.link-list { display: block; width: auto; min-width: 0; border: 0; padding: 12px 16px; }
-.layout-table.is-records td::before { content: attr(data-label); display: block; margin-bottom: 5px; color: var(--muted); font-size: .8rem; font-weight: 600; white-space: normal; }
-.layout-table.is-records td.bulk-select-column { grid-column: 1 / -1; padding-bottom: 0; text-align: left; }
-.layout-table.is-records td.bulk-select-column::before { display: none; }
-.layout-table.is-records .layout-primary, .layout-table.is-records .layout-actions,
-.layout-table.is-records td[colspan] { grid-column: 1 / -1; }
-.layout-table.is-records .layout-primary { font-size: 1.1rem; }
-.layout-table.is-records .layout-actions { display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #d4dbe2; align-items: center; }
-.layout-table.is-records .layout-actions::before { display: none; }
-.layout-table.is-records .layout-actions > * { margin: 0; }
-.layout-table.is-records .layout-actions button, .layout-table.is-records .layout-actions a { padding: 8px 10px; }
-.layout-table.is-records td[colspan]::before { display: none; }
-.layout-table.is-records .empty { padding: 20px; }
+.layout-table .layout-actions > button { display: inline-flex; margin: 0 6px 0 0; vertical-align: middle; }
+.layout-table .layout-actions button, .layout-table .layout-actions a { padding: 4px 6px; white-space: nowrap; text-align: left; line-height: 1.4; }
+.layout-table td.link-list > a { display: inline; margin-right: 10px; }
+.layout-table td .badge { display: inline-flex; width: auto; min-width: 0; padding: 2px 6px; font-size: .75rem; line-height: 1.3; border-radius: 3px; }
+.sf-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sf-head > span { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.sf-menu { flex: none; width: 26px; }
+.sf-button { display: grid; place-items: center; width: 26px; min-width: 26px; height: 26px; padding: 0; margin: 0; line-height: 1; }
+.sf-form { position: fixed; width: min(320px, calc(100vw - 24px)); max-height: calc(var(--viewport-height) - 32px); overflow: auto; z-index: 50; white-space: normal; }
 .dossier-page .empty { padding: 0; margin: 0; text-align: left; }
 .dossier-page .panel:has(> .dossier-list > .empty:only-child) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; }
 .dossier-page .panel:has(> .dossier-list > .empty:only-child) h2 { margin: 0; }
 .dossier-page .dossier-document-text:has(> .empty:only-child) { border: 0; padding: 0; margin-top: 8px; }
 .autosave-toolbar { top: calc(var(--topbar-height) + 8px); flex-wrap: wrap; }
+.job-room-compact { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; grid-column: 1 / -1; margin: 0; padding: 0; border: 0; }
+.job-room-compact label { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; margin: 0; min-height: 28px; font-size: .875rem; font-weight: 400; white-space: nowrap; }
+.job-room-compact label > input { flex: none; width: 16px; height: 16px; margin: 0; padding: 0; }
+.job-room-details { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; }
+.job-room-details[hidden] { display: none; }
 .application-workflow { display: block; margin-top: 16px; }
 .application-workflow .history { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: baseline; gap: 6px 16px; padding: 12px 0; margin: 0; border: 0; border-top: 1px solid var(--divider); }
 .application-workflow .history > * { grid-column: 2; margin: 0; }
@@ -103,10 +85,6 @@ textarea { line-height: 1.5; }
     .panel, .workspace-editor > summary { padding: 16px 12px; }
     .table-wrap { padding: 8px 0; }
     .import-form, .two, .three, .job-readable-details { grid-template-columns: minmax(0, 1fr); }
-    .layout-table.is-records tbody > tr { grid-template-columns: minmax(0, 1fr); }
-    .layout-table.is-records td { padding: 10px 12px; }
-    .layout-table.is-records th { flex-basis: 156px; }
-    .layout-table.is-records th.layout-date { flex-basis: 200px; }
     .sf-form { left: 12px; right: auto; }
     .page-head.context-help-host { padding-right: 64px; }
 }
