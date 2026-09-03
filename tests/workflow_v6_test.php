@@ -49,6 +49,7 @@ $sql = applicationWorkflowDateSql();
 check(str_contains($sql,'application_status_history') && str_contains($sql,'calendar_events') && !str_contains($sql,'updated_at'),'Workflow date uses business events, not autosave timestamps');
 check(!str_contains($source,'bulk-select-control') && !str_contains($source,"sfHeader('applications','next_action'"),'No automatic checkbox column or misleading next-calendar header');
 check(!str_contains($source,'name="mail_follow_up_at"') && !str_contains($source,'name="follow_up_at"'),'Contact and mail forms cannot create another schedule');
+check(!str_contains($source,"tr('mail_activity.pendent_hint')"),'Mail form does not promise removed follow-up or pending modules');
 check(str_contains($source,'$_POST') && str_contains($source,'event_request_id'),'Calendar form has replay protection');
 $catalog=[];
 preg_match_all("/^        '((?:workflow\\.|applications\\.workflow_date|applications\\.plan_|applications\\.next_task)[^']*)' => \\[\\R(.*?)^        \\],/ms",$source,$matches,PREG_SET_ORDER);

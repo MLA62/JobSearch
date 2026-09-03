@@ -6540,7 +6540,6 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
     $channels = ['email' => tr('contact_log.channel.email'), 'external_email' => tr('contact_log.channel.external_email')];
     $returnTo = (string) ($_SERVER['REQUEST_URI'] ?? '/');
     $occurred = date('Y-m-d\TH:i');
-    $followUp = date('Y-m-d\TH:i');
     ob_start();
     ?>
     <section class="panel mail-activity" id="mail-activity">
@@ -6562,7 +6561,6 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
             <label><?= e(tr('contact_log.subject')) ?><input name="mail_subject" required></label>
             <label><?= e(tr('mail_activity.mail_text')) ?><textarea name="mail_body" rows="7" required></textarea></label>
             <?= filePickerHtml('log_attachment', false) ?>
-            <p class="meta-line"><?= e(tr('mail_activity.pendent_hint')) ?></p>
             <div class="actions"><button class="primary" name="action" value="save_mail_activity"><?= e(tr('mail_activity.save')) ?></button></div>
         </form>
     </section>
