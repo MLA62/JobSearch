@@ -17,6 +17,15 @@
         link.classList.add('button');
     });
 
+    document.querySelectorAll('[data-application-autosave]').forEach(form => {
+        const status = form.elements.status;
+        const sentDate = form.querySelector('[data-sent-date]');
+        if (!status || !sentDate) return;
+        const update = () => { sentDate.hidden = ['draft', 'ready'].includes(status.value); };
+        status.addEventListener('change', update);
+        update();
+    });
+
     // Editors retain their original form elements and listeners.
     document.querySelectorAll('.split').forEach(workspace => {
         const children = [...workspace.children];
@@ -59,13 +68,14 @@
             const field = header.querySelector('[name="sf_field"]')?.value || '';
             const label = header.querySelector('.sf-head > span')?.textContent.trim() || header.textContent.trim();
             const selection = header.classList.contains('bulk-select-column');
-            const date = /(^|_)(date|created_at|updated_at|due_at|starts_at|applied_at)$/.test(field);
+            const date = /(^|_)(date|created_at|updated_at|due_at|starts_at|applied_at|latest_workflow_at)$/.test(field);
             const primary = /^(title|name|job|job_title)$/.test(field);
             const actions = !selection && !field && index === headers.length - 1 &&
                 !!table.tBodies[0]?.querySelector('td:last-child button, td:last-child a');
             const width = selection ? 36 : date ? 144 : primary ? 240 : actions ? 160 : field === 'match' ? 72 : 120;
             header.style.setProperty('--column-min', width + 'px');
             if (date) header.classList.add('layout-date');
+            if (primary) header.classList.add('layout-primary');
             if (actions) header.classList.add('layout-actions');
             [...table.tBodies].flatMap(body => [...body.rows]).forEach(row => {
                 const cell = row.cells[index];
