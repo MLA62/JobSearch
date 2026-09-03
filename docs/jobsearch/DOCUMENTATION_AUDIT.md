@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
 Stand: 2026-09-03. Ausgangspunkt: verifizierter Releasecode 541e02d / 1.18.0.
-Zielstand: 1.18.1. Deployment und angemeldete Liveabnahme dieses Zielstands sind ausstehend.
+Stand 1.18.1 ist deployed. Server-Hash und angemeldete Hilfepruefung in allen fuenf Sprachen sind bestaetigt.
 
 ## Umfang
 
@@ -29,7 +29,7 @@ Alle Markdown-Dateien dieses Release-Repositories wurden eingeordnet und gegen d
 | I18N_LINE_AUDIT_1.15.8.md | Historisches Zeileninventar erhalten; alte Dateipfade nicht als aktueller Code behauptet |
 | RELEASE-1.18.0.md | Historischer Releasebeleg erhalten und eingeordnet; neuere Produktionsbasis siehe DEPLOYMENT.md |
 | releases/1.16.2.md, 1.16.3.md, 1.17.0.md, 1.17.1.md | Historische Belege erhalten, Archivhinweis und aktuelle Referenzen ergaenzt |
-| releases/1.18.1.md | Kandidatenumfang und noch ausstehende Freigabe dokumentiert |
+| releases/1.18.1.md | Releaseumfang, ausgefuehrte Freigabe, Server-Hash und Livepruefung dokumentiert |
 | DOCUMENTATION_AUDIT.md | Diese nachvollziehbare Inventur |
 
 ## Hilfeabdeckung
@@ -55,10 +55,13 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - 29 Markdown-Dateien und 60 lokale Dokumentationslinks geprueft.
 - Hilfe-/Referenzgeneratoren mit --check und git diff --check bestanden; PHP-Syntax geprueft.
 - Zusaetzliche Browserregressionen: 40 Workflowansichten, 3 Firmenadressansichten und 15 Aktionsbutton-Faelle bestanden.
+- Live nach Benutzeranmeldung: 24 Themen, 72 Schritte und 24 Hinweise je Sprache in de-CH/fr-CH/en-GB/pt-BR/es-MX; kein Raw-Key, PHP-Fehlertext oder Seitenueberlauf in der aktuellen Browserbreite.
+- Live: SMTP-Suche, Reset, Kontextdialog der Hilfe und Bewerbungs-Kontexttexte samt Themenanker in allen fuenf Sprachen geprueft. Deutsche Hilfe am Ende wiederhergestellt und Layout visuell angesehen.
+- Produktive Datei entspricht exakt dem getesteten SHA-256; Version 1.18.1 im angemeldeten Footer bestaetigt.
 - Keine echten Bewerbungen, Benutzerinformationen, Dateien oder Kalenderdaten durch Tests geaendert; keine E-Mail versendet.
 
 ## Offene Nachweise
 
-Produktionsfreigabe, serverseitiger Kandidatenhash und angemeldete Liveabnahme in allen Sprachen stehen aus. Die Bestandsdatenmigration v6 ist nicht Teil dieser Runde und weiterhin nicht als ausgefuehrt belegt.
+Die Bestandsdatenmigration v6 ist nicht Teil dieser Runde und weiterhin nicht als ausgefuehrt belegt. Alle 27 Kontextzuordnungen und die drei Testbreiten wurden lokal geprueft; live wurden die zentrale Hilfe und die Kontexte Hilfe/Bewerbungen in fuenf Sprachen geprueft, nicht nochmals jede produktive Maske.
 
 Die Dokumentation benennt verbleibende technische Schulden: historische SQL-Views, nicht vollstaendig versionierter allgemeiner UI-Katalog, einzelne Legacy-Beschriftungen ausserhalb der Hilfe und fehlender realer Neuinstallations-/Restore-Test. Sie verschweigt diese Luecken nicht und behauptet keine perfekte 1:1-Reproduktion allein aus Markdown.

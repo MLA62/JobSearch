@@ -1,7 +1,7 @@
 # Programmdokumentation
 
-Stand: 2026-09-03. Gepruefte Codebasis: 1.18.0, Commit 541e02d.
-Die Hilfe-Erweiterung 1.18.1 ist in diesem Arbeitsstand enthalten, aber noch nicht als produktiv verifiziert.
+Stand: 2026-09-03. Fachlicher Ausgangsstand: 1.18.0, Commit 541e02d.
+Die Hilfe-Erweiterung 1.18.1, Quellstand ab2bf9c, ist deployed; Server-Hash und angemeldete Hilfepruefung in fuenf Sprachen sind bestaetigt.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 

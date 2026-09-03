@@ -1,7 +1,9 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-03. Zuletzt verifizierte Produktion: 1.18.0 / 541e02d.
-Kandidat dieser Dokumentationsrunde: 1.18.1, noch nicht produktiv bestaetigt.
+Stand: 2026-09-03. Verifizierte Produktionsdatei: 1.18.1 / ab2bf9c.
+Ausgefuehrt am 2026-09-03T16:52:58+00:00, 856169 Bytes, Modus 0644.
+SHA-256: `10170be48f05da1aab920fb685711c9e6a334167122846d3f8d2b7bc7ea65984`.
+Zentrale Hilfe und Such-/Kontextfunktion angemeldet in allen fuenf Sprachen geprueft.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen
@@ -37,7 +39,7 @@ Diese Werte sind historische Vergleichswerte; vor einer neuen Proposal-Erstellun
 8. Oeffentlichen HTTP-Check sowie angemeldete betroffene Seiten pruefen. Fuenf Sprachen, Desktop und schmales Fenster fuer Hilfereleases.
 9. Releaseprotokoll mit Commit, Ziel, Hash, Zeiten, Pruefumfang und offenen Punkten aktualisieren.
 
-Nicht freigegeben, abgelaufen oder nicht angemeldet bedeutet **ausstehend**, nicht erfolgreich deployt.
+Ohne gueltige externe Freigabe bleibt das Deployment ausstehend. Ohne angemeldete Sitzung bleibt die authentisierte Livepruefung ausstehend, auch wenn der Dateiaustausch erfolgreich war.
 
 ## Datenwirkung von 1.18.1
 

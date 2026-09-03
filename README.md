@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 03.09.2026. Produktiv bestaetigt: 1.18.0, Quellstand 541e02d.
-Dokumentation und Hilfe dieser Aenderung: Zielrelease 1.18.1; noch nicht als deployed zu verstehen.
+Stand: 03.09.2026. Produktiv: 1.18.1, Quellstand ab2bf9c.
+Server-Hash verifiziert; zentrale Hilfe, Suche und Kontexttexte angemeldet in allen fuenf Sprachen geprueft.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
@@ -18,7 +18,7 @@ Es gibt keinen separaten Aufgaben-/Pendenzenbereich.
 6. [Schnittstellen](docs/jobsearch/INTERFACES.md): Seiten, POST-Aktionen, Formulare und Funktionen.
 7. [Sprachkonzept](docs/jobsearch/DB_I18N_CONCEPT.md): Laufzeitauflosung und Hilfekatalog.
 8. [Deployment](docs/jobsearch/DEPLOYMENT.md), [Tests](docs/jobsearch/TESTING.md) und [Audit](docs/jobsearch/DOCUMENTATION_AUDIT.md).
-9. [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md), [Release 1.18.0](docs/jobsearch/RELEASE-1.18.0.md).
+9. [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md), [Release 1.18.1](docs/jobsearch/releases/1.18.1.md).
 
 [Deutsche Hilfe](docs/jobsearch/help/de-CH.md), [fr-CH](docs/jobsearch/help/fr-CH.md),
 [en-GB](docs/jobsearch/help/en-GB.md), [pt-BR](docs/jobsearch/help/pt-BR.md),

@@ -1,6 +1,6 @@
 # Sprachen, UI-Texte und Hilfe
 
-Stand: 2026-09-03, Hilfe-Kandidat 1.18.1.
+Stand: 2026-09-03, produktive Hilfe 1.18.1.
 Dieses Dokument ersetzt das fruehere reine Zielbild durch die tatsaechliche Architektur.
 
 ## Sprachen und Daten
