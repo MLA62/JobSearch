@@ -79,11 +79,24 @@ textarea { line-height: 1.5; }
 .dossier-page .panel:has(> .dossier-list > .empty:only-child) h2 { margin: 0; }
 .dossier-page .dossier-document-text:has(> .empty:only-child) { border: 0; padding: 0; margin-top: 8px; }
 .autosave-toolbar { top: calc(var(--topbar-height) + 8px); flex-wrap: wrap; }
+.application-workflow { display: block; margin-top: 16px; }
+.application-workflow .history { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: baseline; gap: 6px 16px; padding: 12px 0; margin: 0; border: 0; border-top: 1px solid var(--divider); }
+.application-workflow .history > * { grid-column: 2; margin: 0; }
+.application-workflow .history > h3 { grid-column: 1; grid-row: 1; font-size: 1rem; }
+.application-workflow .history > .section-head { grid-column: 1 / -1; }
+.application-workflow .history article { padding: 6px 10px; margin: 0; border: 0; background: transparent; }
+.application-workflow .history .empty { padding: 0; text-align: left; }
+.application-workflow .workflow-stages { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0; }
+.application-workflow .workflow-stages li { padding: 2px 0; border: 0; background: none; min-height: 0; }
+.application-workflow .workflow-stages li.is-current { color: var(--accent); font-weight: 700; }
+.application-workflow .workflow-outcomes { display: flex; flex-wrap: wrap; gap: 14px; padding: 0; }
 @media (max-width: 1100px) {
     .split:not(.layout-workspace), .inner-split, .application-workflow { grid-template-columns: minmax(0, 1fr); }
     .menubar { flex-wrap: wrap; }
 }
 @media (max-width: 700px) {
+    .application-workflow .history { grid-template-columns: minmax(0, 1fr); }
+    .application-workflow .history > * { grid-column: 1; }
     .container { width: calc(100% - 24px); margin-top: 16px; }
     .topbar { padding: 8px 12px; }
     h1, .page-head h1 { font-size: 1.65rem; }
