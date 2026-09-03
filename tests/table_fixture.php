@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $source = file_get_contents(getenv('JEMA_TEST_SOURCE') ?: __DIR__.'/../public/index.php');
-foreach (['sfHeader', 'sfHiddenInputs'] as $name) {
+foreach (['sfHeader', 'sfHiddenInputs', 'applicationWorkflowView'] as $name) {
     preg_match('/^function '.$name.'\\(.*?(?=^function )/ms', $source, $match);
     eval(trim($match[0]));
 }
@@ -12,7 +12,7 @@ function tr($key, $locale = null, $replace = []) {
         'nav.jobs'=>'Jobs', 'nav.applications'=>'Bewerbungen', 'nav.contacts'=>'Kontakte', 'nav.calendar'=>'Kalender',
         'common.actions'=>'Aktionen', 'common.edit'=>'Bearbeiten', 'common.delete'=>'Loeschen', 'common.status'=>'Status',
         'applications.sent_at'=>'Gesendet am', 'reports.field.job'=>'Job', 'applications.channel'=>'Kanal',
-        'applications.next_action'=>'Naechster Kalendereintrag', 'applications.job_room_status'=>'Job-Room',
+        'applications.next_action'=>'Naechster Kalendereintrag', 'applications.workflow_date'=>'Workflowdatum', 'applications.job_room_status'=>'Job-Room',
         'applications.job_room_recorded'=>'Im Job-Room erfasst', 'applications.job_room_interview'=>'Vorstellungsgespraech',
         'job_room_helper.result.open'=>'Noch offen', 'job_room_helper.result.hired'=>'Anstellung', 'job_room_helper.result.rejected'=>'Absage',
         'sf.title'=>'Sortieren / Filtern', 'sf.filter'=>'Filter', 'sf.sorting'=>'Sortierung',
@@ -21,7 +21,9 @@ function tr($key, $locale = null, $replace = []) {
 }
 function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function csrfToken() { return 'fixture-only'; }
-function displayDateTime($s, $user) { return $s ? date('d.m.Y, H:i', strtotime($s)) : ''; }
+function displayDateTime($s, $user, $time=true) { return $s ? date($time ? 'd.m.Y, H:i' : 'd.m.Y', strtotime($s)) : ''; }
+function applicationStatusOptions() { global $applicationStatuses; return $applicationStatuses; }
+function applicationNextActionLabel($value) { return $value; }
 function applicationChannelOptions() { return ['email'=>'E-Mail','website'=>'Onlineformular']; }
 $currentUser = []; $edit = null; $applicationEdit = ['id'=>0,'job_room_interview'=>1,'job_room_result'=>'open'];
 $companySf = $companyPreserve = $appSf = $appPreserve = [];
@@ -36,7 +38,7 @@ $apps = [];
 foreach (['Account Manager:in Region Bern 100%', 'Leiter/in Vertrieb / Head of Sales', 'Sales Engineer - Maschinen (m/w) 100%'] as $i=>$title) {
     $apps[] = ['id'=>$i+1,'title'=>$title,'applied_at'=>'2026-09-03 09:16:00','company_id'=>$i+1,
         'company_name'=>$companyRows[$i]['name'],'intermediary_company_name'=>'','status'=>'sent','channel'=>'website',
-        'next_action'=>'follow_up','next_action_at'=>'2026-09-10 14:30:00'];
+        'next_action'=>'follow_up','next_action_at'=>'2026-09-10 14:30:00','latest_workflow_at'=>'2026-09-10 14:30:00'];
 }
 function markup($source, $start, $end) {
     $a = strpos($source, $start);

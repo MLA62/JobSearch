@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $source = file_get_contents($argv[1] ?? __DIR__ . '/../public/index.php');
-foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','syncApplicationWorkflow'] as $name) {
+foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
     if (!preg_match('/^function ' . $name . '\\(.*?(?=^function |\\z)/ms', $source, $match)) { throw new RuntimeException('Missing ' . $name); }
     eval(trim($match[0]));
 }
@@ -62,18 +62,12 @@ check($events===[], 'Status alone never invents an interview date');
 $application['next_action']='follow_up'; $application['next_action_at']='2026-09-10 14:30:00';
 $currentAction=['id'=>9,'title'=>'send_application','starts_at'=>'2026-09-01 09:00:00']; $events=[]; $writes=[];
 syncApplicationWorkflow($db,1,1);
-check(count($events)===1 && $events[0][10]===$application['next_action_at'],'Explicit follow-up retained');
+check($events===[],'Legacy task fields never recreate an appointment');
 check(!array_filter($writes,fn($w)=>str_contains($w[0],"status='completed'")),'Replacing a step does not falsely complete it');
 check(str_contains($source,'workflow_calendar_v5') && str_contains($source,'INSERT IGNORE INTO workflow_data_backups'),'Migration and backup present');
-check(str_contains($source,"sfHeader('applications','applied_at'"),'Application date has its own filter');
+check(str_contains($source,"sfHeader('applications','latest_workflow_at'"),'Workflow date has its own filter');
 check(str_contains($source,'data-job-room-recorded') && str_contains($source,"this.checked?'recorded':'not_recorded'"),'Job-Room registration explicitly editable');
-preg_match('/        if \(\$appliedAt\) \{.*?(?=        \$statusChanged =)/s', $source, $timestampBlock);
-check(!empty($timestampBlock[0]), 'Timestamp normalization available');
-$normalize = static function (?string $input, ?string $previous) use ($timestampBlock): ?string {
-    $appliedAt=$input; $nextActionAt=null; $old=['applied_at'=>$previous]; $status='sent';
-    eval($timestampBlock[0]);
-    return $appliedAt;
-};
+$normalize = static fn(?string $input, ?string $previous): ?string => applicationSentAt(['applied_at'=>$previous], 'sent', $input);
 check($normalize('2026-09-03T09:16','2026-09-03 09:16:42')==='2026-09-03 09:16:42','Autosave preserves timestamp seconds');
 check($normalize(null,'2026-09-03 09:16:42')==='2026-09-03 09:16:42','Delayed form update cannot reset submission time');
 check($normalize('2026-09-04T10:30','2026-09-03 09:16:42')==='2026-09-04 10:30:00','Intentional date correction remains possible');

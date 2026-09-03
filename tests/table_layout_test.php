@@ -17,7 +17,7 @@ check(!str_contains($source, "class=\"menu-trigger\"><?= e(tr('nav.planning'))")
 check(str_contains($source, "'companies.direct_none' => [\n            'de-CH' => 'Direkt'"), 'Technical none label replaced');
 check(str_contains($source, 'class="job-room-details"') && str_contains($source, "querySelector('.job-room-details').hidden=!this.checked"), 'Job-Room detail visibility follows checkbox');
 check(str_contains($css, '.job-room-details[hidden] { display: none; }'), 'Hidden Job-Room details do not occupy space');
-check(str_contains($source, "sfHeader('applications','applied_at'"), 'Date retains independent sort and filter');
+check(str_contains($source, "sfHeader('applications','latest_workflow_at'"), 'Workflow date retains independent sort and filter');
 check(str_contains($source, "sfHeader('jobs','created_at'"), 'Job date retains independent sort and filter');
-check(!str_contains($source, 'migrateWorkflowCalendarV6('), 'Unfinished migration excluded from layout release');
+check(str_contains($source, "if ($" . "action === 'apply_workflow_migration')"), 'Migration requires explicit reviewed action');
 echo "All table layout checks passed.\n";
