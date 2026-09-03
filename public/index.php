@@ -852,6 +852,12 @@ try {
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         CONSTRAINT fk_user_google_calendar_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS google_calendar_event_backups (
+        backup_key CHAR(64) PRIMARY KEY, user_id BIGINT UNSIGNED NOT NULL,
+        calendar_id VARCHAR(255) NOT NULL, google_event_id VARCHAR(255) NOT NULL,
+        payload LONGTEXT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        KEY idx_google_backup_user (user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $db->query("CREATE TABLE IF NOT EXISTS google_calendar_event_links (
         user_id BIGINT UNSIGNED NOT NULL,
         source_type VARCHAR(50) NOT NULL,
@@ -3442,7 +3448,7 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
     $rows = [];
     $statusLabels = applicationStatusOptions();
     $nextActionLabels = applicationNextActionOptions();
-    foreach (dbAll($db, "SELECT ce.id, ce.title, ce.event_type, ce.entry_kind, ce.source_type, ce.source_id, ce.source_key, ce.starts_at, ce.ends_at, ce.status, ce.notes, ce.application_id, ce.contact_id, h.new_status workflow_status, j.title job_title, c.name company_name, ct.first_name, ct.last_name
+    foreach (dbAll($db, "SELECT ce.id, ce.title, ce.event_type, ce.entry_kind, ce.source_type, ce.source_id, ce.source_key, ce.starts_at, ce.ends_at, ce.all_day, ce.location, ce.status, ce.notes, ce.application_id, ce.contact_id, a.applied_at, h.new_status workflow_status, j.title job_title, c.name company_name, ct.first_name, ct.last_name
         FROM calendar_events ce
         LEFT JOIN application_status_history h ON ce.source_type='application_status' AND h.id=ce.source_id
         LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL
@@ -3457,13 +3463,13 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
         $type = calendarEventTypeOptions()[(string)$event['event_type']] ?? (string)$event['event_type'];
         $status = calendarStatusOptions()[(string)$event['status']] ?? (string)$event['status'];
         $href = '/?page=calendar&edit_event=' . (int)$event['id'] . '#calendar-entry-form';
-        if ($sourceType === 'application_status') {
+        if (in_array($sourceType, ['application_status', 'application_submission'], true)) {
             $workflowStatus = (string)($event['workflow_status'] ?: $event['source_key']);
             $status = $statusLabels[$workflowStatus] ?? $workflowStatus;
             $title = tr('common.status') . ': ' . $status;
             $type = tr('applications.status_history');
             $href = '/?page=applications&edit=' . (int)$event['application_id'] . '#application-form';
-        } elseif ($sourceType === 'application_next_action') {
+        } elseif (in_array($sourceType, ['application_next_action', 'application_action_done'], true)) {
             $title = $nextActionLabels[$title] ?? $title;
             $type = tr('nav.pendents');
             $href = '/?page=applications&edit=' . (int)$event['application_id'] . '#application-form';
@@ -3477,9 +3483,17 @@ function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, Da
         $contactName = trim((string)($event['first_name'] ?? '') . ' ' . (string)($event['last_name'] ?? ''));
         $metaParts = array_filter([(string)($event['job_title'] ?? ''), (string)($event['company_name'] ?? ''), $contactName]);
         $rows[] = [
-            'source' => $sourceType !== '' ? $sourceType : 'calendar',
+            'source' => $sourceType !== '' ? 'workflow_event' : 'calendar',
             'id' => (int) $event['id'],
             'entry_kind' => $entryKind,
+            'source_type' => $sourceType,
+            'application_id' => (int)($event['application_id'] ?? 0),
+            'raw_title' => (string)$event['title'],
+            'applied_at' => (string)($event['applied_at'] ?? ''),
+            'all_day' => (int)$event['all_day'],
+            'location' => (string)($event['location'] ?? ''),
+            'company_name' => (string)($event['company_name'] ?? ''),
+            'job_title' => (string)($event['job_title'] ?? ''),
             'title' => $title,
             'type' => $type,
             'status' => $status,
@@ -3624,7 +3638,7 @@ function googleJsonRequest(string $method, string $url, array $headers = [], ?ar
     $data = is_array($data) ? $data : [];
     if ($status >= 400 || $response === false) {
         $message = (string) ($data['error']['message'] ?? $data['error_description'] ?? $data['error'] ?? 'Google API error');
-        throw new RuntimeException($message);
+        throw new RuntimeException($message, $status);
     }
     return $data;
 }
@@ -3683,21 +3697,236 @@ function googleAccessToken(mysqli $db, array $config, int $userId, array $settin
     return $accessToken;
 }
 
+function googleCalendarStableId(int $userId, string $calendarId, string $source, int $id): string
+{
+    return hash('sha256', 'jobs.jema.business:' . $userId . ':' . $calendarId . ':' . $source . ':' . $id);
+}
+
+function backupGoogleCalendarEvent(mysqli $db, int $userId, string $calendarId, array $event): void
+{
+    $json = json_encode($event, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    $key = hash('sha256', $userId . ':' . $calendarId . ':' . $json);
+    $eventId = (string)$event['id'];
+    cascadeExec($db, 'INSERT IGNORE INTO google_calendar_event_backups (backup_key, user_id, calendar_id, google_event_id, payload) VALUES (?, ?, ?, ?, ?)', 'sisss', [$key, $userId, $calendarId, $eventId, $json]);
+}
+
+function googleCalendarOwnsEvent(array $remote, string $source, int $id): bool
+{
+    $private = $remote['extendedProperties']['private'] ?? [];
+    return ($private['jema_source'] ?? '') === $source && (string)($private['jema_id'] ?? '') === (string)$id;
+}
+
+function calendarExportRows(array $events): array
+{
+    $rows = [];
+    $days = [];
+    foreach ($events as $event) {
+        // Waiting is a process state, not an appointment at the moment of submission.
+        if (($event['source_type'] ?? '') === 'application_next_action'
+            && ($event['raw_title'] ?? '') === 'await_response'
+            && !empty($event['applied_at']) && $event['starts_at'] === $event['applied_at']) {
+            continue;
+        }
+        $applicationId = (int)($event['application_id'] ?? 0);
+        if (($event['entry_kind'] ?? '') !== 'milestone' || !$applicationId) {
+            $rows[] = $event;
+            continue;
+        }
+        $date = substr($event['starts_at'], 0, 10);
+        $key = $applicationId . ':' . $date;
+        if (!isset($days[$key])) {
+            $days[$key] = $event;
+            $days[$key]['source'] = 'application_day';
+            $days[$key]['all_day'] = 1;
+            $days[$key]['starts_at'] = $date . ' 00:00:00';
+            $days[$key]['ends_at'] = $date . ' 00:00:00';
+            $days[$key]['notes'] = '';
+            $days[$key]['milestones'] = [];
+        }
+        $days[$key]['id'] = min((int)$days[$key]['id'], (int)$event['id']);
+        $days[$key]['title'] = $event['title'];
+        $line = substr($event['starts_at'], 11, 5) . ' ' . $event['title'];
+        if (!isset($days[$key]['milestones'][$line])) {
+            $days[$key]['notes'] .= ($days[$key]['notes'] === '' ? '' : "\n") . trim($line . "\n" . ($event['notes'] ?? ''));
+            $days[$key]['milestones'][$line] = true;
+        }
+    }
+    return array_merge($rows, array_values($days));
+}
+
+function calendarRemoteTimes(array $event, array $user): array
+{
+    $timezone = new DateTimeZone((string)($user['timezone'] ?? 'Europe/Zurich'));
+    $start = new DateTimeImmutable((string)$event['starts_at'], $timezone);
+    $end = !empty($event['ends_at']) ? new DateTimeImmutable((string)$event['ends_at'], $timezone) : $start;
+    if (!empty($event['all_day'])) {
+        $start = $start->setTime(0, 0);
+        $end = $end->setTime(0, 0);
+        if ($end <= $start) {
+            $end = $start->modify('+1 day');
+        }
+        return ['start' => ['date' => $start->format('Y-m-d')], 'end' => ['date' => $end->format('Y-m-d')]];
+    }
+    if ($end <= $start) {
+        $end = $start->modify(($event['entry_kind'] ?? '') === 'milestone' ? '+1 minute' : '+30 minutes');
+    }
+    return [
+        'start' => ['dateTime' => $start->format(DateTimeInterface::RFC3339), 'timeZone' => $timezone->getName()],
+        'end' => ['dateTime' => $end->format(DateTimeInterface::RFC3339), 'timeZone' => $timezone->getName()],
+    ];
+}
+
+function googleCalendarLinkIsCurrent(?array $link, string $hash): bool
+{
+    return $link !== null && trim((string)($link['google_event_id'] ?? '')) !== ''
+        && empty($link['last_error']) && (string)($link['last_hash'] ?? '') === $hash;
+}
+
+function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, array $user): array
+{
+    $settings = googleCalendarSettings($db, $userId);
+    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
+        throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
+    }
+    $token = googleAccessToken($db, $config, $userId, $settings);
+    $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
+    $start = (new DateTimeImmutable('-30 days'))->setTime(0, 0);
+    $end = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
+    $importError = null;
+    try {
+        $importResult = importGoogleCalendarEvents($db, $token, $calendarId, $userId, $user, $start, $end);
+    } catch (Throwable $exception) {
+        // Ein fehlgeschlagener Import darf lokale Versandnachweise nicht blockieren.
+        $importError = mb_substr($exception->getMessage(), 0, 1000);
+        $importResult = ['created' => 0, 'updated' => 0, 'deleted' => 0];
+    }
+    $importedCalendarIds = array_flip(array_map(static fn(array $row): int => (int) $row['calendar_event_id'], dbAll($db, 'SELECT calendar_event_id FROM google_calendar_import_links WHERE user_id=?', 'i', [$userId])));
+    $created = (int) $importResult['created'];
+    $updated = (int) $importResult['updated'];
+    $failed = $importError !== null ? 1 : 0;
+    $exportFailed = 0;
+    $range = dbOne($db, "SELECT MIN(starts_at) first_at, MAX(COALESCE(ends_at,starts_at)) last_at FROM calendar_events WHERE owner_user_id=? AND status<>'cancelled'", 'i', [$userId]);
+    if (!empty($range['first_at'])) {
+        $start = new DateTimeImmutable($range['first_at']);
+        $end = new DateTimeImmutable($range['last_at']);
+    }
+    $activeExports = [];
+    foreach (calendarExportRows(calendarEventRows($db, $userId, $start, $end)) as $event) {
+        $sourceType = (string) $event['source'];
+        $sourceId = (int) $event['id'];
+        if ($sourceType === 'calendar' && isset($importedCalendarIds[$sourceId])) {
+            continue;
+        }
+        $activeExports[$sourceType . ':' . $sourceId] = true;
+        $hash = googleCalendarSyncHash($event);
+        $link = dbOne($db, 'SELECT google_event_id, last_hash, last_error FROM google_calendar_event_links WHERE user_id=? AND source_type=? AND source_id=? LIMIT 1', 'isi', [$userId, $sourceType, $sourceId]);
+        if (googleCalendarLinkIsCurrent($link, $hash)) {
+            continue;
+        }
+        $payload = googleCalendarEventPayload($config, $event, $user);
+        try {
+            $googleEventId = trim((string)($link['google_event_id'] ?? '')) ?: googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
+            $baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events';
+            $remote = null;
+            try {
+                $remote = googleJsonRequest('GET', $baseUrl . '/' . rawurlencode($googleEventId), ['Authorization: Bearer ' . $token]);
+            } catch (RuntimeException $exception) {
+                if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
+            }
+            $stableId = googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
+            if ($remote === null && $googleEventId !== $stableId) {
+                $googleEventId = $stableId;
+                try {
+                    $remote = googleJsonRequest('GET', $baseUrl . '/' . $googleEventId, ['Authorization: Bearer ' . $token]);
+                } catch (RuntimeException $exception) {
+                    if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
+                }
+            }
+            if ($remote !== null) {
+                if (!googleCalendarOwnsEvent($remote, $sourceType, $sourceId)) {
+                    throw new RuntimeException('Calendar event ownership mismatch');
+                }
+                backupGoogleCalendarEvent($db, $userId, $calendarId, $remote);
+                $headers = ['Authorization: Bearer ' . $token];
+                if (!empty($remote['etag'])) { $headers[] = 'If-Match: ' . $remote['etag']; }
+                googleJsonRequest('PATCH', $baseUrl . '/' . rawurlencode($googleEventId), $headers, $payload + ['status' => 'confirmed']);
+                $updated++;
+            } else {
+                $response = googleJsonRequest('POST', $baseUrl, ['Authorization: Bearer ' . $token], $payload + ['id' => $googleEventId]);
+                $googleEventId = (string)($response['id'] ?? '');
+                $created++;
+            }
+            if ($googleEventId === '') {
+                throw new RuntimeException('Google event id missing');
+            }
+            $emptyError = null;
+            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE google_event_id=VALUES(google_event_id), last_hash=VALUES(last_hash), last_error=NULL, synced_at=NOW()');
+            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $googleEventId, $hash, $emptyError);
+            $stmt->execute();
+        } catch (Throwable $exception) {
+            $failed++;
+            $exportFailed++;
+            $message = mb_substr($exception->getMessage(), 0, 1000);
+            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE last_error=VALUES(last_error), synced_at=NOW()');
+            $emptyId = '';
+            $unsyncedHash = '';
+            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $emptyId, $unsyncedHash, $message);
+            $stmt->execute();
+        }
+    }
+    // Erst nach erfolgreicher Neuzuordnung werden alte JeMa-Projektionen ausgeblendet.
+    if ($exportFailed === 0) {
+        foreach (dbAll($db, "SELECT l.source_type, l.source_id, l.google_event_id FROM google_calendar_event_links l
+            WHERE l.user_id=? AND l.google_event_id<>'' AND COALESCE(l.last_hash,'')<>'retired'
+              AND l.source_type IN ('application','application_created','application_status','application_next_action','contact_log','calendar','workflow_event','application_day')", 'i', [$userId]) as $obsolete) {
+            if (isset($activeExports[$obsolete['source_type'] . ':' . $obsolete['source_id']])) { continue; }
+            try {
+                $url = 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode($obsolete['google_event_id']);
+                try {
+                    $remote = googleJsonRequest('GET', $url, ['Authorization: Bearer ' . $token]);
+                } catch (RuntimeException $exception) {
+                    if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
+                    $remote = ['status' => 'cancelled'];
+                }
+                if (($remote['status'] ?? '') !== 'cancelled') {
+                    if (!googleCalendarOwnsEvent($remote, $obsolete['source_type'], (int)$obsolete['source_id']) || !empty($remote['attendees'])) {
+                        throw new RuntimeException('Calendar repair requires manual review');
+                    }
+                    backupGoogleCalendarEvent($db, $userId, $calendarId, $remote);
+                    $headers = ['Authorization: Bearer ' . $token];
+                    if (!empty($remote['etag'])) { $headers[] = 'If-Match: ' . $remote['etag']; }
+                    googleJsonRequest('PATCH', $url, $headers, ['status' => 'cancelled']);
+                }
+                cascadeExec($db, "UPDATE google_calendar_event_links SET last_hash='retired', last_error=NULL, synced_at=NOW() WHERE user_id=? AND source_type=? AND source_id=?", 'isi', [$userId, $obsolete['source_type'], (int)$obsolete['source_id']]);
+            } catch (Throwable $exception) {
+                $failed++;
+                cascadeExec($db, 'UPDATE google_calendar_event_links SET last_error=? WHERE user_id=? AND source_type=? AND source_id=?', 'sisi', [mb_substr($exception->getMessage(), 0, 1000), $userId, $obsolete['source_type'], (int)$obsolete['source_id']]);
+            }
+        }
+    }
+    $lastError = $failed > 0 ? ($importError ?? (string)$failed . ' sync errors') : null;
+    $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_sync_at=NOW(), last_error=? WHERE user_id=?');
+    $stmt->bind_param('si', $lastError, $userId);
+    $stmt->execute();
+    return ['created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
+}
+
 function googleCalendarEventPayload(array $config, array $event, array $user): array
 {
-    $timezone = (string) ($user['timezone'] ?? 'Europe/Zurich');
-    $start = (new DateTimeImmutable((string) $event['starts_at']))->format('Y-m-d\TH:i:s');
-    $end = (new DateTimeImmutable((string) $event['ends_at']))->format('Y-m-d\TH:i:s');
+    $times = calendarRemoteTimes($event, $user);
     $description = trim((string) ($event['meta'] ?? '') . "\n" . (string) ($event['notes'] ?? ''));
     $href = (string) ($event['href'] ?? '');
     if ($href !== '' && $href !== '#') {
         $description = trim($description . "\n" . absoluteUrl($config, $href));
     }
     return [
-        'summary' => (string) $event['title'],
+        'summary' => implode(' · ', array_filter([(string)($event['company_name'] ?? ''), (string)$event['title'], (string)($event['job_title'] ?? '')])),
         'description' => $description,
-        'start' => ['dateTime' => $start, 'timeZone' => $timezone],
-        'end' => ['dateTime' => $end, 'timeZone' => $timezone],
+        'location' => (string)($event['location'] ?? ''),
+        'start' => $times['start'],
+        'end' => $times['end'],
+        'transparency' => ($event['entry_kind'] ?? '') === 'milestone' ? 'transparent' : 'opaque',
+        ...(($event['entry_kind'] ?? '') === 'milestone' ? ['reminders' => ['useDefault' => false, 'overrides' => []]] : []),
         'extendedProperties' => ['private' => [
             'jema_source' => (string) $event['source'],
             'jema_id' => (string) $event['id'],
@@ -3708,6 +3937,12 @@ function googleCalendarEventPayload(array $config, array $event, array $user): a
 function googleCalendarSyncHash(array $event): string
 {
     return hash('sha256', json_encode([
+        'payload_version' => 3,
+        'all_day' => (int)($event['all_day'] ?? 0),
+        'location' => (string)($event['location'] ?? ''),
+        'entry_kind' => (string)($event['entry_kind'] ?? ''),
+        'company_name' => (string)($event['company_name'] ?? ''),
+        'job_title' => (string)($event['job_title'] ?? ''),
         'title' => (string) ($event['title'] ?? ''),
         'meta' => (string) ($event['meta'] ?? ''),
         'notes' => (string) ($event['notes'] ?? ''),
@@ -3810,62 +4045,15 @@ function importGoogleCalendarEvents(mysqli $db, string $token, string $calendarI
 
 function syncGoogleCalendarEvents(mysqli $db, array $config, int $userId, array $user): array
 {
-    $settings = googleCalendarSettings($db, $userId);
-    if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
-        throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
+    $lock = 'jema-calendar-' . $userId;
+    if ((int)(dbOne($db, 'SELECT GET_LOCK(?, 0) acquired', 's', [$lock])['acquired'] ?? 0) !== 1) {
+        throw new RuntimeException('Calendar synchronization already running');
     }
-    $token = googleAccessToken($db, $config, $userId, $settings);
-    $calendarId = trim((string) ($settings['calendar_id'] ?? '')) ?: 'primary';
-    $start = (new DateTimeImmutable('-30 days'))->setTime(0, 0);
-    $end = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
-    $importResult = importGoogleCalendarEvents($db, $token, $calendarId, $userId, $user, $start, $end);
-    $importedCalendarIds = array_flip(array_map(static fn(array $row): int => (int) $row['calendar_event_id'], dbAll($db, 'SELECT calendar_event_id FROM google_calendar_import_links WHERE user_id=?', 'i', [$userId])));
-    $created = (int) $importResult['created'];
-    $updated = (int) $importResult['updated'];
-    $failed = 0;
-    foreach (calendarEventRows($db, $userId, $start, $end) as $event) {
-        $sourceType = (string) $event['source'];
-        $sourceId = (int) $event['id'];
-        if ($sourceType === 'calendar' && isset($importedCalendarIds[$sourceId])) {
-            continue;
-        }
-        $hash = googleCalendarSyncHash($event);
-        $link = dbOne($db, 'SELECT google_event_id, last_hash FROM google_calendar_event_links WHERE user_id=? AND source_type=? AND source_id=? LIMIT 1', 'isi', [$userId, $sourceType, $sourceId]);
-        if ($link && (string) ($link['last_hash'] ?? '') === $hash) {
-            continue;
-        }
-        $payload = googleCalendarEventPayload($config, $event, $user);
-        try {
-            if ($link && trim((string) $link['google_event_id']) !== '') {
-                googleJsonRequest('PATCH', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode((string) $link['google_event_id']), ['Authorization: Bearer ' . $token], $payload);
-                $googleEventId = (string) $link['google_event_id'];
-                $updated++;
-            } else {
-                $response = googleJsonRequest('POST', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events', ['Authorization: Bearer ' . $token], $payload);
-                $googleEventId = (string) ($response['id'] ?? '');
-                $created++;
-            }
-            if ($googleEventId === '') {
-                throw new RuntimeException('Google event id missing');
-            }
-            $emptyError = null;
-            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE google_event_id=VALUES(google_event_id), last_hash=VALUES(last_hash), last_error=NULL, synced_at=NOW()');
-            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $googleEventId, $hash, $emptyError);
-            $stmt->execute();
-        } catch (Throwable $exception) {
-            $failed++;
-            $message = mb_substr($exception->getMessage(), 0, 1000);
-            $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE last_error=VALUES(last_error), synced_at=NOW()');
-            $emptyId = '';
-            $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $emptyId, $hash, $message);
-            $stmt->execute();
-        }
+    try {
+        return syncGoogleCalendarEventsLocked($db, $config, $userId, $user);
+    } finally {
+        dbOne($db, 'SELECT RELEASE_LOCK(?) released', 's', [$lock]);
     }
-    $lastError = $failed > 0 ? (string) $failed . ' sync errors' : null;
-    $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_sync_at=NOW(), last_error=? WHERE user_id=?');
-    $stmt->bind_param('si', $lastError, $userId);
-    $stmt->execute();
-    return ['created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
 }
 
 function calendarLocalEvent(mysqli $db, int $userId, int $eventId): ?array
@@ -3875,20 +4063,12 @@ function calendarLocalEvent(mysqli $db, int $userId, int $eventId): ?array
 
 function googleImportedCalendarEventPayload(array $event, array $user): array
 {
-    $timezone = (string) ($user['timezone'] ?? 'Europe/Zurich');
     $payload = [
         'summary' => (string) $event['title'],
         'description' => (string) ($event['notes'] ?? ''),
         'location' => (string) ($event['location'] ?? ''),
     ];
-    if ((int) ($event['all_day'] ?? 0) === 1) {
-        $payload['start'] = ['date' => substr((string) $event['starts_at'], 0, 10)];
-        $payload['end'] = ['date' => substr((string) $event['ends_at'], 0, 10)];
-    } else {
-        $payload['start'] = ['dateTime' => (new DateTimeImmutable((string) $event['starts_at']))->format('Y-m-d\\TH:i:s'), 'timeZone' => $timezone];
-        $payload['end'] = ['dateTime' => (new DateTimeImmutable((string) $event['ends_at']))->format('Y-m-d\\TH:i:s'), 'timeZone' => $timezone];
-    }
-    return $payload;
+    return $payload + calendarRemoteTimes($event, $user);
 }
 
 function syncImportedCalendarEvent(mysqli $db, array $config, int $userId, array $user, array $event): void
@@ -8404,7 +8584,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.16.1';
+$codeVersion = '1.16.2';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -8494,7 +8674,7 @@ if ($page === 'application_dossier') {
     $contactLogStatuses = contactLogStatusOptions();
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.js"></script></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('dossier.title')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf"><?= e(tr('dossier.create_pdf')) ?></a></div>
@@ -8558,7 +8738,7 @@ if ($page === 'application_documents_temp') {
     }
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"></head>
+        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.js"></script></head>
     <body><main class="container"><section class="panel"><p class="eyebrow"><?= e(tr('application_docs.temp_folder')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line"><?= e(tr('application_docs.temp_folder_hint')) ?></p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>"><?= e(tr('application_docs.download_zip')) ?></a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -8805,7 +8985,7 @@ startUiTranslationBuffer($appLocale);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@main/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a87dfbd180db76dd53d11db0d33ca2d7d8ec6f90/public/assets/layout.js"></script>
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
