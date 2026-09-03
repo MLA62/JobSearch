@@ -66,7 +66,7 @@ check(count($events)===1 && $events[0][10]===$application['next_action_at'],'Exp
 check(!array_filter($writes,fn($w)=>str_contains($w[0],"status='completed'")),'Replacing a step does not falsely complete it');
 check(str_contains($source,'workflow_calendar_v5') && str_contains($source,'INSERT IGNORE INTO workflow_data_backups'),'Migration and backup present');
 check(str_contains($source,"sfHeader('applications','applied_at'"),'Application date has its own filter');
-check(str_contains($source,'name="job_room_registration" value="not_recorded"'),'Job-Room registration explicitly editable');
+check(str_contains($source,'data-job-room-recorded') && str_contains($source,"this.checked?'recorded':'not_recorded'"),'Job-Room registration explicitly editable');
 preg_match('/        if \(\$appliedAt\) \{.*?(?=        \$statusChanged =)/s', $source, $timestampBlock);
 check(!empty($timestampBlock[0]), 'Timestamp normalization available');
 $normalize = static function (?string $input, ?string $previous) use ($timestampBlock): ?string {
