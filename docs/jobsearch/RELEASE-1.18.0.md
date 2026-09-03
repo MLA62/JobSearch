@@ -32,4 +32,13 @@ Existing-data migration requires a separate admin preview at ?page=workflow_revi
 and explicit application of the reviewed plan. Unknown legacy values are preserved.
 Google synchronization requires the completed v6 migration marker.
 
-This document records a deployment candidate, not a completed production deployment.
+## Production Deployment
+
+Executed approval 178140aff3037484ff97dfb81402eb20 on 2026-09-03.
+Server modification time: 2026-09-03T15:38:53Z. Entry point: 770794 bytes.
+Verified server SHA-256 equals local deployment bytes:
+fcbc11c55cd882664a4c16c585576de78c8c42cf3669a5903b2a1697f13fce18.
+Source release commit: c997dbb (release/workflow-1.18.0).
+Unauthenticated HTTP check returned 200, version 1.18.0 and pinned assets;
+no PHP fatal or parse error was visible. Authenticated production acceptance
+and the separate existing-data migration are not yet completed.
