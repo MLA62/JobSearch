@@ -43,6 +43,7 @@ $outputs=[$root.'/docs/jobsearch/DATA_MODEL.md'=>$schema,$root.'/docs/jobsearch/
 foreach($outputs as $path=>$content) {
     $content = str_replace("\r\n", "\n", $content);
     $content = preg_replace('/[ \\t]+$/m', '', $content);
+    $content = rtrim($content)."\n";
     if(in_array('--check',$argv,true)) {
         if(!is_file($path)||str_replace("\r\n","\n",file_get_contents($path))!==$content) { throw new RuntimeException('Stale reference: '.$path); }
     } else { file_put_contents($path,$content); }

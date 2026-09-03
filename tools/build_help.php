@@ -50,7 +50,7 @@ foreach ($source['locales'] as $locale) {
         }
         $md .= implode(' | ', $links)."\n\n";
     }
-    $outputs[$root.'/docs/jobsearch/help/'.$locale.'.md'] = $md;
+    $outputs[$root.'/docs/jobsearch/help/'.$locale.'.md'] = rtrim($md)."\n";
 }
 $check = in_array('--check',$argv,true);
 foreach ($outputs as $path=>$content) {

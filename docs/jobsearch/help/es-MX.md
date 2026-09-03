@@ -291,4 +291,3 @@ JeMa Jobs es software propietario para usuarios expresamente autorizados.
 Los datos de producción son confidenciales. La licencia completa está en LICENSE.md; esta ayuda no modifica sus términos.
 
 [Todos los temas de ayuda](https://jobs.jema.business/?page=help&lang=es-MX) | [Acerca de JeMa Jobs](https://jobs.jema.business/?page=about&lang=es-MX)
-

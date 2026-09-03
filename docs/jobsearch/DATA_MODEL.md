@@ -1678,4 +1678,3 @@ modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` E
 ```php
 modifyColumnWhenMissingValue($db, 'applications', 'channel', 'website', "`channel` ENUM('email','portal','website','mail','referral','other') NULL");
 ```
-
