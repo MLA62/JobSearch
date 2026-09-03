@@ -24,8 +24,9 @@
             const details = document.createElement('details');
             details.className = 'workspace-editor';
             const summary = document.createElement('summary');
-            const editing = [...new URLSearchParams(location.search).keys()].some(key => key.startsWith('edit'));
-            details.open = editing || !!location.hash || !!panel.querySelector('.alert.danger');
+            const editing = [...new URLSearchParams(location.search)].some(([key, value]) => key.startsWith('edit') && value !== '' && value !== '0');
+            const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+            details.open = editing || !!(target && panel.contains(target)) || !!panel.querySelector('.alert.danger');
             panel.before(details);
             summary.append(heading);
             details.append(summary, panel);
