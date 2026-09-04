@@ -1,6 +1,6 @@
 # Version 2.0.12 – Gefundene Ergebnisse tatsächlich anzeigen
 
-Stand: 2026-09-04. Vorbereitet, noch nicht deployed.
+Stand: 2026-09-04. Nach externer TOTP-Freigabe deployed.
 
 ## Änderung und Nachweis
 
@@ -8,13 +8,13 @@ Ergebnisse anzeigen lädt die Jobsuche neu und springt zur Tabelle. Der alte Fra
 
 Der Benutzerbericht aus 2.0.11 enthält drei akzeptierte Treffer, während das Bildschirmbild die alte leere Tabelle unter dem Modal zeigt. Der technische Grund des dortigen weiteren Suchabbruchs ist aus dem Teilbericht nicht abschließend belegt und wird mit dieser Navigationskorrektur nicht als behoben behauptet.
 
-MDs, Version und Hilfe in fünf Sprachen aktualisiert. 26 PHP-Testdateien ohne Warnungen sowie zehn Chromium-Dialogfälle bestanden. Beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit --check und git diff --check bestanden. Angemeldete Produktionsabnahme der Ergebnisanzeige bleibt nach Deployment erforderlich.
+MDs, Version und Hilfe in fünf Sprachen aktualisiert. 26 PHP-Testdateien ohne Warnungen sowie zehn Chromium-Dialogfälle bestanden. Beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit --check und git diff --check bestanden. Die öffentliche Loginseite liefert HTTP 200, zeigt Version 2.0.12 und enthält keinen PHP-Laufzeitfehler. Der anonyme Debug-Download wird zur Anmeldung geleitet und liefert keine Debug-JSON-Datei. Die angemeldete Produktionsabnahme der Ergebnisanzeige bleibt erforderlich.
 
 ## Deployment und Rückweg
 
-Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Exakter Upload aus Quell-Commit edab25f7b356cc3c600b138f0e1135caf4a05389 vorgeschlagen; lokal und GitHub synchron. Neue TOTP-Freigabe erforderlich, noch nicht ausgeführt.
-997272 Bytes, SHA-256 8f8b756d4558467a9c6d3c8588eed1beb91649fca286b0ff0d66bd61f989393b.
-Remote-Vergleich vor Vorschlag bestätigte unveränderten Stand 2.0.11. Live-Verifikation folgt nach Freigabe und Ausführung.
+Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Exakter Upload aus Quell-Commit edab25f7b356cc3c600b138f0e1135caf4a05389 wurde nach externer TOTP-Freigabe ausgeführt.
+Produktiver Stand: geändert 2026-09-04T18:09:45+00:00, 997272 Bytes, Modus 0644, SHA-256 8f8b756d4558467a9c6d3c8588eed1beb91649fca286b0ff0d66bd61f989393b.
+Der anschließende Remote-Hash stimmt exakt mit dem freigegebenen Inhalt überein. Login- und Zugriffsschutzprüfungen waren erfolgreich.
 
 Vorheriger bestätigter Stand 2.0.11: Quell-Commit e0a6c38b9edd73e5b6d93da43addb95a2631ece3,
 996248 Bytes, Modus 0644, SHA-256 b95e3dccb675b2782649c1d5e1f6f5497217f8d172b80885595943c83a3122e2.
