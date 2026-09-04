@@ -1,6 +1,6 @@
 {
-  "version": "2.0.3",
-  "reviewed": "2026-09-03",
+  "version": "2.0.4",
+  "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -328,7 +328,7 @@
         "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
           ],
           "tips": [
-        "Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt."
+        "Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt. Titel, Kurzbeschreibung und Match-Begründung werden getrennt in die aktuelle App-Sprache übersetzt. Beim Übernehmen bleibt der vollständige Inserattext in seiner Originalsprache. Firma, Adresse, Website und Kontakt werden aus belegten Inseratdaten ergänzt; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert die Originalbeschreibung, nicht deine Notizen."
           ]
         },
         "fr-CH": {
@@ -341,7 +341,7 @@
         "Reprends une offre du tableau seulement après vérification."
           ],
           "tips": [
-        "L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre."
+        "L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre. Le titre, le résumé et la justification du score sont traduits séparément dans la langue actuelle de l’application. L’import conserve le texte intégral dans sa langue originale. L’entreprise, l’adresse, le site et le contact sont complétés à partir des données attestées de l’annonce, sans écraser les coordonnées existantes. Un nouvel import actualise la description originale, pas tes notes."
           ]
         },
         "en-GB": {
@@ -354,7 +354,7 @@
         "Take over a job from the result table only after reviewing it."
           ],
           "tips": [
-        "AI provides suggestions. It creates neither an application nor a job without your Take over action."
+        "AI provides suggestions. It creates neither an application nor a job without your Take over action. The title, summary and match explanation are translated separately into the current app language. Import preserves the full advertisement in its original language. Company address, website and contact details are filled from evidenced advertisement data without overwriting existing company details. Importing again refreshes the original description, not your notes."
           ]
         },
         "pt-BR": {
@@ -367,7 +367,7 @@
         "Importe uma vaga da tabela somente após revisá-la."
           ],
           "tips": [
-        "A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar."
+        "A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar. Título, resumo e justificativa da compatibilidade são traduzidos separadamente para o idioma atual do aplicativo. A importação mantém o anúncio completo no idioma original. Endereço, site e contato da empresa são preenchidos com dados comprovados do anúncio, sem substituir dados existentes. Importar novamente atualiza a descrição original, não suas anotações."
           ]
         },
         "es-MX": {
@@ -380,7 +380,7 @@
         "Importa una vacante de la tabla solo después de revisarla."
           ],
           "tips": [
-        "La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar."
+        "La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar. El título, resumen y explicación de compatibilidad se traducen por separado al idioma actual de la aplicación. La importación conserva el anuncio completo en su idioma original. Dirección, sitio web y contacto se completan con datos comprobados del anuncio, sin sustituir datos existentes. Volver a importar actualiza la descripción original, no tus notas."
           ]
         }
       }

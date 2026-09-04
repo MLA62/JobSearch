@@ -35,6 +35,13 @@ git diff --check
 
 ## Browser-Fixtures
 
+### Jobsuche 2.0.4
+
+- `php -n tests/job_content_language_test.php`: echte Parser-/Locale-/Übersetzungs-Merge-Helfer; fünf Sprachen, französischer Originaltext, Absätze, UTF-8, kein SEO-Ersatz, Firmenadresse getrennt vom Arbeitsort, Kontaktzuordnung.
+- `php -n tests/job_import_storage_test.php`: 40 Prüfungen mit simulierter Datenbank; Parameterbindung, Eigentümergrenzen, Firmenfelder erhalten/ergänzen und Kontakt ohne Duplikat beim wiederholten Import.
+- Live zusätzlich prüfen: tatsächliche Modellantwort auf de-CH/fr-CH, Wechsel der App-Sprache mit bestehenden Treffern, vollständiger Inserattext im Jobeditor und Firmen-/Kontaktfelder nach Übernahme. Synthetische Fixtures ersetzen diese Prüfung nicht.
+
+
 Lokalen Server in einem eigenen Terminal starten:
 
 ```powershell

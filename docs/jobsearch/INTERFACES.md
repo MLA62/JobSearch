@@ -382,14 +382,17 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importDiscoverDetailUrls(string $url, int $limit = 30): array`
 - `function importJobLocation(array $job): string`
 - `function importHiringOrganization(array $job): string`
+- `function importCompanyDetails(array $job): array`
 - `function importJobContact(array $job): array`
 - `function importCleanTitle(string $title): string`
 - `function importCompanyFromText(string $text): string`
 - `function importVisibleCompany(DOMXPath $xpath): string`
 - `function importLooksLikeJobDetail(string $url, ?array $job, DOMXPath $xpath): bool`
-- `function importUpsertCompany(mysqli $db, int $uid, string $companyName): int`
+- `function importUpsertCompany(mysqli $db, int $uid, string $companyName, array $details = []): int`
+- `function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, array $contact): void`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
 - `function importFromUrl(string $url): array`
+- `function importJobHtml(string $html, string $url): array`
 - `function importFromText(string $text): array`
 - `function timezoneChoices(): array`
 - `function countryChoices(): array`
@@ -411,6 +414,11 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function savedJobSearchCriteria(mysqli $db, int $userId, array $preference, array $currentUser, array $platformRows): array`
 - `function saveJobSearchCriteria(mysqli $db, int $userId, string $query, string $location, int $total, array $platformIds, array $criteria = []): void`
 - `function openAiJobSearchSuggestion(array $config, int $userId, string $query, string $location, array $profileContext): array`
+- `function jobDisplayLanguage(string $locale): string`
+- `function jobDisplayText(string $text, int $limit): string`
+- `function mergeJobDisplayTranslations(array $jobs, array $translated, string $locale): array`
+- `function localizeJobResults(array $config, int $userId, array $jobs, string $locale): array`
+- `function jobTranslationFailure(string $locale): string`
 - `function openAiJobSearch(array $config, int $userId, array $criteria): array`
 - `function platformSearchUrl(array $platform, string $query, string $location, int $limit): string`
 - `function translationTargetOptions(mysqli $db, int $userId): array`

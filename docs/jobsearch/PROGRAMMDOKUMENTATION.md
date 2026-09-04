@@ -4,6 +4,15 @@ Stand: 2026-09-04. Version 2.0.3 trennt den Schnellimport für eine oder mehrere
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
+## Korrekturen 2.0.4
+
+- Ergebnissprache folgt der aktiven App-Sprache, nicht einem abweichenden Profil-Standard. Ein separater Responses-Aufruf übersetzt Titel, Kurzbeschreibung und Match-Begründung; IDs, vollständige Feldbelegung und Locale werden validiert. Der Match-Wert und Quellen bleiben unverändert. Die semantische Übersetzungsqualität bleibt modellabhängig.
+- Session-Treffer erhalten Locale und Übersetzungsrevision. Alte oder anderssprachige Treffer werden beim Aufruf neu übersetzt. Bei Fehlern werden sie vorübergehend ausgeblendet und eine Fehlermeldung angezeigt; erneuter Versuch nach 60 Sekunden.
+- Der Import verwendet den vollständigen Originaltext aus JobPosting.description oder einem expliziten Inserat-Textbereich, mit Absätzen. SEO-Metabeschreibungen sind kein Ersatz. Ohne lesbaren Originaltext bricht der Import vor der Datenspeicherung ab.
+- Arbeitgeberadresse, Website, E-Mail und Telefon stammen aus hiringOrganization; Arbeitsort wird nicht als Firmenadresse ausgegeben. Nur leere Firmenfelder werden ergänzt. Ein benannter Bewerbungskontakt wird der Firma und Stelle zugeordnet; Wiederholung derselben Zuordnung erzeugt kein Duplikat. Freitext-Kontaktextraktion und zusätzliche Firmenrecherche sind damit nicht behauptet.
+- Bewusstes erneutes Übernehmen aktualisiert Titel, Arbeitsort und Originalbeschreibung eines eigenen Jobs mit identischer Quell-URL sowie fehlende Firmen-/Kontaktdaten. Notizen, Bewerbungen und Dokumente bleiben erhalten; vorhandene PDFs werden bei Wiederholung nicht ersetzt. Keine pauschale Änderung bestehender Datensätze beim Deployment.
+- Der JavaScript-Suchrequest übermittelt die zuvor fehlende Aktion search_ai_jobs.
+
 ## Architektur und Request
 
 JeMa Jobs ist eine serverseitige PHP-Anwendung, keine SPA. `public/index.php` enthaelt Bootstrap, Schema-Erweiterungen, Sprachauflösung, Fachfunktionen, GET/POST-Handler und HTML-Ansichten. `public/assets/` enthaelt CSS und kleine JavaScript-Erweiterungen; keine Composer-Abhaengigkeit ist erforderlich.

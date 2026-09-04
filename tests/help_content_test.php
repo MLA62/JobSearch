@@ -15,7 +15,8 @@ foreach ($helpCatalog['topics'] as $topic) {
     }
     helpAssert(array_keys($topic['text']) === $locales, 'Every topic has all locales');
     foreach ($topic['text'] as $locale => $text) {
-        helpAssert(count($text['steps']) === 3 && count($text['tips']) === 1, 'Complete procedure '.$locale);
+        helpAssert(count($text['steps']) >= 3 && count($text['tips']) >= 1, 'Complete procedure '.$locale);
+        helpAssert(count($text['steps']) === count($topic['text']['de-CH']['steps']) && count($text['tips']) === count($topic['text']['de-CH']['tips']), 'Matching procedure structure '.$locale);
         foreach (array_merge([$text['title'],$text['summary']],$text['steps'],$text['tips']) as $value) {
             helpAssert(is_string($value) && trim($value) !== '' && !str_contains($value,'help.v2.'), 'No empty/raw topic text');
         }
