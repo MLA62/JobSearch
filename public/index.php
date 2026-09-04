@@ -3398,11 +3398,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.0' =>
   array (
-    'de-CH' => 'Gib Suchbegriff, Suchort, gewünschte Trefferzahl und Plattformen direkt ein und wähle Suchkriterien speichern.',
-    'fr-CH' => 'Saisis directement le terme, le lieu, le nombre souhaité et les plateformes, puis enregistre les critères.',
-    'en-GB' => 'Enter the search term, location, desired number and platforms directly, then save the criteria.',
-    'pt-BR' => 'Informe diretamente o termo, o local, a quantidade desejada e as plataformas, depois salve os critérios.',
-    'es-MX' => 'Introduce directamente el término, la ubicación, la cantidad deseada y las plataformas, y guarda los criterios.',
+    'de-CH' => 'Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile.',
+    'fr-CH' => 'Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne.',
+    'en-GB' => 'Paste one or more verified advertisement URLs into quick import, one per line.',
+    'pt-BR' => 'Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha.',
+    'es-MX' => 'Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea.',
   ),
   'help.v2.search.steps.1' =>
   array (
@@ -3414,35 +3414,35 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.2' =>
   array (
-    'de-CH' => 'Optional schlägt die KI einen präziseren Suchbegriff und Suchort vor; überprüfe den Vorschlag vor der Suche.',
-    'fr-CH' => 'En option, l’IA propose un terme et un lieu plus précis ; vérifie la proposition avant la recherche.',
-    'en-GB' => 'Optionally, AI suggests a more precise term and location; review the suggestion before searching.',
-    'pt-BR' => 'Opcionalmente, a IA sugere um termo e local mais precisos; revise a sugestão antes de pesquisar.',
-    'es-MX' => 'De forma opcional, la IA sugiere un término y una ubicación más precisos; revisa la sugerencia antes de buscar.',
+    'de-CH' => 'Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Die ausgewählten Portale werden abgearbeitet, bis die gewünschte Anzahl erreicht ist oder alle Quellen ausgeschöpft sind.',
+    'fr-CH' => 'Adapte les critères basés sur le profil et lance la recherche.',
+    'en-GB' => 'Adjust the profile-based criteria and start the job search.',
+    'pt-BR' => 'Ajuste os critérios baseados no perfil e inicie a busca.',
+    'es-MX' => 'Ajusta los criterios basados en el perfil e inicia la búsqueda.',
   ),
   'help.v2.search.steps.3' =>
   array (
-    'de-CH' => 'Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport.',
-    'fr-CH' => 'Colle les liens directs vérifiés, un par ligne, dans l’import rapide.',
-    'en-GB' => 'Paste verified direct advertisement URLs, one per line, into quick import.',
-    'pt-BR' => 'Cole os links diretos verificados, um por linha, na importação rápida.',
-    'es-MX' => 'Pega enlaces directos verificados, uno por línea, en la importación rápida.',
+    'de-CH' => 'Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil; übernimm eine Stelle erst nach eigener Prüfung.',
+    'fr-CH' => 'Reprends une offre du tableau seulement après vérification.',
+    'en-GB' => 'Take over a job from the result table only after reviewing it.',
+    'pt-BR' => 'Importe uma vaga da tabela somente após revisá-la.',
+    'es-MX' => 'Importa una vacante de la tabla solo después de revisarla.',
   ),
   'help.v2.search.summary' =>
   array (
-    'de-CH' => 'Die Seite übernimmt zuerst Suchbegriff, Ort und Plattformen aus deinem Profil. Eigene Eingaben bleiben gespeichert, bis du die Standardwerte erneut lädst.',
-    'fr-CH' => 'La page reprend d’abord le terme, le lieu et les plateformes de ton profil. Tes propres saisies restent enregistrées jusqu’au rechargement des valeurs par défaut.',
-    'en-GB' => 'The page initially takes the search term, location and platforms from your profile. Your own entries stay saved until you load the defaults again.',
-    'pt-BR' => 'A página usa inicialmente o termo, o local e as plataformas do seu perfil. Suas próprias entradas permanecem salvas até que você recarregue os padrões.',
-    'es-MX' => 'La página usa primero el término, la ubicación y las plataformas de tu perfil. Tus propios datos permanecen guardados hasta que cargues de nuevo los valores predeterminados.',
+    'de-CH' => 'Schnellimport übernimmt eine oder mehrere bekannte Anzeigen. Die profilbasierte Suche übernimmt deine Profilwerte; eigene Anpassungen bleiben gespeichert, bis du die Standardwerte erneut lädst.',
+    'fr-CH' => 'L’import rapide reprend une ou plusieurs annonces connues. La recherche basée sur le profil conserve tes adaptations jusqu’au rechargement des valeurs par défaut.',
+    'en-GB' => 'Quick import handles one or more known advertisements. Profile-based search keeps your changes until you load the defaults again.',
+    'pt-BR' => 'A importação rápida aceita uma ou mais vagas conhecidas. A busca baseada no perfil mantém suas alterações até recarregar os padrões.',
+    'es-MX' => 'La importación rápida acepta una o varias vacantes conocidas. La búsqueda basada en el perfil conserva tus cambios hasta que cargas los valores predeterminados.',
   ),
   'help.v2.search.tips.0' =>
   array (
-    'de-CH' => 'Die KI überträgt nur Suchkriterien, keine Dokumente, Bewerbungen oder Stellenresultate. Suchresultate bleiben Vorschläge.',
-    'fr-CH' => 'L’IA ne transmet que les critères de recherche, jamais les documents, candidatures ou résultats. Les résultats restent des propositions.',
-    'en-GB' => 'AI sends only search criteria, never documents, applications or search results. Results remain suggestions.',
-    'pt-BR' => 'A IA envia apenas critérios de pesquisa, nunca documentos, candidaturas ou resultados. Os resultados continuam sendo sugestões.',
-    'es-MX' => 'La IA solo envía criterios de búsqueda, nunca documentos, candidaturas ni resultados. Los resultados siguen siendo sugerencias.',
+    'de-CH' => 'Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt.',
+    'fr-CH' => 'L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre.',
+    'en-GB' => 'AI provides suggestions. It creates neither an application nor a job without your Take over action.',
+    'pt-BR' => 'A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar.',
+    'es-MX' => 'La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar.',
   ),
   'help.v2.search.title' =>
   array (
@@ -7975,6 +7975,32 @@ function openAiJobSearchSuggestion(array $config, int $userId, string $query, st
     ];
 }
 
+function openAiJobSearch(array $config, int $userId, array $criteria): array
+{
+    $apiKey = trim((string) ($config['openai_api_key'] ?? ''));
+    if ($apiKey === '' || !extension_loaded('curl')) throw new RuntimeException('Die KI-Suche ist serverseitig nicht verfügbar.');
+    $requested = min(25, max(1, (int) ($criteria['total_count'] ?? 15)));
+    $instruction = 'Search the web for currently accessible job advertisements and assess every advertisement against the complete supplied candidate profile. Work through every preferred source when provided. Continue until the requested number of distinct valid jobs is reached or all preferred sources have been exhausted. Return only JSON: {"jobs":[{"company":"","location":"","title":"","description":"","match_percent":0,"match_reason":"","url":""}]}. Include only direct HTTPS advertisement URLs. Do not invent data. match_percent is an integer 0 to 100 and must reflect roles, location, workload, level, remote preference, benefits, exclusions, travel and availability when supplied. description is a factual summary with max 420 characters; match_reason is a concise factual explanation with max 180 characters. Return no more than the requested count.';
+    $payload = json_encode([
+        'model' => (string) ($config['openai_model'] ?? 'gpt-5.6-luna'), 'store' => false, 'reasoning' => ['effort' => 'low'],
+        'max_output_tokens' => 3000, 'max_tool_calls' => min(16, max(4, count((array) ($criteria['preferred_sources'] ?? [])) * 2)), 'safety_identifier' => hash('sha256', 'jema-jobs-search:' . $userId),
+        'instructions' => $instruction, 'input' => json_encode($criteria, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'tools' => [['type' => 'web_search']],
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $handle = curl_init('https://api.openai.com/v1/responses');
+    curl_setopt_array($handle, [CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>60,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+    $raw = curl_exec($handle); $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE); curl_close($handle);
+    if (!is_string($raw) || $status < 200 || $status >= 300) throw new RuntimeException('Die KI-Stellensuche ist fehlgeschlagen.');
+    $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR); $output = '';
+    foreach ((array) ($response['output'] ?? []) as $item) foreach ((array) ($item['content'] ?? []) as $content) if (($content['type'] ?? '') === 'output_text' && is_string($content['text'] ?? null)) $output .= $content['text'];
+    $decoded = json_decode(trim(preg_replace('/^```(?:json)?\\s*|\\s*```$/u', '', $output) ?? ''), true);
+    $jobs = [];
+    foreach ((array) ($decoded['jobs'] ?? []) as $job) {
+        $url = trim((string) ($job['url'] ?? ''));
+        if (filter_var($url, FILTER_VALIDATE_URL) && str_starts_with($url, 'https://')) $jobs[] = ['company'=>substr(trim((string)($job['company'] ?? '')),0,180),'location'=>substr(trim((string)($job['location'] ?? '')),0,180),'title'=>substr(trim((string)($job['title'] ?? '')),0,240),'description'=>substr(trim((string)($job['description'] ?? '')),0,420),'match_percent'=>min(100,max(0,(int)($job['match_percent'] ?? 0))),'match_reason'=>substr(trim((string)($job['match_reason'] ?? '')),0,180),'url'=>$url];
+    }
+    return array_slice($jobs, 0, $requested);
+}
+
 function platformSearchUrl(array $platform, string $query, string $location, int $limit): string
 {
     $template = (string)($platform['search_url_template'] ?? '');
@@ -9691,11 +9717,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'search_ai_jobs') {
+        try {
+            $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+            $query = trim((string) ($_POST['search_query'] ?? '')) ?: jobPreferenceQuery($preference);
+            $location = trim((string) ($_POST['search_location'] ?? '')) ?: jobPreferenceLocation($preference, is_array($currentUser) ? $currentUser : []);
+            if ($query === '') throw new RuntimeException(tr('flash.search.query_required'));
+            $total = min(25, max(1, (int) ($_POST['total_count'] ?? 15)));
+            $platformIds = array_values(array_filter(array_map('intval', (array) ($_POST['platform_ids'] ?? []))));
+            $currentCriteria = savedJobSearchCriteria($db, userId(), $preference, is_array($currentUser) ? $currentUser : [], []);
+            $profileFields = ['desired_roles','desired_locations','remote_preference','employment_types','workload_min','workload_max','salary_min','salary_period','desired_level','desired_benefits','excluded_industries','willing_to_relocate','travel_percentage','available_from','preference_notes'];
+            $profileCriteria = array_intersect_key($currentCriteria, array_flip($profileFields));
+            foreach ($profileFields as $field) if (array_key_exists($field, $_POST)) $profileCriteria[$field] = is_array($_POST[$field]) ? implode(',', array_map('strval', $_POST[$field])) : trim((string) $_POST[$field]);
+            saveJobSearchCriteria($db, userId(), $query, $location, $total, $platformIds, $profileCriteria);
+            $preferredSources = [];
+            if ($platformIds) {
+                $idList = implode(',', array_map('intval', array_unique($platformIds)));
+                $preferredSources = array_values(array_filter(array_map(static fn(array $row): string => (string) ($row['base_url'] ?? ''), dbAll($db, "SELECT base_url FROM job_platforms WHERE id IN ($idList) AND is_active=1 AND deleted_at IS NULL"))));
+            }
+            $criteria = array_merge($profileCriteria, ['query'=>$query, 'location'=>$location, 'total_count'=>$total, 'preferred_sources'=>$preferredSources]);
+            $_SESSION['ai_job_search_results'] = openAiJobSearch($config, userId(), $criteria);
+            audit($db, userId(), 'other', 'ai_job_search', 0, null, ['count'=>count($_SESSION['ai_job_search_results'])]);
+        } catch (Throwable $exception) { error_log('AI job search failed: '.$exception->getMessage()); flash('Die KI-Stellensuche konnte nicht ausgeführt werden.', 'danger'); }
+        redirect('/?page=job_platform_search#results');
+    }
+
+    if ($action === 'prepare_ai_job_import') {
+        $url = trim((string) ($_POST['job_url'] ?? ''));
+        if (!filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with($url, 'https://')) { http_response_code(422); exit('Invalid URL'); }
+        $_SESSION['platform_import_payload'] = $url;
+        redirect('/?page=job_platform_search#quick-import');
+    }
+
     if ($action === 'prepare_platform_import') {
         $results = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
         $_SESSION['platform_import_payload'] = implode("\n", array_map(static fn(array $row): string => (string)($row['url'] ?? ''), $results));
         flash(tr('job_search.links_moved_to_import'));
-        redirect('/?page=jobs#quick-import');
+        redirect('/?page=job_platform_search#quick-import');
     }
 
     if ($action === 'preview_import') {
@@ -11154,7 +11212,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.1';
+$codeVersion = '2.0.2';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -12434,6 +12492,7 @@ startUiTranslationBuffer($appLocale);
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
         $searchCriteria = savedJobSearchCriteria($db, userId(), $preference, $currentUser, $platformRows);
         $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
+        $aiJobResults = is_array($_SESSION['ai_job_search_results'] ?? null) ? $_SESSION['ai_job_search_results'] : [];
         $aiNote = trim((string) ($_SESSION['job_search_ai_note'] ?? ''));
         unset($_SESSION['job_search_ai_note']);
         $promptFacts = [];
@@ -12441,9 +12500,15 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('job_search.section')) ?></p><h1><?= e(tr('job_search.title')) ?></h1></div><span><?= e(tr('job_search.active_portals', null, ['count' => (string) count($platformRows)])) ?></span></div>
         <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button type="submit" name="action" value="reset_platform_search_criteria"><?= e(tr('job_search.profile_defaults')) ?></button></form></div></div>
             <?php if($aiNote !== ''): ?><p class="alert success"><?= e($aiNote) ?></p><?php endif; ?>
+            <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e((string) ($_SESSION['platform_import_payload'] ?? '')) ?></textarea><button class="primary" type="submit" name="action" value="preview_import"><?= e(tr('jobs.create_suggestion')) ?></button></form></section>
+            <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Profilbasierte Suche</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.remote_preference')) ?><input name="remote_preference" value="<?= e($searchCriteria['remote_preference']) ?>"></label></div><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="25" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button class="primary" type="submit" name="action" value="search_ai_jobs">Passende Jobs suchen</button></div></form>
+            <?php if (false): ?>
             <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchprofil</h3><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><input type="hidden" name="search_query" value="<?= e($searchCriteria['search_query']) ?>"><input type="hidden" name="search_location" value="<?= e($searchCriteria['search_location']) ?>"><input type="hidden" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"><?php foreach($searchCriteria['platform_ids'] as $platformId): ?><input type="hidden" name="platform_ids[]" value="<?= (int)$platformId ?>"><?php endforeach; ?><button type="submit" name="action" value="save_platform_search_criteria">Suchprofil speichern</button></form>
             <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchkriterien</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button type="submit" name="action" value="suggest_job_search_criteria"><?= e(tr('job_search.ai_suggest')) ?></button><button class="primary" type="submit" name="action" value="generate_platform_search" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></div><p class="meta-line"><strong><?= e(tr('job_search.ai_assist')) ?>:</strong> <?= e(tr('job_search.ai_hint')) ?></p><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div></form>
+            <?php endif; ?>
         </section>
+        <style>.job-search-description{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:4}</style><section class="panel table-wrap" id="results"><div class="section-head"><div><p class="eyebrow">KI-Unterstützung</p><h2>Passende Jobs</h2></div></div><?php if ($aiJobResults): ?><table><thead><tr><th>Übernehmen</th><th>Match</th><th>Firma</th><th>Arbeitsort</th><th>Jobbezeichnung</th><th>Kurzbeschreibung</th><th>Link zur Ausschreibung</th></tr></thead><tbody><?php foreach ($aiJobResults as $job): ?><tr><td><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_url" value="<?= e((string) $job['url']) ?>"><button type="submit" name="action" value="prepare_ai_job_import">Übernehmen</button></form></td><td><strong><?= (int) $job['match_percent'] ?>%</strong><small><?= e((string) $job['match_reason']) ?></small></td><td><?= e((string) $job['company']) ?></td><td><?= e((string) $job['location']) ?></td><td><strong><?= e((string) $job['title']) ?></strong></td><td><div class="job-search-description"><?= e((string) $job['description']) ?></div></td><td><a href="<?= e((string) $job['url']) ?>" target="_blank" rel="noopener">Ausschreibung öffnen</a></td></tr><?php endforeach; ?></tbody></table><?php else: ?><p class="empty">Noch keine passenden Jobs gesucht.</p><?php endif; ?></section>
+        <?php if (false): ?>
         <section class="panel prompt-panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.chatgpt_section')) ?></p><h2><?= e(tr('job_search.prompt_title')) ?></h2></div><div class="actions copy-actions"><button type="button" data-copy-target="chatgpt-job-prompt"><?= e(tr('job_search.copy_prompt')) ?></button><a class="button" href="/?page=jobs#quick-import"><?= e(tr('job_search.to_quick_import')) ?></a></div></div><label><?= e(tr('job_search.prompt')) ?><textarea id="chatgpt-job-prompt" rows="15" readonly></textarea></label><p class="meta-line"><?= e(tr('job_search.copy_instruction')) ?></p></section>
         <section class="panel" id="results"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.ready_for_import')) ?></p><h2><?= e(tr('job_search.package')) ?></h2></div><?php if($searchResults): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="prepare_platform_import"><?= e(tr('job_search.import_package')) ?></button></form><?php endif; ?></div>
             <div class="dossier-list"><?php foreach($searchResults as $result): ?><article><strong><?= e((string)$result['name']) ?></strong><span><?= e(tr('job_search.result_meta', null, ['count' => (string) (int)$result['limit'], 'query' => (string)$result['query'], 'location' => (string)$result['location']])) ?></span><a href="<?= e((string)$result['url']) ?>" target="_blank" rel="noopener"><?= e((string)$result['url']) ?></a><p class="meta-line"><?= e(tr('job_search.open_portal_hint')) ?></p></article><?php endforeach; ?><?php if(!$searchResults): ?><p class="empty"><?= e(tr('job_search.empty_package')) ?></p><?php endif; ?></div>
@@ -12559,6 +12624,7 @@ startUiTranslationBuffer($appLocale);
             buildPrompt();
         })();
         </script>
+        <?php endif; ?>
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $companyFilter = (int)($_GET['company_id'] ?? 0); $jobView = ($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
@@ -12592,7 +12658,6 @@ startUiTranslationBuffer($appLocale);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('jobs.section')) ?></p><h1><?= e(tr('nav.jobs')) ?></h1></div><span><?= e(tr('jobs.results_count', null, ['count' => (string) count($jobs)])) ?></span></div>
         <div data-bulk-action="bulk_delete_jobs" data-bulk-id-name="job_ids[]" data-bulk-company-id="<?= $companyFilter ?>">
-        <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form" data-progress-form data-progress-button-text="<?= e(tr('jobs.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('jobs.progress.read_import'), tr('jobs.progress.check_links'), tr('jobs.progress.prepare_suggestion'), tr('jobs.progress.check_duplicates')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="preview_import"><textarea name="import_payload" rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e($platformImportPayload) ?></textarea><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('jobs.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('jobs.progress.read_import')) ?></p></div><button class="primary" type="submit" data-progress-button><?= e(tr('jobs.create_suggestion')) ?></button></form><?php if($platformImportPayload !== ''): ?><p class="meta-line"><?= e(tr('jobs.search_links_imported')) ?></p><?php endif; ?></section>
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.cards')) ?></a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.table')) ?></a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
         <div class="split"><section class="panel" id="new"><h2><?= e($edit ? tr('jobs.edit') : ($draft ? tr('jobs.check_import') : tr('jobs.create'))) ?></h2><form method="post" enctype="multipart/form-data" class="stack job-editor-form">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">

@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.1 erweitert die Jobsuche um gespeicherte, pro Benutzer isolierte Kriterien und eine bewusst ausgelöste KI-Vorschlagsfunktion. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.2 trennt den Schnellimport für eine oder mehrere bekannte Ausschreibungen von der profilbasierten KI-Suche. Suchkriterien bleiben pro Benutzer gespeichert; die KI liefert prüfbare Treffer, die erst über den Übernehmen-Schritt in den Import gelangen. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 

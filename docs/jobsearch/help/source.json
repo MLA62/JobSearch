@@ -1,5 +1,5 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.2",
   "reviewed": "2026-09-03",
   "locales": [
     "de-CH",
@@ -320,67 +320,67 @@
       "text": {
         "de-CH": {
           "title": "Stellen suchen",
-      "summary": "Die Seite übernimmt zuerst Suchbegriff, Ort und Plattformen aus deinem Profil. Eigene Eingaben bleiben gespeichert, bis du die Standardwerte erneut lädst.",
+      "summary": "Schnellimport übernimmt eine oder mehrere bekannte Anzeigen. Die profilbasierte Suche übernimmt deine Profilwerte; eigene Anpassungen bleiben gespeichert, bis du die Standardwerte erneut lädst.",
           "steps": [
-        "Gib Suchbegriff, Suchort, gewünschte Trefferzahl und Plattformen direkt ein und wähle Suchkriterien speichern.",
+        "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile.",
         "Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.",
-        "Optional schlägt die KI einen präziseren Suchbegriff und Suchort vor; überprüfe den Vorschlag vor der Suche.",
-            "Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport."
+        "Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Die ausgewählten Portale werden abgearbeitet, bis die gewünschte Anzahl erreicht ist oder alle Quellen ausgeschöpft sind.",
+        "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil; übernimm eine Stelle erst nach eigener Prüfung."
           ],
           "tips": [
-        "Die KI überträgt nur Suchkriterien, keine Dokumente, Bewerbungen oder Stellenresultate. Suchresultate bleiben Vorschläge."
+        "Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt."
           ]
         },
         "fr-CH": {
           "title": "Rechercher des offres",
-      "summary": "La page reprend d’abord le terme, le lieu et les plateformes de ton profil. Tes propres saisies restent enregistrées jusqu’au rechargement des valeurs par défaut.",
+      "summary": "L’import rapide reprend une ou plusieurs annonces connues. La recherche basée sur le profil conserve tes adaptations jusqu’au rechargement des valeurs par défaut.",
           "steps": [
-        "Saisis directement le terme, le lieu, le nombre souhaité et les plateformes, puis enregistre les critères.",
+        "Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne.",
         "Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.",
-        "En option, l’IA propose un terme et un lieu plus précis ; vérifie la proposition avant la recherche.",
-            "Colle les liens directs vérifiés, un par ligne, dans l’import rapide."
+        "Adapte les critères basés sur le profil et lance la recherche.",
+        "Reprends une offre du tableau seulement après vérification."
           ],
           "tips": [
-        "L’IA ne transmet que les critères de recherche, jamais les documents, candidatures ou résultats. Les résultats restent des propositions."
+        "L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre."
           ]
         },
         "en-GB": {
           "title": "Search for jobs",
-      "summary": "The page initially takes the search term, location and platforms from your profile. Your own entries stay saved until you load the defaults again.",
+      "summary": "Quick import handles one or more known advertisements. Profile-based search keeps your changes until you load the defaults again.",
           "steps": [
-        "Enter the search term, location, desired number and platforms directly, then save the criteria.",
+        "Paste one or more verified advertisement URLs into quick import, one per line.",
         "Profile defaults deliberately replace all saved criteria with the current profile values.",
-        "Optionally, AI suggests a more precise term and location; review the suggestion before searching.",
-            "Paste verified direct advertisement URLs, one per line, into quick import."
+        "Adjust the profile-based criteria and start the job search.",
+        "Take over a job from the result table only after reviewing it."
           ],
           "tips": [
-        "AI sends only search criteria, never documents, applications or search results. Results remain suggestions."
+        "AI provides suggestions. It creates neither an application nor a job without your Take over action."
           ]
         },
         "pt-BR": {
           "title": "Pesquisar vagas",
-      "summary": "A página usa inicialmente o termo, o local e as plataformas do seu perfil. Suas próprias entradas permanecem salvas até que você recarregue os padrões.",
+      "summary": "A importação rápida aceita uma ou mais vagas conhecidas. A busca baseada no perfil mantém suas alterações até recarregar os padrões.",
           "steps": [
-        "Informe diretamente o termo, o local, a quantidade desejada e as plataformas, depois salve os critérios.",
+        "Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha.",
         "Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.",
-        "Opcionalmente, a IA sugere um termo e local mais precisos; revise a sugestão antes de pesquisar.",
-            "Cole os links diretos verificados, um por linha, na importação rápida."
+        "Ajuste os critérios baseados no perfil e inicie a busca.",
+        "Importe uma vaga da tabela somente após revisá-la."
           ],
           "tips": [
-        "A IA envia apenas critérios de pesquisa, nunca documentos, candidaturas ou resultados. Os resultados continuam sendo sugestões."
+        "A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar."
           ]
         },
         "es-MX": {
           "title": "Buscar vacantes",
-      "summary": "La página usa primero el término, la ubicación y las plataformas de tu perfil. Tus propios datos permanecen guardados hasta que cargues de nuevo los valores predeterminados.",
+      "summary": "La importación rápida acepta una o varias vacantes conocidas. La búsqueda basada en el perfil conserva tus cambios hasta que cargas los valores predeterminados.",
           "steps": [
-        "Introduce directamente el término, la ubicación, la cantidad deseada y las plataformas, y guarda los criterios.",
+        "Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea.",
         "Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.",
-        "De forma opcional, la IA sugiere un término y una ubicación más precisos; revisa la sugerencia antes de buscar.",
-            "Pega enlaces directos verificados, uno por línea, en la importación rápida."
+        "Ajusta los criterios basados en el perfil e inicia la búsqueda.",
+        "Importa una vacante de la tabla solo después de revisarla."
           ],
           "tips": [
-        "La IA solo envía criterios de búsqueda, nunca documentos, candidaturas ni resultados. Los resultados siguen siendo sugerencias."
+        "La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar."
           ]
         }
       }
