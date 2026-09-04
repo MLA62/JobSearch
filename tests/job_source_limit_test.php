@@ -1,0 +1,41 @@
+<?php
+declare(strict_types=1);
+require __DIR__.'/job_verification_test.php';
+$fresh=static fn(array $sources):array=>['criteria'=>$criteria+['total_count'=>15,'display_locale'=>'de-CH'],'sources'=>$sources,'source_index'=>0,'round'=>0,'queue'=>[],'seen'=>[],'originals'=>[],'excluded'=>[],'jobs'=>[],'checked'=>0,'rejected'=>0,'done'=>false,'limited'=>false];
+$requests=[];
+$GLOBALS['discoveryFixtureCallback']=static function(array $criteria) use (&$requests):array {
+    $requests[]=$criteria;
+    return array_map(static fn($i)=>['url'=>$criteria['preferred_sources'][0].'/'.$i],range(1,15));
+};
+$GLOBALS['verificationFixtureError']=new RuntimeException('Die Ausschreibung ist abgelaufen oder nicht mehr verfügbar.');
+$multi=$fresh(['https://first.test','https://second.test']);
+advanceVerifiedJobSearch([],7,$multi);
+helpAssert($requests[0]['total_count']===10 && count($multi['queue'])===10,'Request and server-side cap are ten raw candidates');
+for ($i=0;$i<10;$i++) advanceVerifiedJobSearch([],7,$multi);
+helpAssert($multi['checked']===10 && $multi['jobs']===[],'Expired candidates count towards source limit, not target');
+advanceVerifiedJobSearch([],7,$multi);
+helpAssert($requests[1]['preferred_sources']===['https://second.test'] && $multi['source_index']===1,'Next source follows ten raw results even with no matches');
+$single=$fresh(['https://first.test']);
+advanceVerifiedJobSearch([],7,$single);
+helpAssert(end($requests)['total_count']===15 && count($single['queue'])===15 && empty($single['advance_source']),'One selected source keeps previous batch policy');
+$duplicate=$fresh(['https://first.test','https://second.test']);
+for ($i=1;$i<=10;$i++) $duplicate['excluded']['https://first.test/'.$i]=true;
+advanceVerifiedJobSearch([],7,$duplicate);
+helpAssert($duplicate['source_raw']===10 && !$duplicate['queue'] && $duplicate['advance_source'],'Excluded raw results count before filtering');
+advanceVerifiedJobSearch([],7,$duplicate);
+helpAssert(end($requests)['preferred_sources']===['https://second.test'],'Exclusions do not keep discovery on first source');
+$requests=[]; $batch=0;
+$GLOBALS['discoveryFixtureCallback']=static function(array $criteria) use (&$requests,&$batch):array {
+    $requests[]=$criteria; $batch++;
+    return array_map(static fn($i)=>['url'=>'https://first.test/'.$batch.'-'.$i],range(1,4));
+};
+$partial=$fresh(['https://first.test','https://second.test']);
+for ($step=0;$step<13;$step++) advanceVerifiedJobSearch([],7,$partial);
+helpAssert(array_column($requests,'total_count')===[10,6,2],'Short responses request only remaining raw allowance');
+helpAssert($partial['checked']===10 && $partial['source_raw']===10 && $partial['advance_source'],'Ten accumulated raw results, not ten per discovery round');
+$legacy=$fresh(['https://first.test','https://second.test']);
+$legacy['round']=3; $legacy['queue']=['https://first.test/old'];
+advanceVerifiedJobSearch([],7,$legacy);
+helpAssert($legacy['source_index']===1 && $legacy['limited'],'Older in-flight batch switches rather than processing old surplus');
+unset($GLOBALS['discoveryFixtureCallback'],$GLOBALS['verificationFixtureError']);
+echo "Source-limit checks passed\n";

@@ -1,8 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.9 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Neuer angemeldeter Suchlauf noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.10 vorbereitet; noch nicht deployed. Bestätigter Live-Stand 2.0.9. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Quellenwechsel 2.0.10 (vorbereitet)
+
+Bei mehreren Quellen zählt source_raw die gelieferten URL-Kandidaten vor Dubletten-/Benutzerausschluss und Original-/Match-Prüfung. Nach insgesamt zehn rohen Treffern der Quelle wird deren Prüfwarteschlange abgearbeitet und anschließend zur nächsten ausgewählten Quelle gewechselt. Discovery fragt nur die verbleibende Anzahl an; serverseitiges Abschneiden begrenzt übergroße Antworten. Kleine Antworten können bis zur bisherigen Drei-Runden-Grenze ergänzt werden. Keine neuen Kandidaten bedeutet weiterhin früherer Wechsel. Einzelsuche bleibt bei bisherigen 15 Kandidaten je Discovery-Runde.
+
+Die gewünschte Zahl passender Jobs und Gesamtgrenze 60 haben weiterhin Vorrang; das Quellenlimit wird als begrenzte Suche gekennzeichnet, nicht als vollständige Ausschöpfung. Alte laufende Mehrquellensuchen ohne Rohzähler wechseln von einer bereits begonnenen Quelle weiter, statt die alte große Warteschlange zu leeren. Bereits akzeptierte Treffer bleiben erhalten. Neue Suchen verwenden den exakten Zähler. Keine DB- oder Match-Änderungen.
+
+Der neue vom Benutzer bereitgestellte Teilbericht aus 2.0.9 belegt fünf akzeptierte Treffer, zwei Profilablehnungen, 24 unverfügbare/unprüfbare Kandidaten und null technische Fehler bei 31 Prüfungen; weiterhin ausschließlich erste Quelle. Das bestätigt erfolgreiche Match-Verarbeitung dieses Laufs, nicht die vollständige fachliche Abnahme aller Bewertungen.
 
 ## Match-Vertrag 2.0.9 (deployed)
 

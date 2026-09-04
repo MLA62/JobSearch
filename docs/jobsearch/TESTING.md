@@ -5,6 +5,8 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.10: `job_source_limit_test.php` führt die echte schrittweise Suche mit simulierten externen Grenzen aus: zehn rohe Treffer, serverseitiges Limit, Wechsel trotz null passender Jobs, Einzelquelle unverändert, ausgeschlossene Treffer zählen, kleine Antworten mit Restlimit, Übergang alter laufender Sessions. Bestehende Such-/Import-/Datenschutz- und Browser-Tests bleiben erforderlich.
+
 Ergänzung 2.0.9: `job_verification_contract_test.php` führt den echten verifiedJobImport,
 die Schemaerzeugung, den Responses-Payload und die Antwort-zu-Score-Konvertierung aus.
 Nur HTML-/HTTP-Grenzen sind simuliert. Pflichtschlüssel, geschlossene Objekte, leeres

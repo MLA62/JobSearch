@@ -52,7 +52,7 @@ helpAssert(jobFactValue('job','workload_max','101')===null && jobFactValue('job'
 helpAssert(canonicalJobUrl('https://example.test/job/1?utm_source=x')==='https://example.test/job/1','Tracking variants deduplicated');
 
 // Exercise actual incremental orchestration with deterministic external boundaries.
-function openAiJobSearch(array $config,int $uid,array $criteria):array { if (isset($GLOBALS['discoveryFixtureError'])) throw $GLOBALS['discoveryFixtureError']; return array_map(static fn($id)=>['url'=>'https://example.test/'.$id],['expired','unknown','mismatch','deleted','good','duplicate']); }
+function openAiJobSearch(array $config,int $uid,array $criteria):array { if (isset($GLOBALS['discoveryFixtureCallback'])) return ($GLOBALS['discoveryFixtureCallback'])($criteria); if (isset($GLOBALS['discoveryFixtureError'])) throw $GLOBALS['discoveryFixtureError']; return array_map(static fn($id)=>['url'=>'https://example.test/'.$id],['expired','unknown','mismatch','deleted','good','duplicate']); }
 function verifiedJobImport(array $config,int $uid,string $url,array $criteria):array {
     global $enriched;
     if (isset($GLOBALS['verificationFixtureError'])) throw $GLOBALS['verificationFixtureError'];

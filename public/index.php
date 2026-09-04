@@ -3492,6 +3492,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Um erro técnico na associação dos critérios da IA não significa incompatibilidade com o perfil: a busca exibe o erro e para; o diagnóstico identifica o problema separadamente. Apenas critérios comprovados contam para a compatibilidade.',
     'es-MX' => 'Un error técnico al relacionar los criterios de IA no significa incompatibilidad con el perfil: la búsqueda muestra el error y se detiene; el diagnóstico lo identifica por separado. Solo los criterios respaldados cuentan para la compatibilidad.',
   ),
+  'help.v2.search.tips.6' =>
+  array (
+    'de-CH' => 'Bei mehreren ausgewählten Suchmaschinen wechselt die Suche nach zehn rohen URL-Treffern zur nächsten. Abgelaufene, unpassende, doppelte und ausgeschlossene Treffer zählen für diesen Wechsel mit, nicht für die gewünschte Zahl passender Jobs. Bei nur einer Suchmaschine gilt die bisherige Suchregel. Sicherheitsgrenzen bleiben bestehen; der Wechsel bedeutet nicht, dass die Quelle vollständig ausgeschöpft ist.',
+    'fr-CH' => 'Avec plusieurs moteurs sélectionnés, la recherche passe au suivant après dix URL brutes. Les annonces expirées, inadaptées, en double ou exclues comptent pour ce changement, pas pour le nombre de postes adaptés souhaité. Avec un seul moteur, la règle précédente reste valable. Les limites de sécurité restent actives ; le changement ne signifie pas que la source est épuisée.',
+    'en-GB' => 'With multiple search engines selected, the search moves to the next after ten raw URL results. Expired, unsuitable, duplicate and excluded results count towards this switch, not the requested number of matching jobs. A single engine keeps the previous search rule. Safety limits still apply; switching does not mean the source is exhausted.',
+    'pt-BR' => 'Com vários buscadores selecionados, a busca passa ao próximo após dez URLs brutas. Resultados expirados, incompatíveis, duplicados e excluídos contam para essa troca, não para a quantidade desejada de vagas compatíveis. Com um único buscador, permanece a regra anterior. Os limites de segurança continuam ativos; a troca não significa que a fonte foi esgotada.',
+    'es-MX' => 'Con varios buscadores seleccionados, la búsqueda pasa al siguiente después de diez URL sin filtrar. Los resultados vencidos, incompatibles, duplicados y excluidos cuentan para el cambio, no para la cantidad deseada de empleos compatibles. Con un solo buscador se mantiene la regla anterior. Los límites de seguridad siguen vigentes; el cambio no significa que la fuente se haya agotado.',
+  ),
   'help.v2.search.title' =>
   array (
     'de-CH' => 'Stellen suchen',
@@ -3783,7 +3791,7 @@ function helpTopicDefinitions(): array
       1 => 'jobs#quick-import',
     ),
     'step_count' => 4,
-    'tip_count' => 6,
+    'tip_count' => 7,
   ),
   5 =>
   array (
@@ -8889,7 +8897,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.9','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.10','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -8965,11 +8973,17 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
     if (!empty($state['done'])) return;
     if (count($state['jobs']) >= $state['criteria']['total_count']) { $state['done']=true; return; }
     if ($state['checked']>=60) { $state['done']=true; $state['limited']=true; return; }
+    $multipleSources=count($state['sources'])>1;
+    // An older in-flight search has no raw counter. Do not drain its old 15/45-item source batch.
+    if ($multipleSources && !array_key_exists('source_raw',$state) && $state['round']>0) {
+        $state['queue']=[]; $state['advance_source']=true; $state['limited']=true;
+    }
+    $state['source_raw']=(int)($state['source_raw'] ?? 0);
     if (!$state['queue']) {
-        if (!empty($state['advance_source'])) { $state['source_index']++; $state['round']=0; $state['advance_source']=false; }
+        if (!empty($state['advance_source'])) { $state['source_index']++; $state['round']=0; $state['source_raw']=0; $state['advance_source']=false; }
         if ($state['source_index']>=count($state['sources'])) { $state['done']=true; return; }
         $source=$state['sources'][$state['source_index']];
-        $discovery=$state['criteria']; $discovery['total_count']=15;
+        $discovery=$state['criteria']; $discovery['total_count']=$multipleSources ? max(1,10-$state['source_raw']) : 15;
         $discovery['preferred_sources']=$source!=='' ? [$source] : [];
         $discovery['exclude_urls']=array_keys($state['seen']);
         $started=microtime(true);
@@ -8979,6 +8993,9 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
             $state['technical_errors']=(int)($state['technical_errors'] ?? 0)+1;
             throw $error;
         }
+        // Count raw URL candidates before exclusion, deduplication, availability and matching.
+        $found=array_slice($found,0,$discovery['total_count']);
+        $state['source_raw']+=count($found);
         $added=0;
         foreach ($found as $candidate) {
             $key=canonicalJobUrl((string)$candidate['url']);
@@ -8987,7 +9004,7 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
         }
         $state['round']++;
         jobSearchDebugEvent($state,['stage'=>'discovery','outcome'=>'completed','url'=>$source,'found'=>count($found),'queued'=>$added,'round'=>$state['round'],'duration_ms'=>(microtime(true)-$started)*1000]);
-        if ($added===0 || $state['round']>=3) {
+        if ($added===0 || $state['round']>=3 || ($multipleSources && $state['source_raw']>=10)) {
             if ($added>0) $state['limited']=true;
             $state['advance_source']=true;
         }
@@ -12302,7 +12319,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.9';
+$codeVersion = '2.0.10';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
