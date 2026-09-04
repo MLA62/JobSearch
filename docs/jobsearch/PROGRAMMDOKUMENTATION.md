@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.7 lokal vorbereitet; Deployment und angemeldete Importabnahme ausstehend. Letzter bestätigter Live-Stand ist 2.0.6. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.7 deployed; Serverdatei und öffentliche Versionsanzeige verifiziert. Angemeldete Importabnahme offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Verifizierte Suche und Import 2.0.7 (lokaler Stand)
+## Verifizierte Suche und Import 2.0.7 (deployed)
 
 - Discovery liefert nur Kandidaten-URLs. Vor der Anzeige liest die App jede Originalanzeige einschließlich erkannter Drill-down-Links. HTTP 404/410, erkannte Soft-404, Ablaufhinweise und vergangenes validThrough schließen die Anzeige aus. Ein zukünftiges validThrough oder ein aktives Bewerbungsbedienelement gilt als Verfügbarkeitsindiz; alte Anzeigen ohne aktuelle Frist und Anzeigen ohne positives Indiz bleiben unbekannt und werden nicht vorgeschlagen. Das ist keine Garantie einer tatsächlich noch unbesetzten Stelle.
 - Die KI erhält vollständigen Originaltext und strukturierte Originalmetadaten, keine bloßen Such-Snippets. Jede bewertete Dimension verlangt ein überprüfbares wörtliches Zitat aus der Originalquelle. Firmenmarketing beweist keine Stelleneigenschaft. Die App berechnet den gewichteten Score: Rolle 35, Ort 20, Pensum 15, Ebene/Arbeitsmodell/Stellenart/Lohn je 10, Benefits 3, Ausschlüsse 15, Reise/Verfügbarkeit/weitere Wünsche je 5; nur aktive Kriterien zählen. Erfüllt = 1, teilweise = 0,5, unbekannt/nicht erfüllt = 0. Beliebiges Arbeitsmodell ist kein Kriterium. Fehlende Rolle/Ort-Belege und belegte harte Konflikte schließen aus. Vorläufiger Vorschlagsschwellenwert 70 %. Semantische Interpretation und Übersetzungsqualität bleiben modellabhängig.

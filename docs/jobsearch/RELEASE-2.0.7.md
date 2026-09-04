@@ -1,6 +1,6 @@
 # Version 2.0.7 – Geprüfte Treffer und belegbasierter Import
 
-Stand: 2026-09-04. Lokal vorbereitet, nicht als deployed bestätigt.
+Stand: 2026-09-04. Nach erfolgreicher externer TOTP-Freigabe deployed.
 
 ## Änderungen
 
@@ -28,7 +28,11 @@ Upload vorbereitet aus Quell-Commit 7d37e9a11bebcff060a5af511fb19151b8e53d93.
 Lokaler Stand und GitHub-Branch vor dem Vorschlag identisch, Arbeitsstand sauber.
 Vorgeschlagene Datei: 971638 Bytes, SHA-256 7c5c1cbff4f38538989ad6296a97553e15d1305defb7f779304765a6c31cfe86.
 Remote-Vergleich vor dem Vorschlag bestätigt den unten genannten Stand 2.0.6.
-Die Ausführung wartet auf externe TOTP-Freigabe; kein Live-Erfolg behauptet.
+Freigegebenen Upload ausgeführt am 2026-09-04T16:05:43+00:00.
+Remote-Datei: 971638 Bytes, Modus 0644, SHA-256 identisch mit dem vorgeschlagenen Inhalt.
+Öffentliche Login-Seite: HTTP 200, Version 2.0.7 und Loginformular vorhanden;
+keine sichtbare PHP-Fatal-/Parse-/Uncaught-Fehlermeldung. Keine produktiven Testimports
+oder Bestandskorrekturen durchgeführt. Angemeldete fachliche Abnahme bleibt offen.
 
 Ziel ausschließlich public_html/jobs.jema.business/index.php einschließlich generierter Hilfe.
 Freigabe über externe TOTP-Seite, danach Hash- und öffentliche Versionsprüfung.
