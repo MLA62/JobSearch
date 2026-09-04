@@ -1377,6 +1377,17 @@ Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PH
 ```
 
 ```php
+"CREATE TABLE IF NOT EXISTS user_job_search_exclusions (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        job_url VARCHAR(2048) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_user_job_search_exclusion (user_id, job_url(191)),
+        CONSTRAINT fk_user_job_search_exclusions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+```
+
+```php
 "CREATE TABLE IF NOT EXISTS user_profile_links (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         user_id BIGINT UNSIGNED NOT NULL,

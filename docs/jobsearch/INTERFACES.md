@@ -81,6 +81,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `disable_totp`
 - `disconnect_google_calendar`
 - `enable_totp`
+- `exclude_ai_job`
 - `follow_up`
 - `generate_platform_search`
 - `grant_admin_support`
@@ -381,6 +382,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importDiscoverDetailUrls(string $url, int $limit = 30): array`
 - `function importJobLocation(array $job): string`
 - `function importHiringOrganization(array $job): string`
+- `function importJobContact(array $job): array`
 - `function importCleanTitle(string $title): string`
 - `function importCompanyFromText(string $text): string`
 - `function importVisibleCompany(DOMXPath $xpath): string`

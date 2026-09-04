@@ -1278,6 +1278,14 @@ try {
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         CONSTRAINT fk_user_job_search_criteria_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS user_job_search_exclusions (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT UNSIGNED NOT NULL,
+        job_url VARCHAR(2048) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_user_job_search_exclusion (user_id, job_url(191)),
+        CONSTRAINT fk_user_job_search_exclusions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     seedJobPlatforms($db);
     ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
     ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
@@ -7411,6 +7419,24 @@ function importHiringOrganization(array $job): string
     return '';
 }
 
+function importJobContact(array $job): array
+{
+    $organization = $job['hiringOrganization'] ?? [];
+    $points = $organization['contactPoint'] ?? ($job['contactPoint'] ?? []);
+    if (isset($points['email']) || isset($points['name'])) $points = [$points];
+    foreach ((array) $points as $point) {
+        if (!is_array($point)) continue;
+        $name = trim((string) ($point['name'] ?? ''));
+        $email = trim((string) ($point['email'] ?? ''));
+        $phone = trim((string) ($point['telephone'] ?? ''));
+        if ($name === '' && $email === '' && $phone === '') continue;
+        if (preg_match('/privacy|datenschutz|legal|support|cookie/i', $name . ' ' . $email)) continue;
+        $parts = preg_split('/\s+/u', $name, 2) ?: [];
+        return ['first_name'=>(string)($parts[0] ?? ''),'last_name'=>(string)($parts[1] ?? ''),'email'=>$email,'phone'=>$phone];
+    }
+    return [];
+}
+
 function importCleanTitle(string $title): string
 {
     $title = plainText($title);
@@ -7581,6 +7607,7 @@ function importFromUrl(string $url): array
         'company' => repairMojibake($company),
         'location' => repairMojibake($location),
         'description' => repairMojibake($description),
+        'contact' => importJobContact($job ?: []),
         'source_url' => $finalUrl ?: $url,
     ];
 }
@@ -9750,7 +9777,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $preferredSources = array_values(array_filter(array_map(static fn(array $row): string => (string) ($row['base_url'] ?? ''), dbAll($db, "SELECT base_url FROM job_platforms WHERE id IN ($idList) AND is_active=1 AND deleted_at IS NULL"))));
             }
             $criteria = array_merge($profileCriteria, ['query'=>$query, 'location'=>$location, 'total_count'=>$total, 'preferred_sources'=>$preferredSources, 'display_language'=>documentLanguageChoices()[normalizeLocale((string) ($currentUser['preferred_language'] ?? 'de-CH'))] ?? 'Deutsch (Schweiz)']);
-            $_SESSION['ai_job_search_results'] = openAiJobSearch($config, userId(), $criteria);
+            $excludedUrls = array_flip(array_map(static fn(array $row): string => (string) $row['job_url'], dbAll($db, 'SELECT job_url FROM user_job_search_exclusions WHERE user_id=?', 'i', [userId()])));
+            $_SESSION['ai_job_search_results'] = array_values(array_filter(openAiJobSearch($config, userId(), $criteria), static fn(array $job): bool => !isset($excludedUrls[(string) ($job['url'] ?? '')])));
             audit($db, userId(), 'other', 'ai_job_search', 0, null, ['count'=>count($_SESSION['ai_job_search_results'])]);
         } catch (Throwable $exception) { error_log('AI job search failed: '.$exception->getMessage()); flash('Die KI-Stellensuche konnte nicht ausgeführt werden.', 'danger'); }
         redirect('/?page=job_platform_search#results');
@@ -9759,8 +9787,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'prepare_ai_job_import') {
         $url = trim((string) ($_POST['job_url'] ?? ''));
         if (!filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with($url, 'https://')) { http_response_code(422); exit('Invalid URL'); }
-        $_SESSION['platform_import_payload'] = $url;
-        redirect('/?page=job_platform_search#quick-import');
+        try {
+            $draft = importFromUrl($url);
+            $title = trim((string) ($draft['title'] ?? ''));
+            $companyName = trim((string) ($draft['company'] ?? ''));
+            if ($title === '' || $companyName === '') throw new RuntimeException('Die Originalausschreibung enthält keinen vollständigen Jobtitel und keine Firma.');
+            $uid = userId(); $sourceUrl = (string) ($draft['source_url'] ?? $url);
+            $companyId = importUpsertCompany($db, $uid, $companyName);
+            $existing = dbOne($db, 'SELECT id FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
+            if ($existing) { redirect('/?page=jobs&edit=' . (int) $existing['id'] . '#new'); }
+            $location = trim((string) ($draft['location'] ?? '')); $description = trim((string) ($draft['description'] ?? ''));
+            $status='open'; $workplace='unknown'; $engagement='permanent'; $term='unknown';
+            $stmt=$db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description); $stmt->execute(); $jobId=(int)$stmt->insert_id;
+            $contact = is_array($draft['contact'] ?? null) ? $draft['contact'] : [];
+            if (trim((string) ($contact['first_name'] ?? '')) !== '' || trim((string) ($contact['last_name'] ?? '')) !== '' || trim((string) ($contact['email'] ?? '')) !== '') { $first=(string)($contact['first_name'] ?? ''); $last=(string)($contact['last_name'] ?? ''); $email=(string)($contact['email'] ?? ''); $phone=(string)($contact['phone'] ?? ''); $contactStmt=$db->prepare('INSERT INTO contacts (owner_user_id, company_id, job_id, first_name, last_name, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)'); $contactStmt->bind_param('iiissss',$uid,$companyId,$jobId,$first,$last,$email,$phone); $contactStmt->execute(); }
+            $pdf = pdfTableBytes('Originale Stellenausschreibung', ['Feld','Inhalt'], [['Firma',$companyName],['Job',$title],['Arbeitsort',$location],['Quelle',$sourceUrl],['Beschreibung',$description]]);
+            $dir=ensureDocumentStorage($uid); $filename=bin2hex(random_bytes(18)).'.pdf'; $absolute=$dir.'/'.$filename; file_put_contents($absolute,$pdf,LOCK_EX);
+            $documentType=dbOne($db, 'SELECT id FROM document_types WHERE code="other" LIMIT 1');
+            if ($documentType) { $documentTypeId=(int)$documentType['id']; $relative='storage/documents/'.$uid.'/'.$filename; $original='originale-stellenausschreibung.pdf'; $size=filesize($absolute) ?: strlen($pdf); $sha=hash_file('sha256',$absolute); $scope='application'; $language=null; $applicationId=null; $documentTitle='Originale Stellenausschreibung'; $documentDescription='Automatisch aus der Originalausschreibung erzeugt.'; $validFrom=null; $validUntil=null; $version=1; $doc=$db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "application/pdf", ?, ?, ?, ?, ?, 1)'); $doc->bind_param('iissiisssssisssi',$uid,$documentTypeId,$language,$scope,$applicationId,$jobId,$documentTitle,$documentDescription,$original,$relative,$size,$sha,$validFrom,$validUntil,$version); $doc->execute(); }
+            audit($db, $uid, 'create', 'job', $jobId, null, ['source'=>'ai_job_search_import','company_id'=>$companyId,'source_url'=>$sourceUrl]);
+            redirect('/?page=jobs&edit=' . $jobId . '#new');
+        } catch (Throwable $exception) { error_log('AI job import failed: '.$exception->getMessage()); flash('Die Ausschreibung konnte nicht vollständig importiert werden: '.$exception->getMessage(), 'danger'); redirect('/?page=job_platform_search#results'); }
+    }
+
+    if ($action === 'exclude_ai_job') {
+        $url = trim((string) ($_POST['job_url'] ?? ''));
+        if (!filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with($url, 'https://')) { http_response_code(422); exit('Invalid URL'); }
+        $stmt = $db->prepare('INSERT IGNORE INTO user_job_search_exclusions (user_id, job_url) VALUES (?, ?)');
+        $uid = userId(); $stmt->bind_param('is', $uid, $url); $stmt->execute();
+        $_SESSION['ai_job_search_results'] = array_values(array_filter((array) ($_SESSION['ai_job_search_results'] ?? []), static fn(array $job): bool => (string) ($job['url'] ?? '') !== $url));
+        audit($db, $uid, 'delete', 'ai_job_search_result', 0, null, ['job_url' => $url]);
+        redirect('/?page=job_platform_search#results');
     }
 
     if ($action === 'prepare_platform_import') {
@@ -12525,6 +12583,7 @@ startUiTranslationBuffer($appLocale);
             <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Profilbasierte Suche</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.remote_preference')) ?><input name="remote_preference" value="<?= e($searchCriteria['remote_preference']) ?>"></label></div><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="25" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button class="primary" type="submit" name="action" value="search_ai_jobs">Passende Jobs suchen</button></div></form>
             <script>(()=>{const searchButton=document.querySelector('button[value="search_ai_jobs"]');const form=searchButton?.closest('form');if(!form)return;form.querySelector('button[value="save_platform_search_criteria"]')?.remove();let timer;const save=()=>{const data=new FormData(form);data.set('action','save_platform_search_criteria');fetch(window.location.href,{method:'POST',body:data,credentials:'same-origin'}).catch(()=>{});};form.querySelectorAll('input,textarea,select').forEach(field=>{field.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(save,700);});field.addEventListener('change',()=>{clearTimeout(timer);save();});});form.addEventListener('submit',event=>{if(event.submitter!==searchButton)return;event.preventDefault();const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.76)';overlay.innerHTML='<div style="max-width:34rem;padding:2rem;background:#fff;border-radius:12px;text-align:center"><h2>Passende Jobs werden gesucht</h2><p>Die ausgewählten Portale werden geprüft und die Anzeigen mit deinem Suchprofil verglichen.</p><p><strong>Suche läuft …</strong></p><button type="button">Abbrechen</button></div>';document.body.append(overlay);const controller=new AbortController();overlay.querySelector('button').addEventListener('click',()=>{controller.abort();overlay.remove();});fetch(window.location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',signal:controller.signal}).then(response=>response.text()).then(html=>{document.open();document.write(html);document.close();}).catch(error=>{if(error.name!=='AbortError')overlay.querySelector('p strong').textContent='Die Suche konnte nicht abgeschlossen werden.';});});})();</script>
             <script>window.addEventListener('DOMContentLoaded',()=>{const labels=<?= json_encode($aiResultLabels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;const headers=document.querySelectorAll('#results th');[labels.take,labels.match,labels.company,labels.location,labels.title,labels.description,labels.link].forEach((label,index)=>{if(headers[index])headers[index].textContent=label;});document.querySelectorAll('#results button[value="prepare_ai_job_import"]').forEach(button=>button.textContent=labels.take);document.querySelectorAll('#results a[target="_blank"]').forEach(link=>link.textContent=labels.open);const empty=document.querySelector('#results .empty');if(empty)empty.textContent=labels.empty;});</script>
+            <script>window.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('#results tbody tr').forEach(row=>{const url=row.querySelector('input[name="job_url"]')?.value;if(!url)return;const form=document.createElement('form');form.method='post';form.style.display='inline';form.innerHTML='<input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_url"><button type="submit" name="action" value="exclude_ai_job">Löschen</button>';form.querySelector('input[name="job_url"]').value=url;row.querySelector('td')?.append(' ',form);});});</script>
             <?php if (false): ?>
             <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchprofil</h3><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><input type="hidden" name="search_query" value="<?= e($searchCriteria['search_query']) ?>"><input type="hidden" name="search_location" value="<?= e($searchCriteria['search_location']) ?>"><input type="hidden" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"><?php foreach($searchCriteria['platform_ids'] as $platformId): ?><input type="hidden" name="platform_ids[]" value="<?= (int)$platformId ?>"><?php endforeach; ?><button type="submit" name="action" value="save_platform_search_criteria">Suchprofil speichern</button></form>
             <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchkriterien</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button type="submit" name="action" value="suggest_job_search_criteria"><?= e(tr('job_search.ai_suggest')) ?></button><button class="primary" type="submit" name="action" value="generate_platform_search" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></div><p class="meta-line"><strong><?= e(tr('job_search.ai_assist')) ?>:</strong> <?= e(tr('job_search.ai_hint')) ?></p><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div></form>
