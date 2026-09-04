@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.14 ist für das Deployment vorbereitet; bestätigter Live-Stand ist 2.0.13. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.14 ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Frühe Resultate und Lohnbelege 2.0.14 (Deployment ausstehend)
+## Frühe Resultate und Lohnbelege 2.0.14 (deployed)
 
 Der Diagnosebericht aus dem produktiven Stand 2.0.13 bestätigt vier akzeptierte Treffer in
 einem noch laufenden, begrenzten Snapshot. Sobald der erste Treffer gespeichert ist, ersetzt
@@ -22,6 +22,10 @@ Originalzitat geprüft. Eindeutige Formulierungen wie `/Monat`, `pro Jahr` oder 
 month, year beziehungsweise hour. Ein widersprechender Modellwert wird korrigiert; ohne eindeutigen
 Periodenbeleg wird die Periode verworfen. Es findet keine Umrechnung der Beträge statt. Keine DB-,
 Konfigurations- oder Bestandsdatenänderung.
+
+Das Deployment vom 04.09.2026 bestätigte die exakte Serverdatei, Version 2.0.14 auf der
+öffentlichen Loginseite sowie den Login-Schutz des Debug-Downloads. Ein neuer angemeldeter
+Suchlauf und der konkrete Monatslohnimport bleiben als fachliche Produktionsabnahme offen.
 
 ## Adaptive Quellenverteilung 2.0.13 (deployed)
 
