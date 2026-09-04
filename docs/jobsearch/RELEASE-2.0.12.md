@@ -12,7 +12,9 @@ MDs, Version und Hilfe in fünf Sprachen aktualisiert. 26 PHP-Testdateien ohne W
 
 ## Deployment und Rückweg
 
-Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe, neue TOTP-Freigabe erforderlich. Quell-Commit und Uploadnachweis folgen.
+Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Exakter Upload aus Quell-Commit edab25f7b356cc3c600b138f0e1135caf4a05389 vorgeschlagen; lokal und GitHub synchron. Neue TOTP-Freigabe erforderlich, noch nicht ausgeführt.
+997272 Bytes, SHA-256 8f8b756d4558467a9c6d3c8588eed1beb91649fca286b0ff0d66bd61f989393b.
+Remote-Vergleich vor Vorschlag bestätigte unveränderten Stand 2.0.11. Live-Verifikation folgt nach Freigabe und Ausführung.
 
 Vorheriger bestätigter Stand 2.0.11: Quell-Commit e0a6c38b9edd73e5b6d93da43addb95a2631ece3,
 996248 Bytes, Modus 0644, SHA-256 b95e3dccb675b2782649c1d5e1f6f5497217f8d172b80885595943c83a3122e2.
