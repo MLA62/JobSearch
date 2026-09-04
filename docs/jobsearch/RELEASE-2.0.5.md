@@ -1,6 +1,6 @@
 # Version 2.0.5 – Originalausschreibung und Arbeitgeberdaten
 
-Stand: 2026-09-04. Lokale Vorbereitung; noch nicht deployed.
+Stand: 2026-09-04. Nach erfolgreicher externer TOTP-Freigabe deployed.
 
 ## Änderungen
 
@@ -33,8 +33,15 @@ Bestehende Firmen, Kontakte und Dokumente werden beim Deployment selbst nicht ve
 
 ## Deployment und Rückweg
 
+Ausführung bestätigt am 2026-09-04T11:31:13+00:00. Quell-Commit c34d46994107d704f4674cc04d20a96a361c17d5.
+Remote-Datei: 926119 Bytes, Modus 0644; SHA-256 identisch zum lokalen freigegebenen Inhalt:
+9690811bb33e3a9ea034db68c361d5e49464201b1a8b54b89fef782799746f5e.
+Öffentliche Login-Seite: HTTP 200, Version 2.0.5 und Loginformular vorhanden, keine sichtbare PHP-Fatal-/Parse-Fehlermeldung.
+Kein produktiver Testimport und keine automatische Bestandskorrektur ausgeführt; angemeldete fachliche Abnahme bleibt offen.
+Operative Freigabe-ID und Freigabe-Link werden nicht in das Repository übertragen.
+
 Ziel ist ausschließlich public_html/jobs.jema.business/index.php, inklusive generierter Hilfetexte.
-Vorhandener Stand: Release 2.0.4, Quell-Commit a55053f, SHA-256
+Vor dem Upload vorhandener Stand: Release 2.0.4, Quell-Commit a55053f, SHA-256
 42fa72191b5e1a237fa8225e8d050c300d9f1b8b2c1fabc171a2028ec100343b, Größe 913975 Bytes, Modus 0644.
 Rückweg: exakte alte index.php aus diesem Commit nach erneuter TOTP-Freigabe wiederherstellen.
 Der Code-Rollback macht bewusst vom Benutzer ausgeführte Imports nicht rückgängig.

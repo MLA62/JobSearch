@@ -1,6 +1,6 @@
 # Freigabevorbereitung 2.0.5
 
-Stand 2026-09-04. Noch nicht ausgeführt.
+Stand 2026-09-04. Nach erfolgreicher externer Freigabe ausgeführt; Zielhash und öffentliche Versionsanzeige bestätigt. Nachweis in RELEASE-2.0.5.md.
 
 - Quell-Commit: c34d46994107d704f4674cc04d20a96a361c17d5.
 - Branch feature/jema-jobs-ki-2.0.0 lokal und GitHub vor Proposal identisch, Arbeitsstand sauber.

@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Produktiv verifiziert: 2.0.4; Release 2.0.5 in Vorbereitung.
+Stand: 04.09.2026. Version 2.0.5 deployed; Serverdatei und öffentliche Versionsanzeige verifiziert.
 Aktueller Freigabe-/Prüfstand: [Release 2.0.5](docs/jobsearch/RELEASE-2.0.5.md).
 Historische angemeldete Abnahmen gelten nicht automatisch für diese Änderungen.
 

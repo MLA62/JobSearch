@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Quellstand 2.0.5 in Vorbereitung, produktiv verifiziert 2.0.4. Der Schnellimport für eine oder mehrere bekannte Ausschreibungen ist von der profilbasierten KI-Suche getrennt. Suchkriterien werden automatisch pro Benutzer gespeichert; die KI liefert prüfbare Treffer mit Match-Prozentzahl, die erst über den Übernehmen-Schritt in den Import gelangen. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.5 deployed; Serverdatei und öffentliche Versionsanzeige verifiziert, angemeldete Importabnahme offen. Der Schnellimport für eine oder mehrere bekannte Ausschreibungen ist von der profilbasierten KI-Suche getrennt. Suchkriterien werden automatisch pro Benutzer gespeichert; die KI liefert prüfbare Treffer mit Match-Prozentzahl, die erst über den Übernehmen-Schritt in den Import gelangen. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Originalimport 2.0.5 (Deployment noch ausstehend)
+## Originalimport 2.0.5
 
 - Der Import folgt erkannten Original-Links bis zu drei Inseratseiten. Jobs.ch/Jobup: externalUrl aus serialisiertem Seitenzustand; sonst explizit beschriftete Original-Links. Der erste Kandidat wird verwendet, nicht beliebig weitere Links durchsucht. Ein Titelvergleich verhindert offensichtliche Fehlzuordnungen, ist aber kein semantischer Identitätsbeweis.
 - Bei ohws.prospective.ch wird der sichtbare main-Inhalt mit Absätzen übernommen, statt nur die verkürzte Schema-Beschreibung. Kontakte aus contactInfo-Absätzen bzw. applicationContact werden zusätzlich zu strukturierten Kontakten gespeichert. Das ist keine universelle Erkennung jedes Portal-Layouts.
