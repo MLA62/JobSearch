@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.3.
+Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.4.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 
@@ -13,7 +13,7 @@ Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.3.
 - Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
-- Eine zweizeilige, nicht gespeicherte KI-Instruktion wird sichtbar auf alle relevanten aktuellen Texte angewendet. Bleibt sie leer, verbessert die KI alle drei Texte selbständig.
+- Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Bleibt sie leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.
 - Die KI-Aktion selbst ändert weder Versandstatus noch Versandzeit und versendet keine Nachricht.
 - Bei einem API-Ausfall werden bearbeitbare Grundentwürfe eingesetzt; fehlende Fakten werden nicht erfunden.
 

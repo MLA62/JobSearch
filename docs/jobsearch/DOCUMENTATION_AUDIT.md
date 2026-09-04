@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.3 ist dokumentiert und deployed.
-Produktionsdatei, öffentliche Version, mobile KI-Klicklogik und KI-Modal sind bestätigt; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.4 ist dokumentiert und zur Bereitstellung vorbereitet.
+Version 2.1.3 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -44,6 +44,12 @@ Workflowbereinigung und Hilfe/Lizenz.
 Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentralen Thema. Technische Export-/Callback-Endpunkte besitzen keine eigene kuenstliche Maske. Sicherheitsthemen sind zentral verfuegbar; die Glühbirne wird im aktuellen Layout nur bei angemeldeten Benutzern gezeigt.
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
+
+## Pruefstand 2.1.4
+
+- Der KI-Textvertrag unterscheidet vollständige Neuerstellung bei leerer Instruktion von der
+  Überarbeitung vorhandener Texte bei ausgefüllter Instruktion.
+- Bei der Neuerstellung werden bisherige Texte nicht an das Modell übermittelt.
 
 ## Pruefstand 2.1.3
 

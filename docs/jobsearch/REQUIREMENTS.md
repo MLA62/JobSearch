@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.3.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.4.
+
+Ergänzung 2.1.4: Ist das KI-Instruktionsfeld leer, erstellt die KI Betreff, Begleit-E-Mail und
+Motivationsschreiben vollständig neu aus den verfügbaren Bewerbungsdaten und übernimmt keine
+bisherigen Texte als Vorlage. Ist das Feld ausgefüllt, überarbeitet die KI die vorhandenen Texte
+gemäß der Instruktion.
 
 Ergänzung 2.1.3: Der KI-Button für Bewerbungstexte muss auch in mobilen Browsern zuverlässig
 auslösen. Das modale Fenster `In Arbeit` wird vor dem Request sichtbar. Eine ausgefüllte

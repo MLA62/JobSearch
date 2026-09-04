@@ -1,5 +1,5 @@
 {
-  "version": "2.1.3",
+  "version": "2.1.4",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -655,7 +655,7 @@
           "summary": "Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
           "steps": [
             "Beim Vorbereiten füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.",
-            "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion wird diese sichtbar auf die passenden Felder angewendet, ohne Instruktion verbessert die KI alle drei Texte selbständig; die App versendet dabei nichts.",
+            "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion werden die vorhandenen Texte gemäß dieser Instruktion überarbeitet; bei leerem Instruktionsfeld erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten. Die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
             "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
           ],
@@ -669,7 +669,7 @@
           "summary": "Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens → Acceptation ou refus.",
           "steps": [
             "Lors de la préparation, l’application préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.",
-            "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, l’IA l’applique visiblement aux champs concernés; sans instruction, elle améliore elle-même les trois textes. Rien n’est envoyé à cette étape.",
+            "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, les textes existants sont révisés conformément à celle-ci; si le champ est vide, l’IA recrée entièrement les trois textes à partir des données de candidature disponibles. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
             "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
           ],
@@ -683,7 +683,7 @@
           "summary": "Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or rejected.",
           "steps": [
             "When preparing an application, the app prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.",
-            "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, AI visibly applies it to the relevant fields; without one, AI independently improves all three texts. Nothing is sent at this stage.",
+            "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, the existing texts are revised according to it; if the instruction field is empty, AI recreates all three texts from scratch using the available application data. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
             "Record each interview as a separate appointment and document acceptance or rejection."
           ],
@@ -697,7 +697,7 @@
           "summary": "Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
           "steps": [
             "Ao preparar a candidatura, o aplicativo preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.",
-            "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, a IA a aplica visivelmente aos campos relevantes; sem instrução, melhora os três textos por conta própria. Nada é enviado nessa etapa.",
+            "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, os textos existentes são revisados de acordo com ela; se o campo estiver vazio, a IA recria os três textos do zero usando os dados disponíveis da candidatura. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
             "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
           ],
@@ -711,7 +711,7 @@
           "summary": "Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
           "steps": [
             "Al preparar la solicitud, la aplicación completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.",
-            "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, la IA la aplica visiblemente a los campos pertinentes; sin instrucción, mejora por sí sola los tres textos. En esta etapa no se envía nada.",
+            "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, los textos existentes se revisan según ella; si el campo está vacío, la IA vuelve a crear los tres textos desde cero usando los datos disponibles de la solicitud. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
             "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
           ],

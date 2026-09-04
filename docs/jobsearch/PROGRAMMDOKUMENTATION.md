@@ -1,6 +1,13 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.3 ist deployed. Produktionsdatei, öffentliche Versionsanzeige, mobile Klicklogik, KI-Modal und fehlende sichtbare PHP-Laufzeitfehler sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.4 ist zur Bereitstellung vorbereitet; 2.1.3 ist der zuvor bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+
+## Neuerstellung oder instruktionsbasierte Überarbeitung 2.1.4
+
+Das leere KI-Instruktionsfeld löst eine vollständige Neuerstellung von Betreff, Begleit-E-Mail und
+Motivationsschreiben aus den verfügbaren Bewerbungsdaten aus. Die bisherigen Texte werden in diesem
+Fall nicht an das Modell übermittelt. Bei ausgefülltem Feld erhält das Modell die aktuellen Texte
+und muss sie gemäß der Benutzerinstruktion überarbeiten.
 
 ## Mobile KI-Textaktion 2.1.3
 
