@@ -21,7 +21,10 @@ Offen: TOTP-Deployment und neuer angemeldeter Suchlauf. Die vorhandenen Schutzgr
 
 ## Deployment und Rückweg
 
-Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe nach externer TOTP-Freigabe. Quell-Commit und Uploadnachweis folgen nach Tests.
+Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe nach externer TOTP-Freigabe.
+Upload vorbereitet aus Quell-Commit 8ba5f83dac37eeb9ef33a4dab2a990b641dca833; lokal und GitHub synchron.
+990795 Bytes, SHA-256 86426e9f82a8b78a2b0bf7d983af916a9d7763deac506d01c298941dc5882b60.
+Vor dem Vorschlag bestätigte der Remote-Hash den unveränderten Stand 2.0.8. Exakte Schreibaktion vorgeschlagen; Ausführung und anschließende Live-Prüfung warten auf TOTP. Keine Konfiguration oder DB-Dateien im Upload.
 
 Vorheriger bestätigter Stand 2.0.8: Quell-Commit 9bd0764042c610f8d03aa65592971c2899f8ed5f,
 987248 Bytes, Modus 0644, SHA-256 2aabd0ea529d0e978f5748ebccc8f552cf46a2e5ae24bf420c6eb34ad358c785.
