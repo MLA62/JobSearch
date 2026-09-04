@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.1 ist zur Freigabe vorbereitet; 2.1.0 ist der bestätigte Live-Stand. Version 2.1.1 ergänzt einen einheitlichen KI-Arbeitsdialog und eine geschätzte App-Kontingentanzeige. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.1 ist deployed. Produktionsdatei, öffentliche Versionsanzeige und KI-Fusszeile sind bestätigt. Version 2.1.1 ergänzt einen einheitlichen KI-Arbeitsdialog und eine geschätzte App-Kontingentanzeige. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## KI-Arbeitsdialog und App-Kontingent 2.1.1
 
