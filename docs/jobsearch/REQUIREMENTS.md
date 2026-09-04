@@ -1,6 +1,6 @@
 # Anforderungen
 
-Stand: 03.09.2026. Zielbeschreibung fuer 1.18.1 auf Basis des produktiven Standes 1.18.0.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.13.
 Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
 ## Produkt und Grenzen
@@ -30,6 +30,15 @@ Vor Ort, Hybrid und Remote sind unterscheidbar. Nur vor Ort darf nicht als Remot
 Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
+
+Ergänzung 2.0.13: Bei mehreren Quellen zuerst alle ausgewählten Suchmaschinen mit annähernd
+gleichem Explorationsanteil prüfen. Bei 16 Quellen sind dies zwei rohe Kandidaten je Quelle.
+Eine Quelle ohne lesbare Anzeige nach zwei gleichartigen Zugriffs-/Lesefehlern für diesen Lauf
+abbrechen. Das verbleibende Gesamtbudget bis 60 Prüfungen gleichmäßig auf Quellen mit bereits
+akzeptierten Treffern verteilen; gibt es noch keinen akzeptierten Treffer, auf Quellen mit
+fachlich lesbaren Anzeigen. Original-/Arbeitgeberlinks aus Suchresultaten bevorzugen, keine
+Such-, Redirect- oder Loginseiten als Anzeige akzeptieren. Zielzahl, Belegpflicht, Mindestmatch,
+Ausschlüsse und Einzelsuche bleiben unverändert.
 
 Ergänzung 2.0.11 (ersetzt die Zehnerregel aus 2.0.10): Schon ein brauchbarer Treffer macht die Suche erfolgreich. Zur Zielzahl weitersuchen, technische Einschränkungen gesondert anzeigen. Das Gesamtprüfbudget bei mehreren Quellen annähernd gleich auf alle ausgewählten Suchmaschinen verteilen. Rohe Kandidaten vor Ausschlüssen zählen; eine Einzelquelle bleibt unverändert. Keine Aussage vollständiger Ausschöpfung allein durch Quellenwechsel.
 

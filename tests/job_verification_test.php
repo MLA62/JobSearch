@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
+helpLoadFunction('jobSearchExplorationBudget');
 helpLoadFunction('jobSearchSourceQuota');
 foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
 $now=strtotime('2026-09-04T12:00:00Z');
@@ -51,11 +52,13 @@ helpAssert(empty($enriched['company_details']['address_line1']),'Invented addres
 helpAssert($enriched['job_details']['workload_max']===100,'Original workload imported');
 helpAssert(jobFactValue('job','workload_max','101')===null && jobFactValue('job','fixed_term_end','2026-02-30')===null,'Invalid typed facts rejected');
 helpAssert(canonicalJobUrl('https://example.test/job/1?utm_source=x')==='https://example.test/job/1','Tracking variants deduplicated');
+helpAssert(jobSearchDebugError(new RuntimeException('Das Portal blockiert den automatischen Abruf (HTTP 401).'))['code']==='portal_blocked','Login-gated portal response is classified as a block');
 
 // Exercise actual incremental orchestration with deterministic external boundaries.
 function openAiJobSearch(array $config,int $uid,array $criteria):array { if (isset($GLOBALS['discoveryFixtureCallback'])) return ($GLOBALS['discoveryFixtureCallback'])($criteria); if (isset($GLOBALS['discoveryFixtureError'])) throw $GLOBALS['discoveryFixtureError']; return array_map(static fn($id)=>['url'=>'https://example.test/'.$id],['expired','unknown','mismatch','deleted','good','duplicate']); }
 function verifiedJobImport(array $config,int $uid,string $url,array $criteria):array {
     global $enriched;
+    if (isset($GLOBALS['verificationFixtureCallback'])) return ($GLOBALS['verificationFixtureCallback'])($url,$criteria);
     if (isset($GLOBALS['verificationFixtureError'])) throw $GLOBALS['verificationFixtureError'];
     if (str_ends_with($url,'expired') || str_ends_with($url,'unknown')) throw new RuntimeException('Unavailable');
     $draft=$enriched+['company'=>'Example SA','location'=>'Bern','original_url'=>'https://original.test/good'];

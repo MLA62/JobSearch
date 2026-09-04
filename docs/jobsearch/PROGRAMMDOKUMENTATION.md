@@ -1,8 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.12 ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.13 ist vorbereitet, noch nicht deployed. Bestätigter Live-Stand 2.0.12. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Adaptive Quellenverteilung 2.0.13 (vorbereitet)
+
+Der Diagnosebericht aus dem produktiven Lauf 2.0.12 enthält 53 geprüfte Kandidaten bei Ziel 20: sechs akzeptiert, acht nach vollständiger Bewertung profilbezogen abgelehnt, 14 abgelaufen oder nicht ausreichend belegbar verfügbar und 25 technisch nicht lesbar. Nur 14 Kandidaten erreichten damit überhaupt die fachliche Bewertung. Wiederholte 401-/403-Sperren und nicht als einzelne Anzeige lesbare Aggregatorseiten verbrauchten einen großen Teil des starren Quellenanteils. Drei Jobs.ch-, zwei Xing- und ein ICTjobs-Treffer wurden akzeptiert. Diese Zahlen erklären den Lauf; sie erlauben keine Aussage über künftig andere Anzeigen derselben Quelle.
+
+Bei mehreren Quellen reserviert die Suche nun einen gleichmäßigen ersten Durchgang und den Rest des unveränderten Gesamtlimits von 60 Prüfungen für einen zweiten, adaptiven Durchgang. Das Explorationsbudget beträgt mindestens 30 und mindestens zwei Kandidaten je Quelle; bei 16 Quellen exakt 32 beziehungsweise zwei je Quelle. Liefert eine Quelle zweimal denselben Zugriffs-/Lesefehlertyp, ohne dass eine Anzeige bewertet werden konnte, wird ihre restliche Warteschlange für diesen Lauf verworfen. Nach Abschluss aller ausgewählten Quellen wird das Restbudget gleichmäßig auf Quellen mit mindestens einem akzeptierten Treffer verteilt. Ohne akzeptierten Treffer werden stattdessen Quellen mit mindestens einer vollständig bewerteten Anzeige verwendet. Reihenfolge innerhalb dieser Gruppe: akzeptierte, danach bewertete Treffer; die Restquote bleibt gleichmäßig.
+
+Die Discovery-Anweisung bevorzugt ausdrücklich verlinkte öffentliche Originalanzeigen des Arbeitgebers und verwirft Suchseiten, Aggregator-Redirects sowie Login-/Zugriffswände, wenn ein Original verfügbar ist. Jede zurückgegebene URL durchläuft unverändert Originalabruf, Verfügbarkeitsprüfung, belegbasierten Profilvergleich, Mindestscore 70, Ausschlüsse und Dublettenprüfung. Es gibt keinen Match aus Such-Snippets. Einzelquellensuche bleibt bei 45 Kandidaten; Zielzahl und Sicherheitslimit bleiben unverändert. Der Quellenzähler zeigt abgeschlossene Erstprüfungen und springt während der adaptiven Runde nicht rückwärts.
 
 ## Ergebnisnavigation 2.0.12 (deployed)
 

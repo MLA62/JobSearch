@@ -456,6 +456,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobSearchDebugReport(array $state, int $uid): array`
 - `function verifiedSearchScript(string $locale): string`
 - `function canonicalJobUrl(string $url): string`
+- `function jobSearchExplorationBudget(int $count): int`
 - `function jobSearchSourceQuota(int $count, int $index): int`
 - `function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void`
 - `function platformSearchUrl(array $platform, string $query, string $location, int $limit): string`
