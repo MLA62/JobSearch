@@ -1,8 +1,12 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.11 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldeter Test der Quellenverteilung und Erfolgsanzeige noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.12 vorbereitet, noch nicht deployed. Bestätigter Live-Stand 2.0.11. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Ergebnisnavigation 2.0.12 (vorbereitet)
+
+Ergebnisse anzeigen erzwingt über einen nicht vertraulichen Zeitstempel-Queryparameter einen neuen GET der Jobsuche-Seite mit Ergebnisanker. Der bisherige reine Fragmentwechsel hat auf derselben Seite keinen PHP-Neuaufbau ausgelöst: Modal und alte leere Tabelle blieben stehen, obwohl Treffer bereits in der Session waren. Die neue Navigation lädt die aktuellen serverseitig gefilterten Treffer, ohne eine neue KI-Suche anzustoßen. Keine Änderung an Match, TTL, Profilbindung, Session- oder DB-Daten. Der neue Klicktest reproduzierte den alten Fehler und besteht mit der Korrektur; externe Daten/Serverantworten werden dabei simuliert.
 
 ## Gleichmäßige Quellenverteilung und Erfolg 2.0.11 (deployed)
 

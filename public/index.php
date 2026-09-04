@@ -3500,6 +3500,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Um resultado aproveitável já significa busca bem-sucedida. A busca continua até a quantidade desejada ou seu encerramento. Interrupções técnicas e limites continuam visíveis como avisos. Com vários buscadores, o orçamento de 60 verificações é distribuído quase igualmente: para 16 fontes, três ou quatro URLs brutas por fonte em vez de dez. Resultados excluídos também contam. Um único buscador permanece inalterado; cancelamento, erro do serviço ou meta atingida podem encerrar a busca antes.',
     'es-MX' => 'Un resultado útil ya significa búsqueda exitosa. La búsqueda continúa hasta la cantidad deseada o su finalización. Las interrupciones técnicas y los límites siguen visibles como avisos. Con varios buscadores, el presupuesto de 60 verificaciones se reparte casi por igual: para 16 fuentes, tres o cuatro URL sin filtrar por fuente en vez de diez. Los resultados excluidos también cuentan. Un solo buscador no cambia; cancelación, error del servicio o meta alcanzada pueden terminar antes la búsqueda.',
   ),
+  'help.v2.search.tips.7' =>
+  array (
+    'de-CH' => '„Ergebnisse anzeigen“ lädt die aktuellen gespeicherten Treffer neu und öffnet die Tabelle. Dadurch verschwindet das Suchfenster; es wird keine neue KI-Suche gestartet.',
+    'fr-CH' => '« Afficher les résultats » recharge les résultats enregistrés et ouvre le tableau. La fenêtre de recherche disparaît ; aucune nouvelle recherche IA ne démarre.',
+    'en-GB' => '“Show results” reloads the currently stored results and opens the table. This dismisses the search window without starting another AI search.',
+    'pt-BR' => '“Mostrar resultados” recarrega os resultados salvos e abre a tabela. A janela de busca desaparece sem iniciar outra busca com IA.',
+    'es-MX' => '“Ver resultados” recarga los resultados guardados y abre la tabla. La ventana de búsqueda desaparece sin iniciar otra búsqueda con IA.',
+  ),
   'help.v2.search.title' =>
   array (
     'de-CH' => 'Stellen suchen',
@@ -3791,7 +3799,7 @@ function helpTopicDefinitions(): array
       1 => 'jobs#quick-import',
     ),
     'step_count' => 4,
-    'tip_count' => 7,
+    'tip_count' => 8,
   ),
   5 =>
   array (
@@ -8897,7 +8905,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.11','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.12','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -8947,7 +8955,8 @@ function verifiedSearchScript(string $locale): string
   modal.append(title,status,progress,elapsed,cancel,view,download);document.body.append(modal);modal.showModal();cancel.focus();
   const controller=new AbortController();let cancelled=false;const started=Date.now();const clock=setInterval(()=>elapsed.textContent=Math.floor((Date.now()-started)/1000)+' s',1000);
   modal.addEventListener('cancel',e=>e.preventDefault());cancel.addEventListener('click',()=>{cancelled=true;controller.abort();clearInterval(clock);modal.close();modal.remove();running=false;});
-  view.addEventListener('click',()=>location.assign('/?page=job_platform_search#results'));
+  // A fragment-only navigation does not reload the PHP-rendered results or dismiss this modal.
+  view.addEventListener('click',()=>location.assign('/?page=job_platform_search&results_refresh='+Date.now()+'#results'));
   let accepted=0;
   async function send(data){const response=await fetch('/?page=job_platform_search',{method:'POST',body:data,credentials:'same-origin',signal:controller.signal,headers:{Accept:'application/json'}});const result=await response.json();if(Number.isInteger(result.accepted)&&result.accepted>=0)accepted=result.accepted;if(!response.ok||!result.ok)throw new Error('Search failed');return result;}
   try{
@@ -12345,7 +12354,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.11';
+$codeVersion = '2.0.12';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

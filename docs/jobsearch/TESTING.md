@@ -5,6 +5,8 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.12: Chromium-Suchdialogtest beginnt auf der echten Seitenroute samt #results. Nach Erfolg, Begrenzung oder Fehler wird Ergebnisse anzeigen angeklickt; ein neuer GET, verschwundenes Modal und sichtbare synthetische Tabellenzeilen werden geprüft. Alter Fragment-only-Handler scheitert an diesem Test. Keine neue Suche durch die Navigation. Die serverseitige Live-Tabelle bleibt gesondert angemeldet abzunehmen.
+
 Ergänzung 2.0.11: Quoten für zwei bis 60 Quellen summieren sich auf 60 und unterscheiden sich höchstens um eins. Integrierter Lauf erreicht bei 16 Quellen alle innerhalb von 60 Prüfungen, auch bei Abruffehlern. Einzelquelle, Ausschlüsse, Restlimit und alte Zehnerwarteschlange testen. Debugbericht trennt successful von technischem status. Sechs Chromium-Suchdialogfälle enthalten Erfolg trotz Limit, null Treffer und technischen Abbruch nach brauchbarem Treffer; vier Importdialogfälle bleiben unverändert.
 
 Ergänzung 2.0.10: `job_source_limit_test.php` führt die echte schrittweise Suche mit simulierten externen Grenzen aus: zehn rohe Treffer, serverseitiges Limit, Wechsel trotz null passender Jobs, Einzelquelle unverändert, ausgeschlossene Treffer zählen, kleine Antworten mit Restlimit, Übergang alter laufender Sessions. Bestehende Such-/Import-/Datenschutz- und Browser-Tests bleiben erforderlich.
