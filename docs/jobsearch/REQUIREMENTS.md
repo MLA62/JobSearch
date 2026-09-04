@@ -1,6 +1,6 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.13.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.14.
 Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
 ## Produkt und Grenzen
@@ -30,6 +30,14 @@ Vor Ort, Hybrid und Remote sind unterscheidbar. Nur vor Ort darf nicht als Remot
 Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
+
+Ergänzung 2.0.14: Sobald die laufende Suche mindestens einen brauchbaren Treffer gespeichert
+hat, wird im offenen Statusfenster Abbrechen durch Resultate ersetzt. Die Statusanzeige bleibt
+sichtbar und die Suche läuft weiter, bis Resultate gewählt wird oder ein Endzustand erreicht ist.
+Kurzbeschreibungen nutzen bis zu vier Tabellenzeilen und dürfen dafür bis zu 1000 Zeichen enthalten.
+Die Lohnperiode muss aus ihrem exakten Originalbeleg technisch erkennbar sein; monatliche,
+jährliche und stündliche Angaben werden weder geraten noch still umgerechnet. Ein abweichender
+KI-Periodencode wird anhand des eindeutigen Belegs korrigiert.
 
 Ergänzung 2.0.13: Bei mehreren Quellen zuerst alle ausgewählten Suchmaschinen mit annähernd
 gleichem Explorationsanteil prüfen. Bei 16 Quellen sind dies zwei rohe Kandidaten je Quelle.

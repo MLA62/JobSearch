@@ -1,8 +1,27 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.13 ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.14 ist für das Deployment vorbereitet; bestätigter Live-Stand ist 2.0.13. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Frühe Resultate und Lohnbelege 2.0.14 (Deployment ausstehend)
+
+Der Diagnosebericht aus dem produktiven Stand 2.0.13 bestätigt vier akzeptierte Treffer in
+einem noch laufenden, begrenzten Snapshot. Sobald der erste Treffer gespeichert ist, ersetzt
+Resultate im Suchdialog den Abbrechen-Button. Zähler, Quelle, Fortschritt und Laufzeit bleiben
+sichtbar und die Suche läuft weiter. Resultate bricht nur die weiteren clientseitigen Schritte ab,
+lädt die bereits in der eigenen Sitzung gespeicherten Treffer mit einem neuen GET und öffnet die Tabelle.
+
+Die Ergebnis-Kurzbeschreibung darf nun bis zu 1000 Zeichen enthalten; die Tabellenzelle nutzt
+den verfügbaren Platz und bleibt auf höchstens vier sichtbare Zeilen begrenzt. Übersetzung in die
+aktive App-Sprache verwendet dasselbe Limit. Der vollständige Originaltext und gespeicherte Jobtext
+werden dadurch nicht gekürzt oder übersetzt.
+
+Eine extrahierte Lohnperiode wird zusätzlich zum KI-Vertrag deterministisch gegen ihr exaktes
+Originalzitat geprüft. Eindeutige Formulierungen wie `/Monat`, `pro Jahr` oder `pro Stunde` bestimmen
+month, year beziehungsweise hour. Ein widersprechender Modellwert wird korrigiert; ohne eindeutigen
+Periodenbeleg wird die Periode verworfen. Es findet keine Umrechnung der Beträge statt. Keine DB-,
+Konfigurations- oder Bestandsdatenänderung.
 
 ## Adaptive Quellenverteilung 2.0.13 (deployed)
 

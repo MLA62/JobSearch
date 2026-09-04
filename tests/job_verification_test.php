@@ -3,7 +3,7 @@ declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
 helpLoadFunction('jobSearchExplorationBudget');
 helpLoadFunction('jobSearchSourceQuota');
-foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
+foreach (['plainText','jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','jobSalaryPeriodFromEvidence','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
 $now=strtotime('2026-09-04T12:00:00Z');
 if (in_array('--availability-probe',$argv,true)) {
     echo json_encode(jobAvailability(stream_get_contents(STDIN),time()),JSON_THROW_ON_ERROR);
@@ -50,6 +50,22 @@ $facts=[['entity'=>'company','field'=>'address_line1','value'=>'Invented Street 
 $enriched=applyJobEvidence($draft,['facts'=>$facts,'checks'=>$checks,'summary'=>'Vertrieb in Bern','reason'=>'Rolle und Ort passen'],$criteria);
 helpAssert(empty($enriched['company_details']['address_line1']),'Invented address not imported');
 helpAssert($enriched['job_details']['workload_max']===100,'Original workload imported');
+$salaryDraft=$draft;
+$salaryDraft['research_sources']=[['id'=>'original','text'=>'Account Manager, CHF 6 550 - 8 380 /Monat, 13 Monatslöhne.']];
+$salaryFacts=[
+    ['entity'=>'job','field'=>'salary_min','value'=>'6550','source_id'=>'original','quote'=>'CHF 6 550 - 8 380 /Monat'],
+    ['entity'=>'job','field'=>'salary_max','value'=>'8380','source_id'=>'original','quote'=>'CHF 6 550 - 8 380 /Monat'],
+    ['entity'=>'job','field'=>'salary_currency','value'=>'CHF','source_id'=>'original','quote'=>'CHF 6 550 - 8 380 /Monat'],
+    ['entity'=>'job','field'=>'salary_period','value'=>'year','source_id'=>'original','quote'=>'CHF 6 550 - 8 380 /Monat'],
+];
+$salaryCriteria=['query'=>'Account Manager'];
+$salaryChecks=[['criterion'=>'roles','verdict'=>'met','source_id'=>'original','quote'=>'Account Manager']];
+$salary=applyJobEvidence($salaryDraft,['facts'=>$salaryFacts,'checks'=>$salaryChecks,'summary'=>str_repeat('Lange konkrete Kurzbeschreibung. ',40),'reason'=>'Rolle passt'],$salaryCriteria);
+helpAssert($salary['job_details']['salary_period']==='month','Explicit /Monat evidence overrides an incorrect annual model value');
+helpAssert(($salary['extracted_facts'][3]['value'] ?? '')==='month','Corrected salary period is retained in the evidence audit');
+helpAssert(strlen($salary['assessment']['summary'])>420,'Useful summary is no longer restricted to the old short limit');
+helpAssert(jobSalaryPeriodFromEvidence('CHF 95 000 pro Jahr')==='year' && jobSalaryPeriodFromEvidence('CHF 45 pro Stunde')==='hour','Explicit annual and hourly evidence recognized');
+helpAssert(jobSalaryPeriodFromEvidence('attraktiver Lohn')===null,'Salary period is not guessed without evidence');
 helpAssert(jobFactValue('job','workload_max','101')===null && jobFactValue('job','fixed_term_end','2026-02-30')===null,'Invalid typed facts rejected');
 helpAssert(canonicalJobUrl('https://example.test/job/1?utm_source=x')==='https://example.test/job/1','Tracking variants deduplicated');
 helpAssert(jobSearchDebugError(new RuntimeException('Das Portal blockiert den automatischen Abruf (HTTP 401).'))['code']==='portal_blocked','Login-gated portal response is classified as a block');

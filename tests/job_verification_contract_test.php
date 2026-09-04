@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
-foreach (['jobDisplayText','jobDisplayLanguage','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','jobVerificationChecks','jobStructuredResponse','verifiedJobImport','jobSearchDebugError'] as $name) helpLoadFunction($name);
+foreach (['plainText','jobDisplayText','jobDisplayLanguage','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','jobSalaryPeriodFromEvidence','applyJobEvidence','jobVerificationChecks','jobStructuredResponse','verifiedJobImport','jobSearchDebugError'] as $name) helpLoadFunction($name);
 
 // Run the actual import, schema construction, Responses payload and score conversion.
 // Only the external HTML and HTTP boundaries are replaced; no key or production data.

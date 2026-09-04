@@ -5,6 +5,15 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.14: `job_verification_test.php` simuliert den vom Benutzer gemeldeten Monatslohn
+`CHF 6 550 - 8 380 /Monat` bei absichtlich falschem KI-Wert `year` und erwartet den belegbasiert
+korrigierten Wert `month` im Job und im Audit. Jahres-/Stundenbelege und unbestimmte Perioden sowie
+das neue 1000-Zeichen-Limit werden geprüft. Der Chromium-Suchdialogtest hält nach dem ersten
+brauchbaren Treffer den zweiten Request offen: Abbrechen muss sofort verschwinden, Resultate und
+die laufende Statusanzeige müssen sichtbar bleiben. Danach werden Endzustand, neuer GET und Tabelle
+wie bisher geprüft. Externe Antworten bleiben simuliert; der konkrete produktive Import bleibt
+angemeldet abzunehmen.
+
 Ergänzung 2.0.13: `job_source_limit_test.php` prüft das zweiphasige Quellenbudget. Bei 16 vollständig blockierten Quellen werden alle genau zweimal versucht und danach ohne Verbrauch des reservierten Restbudgets beendet. In einem gemischten Lauf werden ebenfalls zuerst alle 16 Quellen berücksichtigt; Quellen ohne lesbare Anzeige brechen nach zwei gleichen Zugriffssperren ab, während nur die nachweislich erfolgreiche Quelle erneut recherchiert wird und innerhalb von 60 Prüfungen die Zielzahl 20 erreicht. Quoten bleiben im Explorationsdurchgang gleichmäßig, kurze Discovery-Antworten fordern nur den Rest an, alte laufende Zustände werden begrenzt übernommen. `job_verification_test.php` prüft HTTP 401 als Portalsperre. Externe Antworten sind simuliert; die produktive Ausbeute bleibt nach Deployment mit einem neuen Diagnosebericht zu prüfen.
 
 Ergänzung 2.0.12: Chromium-Suchdialogtest beginnt auf der echten Seitenroute samt #results. Nach Erfolg, Begrenzung oder Fehler wird Ergebnisse anzeigen angeklickt; ein neuer GET, verschwundenes Modal und sichtbare synthetische Tabellenzeilen werden geprüft. Alter Fragment-only-Handler scheitert an diesem Test. Keine neue Suche durch die Navigation. Die serverseitige Live-Tabelle bleibt gesondert angemeldet abzunehmen.

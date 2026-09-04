@@ -442,6 +442,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobEvidenceScore(array $criteria, array $checks, array $sources): array`
 - `function jobFactFields(): array`
 - `function jobFactValue(string $entity, string $field, string $value): mixed`
+- `function jobSalaryPeriodFromEvidence(string $quote): ?string`
 - `function applyJobEvidence(array $draft, array $response, array $criteria): array`
 - `function jobStructuredResponse(array $config, int $uid, string $instructions, array $input, array $schema): array`
 - `function jobVerificationChecks(array $criteria, mixed $checks): array`

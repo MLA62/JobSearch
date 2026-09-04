@@ -10,7 +10,7 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
  try {
   for(const scenario of ['success','limited','cancel','failure','no_matches','failure_after_result']) {
    const page=await browser.newPage({viewport:{width:390,height:844}});
-   let steps=0,release,pageLoads=0;
+   let steps=0,release,releaseSecond,pageLoads=0;
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.route('http://jema.test/**',async route=>{
     if(route.request().url().includes('page=job_search_debug_download'))return route.fulfill({contentType:'application/json',headers:{'Content-Disposition':'attachment; filename="jema-jobs-debug-fixture.json"'},body:debugBody});
@@ -23,6 +23,7 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
     if(body.includes('advance_verified_job_search')) {
      steps++;
      if(steps===1)await new Promise(resolve=>release=resolve);
+     if(steps===2&&!['failure','no_matches'].includes(scenario))await new Promise(resolve=>releaseSecond=resolve);
      const failed=scenario==='failure'||(scenario==='failure_after_result'&&steps===2),accepted=['failure','no_matches'].includes(scenario)?0:1;
      try {await route.fulfill({status:failed?422:200,contentType:'application/json',body:JSON.stringify({ok:!failed,done:steps===3,limited:scenario==='limited',checked:steps,accepted,rejected:steps-accepted,sources_checked:1,sources_total:2})});}catch{}
     }else if(body.includes('search_ai_jobs')) return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,search_id:'fixture-search'})});
@@ -30,7 +31,7 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
    });
    await page.goto('http://jema.test/?page=job_platform_search#results');await page.locator('button[value="search_ai_jobs"]').click();
    await page.waitForFunction(()=>document.querySelector('dialog')?.open);
-   assert.equal(await page.getByRole('button',{name:'Ergebnisse anzeigen',exact:true}).isVisible(),false,'Author button CSS does not reveal hidden results');
+   assert.equal(await page.getByRole('button',{name:'Resultate',exact:true}).isVisible(),false,'Author button CSS does not reveal hidden results');
    const box=await page.locator('dialog').boundingBox();assert(box.x>=8&&box.x+box.width<=382);
    await page.keyboard.press('Escape');await page.mouse.click(1,1);assert(await page.locator('dialog').evaluate(x=>x.open));
    while(!release)await new Promise(resolve=>setTimeout(resolve,10));
@@ -41,12 +42,20 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
     await page.getByRole('button',{name:'Abbrechen',exact:true}).click();release();await page.waitForTimeout(150);
     assert.equal(steps,1);assert.equal(await page.locator('dialog').count(),0);
    }else {
-    release();await page.getByRole('button',{name:'Ergebnisse anzeigen',exact:true}).waitFor();
+    release();
+    if(!['failure','no_matches'].includes(scenario)) {
+     await page.getByRole('button',{name:'Resultate',exact:true}).waitFor();
+     assert.equal(await page.getByRole('button',{name:'Abbrechen',exact:true}).isVisible(),false,'First usable result replaces cancel immediately');
+     assert.equal(await page.locator('dialog progress').isVisible(),true,'Search status remains visible while further sources are checked');
+     while(!releaseSecond)await new Promise(resolve=>setTimeout(resolve,10));releaseSecond();
+    }
+    await page.waitForFunction(()=>document.querySelector('dialog progress')?.hidden===true);
+    await page.getByRole('button',{name:'Resultate',exact:true}).waitFor();
     assert(await page.locator('dialog').evaluate(x=>x.open),'Completion does not close dialog');
     const status=await page.getByRole('status').innerText();
     assert.match(status,scenario==='failure'?/fehlgeschlagen/:scenario==='no_matches'?/Keine passenden Jobs gefunden/:scenario==='failure_after_result'?/Suche erfolgreich.*Passend: 1.*unterbrochen/:scenario==='limited'?/Suche erfolgreich.*nicht alle Möglichkeiten/:/Suche erfolgreich.*Verarbeitet: 3.*Passend: 1.*Ausgeschlossen: 2.*Technische Fehler: 0.*Quellen abgeschlossen: 1\/2.*abgeschlossen/);
     if(scenario==='success') {const out=path.join(process.env.TEMP||'/tmp','jema-search-dialog');fs.mkdirSync(out,{recursive:true});await page.screenshot({path:path.join(out,'complete.png')});}
-    await page.getByRole('button',{name:'Ergebnisse anzeigen',exact:true}).click();
+    await page.getByRole('button',{name:'Resultate',exact:true}).click();
     await page.locator('#results h2').waitFor({timeout:5000});
     assert.equal(pageLoads,2,'Results button must fetch current server results, not only change the fragment');
     assert.equal(await page.locator('dialog').count(),0,'Old modal no longer covers results');
