@@ -3,9 +3,9 @@
 Stand: 2026-09-04. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
-Ergänzung 2.1.1: `ai_progress_quota_test.php` prüft Version, modalen KI-Arbeitsdialog,
-Abbruchsteuerung, erfasste Tokenfelder, eindeutige Response-ID, lokale Prozentberechnung und die
-Kennzeichnung als App-Kontingent. Die Prüfung ruft weder OpenAI noch die Produktionsdatenbank auf.
+Ergänzung 2.1.2: `ai_progress_quota_test.php` prüft Version, modalen KI-Arbeitsdialog,
+Abbruchsteuerung, KI-Hersteller-/Modellkennzeichnung sowie das Fehlen der unzuverlässigen
+Prozent-/Kontingentanzeige. Die Prüfung ruft weder OpenAI noch die Produktionsdatenbank auf.
 
 ## Automatisierte Basis
 

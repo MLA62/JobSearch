@@ -1,13 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.1.
+Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.2.
 
-## KI-Arbeitsanzeige und Kontingent
+## KI-Arbeitsanzeige und Kennzeichnung
 
 - Manuell gestartete KI-Vorschläge und KI-Bewerbungstexte öffnen `In Arbeit`; die Seite wechselt erst nach Abschluss.
 - Abbrechen beendet die Browser-Anfrage und lädt die aktuelle Seite neu. Bereits serverseitig abgeschlossene Verarbeitung kann beim Neuladen sichtbar sein.
-- Jede abgeschlossene Responses-Antwort wird anhand ihrer Response-ID höchstens einmal gezählt.
-- Die Fusszeile zeigt Hersteller, Modell und den geschätzten Rest des konfigurierten App-Budgets; dies ist kein OpenAI-Abrechnungssaldo.
+- Die Fusszeile zeigt Hersteller und Modell. Sie zeigt keine lokale Guthaben- oder Kontingentschätzung.
 
 ## Textvorbereitung mit KI
 

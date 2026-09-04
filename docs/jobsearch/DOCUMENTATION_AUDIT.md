@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.1 ist dokumentiert und deployed.
-Produktionsdatei, öffentliche Versionsanzeige und KI-Fusszeile sind bestätigt; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.2 ist dokumentiert und zur Freigabe vorbereitet.
+Version 2.1.1 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -45,12 +45,12 @@ Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentrale
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
 
-## Pruefstand 2.1.1
+## Pruefstand 2.1.2
 
 - Alle 28 PHP-Testdateien bestanden; darin 3513 Hilfe-Inhaltsprüfungen und 1124 Hilfeseed-Prüfungen.
 - PHP-Syntax für Anwendung und Beispielkonfiguration, beide Generatoren mit `--check` sowie `git diff --check` bestanden.
-- Der neue Vertragstest prüft KI-Modal, Abbruchsteuerung, Token-/Websucherfassung, Kostensätze, eindeutige Response-ID und die Kennzeichnung als geschätztes App-Kontingent.
-- Externe OpenAI-Aufrufe wurden durch die Tests nicht ausgelöst. Nach TOTP-Freigabe entsprach die Produktionsdatei exakt dem geprüften Release; HTTP 200, Version 2.1.1, KI-Fusszeile und fehlende sichtbare PHP-Fehler wurden öffentlich bestätigt. Die neue Tabelle wird beim ersten PHP-Aufruf idempotent angelegt.
+- Der Vertragstest prüft KI-Modal, Abbruchsteuerung, Hersteller-/Modellkennzeichnung und das Fehlen der unzuverlässigen Kontingentanzeige.
+- Externe OpenAI-Aufrufe und die Produktionsdatenbank wurden durch die Tests nicht verändert. Liveprüfung folgt nach TOTP-Freigabe.
 
 ## Historische Prüfstände
 

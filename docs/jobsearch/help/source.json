@@ -1,5 +1,5 @@
 {
-  "version": "2.1.1",
+  "version": "2.1.2",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -1751,7 +1751,7 @@
             "Suche ein Thema oder wähle eine Kategorie in der zentralen Hilfe.",
             "Öffne die Glühbirne einer Seite für denselben themenbezogenen Ablauf.",
             "Prüfe unter Über die angezeigte Version; beachte die Rechte und Einschränkungen der Lizenz.",
-            "Die Fusszeile nennt KI-Hersteller und Modell. Der Prozentwert ist eine lokale Schätzung aus dem von JeMa Jobs erfassten Tokenverbrauch seit Version 2.1.1, nicht der OpenAI-Abrechnungssaldo."
+            "Die Fusszeile nennt KI-Hersteller und Modell. Sie zeigt bewusst keine unzuverlässige lokale Schätzung des OpenAI-Guthabens."
           ],
           "tips": [
             "Produktive Daten sind vertraulich. Die vollständige Lizenz steht in LICENSE.md; diese Hilfe ändert die Lizenzbedingungen nicht."
@@ -1764,7 +1764,7 @@
             "Recherche un sujet ou choisis une catégorie dans l’aide centrale.",
             "Ouvre l’ampoule d’une page pour consulter la procédure correspondante.",
             "Consulte la version dans À propos et respecte les droits et restrictions de la licence.",
-            "Le pied de page indique le fournisseur et le modèle d’IA. Le pourcentage est une estimation locale calculée à partir des jetons suivis par JeMa Jobs depuis la version 2.1.1, pas le solde de facturation OpenAI."
+            "Le pied de page indique le fournisseur et le modèle d’IA. Il n’affiche volontairement aucune estimation locale peu fiable du crédit OpenAI."
           ],
           "tips": [
             "Les données sont confidentielles. La licence complète figure dans LICENSE.md; cette aide ne la modifie pas."
@@ -1777,7 +1777,7 @@
             "Search for a topic or choose a category in central help.",
             "Open a page’s lightbulb for the corresponding procedure.",
             "Check the displayed version in About and observe the licence rights and restrictions.",
-            "The footer names the AI provider and model. Its percentage is a local estimate from tokens tracked by JeMa Jobs since version 2.1.1, not the OpenAI billing balance."
+            "The footer names the AI provider and model. It deliberately shows no unreliable local estimate of the OpenAI balance."
           ],
           "tips": [
             "Production data is confidential. The full licence is in LICENSE.md; this help does not alter its terms."
@@ -1790,7 +1790,7 @@
             "Pesquise um tema ou escolha uma categoria na ajuda central.",
             "Abra a lâmpada da página para consultar o procedimento correspondente.",
             "Confira a versão em Sobre e respeite direitos e restrições da licença.",
-            "O rodapé informa o fornecedor e o modelo de IA. O percentual é uma estimativa local baseada nos tokens registrados pelo JeMa Jobs desde a versão 2.1.1, não o saldo de cobrança da OpenAI."
+            "O rodapé informa o fornecedor e o modelo de IA. Ele não exibe uma estimativa local pouco confiável do saldo da OpenAI."
           ],
           "tips": [
             "Dados de produção são confidenciais. A licença completa está em LICENSE.md; esta ajuda não altera seus termos."
@@ -1803,7 +1803,7 @@
             "Busca un tema o elige una categoría en la ayuda central.",
             "Abre la bombilla de una página para consultar el procedimiento correspondiente.",
             "Consulta la versión en Acerca de y respeta los derechos y restricciones de licencia.",
-            "El pie de página indica el proveedor y el modelo de IA. El porcentaje es una estimación local basada en los tokens registrados por JeMa Jobs desde la versión 2.1.1, no el saldo de facturación de OpenAI."
+            "El pie de página indica el proveedor y el modelo de IA. No muestra ninguna estimación local poco fiable del saldo de OpenAI."
           ],
           "tips": [
             "Los datos de producción son confidenciales. La licencia completa está en LICENSE.md; esta ayuda no modifica sus términos."
@@ -2276,11 +2276,11 @@
       "es-MX": "Cancelar"
     },
     "footer.ai_notice": {
-      "de-CH": "Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}) · ca. {percent}% des laufenden App-Kontingents verfügbar.",
-      "fr-CH": "Des parties essentielles de l’application fonctionnent avec l’aide de l’intelligence artificielle ({manufacturer}, {model}) · env. {percent}% du contingent courant de l’application disponible.",
-      "en-GB": "Essential parts of the app use artificial intelligence ({manufacturer}, {model}) · approx. {percent}% of the current app allowance remains.",
-      "pt-BR": "Partes essenciais do aplicativo usam inteligência artificial ({manufacturer}, {model}) · aprox. {percent}% da cota atual do aplicativo disponível.",
-      "es-MX": "Partes esenciales de la aplicación usan inteligencia artificial ({manufacturer}, {model}) · aprox. {percent}% del cupo actual de la aplicación disponible."
+      "de-CH": "Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}).",
+      "fr-CH": "Des parties essentielles de l’application fonctionnent avec l’aide de l’intelligence artificielle ({manufacturer}, {model}).",
+      "en-GB": "Essential parts of the app use artificial intelligence ({manufacturer}, {model}).",
+      "pt-BR": "Partes essenciais do aplicativo usam inteligência artificial ({manufacturer}, {model}).",
+      "es-MX": "Partes esenciales de la aplicación usan inteligencia artificial ({manufacturer}, {model})."
     }
   }
 }

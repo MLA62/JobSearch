@@ -1409,22 +1409,6 @@ try {
         sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
         PRIMARY KEY (application_id, user_document_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-    $db->query("CREATE TABLE IF NOT EXISTS ai_usage_events (
-        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        response_id VARCHAR(120) NOT NULL,
-        user_id BIGINT UNSIGNED NULL,
-        purpose VARCHAR(80) NOT NULL,
-        model VARCHAR(120) NOT NULL,
-        input_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        cached_input_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        output_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        web_search_calls INT UNSIGNED NOT NULL DEFAULT 0,
-        estimated_cost_usd DECIMAL(14,8) NOT NULL DEFAULT 0,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_ai_usage_response (response_id),
-        KEY idx_ai_usage_created (created_at),
-        KEY idx_ai_usage_user (user_id, created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     ensureColumn($db, 'application_documents', 'purpose', "`purpose` ENUM('cv','cover_letter','certificate','reference','portfolio','other') NOT NULL DEFAULT 'other'", 'user_document_id');
     ensureColumn($db, 'application_documents', 'sort_order', '`sort_order` SMALLINT UNSIGNED NOT NULL DEFAULT 0', 'purpose');
     modifyColumnWhenMissingValue($db, 'applications', 'status', 'ready', "`status` ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft'");
@@ -2091,11 +2075,11 @@ function helpTranslationSeeds(): array
   ),
   'footer.ai_notice' =>
   array (
-    'de-CH' => 'Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}) · ca. {percent}% des laufenden App-Kontingents verfügbar.',
-    'fr-CH' => 'Des parties essentielles de l’application fonctionnent avec l’aide de l’intelligence artificielle ({manufacturer}, {model}) · env. {percent}% du contingent courant de l’application disponible.',
-    'en-GB' => 'Essential parts of the app use artificial intelligence ({manufacturer}, {model}) · approx. {percent}% of the current app allowance remains.',
-    'pt-BR' => 'Partes essenciais do aplicativo usam inteligência artificial ({manufacturer}, {model}) · aprox. {percent}% da cota atual do aplicativo disponível.',
-    'es-MX' => 'Partes esenciales de la aplicación usan inteligencia artificial ({manufacturer}, {model}) · aprox. {percent}% del cupo actual de la aplicación disponible.',
+    'de-CH' => 'Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}).',
+    'fr-CH' => 'Des parties essentielles de l’application fonctionnent avec l’aide de l’intelligence artificielle ({manufacturer}, {model}).',
+    'en-GB' => 'Essential parts of the app use artificial intelligence ({manufacturer}, {model}).',
+    'pt-BR' => 'Partes essenciais do aplicativo usam inteligência artificial ({manufacturer}, {model}).',
+    'es-MX' => 'Partes esenciales de la aplicación usan inteligencia artificial ({manufacturer}, {model}).',
   ),
   'help.audience.admin' =>
   array (
@@ -3083,11 +3067,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.help.steps.3' =>
   array (
-    'de-CH' => 'Die Fusszeile nennt KI-Hersteller und Modell. Der Prozentwert ist eine lokale Schätzung aus dem von JeMa Jobs erfassten Tokenverbrauch seit Version 2.1.1, nicht der OpenAI-Abrechnungssaldo.',
-    'fr-CH' => 'Le pied de page indique le fournisseur et le modèle d’IA. Le pourcentage est une estimation locale calculée à partir des jetons suivis par JeMa Jobs depuis la version 2.1.1, pas le solde de facturation OpenAI.',
-    'en-GB' => 'The footer names the AI provider and model. Its percentage is a local estimate from tokens tracked by JeMa Jobs since version 2.1.1, not the OpenAI billing balance.',
-    'pt-BR' => 'O rodapé informa o fornecedor e o modelo de IA. O percentual é uma estimativa local baseada nos tokens registrados pelo JeMa Jobs desde a versão 2.1.1, não o saldo de cobrança da OpenAI.',
-    'es-MX' => 'El pie de página indica el proveedor y el modelo de IA. El porcentaje es una estimación local basada en los tokens registrados por JeMa Jobs desde la versión 2.1.1, no el saldo de facturación de OpenAI.',
+    'de-CH' => 'Die Fusszeile nennt KI-Hersteller und Modell. Sie zeigt bewusst keine unzuverlässige lokale Schätzung des OpenAI-Guthabens.',
+    'fr-CH' => 'Le pied de page indique le fournisseur et le modèle d’IA. Il n’affiche volontairement aucune estimation locale peu fiable du crédit OpenAI.',
+    'en-GB' => 'The footer names the AI provider and model. It deliberately shows no unreliable local estimate of the OpenAI balance.',
+    'pt-BR' => 'O rodapé informa o fornecedor e o modelo de IA. Ele não exibe uma estimativa local pouco confiável do saldo da OpenAI.',
+    'es-MX' => 'El pie de página indica el proveedor y el modelo de IA. No muestra ninguna estimación local poco fiable del saldo de OpenAI.',
   ),
   'help.v2.help.summary' =>
   array (
@@ -4456,7 +4440,6 @@ function openAiConnectionCheck(array $config, int $userId): array
     if (!is_string($raw) || $status < 200 || $status >= 300) throw new RuntimeException('KI-Verbindung fehlgeschlagen (HTTP '.$status.($error !== '' ? ': '.$error : '').').');
     $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
     if (($response['status'] ?? '') !== 'completed' || !is_string($response['id'] ?? null)) throw new RuntimeException('Die KI-Antwort wurde nicht abgeschlossen.');
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $userId, 'connection_check', $response);
     return ['model'=>(string)($response['model'] ?? 'unknown'),'response_id'=>(string)$response['id']];
 }
 
@@ -4464,48 +4447,6 @@ function openAiModelLabel(array $config): string
 {
     $model = trim((string) ($config['openai_model'] ?? 'gpt-5.6-luna'));
     return $model === 'gpt-5.6-luna' ? 'GPT-5.6 Luna' : $model;
-}
-
-function recordOpenAiUsage(array $config, int $userId, string $purpose, array $response): void
-{
-    global $db;
-    $responseId = substr(trim((string) ($response['id'] ?? '')), 0, 120);
-    if ($responseId === '' || !($db instanceof mysqli)) return;
-    $usage = is_array($response['usage'] ?? null) ? $response['usage'] : [];
-    $input = max(0, (int) ($usage['input_tokens'] ?? 0));
-    $output = max(0, (int) ($usage['output_tokens'] ?? 0));
-    $cached = min($input, max(0, (int) (($usage['input_tokens_details']['cached_tokens'] ?? 0))));
-    $inputRate = max(0.0, (float) ($config['openai_input_usd_per_million'] ?? 0.20));
-    $cachedRate = max(0.0, (float) ($config['openai_cached_input_usd_per_million'] ?? 0.02));
-    $outputRate = max(0.0, (float) ($config['openai_output_usd_per_million'] ?? 1.20));
-    $webSearchRate = max(0.0, (float) ($config['openai_web_search_usd_per_call'] ?? 0.01));
-    $webSearchCalls = count(array_filter((array) ($response['output'] ?? []), static fn($item): bool => is_array($item) && ($item['type'] ?? '') === 'web_search_call'));
-    $cost = (($input - $cached) * $inputRate + $cached * $cachedRate + $output * $outputRate) / 1000000 + $webSearchCalls * $webSearchRate;
-    $model = substr(trim((string) ($response['model'] ?? ($config['openai_model'] ?? 'gpt-5.6-luna'))), 0, 120);
-    $purpose = substr(trim($purpose), 0, 80);
-    try {
-        $stmt = $db->prepare('INSERT IGNORE INTO ai_usage_events (response_id, user_id, purpose, model, input_tokens, cached_input_tokens, output_tokens, web_search_calls, estimated_cost_usd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $stmt->bind_param('sissiiiid', $responseId, $userId, $purpose, $model, $input, $cached, $output, $webSearchCalls, $cost);
-        $stmt->execute();
-    } catch (Throwable $exception) {
-        error_log('OpenAI usage recording failed: ' . $exception->getMessage());
-    }
-}
-
-function openAiQuotaStatus(array $config): array
-{
-    global $db;
-    $budget = max(0.01, (float) ($config['openai_budget_usd'] ?? 10.00));
-    $offset = max(0.0, (float) ($config['openai_budget_spent_offset_usd'] ?? 0.00));
-    $tracked = 0.0;
-    try {
-        $row = $db instanceof mysqli ? dbOne($db, 'SELECT COALESCE(SUM(estimated_cost_usd),0) total FROM ai_usage_events') : null;
-        $tracked = max(0.0, (float) ($row['total'] ?? 0));
-    } catch (Throwable $exception) {
-        error_log('OpenAI quota read failed: ' . $exception->getMessage());
-    }
-    $remainingPercent = (int) round(max(0.0, min(100.0, (($budget - $offset - $tracked) / $budget) * 100)));
-    return ['remaining_percent'=>$remainingPercent, 'estimated_spend_usd'=>$offset + $tracked, 'budget_usd'=>$budget];
 }
 
 function encryptSecret(array $config, string $plain): ?string
@@ -7439,7 +7380,6 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
     if (!is_string($raw) || $status<200 || $status>=300) throw new RuntimeException('KI-Texterstellung fehlgeschlagen (HTTP '.$status.($error!=='' ? ': '.$error : '').').');
     $response=json_decode($raw,true,512,JSON_THROW_ON_ERROR);
     if (($response['status'] ?? '')!=='completed') throw new RuntimeException('Die KI-Texterstellung wurde nicht vollständig abgeschlossen.');
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $userId, 'application_texts', $response);
     $output=''; foreach ((array)($response['output'] ?? []) as $item) foreach ((array)($item['content'] ?? []) as $content) if (($content['type'] ?? '')==='output_text' && is_string($content['text'] ?? null)) $output.=$content['text'];
     $texts=json_decode($output,true,512,JSON_THROW_ON_ERROR);
     foreach (['email_subject','email_body','cover_letter_text'] as $field) if (!is_string($texts[$field] ?? null) || trim($texts[$field])==='') throw new RuntimeException('Die KI-Antwort enthielt nicht alle drei Texte.');
@@ -8737,7 +8677,6 @@ function openAiJobSearchSuggestion(array $config, int $userId, string $query, st
     $raw = curl_exec($handle); $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE); $error = curl_error($handle); curl_close($handle);
     if (!is_string($raw) || $status < 200 || $status >= 300) throw new RuntimeException('KI-Vorschlag fehlgeschlagen (HTTP '.$status.($error !== '' ? ': '.$error : '').').');
     $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $userId, 'search_criteria', $response);
     $output = '';
     foreach ((array) ($response['output'] ?? []) as $item) {
         foreach ((array) ($item['content'] ?? []) as $content) {
@@ -8820,7 +8759,6 @@ function localizeJobResults(array $config, int $userId, array $jobs, string $loc
     if (!is_string($raw) || $status !== 200) throw new RuntimeException('Job translation request failed (HTTP '.$status.')');
     $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
     if (($response['status'] ?? '') !== 'completed') throw new RuntimeException('Job translation not completed');
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $userId, 'job_translation', $response);
     $output = '';
     foreach ((array)($response['output'] ?? []) as $item) foreach ((array)($item['content'] ?? []) as $content) if (($content['type'] ?? '') === 'output_text') $output .= (string)$content['text'];
     $decoded = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
@@ -9013,7 +8951,6 @@ function jobStructuredResponse(array $config, int $uid, string $instructions, ar
     if (!is_string($raw) || $status!==200) throw new RuntimeException('Die KI-Prüfung ist fehlgeschlagen (HTTP '.$status.').');
     $decoded=json_decode($raw,true,512,JSON_THROW_ON_ERROR);
     if (($decoded['status'] ?? '')!=='completed') throw new RuntimeException('Die KI-Prüfung wurde nicht vollständig abgeschlossen.');
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $uid, 'job_verification', $decoded);
     $text=''; foreach ($decoded['output'] ?? [] as $item) foreach ($item['content'] ?? [] as $content) if (($content['type'] ?? '')==='output_text') $text.=$content['text'];
     return json_decode($text,true,512,JSON_THROW_ON_ERROR);
 }
@@ -9088,7 +9025,6 @@ function openAiJobSearch(array $config, int $userId, array $criteria): array
     }
     $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR); $output = '';
     if (($response['status'] ?? '') !== 'completed') throw new RuntimeException('Die KI-Stellensuche wurde nicht abgeschlossen.');
-    if (function_exists('recordOpenAiUsage')) recordOpenAiUsage($config, $userId, 'job_discovery', $response);
     foreach ((array) ($response['output'] ?? []) as $item) foreach ((array) ($item['content'] ?? []) as $content) if (($content['type'] ?? '') === 'output_text' && is_string($content['text'] ?? null)) $output .= $content['text'];
     $decoded = json_decode(trim(preg_replace('/^```(?:json)?\\s*|\\s*```$/u', '', $output) ?? ''), true);
     $jobs = [];
@@ -12727,10 +12663,9 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.1';
+$codeVersion = '2.1.2';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
-$aiQuotaStatus = openAiQuotaStatus($config);
 seedDbUiTextCatalog();
 if ($currentUser) {
     touchUserPresence($db, realUserId());
@@ -14761,7 +14696,7 @@ startUiTranslationBuffer($appLocale);
     <?php endif; ?>
 <?php endif; ?>
 </main>
-<footer>JeMa Jobs · Version <?= e($appDisplayVersion) ?> · <?= e(tr('footer.private')) ?><br><?= e(tr('footer.ai_notice', null, ['manufacturer'=>'OpenAI', 'model'=>openAiModelLabel($config), 'percent'=>(string)$aiQuotaStatus['remaining_percent']])) ?></footer>
+<footer>JeMa Jobs · Version <?= e($appDisplayVersion) ?> · <?= e(tr('footer.private')) ?><br><?= e(tr('footer.ai_notice', null, ['manufacturer'=>'OpenAI', 'model'=>openAiModelLabel($config)])) ?></footer>
 <dialog id="ai-work-dialog" aria-labelledby="ai-work-title" style="box-sizing:border-box;width:min(32rem,calc(100vw - 2rem));padding:1.5rem;border:0;border-radius:12px">
     <h2 id="ai-work-title"><?= e(tr('ai.work_title')) ?></h2>
     <p><?= e(tr('ai.work_hint')) ?></p>

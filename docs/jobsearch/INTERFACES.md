@@ -214,8 +214,6 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function secretKey(array $config): string`
 - `function openAiConnectionCheck(array $config, int $userId): array`
 - `function openAiModelLabel(array $config): string`
-- `function recordOpenAiUsage(array $config, int $userId, string $purpose, array $response): void`
-- `function openAiQuotaStatus(array $config): array`
 - `function encryptSecret(array $config, string $plain): ?string`
 - `function decryptSecret(array $config, ?string $stored): string`
 - `function appUrl(array $config): string`

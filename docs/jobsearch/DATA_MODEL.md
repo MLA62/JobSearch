@@ -1481,25 +1481,6 @@ Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PH
 ```
 
 ```php
-"CREATE TABLE IF NOT EXISTS ai_usage_events (
-        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        response_id VARCHAR(120) NOT NULL,
-        user_id BIGINT UNSIGNED NULL,
-        purpose VARCHAR(80) NOT NULL,
-        model VARCHAR(120) NOT NULL,
-        input_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        cached_input_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        output_tokens BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        web_search_calls INT UNSIGNED NOT NULL DEFAULT 0,
-        estimated_cost_usd DECIMAL(14,8) NOT NULL DEFAULT 0,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_ai_usage_response (response_id),
-        KEY idx_ai_usage_created (created_at),
-        KEY idx_ai_usage_user (user_id, created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-```
-
-```php
 "CREATE TABLE IF NOT EXISTS app_migrations (
         migration_key VARCHAR(100) NOT NULL PRIMARY KEY,
         applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -1,6 +1,13 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.1 ist deployed. Produktionsdatei, öffentliche Versionsanzeige und KI-Fusszeile sind bestätigt. Version 2.1.1 ergänzt einen einheitlichen KI-Arbeitsdialog und eine geschätzte App-Kontingentanzeige. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.2 ist zur Freigabe vorbereitet; 2.1.1 ist der bestätigte Live-Stand. Version 2.1.2 behält den KI-Arbeitsdialog und entfernt die unzuverlässige Kontingentanzeige samt Nutzungstelemetrie. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+
+## KI-Kennzeichnung 2.1.2
+
+Die Fusszeile nennt weiterhin OpenAI und das konfigurierte Modell. Eine Prozentangabe zum
+verfügbaren Kontingent wird nicht mehr ausgegeben, weil eine aus lokalen Requests abgeleitete
+Schätzung weder das tatsächliche OpenAI-Guthaben noch andere Verbräuche zuverlässig abbildet.
+Die in 2.1.1 eingeführte Tabelle und Kostenschätzung werden nicht weiter verwendet oder angelegt.
 
 ## KI-Arbeitsdialog und App-Kontingent 2.1.1
 
@@ -10,14 +17,6 @@ Textüberarbeitung werden per `fetch` mit `AbortController` ausgeführt. Ein mod
 Such- und Importdialoge bleiben unverändert. Ein Abbruch beendet die Browser-Anfrage und lädt die
 Seite neu; eine auf dem Server bereits abgeschlossene Transaktion wird nicht rückgängig gemacht.
 
-`ai_usage_events` speichert nur Response-ID, Benutzer-ID, Zweck, Modell, Tokenzahlen und eine
-berechnete Kostenschätzung. Die eindeutige Response-ID verhindert Doppelzählung. Bei GPT-5.6 Luna
-gelten konfigurierbar 0,20 USD/M Input, 0,02 USD/M Cache-Input, 1,20 USD/M Output und 0,01 USD je
-Websuche. Das Budget ist
-standardmäßig 10 USD; ein konfigurierbarer Offset kann vorherige Nutzung berücksichtigen. Die
-Fusszeile zeigt den gerundeten geschätzten Rest in Prozent und bezeichnet ihn ausdrücklich als
-App-Kontingent, nicht als OpenAI-Abrechnungssaldo. Personenbezogene Inhalte oder Prompts werden
-nicht in der Nutzungstabelle gespeichert.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 

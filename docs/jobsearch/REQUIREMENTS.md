@@ -1,6 +1,10 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.1.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.2.
+
+Ergänzung 2.1.2: Die Fusszeile nennt weiterhin KI-Hersteller und Modell, zeigt aber keine
+Prozent-/Kontingentangabe. Die lokale Schätzung aus 2.1.1 ist unzuverlässig und wird mitsamt ihrer
+Nutzungstelemetrie entfernt.
 
 Ergänzung 2.1.1: Länger dauernde KI-Aktionen zeigen modal `In Arbeit` mit sichtbarer
 Aktivität und Abbrechen. Die Fusszeile jeder Seite nennt OpenAI und das konfigurierte Modell.
