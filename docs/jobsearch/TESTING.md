@@ -5,6 +5,14 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.15: `job_source_limit_test.php` startet einen Vertiefungsstand mit acht
+verbleibenden Prüfplätzen. Eine Quelle ohne neue eindeutige URL scheidet aus; die andere erhält
+alle acht zurückgegebenen Plätze und das Gesamtlimit 60 wird erreicht. Der Discovery-Request muss
+das aktuelle UTC-Datum enthalten. Bestehende Tests belegen weiterhin die gleichmäßige Erstprüfung,
+das Quellen-/Rundenlimit und den unveränderten Matchvertrag. `job_verification_test.php` prüft das
+2000-Zeichen-Limit; `job_search_ai_test.php` den Zwölfzeilen- und Frischevertrag. Externe Antworten
+sind simuliert; die höhere produktive Ausbeute ist mit einem neuen angemeldeten Diagnosebericht zu prüfen.
+
 Ergänzung 2.0.14: `job_verification_test.php` simuliert den vom Benutzer gemeldeten Monatslohn
 `CHF 6 550 - 8 380 /Monat` bei absichtlich falschem KI-Wert `year` und erwartet den belegbasiert
 korrigierten Wert `month` im Job und im Audit. Jahres-/Stundenbelege und unbestimmte Perioden sowie

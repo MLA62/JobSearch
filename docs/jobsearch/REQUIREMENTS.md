@@ -1,6 +1,6 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.14.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.15.
 Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
 ## Produkt und Grenzen
@@ -30,6 +30,15 @@ Vor Ort, Hybrid und Remote sind unterscheidbar. Nur vor Ort darf nicht als Remot
 Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
+
+Ergänzung 2.0.15: Die Ergebnis-Zusammenfassung nutzt höchstens zwölf sichtbare Zeilen und
+bis zu 2000 Zeichen in der Benutzersprache. Für eine höhere Ausbeute soll bereits die Discovery
+anhand des aktuellen Tages neue, einzeln lesbare Anzeigen bevorzugen und erkennbar abgelaufene,
+geschlossene, generische oder zugangsgesperrte Seiten meiden. Nach gleichmäßiger Erstprüfung wird
+ungenutztes Vertiefungsbudget erneut annähernd gleich an produktive Quellen verteilt, die im
+vorherigen Durchgang weitere eindeutige URLs geliefert haben. Höchstens drei Vertiefungsdurchgänge,
+insgesamt weiterhin maximal 60 Anzeigenprüfungen. Mindestmatch 70, Belegpflicht, Verfügbarkeit,
+Ausschlüsse und Dubletten bleiben unverändert.
 
 Ergänzung 2.0.14: Sobald die laufende Suche mindestens einen brauchbaren Treffer gespeichert
 hat, wird im offenen Statusfenster Abbrechen durch Resultate ersetzt. Die Statusanzeige bleibt

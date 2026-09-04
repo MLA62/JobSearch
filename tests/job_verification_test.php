@@ -60,10 +60,10 @@ $salaryFacts=[
 ];
 $salaryCriteria=['query'=>'Account Manager'];
 $salaryChecks=[['criterion'=>'roles','verdict'=>'met','source_id'=>'original','quote'=>'Account Manager']];
-$salary=applyJobEvidence($salaryDraft,['facts'=>$salaryFacts,'checks'=>$salaryChecks,'summary'=>str_repeat('Lange konkrete Kurzbeschreibung. ',40),'reason'=>'Rolle passt'],$salaryCriteria);
+$salary=applyJobEvidence($salaryDraft,['facts'=>$salaryFacts,'checks'=>$salaryChecks,'summary'=>str_repeat('Lange konkrete Kurzbeschreibung. ',80),'reason'=>'Rolle passt'],$salaryCriteria);
 helpAssert($salary['job_details']['salary_period']==='month','Explicit /Monat evidence overrides an incorrect annual model value');
 helpAssert(($salary['extracted_facts'][3]['value'] ?? '')==='month','Corrected salary period is retained in the evidence audit');
-helpAssert(strlen($salary['assessment']['summary'])>420,'Useful summary is no longer restricted to the old short limit');
+helpAssert(strlen($salary['assessment']['summary'])===2000,'Useful summary supports twelve lines but remains bounded');
 helpAssert(jobSalaryPeriodFromEvidence('CHF 95 000 pro Jahr')==='year' && jobSalaryPeriodFromEvidence('CHF 45 pro Stunde')==='hour','Explicit annual and hourly evidence recognized');
 helpAssert(jobSalaryPeriodFromEvidence('attraktiver Lohn')===null,'Salary period is not guessed without evidence');
 helpAssert(jobFactValue('job','workload_max','101')===null && jobFactValue('job','fixed_term_end','2026-02-30')===null,'Invalid typed facts rejected');

@@ -24,6 +24,10 @@ $required = [
     "name=\"search_location\"",
     "value=\"reset_platform_search_criteria\"",
     "value=\"suggest_job_search_criteria\"",
+    '-webkit-line-clamp:12',
+    '<th>Zusammenfassung</th>',
+    'current_date_utc',
+    'refine_pass_yield',
     "'store' => false",
     "'max_output_tokens' => 180",
 ];

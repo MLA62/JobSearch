@@ -1,8 +1,34 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.14 ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.15 ist für das Deployment vorbereitet; bestätigter Live-Stand ist 2.0.14. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Frische Kandidaten und Restbudget 2.0.15 (Deployment ausstehend)
+
+Der produktive Diagnosebericht aus 2.0.14 schloss 16 von 16 Quellen ab und erreichte sieben
+brauchbare Treffer bei 52 geprüften Kandidaten. Von neun vollständig bewertbaren Anzeigen waren
+sieben passend; der Mindestmatch war daher nicht der Engpass. Vor der Bewertung fielen 26 Anzeigen
+als abgelaufen oder nicht belegbar verfügbar und 15 als technisch nicht lesbar aus. Zwei weitere
+wurden mit 68 beziehungsweise 64 Prozent fachlich abgelehnt. Die Optimierung senkt den
+Matchschwellenwert nicht.
+
+Discovery erhält nun `current_date_utc` und verlangt bevorzugt kürzlich veröffentlichte einzelne
+Anzeigen mit künftigem Gültigkeitsdatum oder sichtbarer Bewerbungsaktion. Erkennbar abgelaufene,
+geschlossene, entfernte, generische, archivierte oder zugangsgesperrte Ergebnisse sollen bereits
+dort entfallen; jede zurückgegebene URL durchläuft weiterhin die unabhängige Original-,
+Verfügbarkeits-, Beleg-, Match-, Ausschluss- und Dublettenprüfung.
+
+Die gleichmäßige Erstprüfung und das Gesamtlimit von 60 bleiben bestehen. Kann eine produktive
+Quelle ihren Vertiefungsanteil nicht mit neuen eindeutigen URLs füllen, wird das verbleibende
+Prüfbudget in bis zu zwei weiteren Durchgängen an diejenigen produktiven Quellen verteilt, die im
+vorherigen Durchgang noch neue eindeutige Kandidaten lieferten. Damit bleiben im beobachteten Fall
+nicht bis zu acht Prüfplätze ungenutzt. Leere oder nur doppelte Antworten werden nicht nochmals
+bevorzugt; spätestens nach dem dritten Vertiefungsdurchgang endet die Suche.
+
+Zusammenfassungen dürfen bis zu 2000 Zeichen enthalten und nutzen maximal zwölf sichtbare
+Tabellenzeilen. Übersetzung und Primärbewertung verwenden dasselbe Limit. Keine DB-,
+Konfigurations- oder Bestandsdatenänderung.
 
 ## Frühe Resultate und Lohnbelege 2.0.14 (deployed)
 

@@ -66,4 +66,28 @@ helpAssert($adaptive['sources_explored']===16 && $adaptive['phase']==='refine','
 helpAssert(($batches[$sources[0]] ?? 0)>1 && count($batches)===16,'Only proven source is queried again after equal exploration');
 helpAssert($adaptive['technical_errors']===30,'Blocked sources stop after two matching retrieval failures');
 unset($GLOBALS['discoveryFixtureCallback'],$GLOBALS['verificationFixtureCallback'],$GLOBALS['verificationFixtureError']);
+
+// If a productive source cannot use its refinement share, remaining checks are
+// reassigned to productive sources that still returned new unique candidates.
+$requests=[];
+$GLOBALS['discoveryFixtureCallback']=static function(array $criteria) use (&$requests):array {
+    $requests[]=$criteria;
+    return array_map(static fn($i)=>['url'=>'https://source2.test/reassigned-'.$i],range(1,$criteria['total_count']));
+};
+$GLOBALS['verificationFixtureCallback']=static function(string $url,array $criteria) use ($enriched):array {
+    $draft=$enriched+['company'=>'Example SA','location'=>'Bern'];
+    $draft['original_url']=str_replace('source2.test','reassigned-original.test',$url);
+    return $draft;
+};
+$redistributed=$fresh(array_slice($sources,0,2));
+$redistributed['criteria']['total_count']=100;
+$redistributed['phase']='refine'; $redistributed['checked']=52;
+$redistributed['source_index']=1; $redistributed['refine_sources']=[0,1]; $redistributed['refine_position']=1;
+$redistributed['refine_pass']=1; $redistributed['refine_pass_yield']=[0=>0,1=>4];
+$redistributed['refine_quotas']=[0=>4,1=>4]; $redistributed['advance_source']=true;
+for ($step=0;$step<20 && !$redistributed['done'];$step++) advanceVerifiedJobSearch([] ,7,$redistributed);
+helpAssert($requests[0]['total_count']===8 && $requests[0]['preferred_sources']===[$sources[1]],'Unused refinement share returns to a source that still yields unique candidates');
+helpAssert(($requests[0]['current_date_utc'] ?? '')===gmdate('Y-m-d'),'Discovery receives an explicit freshness reference date');
+helpAssert($redistributed['checked']===60 && count($redistributed['jobs'])===8,'Redistributed candidates use the remaining verification budget');
+unset($GLOBALS['discoveryFixtureCallback'],$GLOBALS['verificationFixtureCallback']);
 echo "Fair-source checks passed\n";
