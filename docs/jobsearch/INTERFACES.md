@@ -390,7 +390,15 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importLooksLikeJobDetail(string $url, ?array $job, DOMXPath $xpath): bool`
 - `function importUpsertCompany(mysqli $db, int $uid, string $companyName, array $details = []): int`
 - `function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, array $contact): void`
+- `function importDraftContacts(mysqli $db, int $uid, int $companyId, int $jobId, array $draft): void`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
+- `function importResolveUrl(string $base, string $reference): string`
+- `function importFetchHtml(string $url): array`
+- `function importOriginalCandidates(string $html, string $url): array`
+- `function importSameJob(array $portal, array $original): bool`
+- `function importVisibleContacts(DOMDocument $document, DOMXPath $xpath, string $company): array`
+- `function importCompanyWebsite(DOMXPath $xpath, string $company, string $url): string`
+- `function importCompanyPageDetails(string $html, string $company): array`
 - `function importFromUrl(string $url): array`
 - `function importJobHtml(string $html, string $url): array`
 - `function importFromText(string $text): array`

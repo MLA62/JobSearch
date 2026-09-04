@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
-foreach (['jobDisplayText','importUpsertCompany','importUpsertContact'] as $name) helpLoadFunction($name);
+foreach (['jobDisplayText','importUpsertCompany','importUpsertContact','importDraftContacts'] as $name) helpLoadFunction($name);
 
 class mysqli {
     public array $companies = [];
@@ -60,4 +60,8 @@ helpAssert(count($db->contacts)===1,'Repeat import does not duplicate contact');
 helpAssert($db->contacts[1]['company_id']===$id && $db->contacts[1]['job_id']===11,'Contact linked to employer and job');
 importUpsertContact($db,7,$id,11,[]);
 helpAssert(count($db->contacts)===1,'No invented empty person');
+importDraftContacts($db,7,$id,11,['contacts'=>[$contact,['first_name'=>'Marc','last_name'=>'Exemple','email'=>'marc@example.test','phone'=>'+41 32 555 01 03']]]);
+helpAssert(count($db->contacts)===2,'Multiple original contacts saved without duplicating the first');
+importDraftContacts($db,7,$id,11,['contacts'=>[$contact,['first_name'=>'Marc','last_name'=>'Exemple','email'=>'marc@example.test']]]);
+helpAssert(count($db->contacts)===2,'Multiple-contact repeat import remains idempotent');
 echo "$helpChecks import storage checks passed (mock database)\n";

@@ -6,6 +6,7 @@ $source = file_get_contents(__DIR__.'/../public/index.php');
 $wanted = array_flip(['normalizeLocale','supportedLocales','repairMojibake','plainText','readableText','findJobPosting','importMetaContent','importHtmlMatch','importHiringOrganization','importJobLocation','importJobContact','importCleanTitle','importCompanyFromText','importVisibleCompany','importLooksLikeJobDetail','importJobHtml','jobDisplayText','jobDisplayLanguage','mergeJobDisplayTranslations','localizeJobResults','currentLocale']);
 $wanted['multilingualUiEnabled'] = true;
 $wanted['importCompanyDetails'] = true;
+foreach (['importResolveUrl','importOriginalCandidates','importSameJob','importVisibleContacts','importCompanyWebsite','importCompanyPageDetails','importFromUrl'] as $helper) $wanted[$helper]=true;
 $tokens = token_get_all($source);
 for ($i=0; $i<count($tokens); $i++) {
     if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_FUNCTION) continue;

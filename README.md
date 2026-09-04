@@ -1,7 +1,8 @@
 # JeMa Jobs
 
-Stand: 03.09.2026. Produktiv: 1.18.1, Quellstand ab2bf9c.
-Server-Hash verifiziert; zentrale Hilfe, Suche und Kontexttexte angemeldet in allen fuenf Sprachen geprueft.
+Stand: 04.09.2026. Produktiv verifiziert: 2.0.4; Release 2.0.5 in Vorbereitung.
+Aktueller Freigabe-/Prüfstand: [Release 2.0.5](docs/jobsearch/RELEASE-2.0.5.md).
+Historische angemeldete Abnahmen gelten nicht automatisch für diese Änderungen.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

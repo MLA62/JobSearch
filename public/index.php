@@ -3446,11 +3446,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.tips.0' =>
   array (
-    'de-CH' => 'Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt. Titel, Kurzbeschreibung und Match-Begründung werden getrennt in die aktuelle App-Sprache übersetzt. Beim Übernehmen bleibt der vollständige Inserattext in seiner Originalsprache. Firma, Adresse, Website und Kontakt werden aus belegten Inseratdaten ergänzt; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert die Originalbeschreibung, nicht deine Notizen.',
-    'fr-CH' => 'L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre. Le titre, le résumé et la justification du score sont traduits séparément dans la langue actuelle de l’application. L’import conserve le texte intégral dans sa langue originale. L’entreprise, l’adresse, le site et le contact sont complétés à partir des données attestées de l’annonce, sans écraser les coordonnées existantes. Un nouvel import actualise la description originale, pas tes notes.',
-    'en-GB' => 'AI provides suggestions. It creates neither an application nor a job without your Take over action. The title, summary and match explanation are translated separately into the current app language. Import preserves the full advertisement in its original language. Company address, website and contact details are filled from evidenced advertisement data without overwriting existing company details. Importing again refreshes the original description, not your notes.',
-    'pt-BR' => 'A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar. Título, resumo e justificativa da compatibilidade são traduzidos separadamente para o idioma atual do aplicativo. A importação mantém o anúncio completo no idioma original. Endereço, site e contato da empresa são preenchidos com dados comprovados do anúncio, sem substituir dados existentes. Importar novamente atualiza a descrição original, não suas anotações.',
-    'es-MX' => 'La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar. El título, resumen y explicación de compatibilidad se traducen por separado al idioma actual de la aplicación. La importación conserva el anuncio completo en su idioma original. Dirección, sitio web y contacto se completan con datos comprobados del anuncio, sin sustituir datos existentes. Volver a importar actualiza la descripción original, no tus notas.',
+    'de-CH' => 'Die KI liefert Vorschläge, keine automatischen Bewerbungen. Titel, Kurzbeschreibung und Match-Begründung erscheinen in der aktuellen App-Sprache. Beim Übernehmen folgt der Import erkannten Links zur Originalausschreibung und übernimmt deren Text in der Originalsprache sowie belegte Firmen- und Kontaktangaben. Die verlinkte Firmenwebsite kann fehlende Adressfelder ergänzen; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert Firma, Titel, Ort und Originalbeschreibung, nicht deine Notizen oder Dokumente. Blockierte oder nicht lesbare Originalseiten können nicht importiert werden. Ohne Browser-Renderer wird kein automatisches Original-PDF oder PNG erzeugt; ein echter PDF-/Bild-Upload bleibt möglich. Alte automatisch erzeugte Tabellen-PDFs sind keine originalgetreuen Seitenkopien und bleiben unverändert gespeichert.',
+    'fr-CH' => 'L’IA propose des offres sans envoyer de candidature. Le titre, le résumé et la justification du score sont affichés dans la langue actuelle de l’application. Reprendre suit les liens reconnus vers l’annonce originale et importe son texte dans la langue d’origine ainsi que les coordonnées attestées de l’entreprise et des contacts. Le site lié de l’entreprise peut compléter l’adresse manquante sans écraser les données existantes. Réimporter actualise l’entreprise, le titre, le lieu et la description, pas tes notes ni tes documents. Une annonce originale bloquée ou illisible ne peut pas être importée. Sans moteur de navigateur, aucun PDF ou PNG original n’est créé automatiquement; tu peux toujours joindre un vrai PDF ou une image. Les anciens PDF tabulaires générés ne sont pas des copies fidèles et restent conservés.',
+    'en-GB' => 'AI suggests jobs without sending applications. The title, summary and match explanation use the current app language. Take over follows recognised links to the original advertisement and imports its original-language text and evidenced employer and contact details. The linked employer website may fill missing address fields without overwriting existing details. Reimporting updates the employer, title, location and description, not your notes or documents. Blocked or unreadable original advertisements cannot be imported. Without a browser renderer, no original PDF or PNG is created automatically; genuine PDF/image uploads remain available. Previously generated table PDFs are not faithful page copies and remain stored unchanged.',
+    'pt-BR' => 'A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da compatibilidade usam o idioma atual do aplicativo. Ao importar, links reconhecidos levam ao anúncio original, cujo texto no idioma original e dados comprovados da empresa e dos contatos são importados. O site vinculado da empresa pode completar campos de endereço ausentes sem substituir dados existentes. Reimportar atualiza empresa, título, local e descrição, não suas anotações nem documentos. Anúncios originais bloqueados ou ilegíveis não podem ser importados. Sem um renderizador de navegador, nenhum PDF ou PNG original é criado automaticamente; o envio de um PDF ou imagem real continua disponível. PDFs tabulares gerados anteriormente não são cópias fiéis da página e permanecem armazenados sem alterações.',
+    'es-MX' => 'La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación de compatibilidad usan el idioma actual de la aplicación. Al importar, se siguen enlaces reconocidos al anuncio original y se importan su texto en el idioma original y los datos comprobados de la empresa y sus contactos. El sitio vinculado de la empresa puede completar campos de dirección faltantes sin sustituir datos existentes. Reimportar actualiza empresa, título, lugar y descripción, no tus notas ni documentos. Los anuncios originales bloqueados o ilegibles no se pueden importar. Sin un renderizador de navegador, no se crea automáticamente ningún PDF o PNG original; sigue siendo posible adjuntar un PDF o imagen auténticos. Los PDF tabulares generados anteriormente no son copias fieles de la página y se conservan sin cambios.',
   ),
   'help.v2.search.title' =>
   array (
@@ -7565,6 +7565,12 @@ function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, a
     audit($db,$uid,'create','contact',(int)$stmt->insert_id,null,['source'=>'original_ad_import','company_id'=>$companyId,'job_id'=>$jobId]);
 }
 
+function importDraftContacts(mysqli $db, int $uid, int $companyId, int $jobId, array $draft): void
+{
+    $contacts=$draft['contacts'] ?? (empty($draft['contact']) ? [] : [$draft['contact']]);
+    foreach ($contacts as $contact) if (is_array($contact)) importUpsertContact($db,$uid,$companyId,$jobId,$contact);
+}
+
 function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool
 {
     $title = trim((string) ($draft['title'] ?? ''));
@@ -7587,35 +7593,184 @@ function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $d
     return true;
 }
 
+function importResolveUrl(string $base, string $reference): string
+{
+    $reference = html_entity_decode(trim($reference), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if (preg_match('~^https?://~i', $reference)) return $reference;
+    $parts = parse_url($base);
+    if (!$parts || $reference === '' || preg_match('~^[a-z][a-z0-9+.-]*:~i', $reference)) return '';
+    if (str_starts_with($reference, '//')) return ($parts['scheme'] ?? 'https').':'.$reference;
+    $origin = ($parts['scheme'] ?? 'https').'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+    if ($reference[0] === '?') return $origin.($parts['path'] ?? '/').$reference;
+    $path = $reference[0] === '/' ? $reference : preg_replace('~/[^/]*$~', '/', $parts['path'] ?? '/').$reference;
+    $segments = [];
+    foreach (explode('/', $path) as $segment) {
+        if ($segment === '..') array_pop($segments);
+        elseif ($segment !== '.') $segments[] = $segment;
+    }
+    return $origin.implode('/', $segments);
+}
+
+function importFetchHtml(string $url): array
+{
+    if (!function_exists('curl_init')) throw new RuntimeException('Der HTTP-Importer ist serverseitig nicht verfügbar.');
+    for ($hop = 0; $hop <= 3; $hop++) {
+        $parts = parse_url($url);
+        if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['https','http'], true) || isset($parts['user']) || isset($parts['pass']) || !in_array((int)($parts['port'] ?? (($parts['scheme'] ?? '') === 'https' ? 443 : 80)), [80,443], true)) throw new RuntimeException('Nicht erlaubte Inserat-URL.');
+        $records = @dns_get_record($parts['host'], DNS_A | DNS_AAAA);
+        $addresses = [];
+        foreach ($records ?: [] as $record) {
+            $ip = $record['ip'] ?? ($record['ipv6'] ?? '');
+            if ($ip === '' || !filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) throw new RuntimeException('Nicht öffentliche Inserat-Adresse.');
+            $addresses[] = $ip;
+        }
+        if (!$addresses) throw new RuntimeException('Der Inserat-Host konnte nicht aufgelöst werden.');
+        // Pin the validated address and validate every redirect before requesting it.
+        usort($addresses, static fn(string $a,string $b): int => (int)str_contains($a,':') <=> (int)str_contains($b,':'));
+        $ip = str_contains($addresses[0],':') ? '['.$addresses[0].']' : $addresses[0];
+        $port = (int)($parts['port'] ?? ($parts['scheme'] === 'https' ? 443 : 80));
+        $body = ''; $location = ''; $tooLarge = false;
+        $curl = curl_init($url);
+        curl_setopt_array($curl, [
+            CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>10, CURLOPT_TIMEOUT=>30,
+            CURLOPT_ENCODING=>'', CURLOPT_USERAGENT=>'JeMaJobs/2.0 (+https://jobs.jema.business)',
+            CURLOPT_HTTPHEADER=>['Accept: text/html,application/xhtml+xml','Accept-Language: de-CH,de;q=0.9,en;q=0.7'],
+            CURLOPT_PROTOCOLS=>CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_PROXY=>'',
+            CURLOPT_RESOLVE=>[$parts['host'].':'.$port.':'.$ip],
+            CURLOPT_HEADERFUNCTION=>static function($handle,string $line) use (&$location): int {
+                if (stripos($line,'Location:') === 0) $location = trim(substr($line,9));
+                return strlen($line);
+            },
+            CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk) use (&$body,&$tooLarge): int {
+                if (strlen($body)+strlen($chunk) > 5_000_000) { $tooLarge=true; return 0; }
+                $body.=$chunk; return strlen($chunk);
+            },
+        ]);
+        $ok = curl_exec($curl); $status=(int)curl_getinfo($curl,CURLINFO_RESPONSE_CODE); $errno=curl_errno($curl); curl_close($curl);
+        if ($tooLarge) throw new RuntimeException('Die Inseratseite überschreitet die Importgrenze von 5 MB.');
+        if ($ok === false) throw new RuntimeException('Abruf bei '.$parts['host'].' fehlgeschlagen (Netzwerkfehler '.$errno.').');
+        if (in_array($status,[301,302,303,307,308],true) && $location !== '') { $url=importResolveUrl($url,$location); continue; }
+        if ($status === 404 || $status === 410) throw new RuntimeException('Die Ausschreibung ist nicht mehr verfügbar (HTTP '.$status.').');
+        if ($status === 403 || $status === 429) throw new RuntimeException('Das Portal blockiert den automatischen Abruf (HTTP '.$status.').');
+        if ($status < 200 || $status >= 300 || trim($body) === '') throw new RuntimeException('Die Stellenanzeige konnte nicht gelesen werden (HTTP '.$status.').');
+        return ['html'=>$body,'url'=>$url];
+    }
+    throw new RuntimeException('Zu viele Weiterleitungen beim Inseratabruf.');
+}
+
+function importOriginalCandidates(string $html, string $url): array
+{
+    $candidates = [];
+    // JobCloud places the original advertiser URL inside its serialized page state.
+    if (in_array(strtolower((string)parse_url($url,PHP_URL_HOST)),['www.jobs.ch','jobs.ch','www.jobup.ch','jobup.ch'],true)) {
+        preg_match_all('~"externalUrl"\s*:\s*("(?:\\\\.|[^"\\\\])*")~', $html, $matches);
+        foreach ($matches[1] ?? [] as $literal) {
+            $candidate = json_decode($literal,true);
+            if (is_string($candidate) && str_starts_with($candidate,'https://')) $candidates[]=$candidate;
+        }
+    }
+    $document = new DOMDocument();
+    @$document->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
+    foreach ((new DOMXPath($document))->query('//a[@href]') ?: [] as $link) {
+        if (preg_match('/Original(?:inserat|ausschreibung|anzeige)|original (?:job|advert|posting)|annonce originale/iu', $link->textContent)) {
+            $candidates[]=importResolveUrl($url,$link->getAttribute('href'));
+        }
+    }
+    return array_slice(array_values(array_unique(array_filter($candidates,static fn(string $candidate):bool=>$candidate!==$url && str_starts_with($candidate,'https://')))),0,3);
+}
+
+function importSameJob(array $portal, array $original): bool
+{
+    $words = static fn(string $text): array => array_values(array_filter(preg_split('/[^\pL\pN]+/u',strtolower($text)) ?: [],static fn(string $word):bool=>strlen($word)>2));
+    $wanted = array_unique($words((string)($portal['title'] ?? '')));
+    $actual = array_unique($words((string)($original['title'] ?? '')));
+    return count($wanted)>0 && count(array_intersect($wanted,$actual)) >= max(1,(int)ceil(count($wanted)*0.6));
+}
+
+function importVisibleContacts(DOMDocument $document, DOMXPath $xpath, string $company): array
+{
+    $contacts=[];
+    foreach ($xpath->query('//*[contains(concat(" ",normalize-space(@class)," ")," contactInfo ")]/p | //*[@itemprop="applicationContact"]') ?: [] as $node) {
+        $lines=array_values(array_filter(array_map('trim',preg_split('/\R/u',readableText($document->saveHTML($node) ?: '')) ?: [])));
+        $name=''; $position=''; $email=''; $phone='';
+        foreach ($lines as $line) {
+            if ($line===$company || preg_match('/^(Herr|Frau|Mr\.?|Mrs\.?|Ms\.?)$/iu',$line)) continue;
+            if (filter_var($line,FILTER_VALIDATE_EMAIL)) { $email=$line; continue; }
+            if (preg_match('/^\+?[\d\s().\/-]{8,}$/',$line)) { $phone=$line; continue; }
+            if ($name==='' && preg_match('/^\pL[\pL .’\'-]+\s+\pL[\pL .’\'-]+$/u',$line)) { $name=$line; continue; }
+            if ($name!=='' && $position==='') $position=$line;
+        }
+        if ($name==='' || ($email==='' && $phone==='')) continue;
+        if (preg_match('/privacy|datenschutz|support|cookie/iu',$name.' '.$email)) continue;
+        $parts=preg_split('/\s+/u',$name,2);
+        $contacts[]=['first_name'=>$parts[0],'last_name'=>$parts[1] ?? '', 'position'=>$position,'email'=>$email,'phone'=>$phone];
+    }
+    return $contacts;
+}
+
+function importCompanyWebsite(DOMXPath $xpath, string $company, string $url): string
+{
+    foreach ($xpath->query('//header//a[@href][.//img[@alt]] | //*[@id="logoWrapper"]//a[@href]') ?: [] as $link) {
+        $label=trim($link->getAttribute('title'));
+        foreach ($link->getElementsByTagName('img') as $image) $label.=' '.$image->getAttribute('alt');
+        if ($company==='' || stripos($label,$company)===false) continue;
+        $candidate=importResolveUrl($url,$link->getAttribute('href'));
+        if (str_starts_with($candidate,'https://') && parse_url($candidate,PHP_URL_HOST)!==parse_url($url,PHP_URL_HOST)) return $candidate;
+    }
+    return '';
+}
+
+function importCompanyPageDetails(string $html, string $company): array
+{
+    $document=new DOMDocument();
+    @$document->loadHTML('<?xml encoding="UTF-8">'.$html,LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NONET);
+    $xpath=new DOMXPath($document);
+    $details=[];
+    // Restrict extraction to a company-named postal block, not arbitrary numbers.
+    foreach ($xpath->query('//footer | //address | //*[@id="footer"]') ?: [] as $node) {
+        $text=readableText($document->saveHTML($node) ?: '');
+        $pattern='~'.preg_quote($company,'~').'\s*\R+\s*([^\r\n]+\d[^\r\n]*)\s*\R+\s*(?:([A-Z]{2})[-\s])?(\d{4,5})\s+([^\r\n]+)~u';
+        if (!preg_match($pattern,$text,$match)) continue;
+        $details=['address_line1'=>trim($match[1]),'postal_code'=>$match[3],'city'=>trim($match[4])];
+        if (($match[2] ?? '')!=='') $details['country_code']=$match[2];
+        if (preg_match('/(?:Tel(?:efon)?\.?|Phone)\s*:?\s*([+\d][\d ().\/-]{6,})/iu',$text,$phone)) $details['phone']=trim($phone[1]);
+        if (preg_match('/E-?Mail\s*:?\s*([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/iu',$text,$email)) $details['email']=$email[1];
+        break;
+    }
+    return $details;
+}
+
 function importFromUrl(string $url): array
 {
-    if (!publicHttpUrl($url) || !function_exists('curl_init')) {
-        throw new RuntimeException('Die URL ist nicht erreichbar oder aus Sicherheitsgründen nicht erlaubt.');
+    $portalUrl=$url; $visited=[]; $chain=[]; $draft=null;
+    for ($depth=0;$depth<3;$depth++) {
+        if (isset($visited[$url])) throw new RuntimeException('Schleife beim Auflösen der Originalausschreibung.');
+        $visited[$url]=true;
+        $page=importFetchHtml($url);
+        $next=importJobHtml($page['html'],$page['url']);
+        if ($draft && !importSameJob($draft,$next)) throw new RuntimeException('Der verlinkte Inhalt passt nicht zur ausgewählten Stelle.');
+        $draft=$next; $chain[]=$page['url'];
+        $candidates=importOriginalCandidates($page['html'],$page['url']);
+        if (!$candidates) {
+            $draft['original_url']=$page['url'];
+            $draft['source_url']=$portalUrl;
+            $draft['source_chain']=$chain;
+            $website=(string)($draft['company_details']['website'] ?? '');
+            if ($website!=='' && (empty($draft['company_details']['address_line1']) || empty($draft['company_details']['postal_code']) || empty($draft['company_details']['city']))) {
+                try {
+                    $companyPage=importFetchHtml($website);
+                    $details=importCompanyPageDetails($companyPage['html'],$draft['company']);
+                    $draft['company_details']=array_filter($draft['company_details'])+$details;
+                    if ($details) $draft['company_source_url']=$companyPage['url'];
+                } catch (Throwable) {
+                    $draft['import_warnings'][]='Die verlinkte Firmenwebsite konnte nicht zur Adressprüfung gelesen werden.';
+                }
+            }
+            return $draft;
+        }
+        $url=$candidates[0];
     }
-    $curl = curl_init($url);
-    curl_setopt_array($curl, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_MAXREDIRS => 3,
-        CURLOPT_CONNECTTIMEOUT => 8,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_USERAGENT => 'JeMaJobs/0.1 (+https://jobs.jema.business)',
-        CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-    ]);
-    $html = curl_exec($curl);
-    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $finalUrl = (string) curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
-    $error = curl_error($curl);
-    curl_close($curl);
-    if ($finalUrl !== '' && !publicHttpUrl($finalUrl)) {
-        throw new RuntimeException('Die Weiterleitung der URL ist aus Sicherheitsgründen nicht erlaubt.');
-    }
-    if (!is_string($html) || $status >= 400 || strlen($html) > 5_000_000) {
-        throw new RuntimeException($error ?: 'Die Stellenanzeige konnte nicht gelesen werden.');
-    }
-
-    return importJobHtml($html, $finalUrl ?: $url);
+    throw new RuntimeException('Die Originalausschreibung konnte innerhalb der erlaubten Weiterleitungstiefe nicht erreicht werden.');
 }
 
 function importJobHtml(string $html, string $url): array
@@ -7672,13 +7827,31 @@ function importJobHtml(string $html, string $url): array
         }
     }
     if ($description === '') throw new RuntimeException('Der Originaltext der Ausschreibung ist nicht verfügbar. Es wurde keine Kurzbeschreibung als Ersatz importiert.');
+    // Prospective's schema description can omit headings and a second contact.
+    // Its actual main element contains the complete original advertisement.
+    if (strtolower((string)parse_url($url,PHP_URL_HOST)) === 'ohws.prospective.ch') {
+        $main=$xpath->query('//main')->item(0);
+        if ($main) {
+            $mainText=readableText($document->saveHTML($main) ?: '');
+            if ($mainText !== '') $description=$mainText;
+        }
+    }
+    $contacts=importVisibleContacts($document,$xpath,$company);
+    $structuredContact=importJobContact($job ?: []);
+    if ($structuredContact) $contacts[]=$structuredContact;
+    $companyDetails=importCompanyDetails($job ?: []);
+    if (empty($companyDetails['website'])) {
+        $website=importCompanyWebsite($xpath,$company,$url);
+        if ($website!=='') $companyDetails['website']=$website;
+    }
     return [
         'title' => repairMojibake($title),
         'company' => repairMojibake($company),
         'location' => repairMojibake($location),
         'description' => repairMojibake($description),
-        'contact' => importJobContact($job ?: []),
-        'company_details' => importCompanyDetails($job ?: []),
+        'contact' => $contacts[0] ?? [],
+        'contacts' => $contacts,
+        'company_details' => $companyDetails,
         'source_url' => $url,
     ];
 }
@@ -9943,37 +10116,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'prepare_ai_job_import') {
         $url = trim((string) ($_POST['job_url'] ?? ''));
         if (!filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with($url, 'https://')) { http_response_code(422); exit('Invalid URL'); }
+        $importTransaction = false;
         try {
             $draft = importFromUrl($url);
             $title = trim((string) ($draft['title'] ?? ''));
             $companyName = trim((string) ($draft['company'] ?? ''));
             if ($title === '' || $companyName === '') throw new RuntimeException('Die Originalausschreibung enthält keinen vollständigen Jobtitel und keine Firma.');
             $uid = userId(); $sourceUrl = (string) ($draft['source_url'] ?? $url);
+            $db->begin_transaction(); $importTransaction = true;
             $companyId = importUpsertCompany($db, $uid, $companyName, (array)($draft['company_details'] ?? []));
-            $existing = dbOne($db, 'SELECT id, title, location_text, description FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
+            $existing = dbOne($db, 'SELECT id, company_id, title, location_text, description FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
             $location = trim((string) ($draft['location'] ?? '')); $description = trim((string) ($draft['description'] ?? ''));
             if ($existing) {
                 // A deliberate repeat import repairs these source-derived fields only.
                 // Preserve notes, status, applications and user documents.
                 $jobId = (int)$existing['id'];
-                $stmt = $db->prepare('UPDATE jobs SET title=?, location_text=?, description=? WHERE id=? AND owner_user_id=? AND deleted_at IS NULL');
-                $stmt->bind_param('sssii', $title, $location, $description, $jobId, $uid); $stmt->execute();
-                importUpsertContact($db, $uid, $companyId, $jobId, (array)($draft['contact'] ?? []));
-                audit($db, $uid, 'update', 'job', $jobId, $existing, ['title'=>$title,'location_text'=>$location,'description'=>$description,'source'=>'original_ad_reimport']);
+                $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=? WHERE id=? AND owner_user_id=? AND deleted_at IS NULL');
+                $stmt->bind_param('isssii', $companyId, $title, $location, $description, $jobId, $uid); $stmt->execute();
+                importDraftContacts($db, $uid, $companyId, $jobId, $draft);
+                audit($db, $uid, 'update', 'job', $jobId, $existing, ['company_id'=>$companyId,'title'=>$title,'location_text'=>$location,'description'=>$description,'source'=>'original_ad_reimport','original_url'=>$draft['original_url'] ?? $sourceUrl,'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null]);
+                $db->commit(); $importTransaction = false;
                 redirect('/?page=jobs&edit=' . $jobId . '#new');
             }
             $status='open'; $workplace='unknown'; $engagement='permanent'; $term='unknown';
             $stmt=$db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
             $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description); $stmt->execute(); $jobId=(int)$stmt->insert_id;
-            $contact = is_array($draft['contact'] ?? null) ? $draft['contact'] : [];
-            importUpsertContact($db, $uid, $companyId, $jobId, $contact);
-            $pdf = pdfTableBytes('Originale Stellenausschreibung', ['Feld','Inhalt'], [['Firma',$companyName],['Job',$title],['Arbeitsort',$location],['Quelle',$sourceUrl],['Beschreibung',$description]]);
-            $dir=ensureDocumentStorage($uid); $filename=bin2hex(random_bytes(18)).'.pdf'; $absolute=$dir.'/'.$filename; file_put_contents($absolute,$pdf,LOCK_EX);
-            $documentType=dbOne($db, 'SELECT id FROM document_types WHERE code="other" LIMIT 1');
-            if ($documentType) { $documentTypeId=(int)$documentType['id']; $relative='storage/documents/'.$uid.'/'.$filename; $original='originale-stellenausschreibung.pdf'; $size=filesize($absolute) ?: strlen($pdf); $sha=hash_file('sha256',$absolute); $scope='application'; $language=null; $applicationId=null; $documentTitle='Originale Stellenausschreibung'; $documentDescription='Automatisch aus der Originalausschreibung erzeugt.'; $validFrom=null; $validUntil=null; $version=1; $doc=$db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "application/pdf", ?, ?, ?, ?, ?, 1)'); $doc->bind_param('iissiissssisssi',$uid,$documentTypeId,$language,$scope,$applicationId,$jobId,$documentTitle,$documentDescription,$original,$relative,$size,$sha,$validFrom,$validUntil,$version); $doc->execute(); }
-            audit($db, $uid, 'create', 'job', $jobId, null, ['source'=>'ai_job_search_import','company_id'=>$companyId,'source_url'=>$sourceUrl]);
+            importDraftContacts($db, $uid, $companyId, $jobId, $draft);
+            // No renderer is available: a reformatted field table is not an original ad.
+            // Existing attachments are preserved; genuine PDF/image uploads still work.
+            audit($db, $uid, 'create', 'job', $jobId, null, ['source'=>'ai_job_search_import','company_id'=>$companyId,'source_url'=>$sourceUrl,'original_url'=>$draft['original_url'] ?? $sourceUrl,'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null]);
+            $db->commit(); $importTransaction = false;
             redirect('/?page=jobs&edit=' . $jobId . '#new');
-        } catch (Throwable $exception) { error_log('AI job import failed: '.$exception->getMessage()); flash('Die Ausschreibung konnte nicht vollständig importiert werden: '.$exception->getMessage(), 'danger'); redirect('/?page=job_platform_search'); }
+        } catch (Throwable $exception) { if ($importTransaction) $db->rollback(); error_log('AI job import failed: '.$exception->getMessage()); flash('Die Ausschreibung konnte nicht vollständig importiert werden: '.$exception->getMessage(), 'danger'); redirect('/?page=job_platform_search'); }
     }
 
     if ($action === 'exclude_ai_job') {
@@ -10027,7 +10201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($existing) {
                         importRepairExistingJob($db, $uid, $existing, $draft, $companyId);
                         $lastImportedJobId = (int) $existing['id'];
-                        importUpsertContact($db, $uid, $companyId, $lastImportedJobId, (array)($draft['contact'] ?? []));
+                        importDraftContacts($db, $uid, $companyId, $lastImportedJobId, $draft);
                         $skipped++;
                         continue;
                     }
@@ -10038,7 +10212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description);
                     $stmt->execute();
                     $jobId = (int) $stmt->insert_id;
-                    importUpsertContact($db, $uid, $companyId, $jobId, (array)($draft['contact'] ?? []));
+                    importDraftContacts($db, $uid, $companyId, $jobId, $draft);
                     audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
                     $lastImportedJobId = $jobId;
                     $created++;
@@ -11451,7 +11625,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.4';
+$codeVersion = '2.0.5';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

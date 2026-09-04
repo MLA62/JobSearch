@@ -1,5 +1,5 @@
 {
-  "version": "2.0.4",
+  "version": "2.0.5",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -328,7 +328,7 @@
         "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
           ],
           "tips": [
-        "Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt. Titel, Kurzbeschreibung und Match-Begründung werden getrennt in die aktuelle App-Sprache übersetzt. Beim Übernehmen bleibt der vollständige Inserattext in seiner Originalsprache. Firma, Adresse, Website und Kontakt werden aus belegten Inseratdaten ergänzt; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert die Originalbeschreibung, nicht deine Notizen."
+        "Die KI liefert Vorschläge, keine automatischen Bewerbungen. Titel, Kurzbeschreibung und Match-Begründung erscheinen in der aktuellen App-Sprache. Beim Übernehmen folgt der Import erkannten Links zur Originalausschreibung und übernimmt deren Text in der Originalsprache sowie belegte Firmen- und Kontaktangaben. Die verlinkte Firmenwebsite kann fehlende Adressfelder ergänzen; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert Firma, Titel, Ort und Originalbeschreibung, nicht deine Notizen oder Dokumente. Blockierte oder nicht lesbare Originalseiten können nicht importiert werden. Ohne Browser-Renderer wird kein automatisches Original-PDF oder PNG erzeugt; ein echter PDF-/Bild-Upload bleibt möglich. Alte automatisch erzeugte Tabellen-PDFs sind keine originalgetreuen Seitenkopien und bleiben unverändert gespeichert."
           ]
         },
         "fr-CH": {
@@ -341,7 +341,7 @@
         "Reprends une offre du tableau seulement après vérification."
           ],
           "tips": [
-        "L’IA fournit des propositions. Elle ne crée ni candidature ni offre sans ton action Reprendre. Le titre, le résumé et la justification du score sont traduits séparément dans la langue actuelle de l’application. L’import conserve le texte intégral dans sa langue originale. L’entreprise, l’adresse, le site et le contact sont complétés à partir des données attestées de l’annonce, sans écraser les coordonnées existantes. Un nouvel import actualise la description originale, pas tes notes."
+        "L’IA propose des offres sans envoyer de candidature. Le titre, le résumé et la justification du score sont affichés dans la langue actuelle de l’application. Reprendre suit les liens reconnus vers l’annonce originale et importe son texte dans la langue d’origine ainsi que les coordonnées attestées de l’entreprise et des contacts. Le site lié de l’entreprise peut compléter l’adresse manquante sans écraser les données existantes. Réimporter actualise l’entreprise, le titre, le lieu et la description, pas tes notes ni tes documents. Une annonce originale bloquée ou illisible ne peut pas être importée. Sans moteur de navigateur, aucun PDF ou PNG original n’est créé automatiquement; tu peux toujours joindre un vrai PDF ou une image. Les anciens PDF tabulaires générés ne sont pas des copies fidèles et restent conservés."
           ]
         },
         "en-GB": {
@@ -354,7 +354,7 @@
         "Take over a job from the result table only after reviewing it."
           ],
           "tips": [
-        "AI provides suggestions. It creates neither an application nor a job without your Take over action. The title, summary and match explanation are translated separately into the current app language. Import preserves the full advertisement in its original language. Company address, website and contact details are filled from evidenced advertisement data without overwriting existing company details. Importing again refreshes the original description, not your notes."
+        "AI suggests jobs without sending applications. The title, summary and match explanation use the current app language. Take over follows recognised links to the original advertisement and imports its original-language text and evidenced employer and contact details. The linked employer website may fill missing address fields without overwriting existing details. Reimporting updates the employer, title, location and description, not your notes or documents. Blocked or unreadable original advertisements cannot be imported. Without a browser renderer, no original PDF or PNG is created automatically; genuine PDF/image uploads remain available. Previously generated table PDFs are not faithful page copies and remain stored unchanged."
           ]
         },
         "pt-BR": {
@@ -367,7 +367,7 @@
         "Importe uma vaga da tabela somente após revisá-la."
           ],
           "tips": [
-        "A IA fornece sugestões. Ela não cria candidatura nem vaga sem sua ação de importar. Título, resumo e justificativa da compatibilidade são traduzidos separadamente para o idioma atual do aplicativo. A importação mantém o anúncio completo no idioma original. Endereço, site e contato da empresa são preenchidos com dados comprovados do anúncio, sem substituir dados existentes. Importar novamente atualiza a descrição original, não suas anotações."
+        "A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da compatibilidade usam o idioma atual do aplicativo. Ao importar, links reconhecidos levam ao anúncio original, cujo texto no idioma original e dados comprovados da empresa e dos contatos são importados. O site vinculado da empresa pode completar campos de endereço ausentes sem substituir dados existentes. Reimportar atualiza empresa, título, local e descrição, não suas anotações nem documentos. Anúncios originais bloqueados ou ilegíveis não podem ser importados. Sem um renderizador de navegador, nenhum PDF ou PNG original é criado automaticamente; o envio de um PDF ou imagem real continua disponível. PDFs tabulares gerados anteriormente não são cópias fiéis da página e permanecem armazenados sem alterações."
           ]
         },
         "es-MX": {
@@ -380,7 +380,7 @@
         "Importa una vacante de la tabla solo después de revisarla."
           ],
           "tips": [
-        "La IA ofrece propuestas. No crea una candidatura ni una vacante sin tu acción de importar. El título, resumen y explicación de compatibilidad se traducen por separado al idioma actual de la aplicación. La importación conserva el anuncio completo en su idioma original. Dirección, sitio web y contacto se completan con datos comprobados del anuncio, sin sustituir datos existentes. Volver a importar actualiza la descripción original, no tus notas."
+        "La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación de compatibilidad usan el idioma actual de la aplicación. Al importar, se siguen enlaces reconocidos al anuncio original y se importan su texto en el idioma original y los datos comprobados de la empresa y sus contactos. El sitio vinculado de la empresa puede completar campos de dirección faltantes sin sustituir datos existentes. Reimportar actualiza empresa, título, lugar y descripción, no tus notas ni documentos. Los anuncios originales bloqueados o ilegibles no se pueden importar. Sin un renderizador de navegador, no se crea automáticamente ningún PDF o PNG original; sigue siendo posible adjuntar un PDF o imagen auténticos. Los PDF tabulares generados anteriormente no son copias fieles de la página y se conservan sin cambios."
           ]
         }
       }

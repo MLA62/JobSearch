@@ -35,6 +35,13 @@ git diff --check
 
 ## Browser-Fixtures
 
+### Originalimport 2.0.5
+
+- `php -n tests/job_drilldown_test.php`: Original-Link, tatsächlicher Arbeitgeber, mehrere Kontakte, Firmenfooter, Quellenkette, fehlende und falsche Originalseite. Netzwerk mit synthetischen HTML-Seiten simuliert; Transaktionsgrenzen und Wegfall des Tabellen-PDFs als Quellvertrag geprüft.
+- `php -n tests/job_import_storage_test.php`: zusätzlich wiederholtes Speichern mehrerer Kontakte ohne Dubletten; simulierte DB, kein echter MariaDB-Rollbacktest.
+- Optional `--live-fixture` bei job_drilldown_test: JSON mit öffentlich abgerufenen HTML-Feldern portal/original/company über stdin. Reale Inhalte nur im Arbeitsspeicher, nicht als Fixtures in Git speichern. Prüft den Produktionsparser am Benutzerbeispiel, nicht den cURL-Transport des Produktionsservers.
+- Angemeldet: Übernehmen und Wiederübernehmen des Benutzerbeispiels; richtige Firma/Adresse, zwei Kontakte, vollständiger Originaltext, erhaltene Notizen/Dokumente, keine neue künstliche PDF-Datei. Fehlerfall ohne Teilanlage prüfen. Diese Abnahme ist separat offen.
+
 ### Jobsuche 2.0.4
 
 - `php -n tests/job_content_language_test.php`: echte Parser-/Locale-/Übersetzungs-Merge-Helfer; fünf Sprachen, französischer Originaltext, Absätze, UTF-8, kein SEO-Ersatz, Firmenadresse getrennt vom Arbeitsort, Kontaktzuordnung.

@@ -31,6 +31,12 @@ Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
 
+Ergänzung 04.09.2026 für 2.0.5: Erkannte Links zur Originalausschreibung verfolgen,
+deren belegte Arbeitgeber- und Kontaktangaben übernehmen und fehlende Firmenadresse auf
+der explizit verlinkten Arbeitgeberwebsite prüfen. Keine Adressen erfinden und keine
+nachgebaute Tabelle als Original-PDF ausgeben. Ohne verfügbaren Browser-Host entfällt
+die automatische originalgetreue PDF-/PNG-Erstellung; kostenpflichtige Render-Dienste sind ausgeschlossen.
+
 - Firma: Name, Adresse, Website, Telefon, Region/Land, Kommentar, optionale Vermittlerrolle und Beziehungen.
 - Stelle: Firma, vollstaendiger mehrzeiliger Titel, Ort, Pensum von/bis, Arbeitsmodell,
   Stellenart, Vertragsdauer und Befristung, Lohn, Quell-URL, Beschreibung, Notizen, Fragen und Status.

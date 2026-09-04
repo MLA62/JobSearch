@@ -1,10 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.3 trennt den Schnellimport für eine oder mehrere bekannte Ausschreibungen von der profilbasierten KI-Suche. Suchkriterien werden automatisch pro Benutzer gespeichert; die KI liefert prüfbare Treffer mit Match-Prozentzahl, die erst über den Übernehmen-Schritt in den Import gelangen. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Quellstand 2.0.5 in Vorbereitung, produktiv verifiziert 2.0.4. Der Schnellimport für eine oder mehrere bekannte Ausschreibungen ist von der profilbasierten KI-Suche getrennt. Suchkriterien werden automatisch pro Benutzer gespeichert; die KI liefert prüfbare Treffer mit Match-Prozentzahl, die erst über den Übernehmen-Schritt in den Import gelangen. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Korrekturen 2.0.4
+## Originalimport 2.0.5 (Deployment noch ausstehend)
+
+- Der Import folgt erkannten Original-Links bis zu drei Inseratseiten. Jobs.ch/Jobup: externalUrl aus serialisiertem Seitenzustand; sonst explizit beschriftete Original-Links. Der erste Kandidat wird verwendet, nicht beliebig weitere Links durchsucht. Ein Titelvergleich verhindert offensichtliche Fehlzuordnungen, ist aber kein semantischer Identitätsbeweis.
+- Bei ohws.prospective.ch wird der sichtbare main-Inhalt mit Absätzen übernommen, statt nur die verkürzte Schema-Beschreibung. Kontakte aus contactInfo-Absätzen bzw. applicationContact werden zusätzlich zu strukturierten Kontakten gespeichert. Das ist keine universelle Erkennung jedes Portal-Layouts.
+- Ein namentlich passendes Firmenlogo kann zur Arbeitgeberwebsite führen. Fehlende Adressfelder werden nur aus einem explizit firmennamengebundenen Postadressblock im Footer/address ergänzt. Arbeitsort ist weiterhin keine Firmenadresse. Unlesbare Firmenwebseiten verhindern den ansonsten lesbaren Inseratimport nicht; fehlende Angaben bleiben leer.
+- Jeder HTTP-Abruf begrenzt Größe und Laufzeit, validiert öffentliche DNS-Adressen und pinnt die ausgewählte IP. Weiterleitungen werden vor dem Folgeabruf neu geprüft. Cookies, JavaScript, Bot-Sperren und Login-Barrieren werden nicht durch einen Browser bearbeitet.
+- Übernehmen speichert Firma, Job, Kontakte und Audit gemeinsam in einer DB-Transaktion. Ein Reimport kann auch die Firmenzuordnung vom Portal-Konzern zur tatsächlichen Arbeitgeberfirma korrigieren. Notizen, Status, Bewerbungen und bestehende Dokumente bleiben erhalten. Portal-URL bleibt Dublettenschlüssel, Original-URL und Quellenkette werden im Audit gespeichert. Schnellimport nutzt denselben Parser, aber weiterhin seinen bisherigen Speicherablauf.
+- Die Erzeugung einer nachgebauten Tabelle als angebliches Original-PDF entfällt. Bestehende Tabellen-PDFs werden weder gelöscht noch ersetzt. Echte manuelle PDF-/Bild-Uploads bleiben möglich. Kein automatisches Original-PDF/PNG: Auf dem geprüften PHP-Hosting sind Browser-/Node-Laufzeit nicht vorhanden und Programmstarts gesperrt; ein separater Host wurde vom Benutzer verneint. Keine kostenpflichtigen Render-Dienste angebunden.
+- Keine Schemaänderung oder Bestandsmigration. Produktive Funktionsabnahme bleibt nach dem Deployment gesondert erforderlich.
+
+## Korrekturen 2.0.4 (historischer Release-Stand)
 
 - Ergebnissprache folgt der aktiven App-Sprache, nicht einem abweichenden Profil-Standard. Ein separater Responses-Aufruf übersetzt Titel, Kurzbeschreibung und Match-Begründung; IDs, vollständige Feldbelegung und Locale werden validiert. Der Match-Wert und Quellen bleiben unverändert. Die semantische Übersetzungsqualität bleibt modellabhängig.
 - Session-Treffer erhalten Locale und Übersetzungsrevision. Alte oder anderssprachige Treffer werden beim Aufruf neu übersetzt. Bei Fehlern werden sie vorübergehend ausgeblendet und eine Fehlermeldung angezeigt; erneuter Versuch nach 60 Sekunden.
