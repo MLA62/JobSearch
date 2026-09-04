@@ -65,6 +65,8 @@ A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da co
 
 A importação rápida salva também uma única URL com empresa, endereço e contatos e abre a vaga. Reimportar completa campos de contato vazios e atualiza a empresa vinculada sem substituir dados existentes. Uma prévia antiga é descartada. Texto livre colado continua sendo um rascunho de formulário para revisão.
 
+Os resultados são ordenados pela porcentagem de compatibilidade, da maior para a menor. Importar mostra uma janela modal com duas fases e tempo decorrido. Cancelar durante a leitura impede o salvamento; o botão fica desativado na transação final. Escape e cliques fora não fecham a janela. Erros continuam visíveis; o sucesso abre a vaga. Se o salvamento não for confirmado, verifique primeiro a lista de vagas.
+
 [Pesquisar vagas](https://jobs.jema.business/?page=job_platform_search&lang=pt-BR) | [Cadastrar e editar vagas](https://jobs.jema.business/?page=jobs&lang=pt-BR#quick-import)
 
 ## Cadastrar e editar vagas

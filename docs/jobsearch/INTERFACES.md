@@ -61,6 +61,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `autosave_application`
 - `bulk_delete_companies`
 - `bulk_delete_jobs`
+- `commit_job_import`
 - `complete_application_action`
 - `connect_google_calendar`
 - `create_contact_global`
@@ -88,6 +89,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `login`
 - `logout`
 - `prepare_ai_job_import`
+- `prepare_job_import`
 - `prepare_platform_import`
 - `prepare_translation`
 - `preview_import`
@@ -392,6 +394,9 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, array $contact): void`
 - `function importDraftContacts(mysqli $db, int $uid, int $companyId, int $jobId, array $draft): void`
 - `function importStoreDraft(mysqli $db, int $uid, array $draft): array`
+- `function pendingJobImport(array &$pending, string $token, int $uid, int $now): array`
+- `function sortJobMatches(array $jobs): array`
+- `function jobImportDialogHtml(string $locale): string`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
 - `function importResolveUrl(string $base, string $reference): string`
 - `function importFetchHtml(string $url): array`

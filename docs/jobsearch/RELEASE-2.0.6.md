@@ -11,12 +11,15 @@ Stand 2026-09-04. In Vorbereitung, noch nicht deployed.
 - Gemeinsame Transaktion für Firma, Job, Kontakte und Audit. Jede URL einer Liste bleibt eine einzelne Transaktion.
 - Freitext bleibt ein manuell zu prüfender Entwurf; keine neue universelle Adress-/Kontakterkennung behauptet.
 - Keine Schemaänderung, keine automatische Bestandsmigration, keine Änderungen an Server-Secrets.
+- Modales Übernehmen-Fenster mit Status für Lesen und Speichern, Laufzeit und Abbruch. Vorbereitung liest nur; erst ein separater CSRF-/Session-gebundener Einmal-Commit speichert. Abbrechen verhindert diesen Commit, während der abschließenden DB-Transaktion ist der Button gesperrt. Fehler bleiben sichtbar, Erfolg öffnet den Job.
+- Ergebnisliste nach numerischem Match-Prozent absteigend sortiert; stabile Reihenfolge bei gleichem Match.
 
 ## Prüfung
 
 254 Prüfungen des echten Speicherhelfers gegen simulierte DB bestanden, inklusive Fehlersimulation/Rollback.
 Die Verdrahtung von Einzel-/Mehrfach-Schnellimport und Übernehmen ist als Quellvertrag geprüft.
-Alle 21 PHP-Testdateien, beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit --check und git diff --check bestanden.
+Alle 22 PHP-Testdateien, beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit --check und git diff --check bestanden.
+Chromium-Dialogtests mit simulierten HTTP-Antworten: Abbruch ohne Commit, Erfolg, Lesefehler und Commit-Fehler bestanden; mobile Darstellung visuell geprüft. Keine angemeldete Produktionsprüfung dadurch behauptet.
 Die genaue zuletzt betroffene Anzeige und der vom Benutzer verwendete Einstieg sind noch nicht bestätigt.
 Angemeldete Funktionsabnahme sowie ein echter MariaDB-Rollbacktest bleiben separat offen.
 

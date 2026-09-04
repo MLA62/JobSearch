@@ -65,6 +65,8 @@ AI suggests jobs without sending applications. The title, summary and match expl
 
 Quick import saves even a single URL with its employer, address and contacts, then opens the job. Reimport fills empty contact fields and updates the employer association without overwriting existing details. Any stale import preview is discarded. Pasted free text remains a form draft for review.
 
+Results are sorted by match percentage, highest first. Take over shows a modal with two phases and elapsed time. Cancelling during reading prevents saving; the button is disabled during the final database transaction. Escape and outside clicks do not close the modal. Errors remain visible; success opens the job. If saving is unconfirmed, check the job list first.
+
 [Search for jobs](https://jobs.jema.business/?page=job_platform_search&lang=en-GB) | [Create and edit jobs](https://jobs.jema.business/?page=jobs&lang=en-GB#quick-import)
 
 ## Create and edit jobs

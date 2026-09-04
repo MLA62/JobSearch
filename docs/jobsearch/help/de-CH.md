@@ -65,6 +65,8 @@ Die KI liefert Vorschläge, keine automatischen Bewerbungen. Titel, Kurzbeschrei
 
 Schnellimport speichert auch eine einzelne URL direkt mit Firma, Adresse und Kontaktpersonen und öffnet danach den Job. Wiederimport ergänzt leere Kontaktfelder und aktualisiert die Arbeitgeberzuordnung; bestehende Angaben bleiben erhalten. Eine alte Importvorschau wird dabei verworfen. Eingefügter Freitext bleibt dagegen ein prüfbarer Formularentwurf.
 
+Treffer stehen nach Match-Prozent absteigend, die besten zuerst. Übernehmen zeigt ein modales Fenster mit zwei Phasen und verstrichener Zeit. Abbrechen während des Lesens verhindert die Speicherung; während der abschliessenden Datenbanktransaktion ist der Button gesperrt. Escape und Klick neben das Fenster schliessen es nicht. Fehler bleiben sichtbar; nach Erfolg öffnet sich der Job. Bei unbestätigter Speicherung zuerst die Jobliste prüfen.
+
 [Stellen suchen](https://jobs.jema.business/?page=job_platform_search&lang=de-CH) | [Stellen erfassen und bearbeiten](https://jobs.jema.business/?page=jobs&lang=de-CH#quick-import)
 
 ## Stellen erfassen und bearbeiten

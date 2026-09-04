@@ -45,6 +45,13 @@ Arbeitgeberzuordnung, Eigentümertrennung und Rollback bei Kontaktfehler. 254 Pr
 Writer und das Entfernen veralteter Vorschauen. Das ersetzt keinen angemeldeten Import
 mit echter MariaDB; insbesondere der Produktionsabruf der zuletzt betroffenen URL bleibt offen.
 
+`php -n tests/job_import_dialog_test.php`: 24 Prüfungen für Ablauf/Benutzerbindung und
+Einmalverbrauch der Vorbereitung, fünf Dialogsprachen und numerische Match-Sortierung.
+`node tests/job_import_dialog_visual.cjs` mit PLAYWRIGHT_MODULE: echte generierte Dialogoberfläche
+in Chromium, HTTP-Endpunkte simuliert. Abbruch ohne Commit, erfolgreiche Vorbereitung/Speicherung,
+Lesefehler und unbestätigte Speicherung; Escape/Backdrop, mobile Breite und Buttonzustände.
+Screenshot im temporären jema-import-dialog-Ordner. Keine Produktionsdaten oder echte Schreibrequests.
+
 ### Originalimport 2.0.5
 
 - `php -n tests/job_drilldown_test.php`: Original-Link, tatsächlicher Arbeitgeber, mehrere Kontakte, Firmenfooter, Quellenkette, fehlende und falsche Originalseite. Netzwerk mit synthetischen HTML-Seiten simuliert; Transaktionsgrenzen und Wegfall des Tabellen-PDFs als Quellvertrag geprüft.

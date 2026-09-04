@@ -65,6 +65,8 @@ L’IA propose des offres sans envoyer de candidature. Le titre, le résumé et 
 
 L’import rapide enregistre aussi une URL unique avec l’entreprise, l’adresse et les contacts, puis ouvre l’offre. Réimporter complète les champs de contact vides et actualise l’entreprise associée sans écraser les données existantes. Un ancien aperçu est écarté. Le texte libre collé reste un brouillon de formulaire à vérifier.
 
+Les résultats sont triés par score décroissant. Reprendre affiche une fenêtre modale avec deux phases et le temps écoulé. Annuler pendant la lecture empêche l’enregistrement; le bouton est désactivé pendant la transaction finale. Échap et un clic à l’extérieur ne ferment pas la fenêtre. Les erreurs restent visibles; l’offre s’ouvre après réussite. Si l’enregistrement n’est pas confirmé, vérifie d’abord la liste des offres.
+
 [Rechercher des offres](https://jobs.jema.business/?page=job_platform_search&lang=fr-CH) | [Saisir et modifier une offre](https://jobs.jema.business/?page=jobs&lang=fr-CH#quick-import)
 
 ## Saisir et modifier une offre

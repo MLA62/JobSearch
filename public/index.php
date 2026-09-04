@@ -3460,6 +3460,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A importação rápida salva também uma única URL com empresa, endereço e contatos e abre a vaga. Reimportar completa campos de contato vazios e atualiza a empresa vinculada sem substituir dados existentes. Uma prévia antiga é descartada. Texto livre colado continua sendo um rascunho de formulário para revisão.',
     'es-MX' => 'La importación rápida guarda también una sola URL con empresa, dirección y contactos y abre la vacante. Reimportar completa campos de contacto vacíos y actualiza la empresa vinculada sin sustituir datos existentes. Se descarta cualquier vista previa antigua. El texto libre pegado sigue siendo un borrador de formulario para revisar.',
   ),
+  'help.v2.search.tips.2' =>
+  array (
+    'de-CH' => 'Treffer stehen nach Match-Prozent absteigend, die besten zuerst. Übernehmen zeigt ein modales Fenster mit zwei Phasen und verstrichener Zeit. Abbrechen während des Lesens verhindert die Speicherung; während der abschliessenden Datenbanktransaktion ist der Button gesperrt. Escape und Klick neben das Fenster schliessen es nicht. Fehler bleiben sichtbar; nach Erfolg öffnet sich der Job. Bei unbestätigter Speicherung zuerst die Jobliste prüfen.',
+    'fr-CH' => 'Les résultats sont triés par score décroissant. Reprendre affiche une fenêtre modale avec deux phases et le temps écoulé. Annuler pendant la lecture empêche l’enregistrement; le bouton est désactivé pendant la transaction finale. Échap et un clic à l’extérieur ne ferment pas la fenêtre. Les erreurs restent visibles; l’offre s’ouvre après réussite. Si l’enregistrement n’est pas confirmé, vérifie d’abord la liste des offres.',
+    'en-GB' => 'Results are sorted by match percentage, highest first. Take over shows a modal with two phases and elapsed time. Cancelling during reading prevents saving; the button is disabled during the final database transaction. Escape and outside clicks do not close the modal. Errors remain visible; success opens the job. If saving is unconfirmed, check the job list first.',
+    'pt-BR' => 'Os resultados são ordenados pela porcentagem de compatibilidade, da maior para a menor. Importar mostra uma janela modal com duas fases e tempo decorrido. Cancelar durante a leitura impede o salvamento; o botão fica desativado na transação final. Escape e cliques fora não fecham a janela. Erros continuam visíveis; o sucesso abre a vaga. Se o salvamento não for confirmado, verifique primeiro a lista de vagas.',
+    'es-MX' => 'Los resultados se ordenan por porcentaje de compatibilidad, de mayor a menor. Importar muestra una ventana modal con dos fases y tiempo transcurrido. Cancelar durante la lectura impide guardar; el botón se desactiva en la transacción final. Escape y los clics externos no cierran la ventana. Los errores siguen visibles; al terminar se abre la vacante. Si no se confirma el guardado, revisa primero la lista de vacantes.',
+  ),
   'help.v2.search.title' =>
   array (
     'de-CH' => 'Stellen suchen',
@@ -3751,7 +3759,7 @@ function helpTopicDefinitions(): array
       1 => 'jobs#quick-import',
     ),
     'step_count' => 4,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   5 =>
   array (
@@ -7624,6 +7632,76 @@ function importStoreDraft(mysqli $db, int $uid, array $draft): array
     }
 }
 
+function pendingJobImport(array &$pending, string $token, int $uid, int $now): array
+{
+    $entry=$pending[$token] ?? [];
+    if (($entry['uid'] ?? 0)!==$uid || ($entry['expires'] ?? 0)<=$now || !is_array($entry['draft'] ?? null)) throw new RuntimeException('Import preparation expired.');
+    unset($pending[$token]);
+    return $entry['draft'];
+}
+
+function sortJobMatches(array $jobs): array
+{
+    usort($jobs,static fn(array $a,array $b): int => (float)($b['match_percent'] ?? -1) <=> (float)($a['match_percent'] ?? -1));
+    return $jobs;
+}
+
+function jobImportDialogHtml(string $locale): string
+{
+    $texts=[
+        'de-CH'=>['Stelle übernehmen','1/2 – Originalausschreibung und Firmenangaben lesen …','2/2 – Firma, Job und Kontaktpersonen speichern …','Abbrechen','Vergangene Zeit','Sek.','Übernahme fehlgeschlagen. Bitte erneut versuchen.','Das Speichern konnte nicht bestätigt werden. Bitte zuerst unter Jobs prüfen.','Während der kurzen Speicherung ist Abbrechen nicht mehr möglich.','Schliessen'],
+        'fr-CH'=>['Importer l’offre','1/2 – Lecture de l’annonce originale et des coordonnées …','2/2 – Enregistrement de l’entreprise, de l’offre et des contacts …','Annuler','Temps écoulé','s','Échec de l’import. Réessaie.','Enregistrement non confirmé. Vérifie d’abord la liste des offres.','L’annulation n’est plus possible pendant le bref enregistrement.','Fermer'],
+        'en-GB'=>['Import job','1/2 – Reading the original advertisement and company details …','2/2 – Saving employer, job and contacts …','Cancel','Elapsed time','s','Import failed. Please try again.','Saving could not be confirmed. Check Jobs before trying again.','Cancellation is unavailable during the brief database save.','Close'],
+        'pt-BR'=>['Importar vaga','1/2 – Lendo anúncio original e dados da empresa …','2/2 – Salvando empresa, vaga e contatos …','Cancelar','Tempo decorrido','s','Falha na importação. Tente novamente.','Não foi possível confirmar o salvamento. Verifique as vagas primeiro.','Não é possível cancelar durante o breve salvamento.','Fechar'],
+        'es-MX'=>['Importar vacante','1/2 – Leyendo el anuncio original y los datos de la empresa …','2/2 – Guardando empresa, vacante y contactos …','Cancelar','Tiempo transcurrido','s','Falló la importación. Inténtalo de nuevo.','No se pudo confirmar el guardado. Revisa primero las vacantes.','No se puede cancelar durante el breve guardado.','Cerrar'],
+    ];
+    $html=<<<'HTML'
+<dialog id="job-import-dialog" aria-labelledby="job-import-heading" style="box-sizing:border-box;width:min(32rem,calc(100vw - 2rem));max-height:90vh;overflow:auto;padding:1.5rem;border:0;border-radius:12px">
+<h2 id="job-import-heading"></h2><p data-import-status role="status" aria-live="polite"></p>
+<progress style="width:100%" aria-label="Import"></progress><p data-import-elapsed></p><p data-import-note></p>
+<button type="button" data-import-cancel></button></dialog>
+<style>#job-import-dialog::backdrop{background:rgba(15,23,42,.76)}</style>
+<script>
+(()=>{
+ const labels=__LABELS__, modal=document.getElementById('job-import-dialog');
+ const status=modal.querySelector('[data-import-status]'), elapsed=modal.querySelector('[data-import-elapsed]'), note=modal.querySelector('[data-import-note]'), cancel=modal.querySelector('[data-import-cancel]'), progress=modal.querySelector('progress');
+ modal.querySelector('h2').textContent=labels[0]; progress.setAttribute('aria-label',labels[0]);
+ let active=null;
+ modal.addEventListener('cancel',event=>event.preventDefault());
+ cancel.addEventListener('click',()=>{if(active?.saving)return;if(active){active.cancelled=true;active.controller.abort();clearInterval(active.timer);active.trigger.disabled=false;}active=null;modal.close();});
+ async function request(data,signal){
+  const response=await fetch('/?page=job_platform_search',{method:'POST',body:data,credentials:'same-origin',signal,headers:{Accept:'application/json'}});
+  if(!response.ok)throw new Error('Request failed');
+  const result=await response.json(); if(!result.ok)throw new Error('Import failed'); return result;
+ }
+ document.addEventListener('submit',async event=>{
+  const trigger=event.submitter;
+  if(trigger?.value!=='prepare_ai_job_import')return;
+  event.preventDefault();if(active)return;
+  const run={controller:new AbortController(),trigger,saving:false,cancelled:false,started:Date.now()};active=run;trigger.disabled=true;
+  status.textContent=labels[1];note.textContent='';cancel.textContent=labels[3];cancel.disabled=false;progress.hidden=false;
+  const tick=()=>{elapsed.textContent=labels[4]+': '+Math.floor((Date.now()-run.started)/1000)+' '+labels[5];};tick();run.timer=setInterval(tick,1000);modal.showModal();cancel.focus();
+  const data=new FormData(event.target);data.set('action','prepare_job_import');
+  try{
+   const prepared=await request(data,run.controller.signal);
+   if(run.cancelled||active!==run)return;
+   if(typeof prepared.token!=='string')throw new Error('Missing preparation');
+   run.saving=true;cancel.disabled=true;status.textContent=labels[2];note.textContent=labels[8];
+   const commit=new FormData();commit.set('csrf',String(data.get('csrf')||''));commit.set('action','commit_job_import');commit.set('import_token',prepared.token);
+   const saved=await request(commit);
+   if(!Number.isInteger(saved.job_id)||saved.job_id<1)throw new Error('Invalid job');
+   clearInterval(run.timer);window.location.assign('/?page=jobs&edit='+saved.job_id+'#new');
+  }catch(error){
+   clearInterval(run.timer);if(run.cancelled||active!==run)return;
+   status.textContent=run.saving?labels[7]:labels[6];note.textContent='';progress.hidden=true;run.saving=false;cancel.disabled=false;cancel.textContent=labels[9];cancel.focus();
+  }
+ });
+ })();
+</script>
+HTML;
+    return str_replace('__LABELS__',json_encode($texts[$locale] ?? $texts['de-CH'],JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR),$html);
+}
+
 function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool
 {
     $title = trim((string) ($draft['title'] ?? ''));
@@ -10164,6 +10242,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit($db, userId(), 'other', 'ai_job_search', 0, null, ['count'=>count($_SESSION['ai_job_search_results'])]);
         } catch (Throwable $exception) { error_log('AI job search failed: '.$exception->getMessage()); flash('Die KI-Stellensuche konnte nicht ausgeführt werden.', 'danger'); }
         redirect('/?page=job_platform_search#results');
+    }
+
+    if ($action === 'prepare_job_import' || $action === 'commit_job_import') {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        try {
+            if ($action === 'prepare_job_import') {
+                $url=trim((string)($_POST['job_url'] ?? ''));
+                if (!filter_var($url,FILTER_VALIDATE_URL) || !str_starts_with($url,'https://')) throw new RuntimeException('Invalid URL');
+                $draft=importFromUrl($url); // Reading only: cancelling never commits CRM records.
+                $pending=(array)($_SESSION['pending_job_imports'] ?? []);
+                foreach ($pending as $key=>$entry) if (($entry['expires'] ?? 0)<=time()) unset($pending[$key]);
+                while (count($pending)>=5) array_shift($pending);
+                $token=bin2hex(random_bytes(24));
+                $pending[$token]=['uid'=>userId(),'expires'=>time()+300,'draft'=>$draft];
+                $_SESSION['pending_job_imports']=$pending;
+                echo json_encode(['ok'=>true,'token'=>$token]);
+            } else {
+                $pending=(array)($_SESSION['pending_job_imports'] ?? []);
+                $draft=pendingJobImport($pending,(string)($_POST['import_token'] ?? ''),userId(),time());
+                $_SESSION['pending_job_imports']=$pending;
+                $saved=importStoreDraft($db,userId(),$draft);
+                unset($_SESSION['import_draft']);
+                echo json_encode(['ok'=>true,'job_id'=>$saved['job_id']]);
+            }
+        } catch (Throwable $error) {
+            http_response_code(422);
+            echo json_encode(['ok'=>false]);
+        }
+        exit;
     }
 
     if ($action === 'prepare_ai_job_import') {
@@ -12905,7 +13013,7 @@ startUiTranslationBuffer($appLocale);
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
         $searchCriteria = savedJobSearchCriteria($db, userId(), $preference, $currentUser, $platformRows);
         $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
-        $aiJobResults = is_array($_SESSION['ai_job_search_results'] ?? null) ? $_SESSION['ai_job_search_results'] : [];
+        $aiJobResults = sortJobMatches(is_array($_SESSION['ai_job_search_results'] ?? null) ? $_SESSION['ai_job_search_results'] : []);
         $translationError = '';
         try {
             if ($aiJobResults && (int)($_SESSION['job_translation_retry_after'] ?? 0) > time()) throw new RuntimeException('Translation retry cooldown');
@@ -12943,6 +13051,7 @@ startUiTranslationBuffer($appLocale);
             <?php endif; ?>
         </section>
         <style>.job-search-description{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:4}</style><section class="panel table-wrap" id="results"><div class="section-head"><div><p class="eyebrow">KI-Unterstützung</p><h2>Passende Jobs</h2></div></div><?php if ($aiJobResults): ?><table><thead><tr><th>Übernehmen</th><th>Match</th><th>Firma</th><th>Arbeitsort</th><th>Jobbezeichnung</th><th>Kurzbeschreibung</th><th>Link zur Ausschreibung</th></tr></thead><tbody><?php foreach ($aiJobResults as $job): ?><tr><td><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_url" value="<?= e((string) $job['url']) ?>"><button type="submit" name="action" value="prepare_ai_job_import">Übernehmen</button></form></td><td><strong><?= (int) $job['match_percent'] ?>%</strong><small><?= e((string) $job['match_reason']) ?></small></td><td><?= e((string) $job['company']) ?></td><td><?= e((string) $job['location']) ?></td><td><strong><?= e((string) $job['title']) ?></strong></td><td><div class="job-search-description"><?= e((string) $job['description']) ?></div></td><td><a href="<?= e((string) $job['url']) ?>" target="_blank" rel="noopener">Ausschreibung öffnen</a></td></tr><?php endforeach; ?></tbody></table><?php else: ?><p class="empty">Noch keine passenden Jobs gesucht.</p><?php endif; ?></section>
+        <?= jobImportDialogHtml(currentLocale()) ?>
         <?php if (false): ?>
         <section class="panel prompt-panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.chatgpt_section')) ?></p><h2><?= e(tr('job_search.prompt_title')) ?></h2></div><div class="actions copy-actions"><button type="button" data-copy-target="chatgpt-job-prompt"><?= e(tr('job_search.copy_prompt')) ?></button><a class="button" href="/?page=jobs#quick-import"><?= e(tr('job_search.to_quick_import')) ?></a></div></div><label><?= e(tr('job_search.prompt')) ?><textarea id="chatgpt-job-prompt" rows="15" readonly></textarea></label><p class="meta-line"><?= e(tr('job_search.copy_instruction')) ?></p></section>
         <section class="panel" id="results"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.ready_for_import')) ?></p><h2><?= e(tr('job_search.package')) ?></h2></div><?php if($searchResults): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="prepare_platform_import"><?= e(tr('job_search.import_package')) ?></button></form><?php endif; ?></div>

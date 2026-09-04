@@ -20,6 +20,18 @@ beim URL-Import verworfen. Freitext verwendet weiterhin die manuelle Formularvor
 Keine automatische Bestandsbereinigung beim Deployment, keine Erweiterung der Parserabdeckung.
 Die konkrete vom Benutzer zuletzt betroffene Anzeige ist noch nicht bestätigt.
 
+Zusatz: Treffer werden numerisch nach Match-Prozent absteigend sortiert; gleiche Werte
+behalten ihre Reihenfolge. Übernehmen zeigt einen nativen modalen Dialog in fünf Sprachen
+mit zwei tatsächlichen Phasen, unbestimmtem Fortschrittsbalken und verstrichener Zeit.
+prepare_job_import liest externe Seiten und hält den Entwurf fünf Minuten benutzergebunden
+in der Session (maximal fünf). Erst commit_job_import mit CSRF und einmaligem Vorbereitungstoken
+ruft den transaktionalen Writer auf. Ein Abbruch in der Lesephase sendet keinen Commit;
+der serverseitige Leseabruf kann noch auslaufen, legt aber keine CRM-Datensätze an.
+Während der abschließenden DB-Transaktion ist der Abbruchbutton gesperrt. Escape/Backdrop
+schließen nicht; Fehler bleiben sichtbar. Bei unklarer Commit-Antwort wird ausdrücklich
+zum Prüfen der Jobliste aufgefordert. Nach bestätigtem Erfolg öffnet sich der gespeicherte Job.
+Der bestehende Suchdialog wird durch diese Erweiterung nicht geändert.
+
 ## Originalimport 2.0.5 (historischer Release-Stand)
 
 - Der Import folgt erkannten Original-Links bis zu drei Inseratseiten. Jobs.ch/Jobup: externalUrl aus serialisiertem Seitenzustand; sonst explizit beschriftete Original-Links. Der erste Kandidat wird verwendet, nicht beliebig weitere Links durchsucht. Ein Titelvergleich verhindert offensichtliche Fehlzuordnungen, ist aber kein semantischer Identitätsbeweis.

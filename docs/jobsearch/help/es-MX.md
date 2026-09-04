@@ -65,6 +65,8 @@ La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación 
 
 La importación rápida guarda también una sola URL con empresa, dirección y contactos y abre la vacante. Reimportar completa campos de contacto vacíos y actualiza la empresa vinculada sin sustituir datos existentes. Se descarta cualquier vista previa antigua. El texto libre pegado sigue siendo un borrador de formulario para revisar.
 
+Los resultados se ordenan por porcentaje de compatibilidad, de mayor a menor. Importar muestra una ventana modal con dos fases y tiempo transcurrido. Cancelar durante la lectura impide guardar; el botón se desactiva en la transacción final. Escape y los clics externos no cierran la ventana. Los errores siguen visibles; al terminar se abre la vacante. Si no se confirma el guardado, revisa primero la lista de vacantes.
+
 [Buscar vacantes](https://jobs.jema.business/?page=job_platform_search&lang=es-MX) | [Registrar y editar vacantes](https://jobs.jema.business/?page=jobs&lang=es-MX#quick-import)
 
 ## Registrar y editar vacantes
