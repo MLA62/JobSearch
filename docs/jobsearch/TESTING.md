@@ -5,6 +5,12 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.8: `job_search_debug_test.php` prüft Datenschutz-Feldliste,
+Fehlerklassifikation, fehlende Funktionen/Klassen, Eigentümerprüfung, fehlende historische
+Reports, Ringpuffer und Download-Headervertrag. Der Chromium-Suchdialogtest lädt echte
+JSON-Fixture-Downloads während einer laufenden Suche herunter und prüft Dateiname/Inhalt;
+globale Button-/Progress-CSS-Regeln dürfen hidden nicht überschreiben.
+
 Ergänzung 2.0.7: `job_verification_test.php` prüft Ablauf-/Soft-404-Erkennung,
 unbekannte Verfügbarkeit, Belegbindung, harte Profilkonflikte, Score, Quellenfelder,
 fortgesetzte Suche, Ausschlüsse, Dubletten und veraltete Ergebnislisten.

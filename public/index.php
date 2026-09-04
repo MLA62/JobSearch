@@ -3476,6 +3476,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A busca continua após candidatos descartados. A janela mostra contagens, fontes e duração e não fecha automaticamente. Cancelar impede próximas etapas; uma leitura em curso pode terminar. Termina na meta, sem novos candidatos ou em 60 verificações ou três rodadas por fonte. Atingir um limite não significa esgotar todas as possibilidades. Resultados desaparecem após 15 minutos ou mudança dos critérios e são verificados novamente na importação. Sem navegador de renderização, não há PDF/PNG original automático; uploads reais continuam possíveis. PDFs tabulares antigos não são cópias fiéis e são preservados.',
     'es-MX' => 'La búsqueda continúa después de candidatos descartados. La ventana muestra contadores, fuentes y tiempo y no se cierra automáticamente. Cancelar impide siguientes pasos; una lectura en curso puede terminar. Finaliza en la meta, sin nuevos candidatos o en 60 comprobaciones o tres rondas por fuente. Un límite no significa agotar todas las posibilidades. Resultados desaparecen después de 15 minutos o cambios de criterios y se verifican de nuevo al importar. Sin navegador de renderizado no hay PDF/PNG original automático; se pueden adjuntar archivos auténticos. Los antiguos PDF tabulares no son copias fieles y se conservan.',
   ),
+  'help.v2.search.tips.4' =>
+  array (
+    'de-CH' => 'Mit „Debug-Datei herunterladen“ auf der Jobsuche-Seite oder im Suchfenster lädst du einen JSON-Bericht der letzten Suche dieser Sitzung. Er enthält Verarbeitungsphasen, technische Fehlercodes, Domains, Laufzeiten und Match-Bewertungen pro Kriterium; keine Zugangsdaten, Profilwerte, Inserat-/Kontakttexte oder vollständigen URLs. Teile die Datei bei Bedarf gezielt zur Analyse. Es erfolgt kein automatischer Versand. Eine neue Suche ersetzt den Bericht; Abmelden beendet den Zugriff. Während eines laufenden Serverabrufs kann der Download warten. Historische Ausschlüsse ohne Protokoll lassen sich nicht rekonstruieren. „Verarbeitet“ zählt Versuche, „Technische Fehler“ deren Fehleranteil; „Quellen abgeschlossen“ ist nicht die aktuell bearbeitete Quelle.',
+    'fr-CH' => 'Télécharger le diagnostic, sur la page ou dans la fenêtre de recherche, fournit un rapport JSON de la dernière recherche de cette session : étapes, codes techniques, domaines, durées et évaluations par critère. Aucun identifiant de connexion, valeur du profil, texte d’annonce/contact ou URL complète. Partage le fichier uniquement pour une analyse voulue; aucun envoi automatique. Une nouvelle recherche remplace le rapport; la déconnexion termine l’accès. Un appel serveur en cours peut retarder le téléchargement. Les anciens rejets non journalisés ne sont pas reconstructibles. Traitées compte les tentatives; Erreurs techniques indique leur part en erreur; Sources terminées diffère de la source actuelle.',
+    'en-GB' => 'Download debug file on the search page or in the search modal exports a JSON report for the latest search in this session: stages, technical error codes, domains, durations and per-criterion ratings. No credentials, profile values, advertisement/contact text or complete URLs. Share the file deliberately for analysis; nothing is sent automatically. A new search replaces it; signing out ends access. An in-flight server request may delay downloading. Historic rejections without logs cannot be reconstructed. Processed counts attempts; Technical errors is their error subset; Sources completed is separate from the current source.',
+    'pt-BR' => 'Baixar diagnóstico, na página ou janela de busca, exporta um JSON da última busca desta sessão: etapas, códigos técnicos, domínios, durações e avaliações por critério. Sem credenciais, valores do perfil, textos de anúncios/contatos ou URLs completas. Compartilhe o arquivo somente para uma análise desejada; nada é enviado automaticamente. Uma nova busca substitui o relatório; sair encerra o acesso. Uma requisição em andamento pode atrasar o download. Rejeições antigas sem registro não podem ser reconstruídas. Processadas conta tentativas; Erros técnicos indica a parte com erro; Fontes concluídas difere da fonte atual.',
+    'es-MX' => 'Descargar diagnóstico, en la página o ventana de búsqueda, exporta un JSON de la última búsqueda de esta sesión: etapas, códigos técnicos, dominios, duraciones y evaluaciones por criterio. Sin credenciales, valores del perfil, textos de anuncios/contactos ni URL completas. Comparte el archivo solo para un análisis deseado; nada se envía automáticamente. Una nueva búsqueda reemplaza el informe; cerrar sesión termina el acceso. Una solicitud en curso puede retrasar la descarga. Rechazos antiguos sin registro no pueden reconstruirse. Procesadas cuenta intentos; Errores técnicos indica la parte con error; Fuentes terminadas es distinto de la fuente actual.',
+  ),
   'help.v2.search.title' =>
   array (
     'de-CH' => 'Stellen suchen',
@@ -3767,7 +3775,7 @@ function helpTopicDefinitions(): array
       1 => 'jobs#quick-import',
     ),
     'step_count' => 4,
-    'tip_count' => 4,
+    'tip_count' => 5,
   ),
   5 =>
   array (
@@ -7933,15 +7941,20 @@ function companyResearchLinks(string $html, string $base): array
     return array_slice(array_values($links),0,3);
 }
 
-function importFromUrl(string $url): array
+function importFromUrl(string $url, array &$diagnostic = []): array
 {
     $portalUrl=$url; $visited=[]; $chain=[]; $draft=null;
     for ($depth=0;$depth<3;$depth++) {
+        $diagnostic=['stage'=>'original_fetch','original_url'=>$url,'source_chain'=>$chain];
         if (isset($visited[$url])) throw new RuntimeException('Schleife beim Auflösen der Originalausschreibung.');
         $visited[$url]=true;
         $page=importFetchHtml($url);
+        $diagnostic['original_url']=$page['url'];
+        $diagnostic['stage']='availability_check';
         $availability=jobAvailability($page['html'],time());
+        $diagnostic['availability']=$availability['reason'];
         if (in_array($availability['status'],['expired','unavailable'],true)) throw new RuntimeException('Die Ausschreibung ist abgelaufen oder nicht mehr verfügbar.');
+        $diagnostic['stage']='original_parse';
         $next=importJobHtml($page['html'],$page['url']);
         if ($draft && !importSameJob($draft,$next)) throw new RuntimeException('Der verlinkte Inhalt passt nicht zur ausgewählten Stelle.');
         $draft=$next; $chain[]=$page['url'];
@@ -8701,10 +8714,12 @@ function jobStructuredResponse(array $config, int $uid, string $instructions, ar
     return json_decode($text,true,512,JSON_THROW_ON_ERROR);
 }
 
-function verifiedJobImport(array $config, int $uid, string $url, array $criteria): array
+function verifiedJobImport(array $config, int $uid, string $url, array $criteria, array &$diagnostic = []): array
 {
     set_time_limit(300);
-    $draft=importFromUrl($url);
+    $diagnostic=['stage'=>'original_read'];
+    $draft=importFromUrl($url,$diagnostic);
+    $diagnostic=['stage'=>'criteria_evaluation','availability'=>$draft['availability']['reason'] ?? '', 'original_url'=>$draft['original_url'] ?? '', 'source_chain'=>$draft['source_chain'] ?? []];
     if (strlen($draft['description'])>60000) throw new RuntimeException('Der vollständige Inserattext überschreitet die Auswertungsgrenze.');
     $object=static fn(array $properties):array=>['type'=>'object','additionalProperties'=>false,'properties'=>$properties,'required'=>array_keys($properties)];
     $string=['type'=>'string'];
@@ -8764,6 +8779,86 @@ function visibleVerifiedJobs(array $jobs, array $criteria, int $now): array
     return sortJobMatches(array_values(array_filter($jobs,static fn(array $job):bool=>($job['verification_revision'] ?? 0)===1 && ($job['verified_at'] ?? 0)>=$now-900 && ($job['criteria_hash'] ?? '')===$hash)));
 }
 
+function jobSearchDebugLabels(string $locale): array
+{
+    return match($locale) {
+        'fr-CH'=>['Télécharger le diagnostic','Erreurs techniques','Sources terminées','Source actuelle','Le fichier contient des domaines, des codes techniques et des évaluations par critère, sans textes de profil ni données de connexion. À partager uniquement avec une personne de confiance.'],
+        'en-GB'=>['Download debug file','Technical errors','Sources completed','Current source','Contains domains, technical codes and per-criterion ratings, not profile text or credentials. Share only with someone you trust.'],
+        'pt-BR'=>['Baixar diagnóstico','Erros técnicos','Fontes concluídas','Fonte atual','Contém domínios, códigos técnicos e avaliações por critério, sem textos do perfil nem credenciais. Compartilhe apenas com alguém de confiança.'],
+        'es-MX'=>['Descargar diagnóstico','Errores técnicos','Fuentes terminadas','Fuente actual','Contiene dominios, códigos técnicos y evaluaciones por criterio, sin textos del perfil ni credenciales. Comparte solo con alguien de confianza.'],
+        default=>['Debug-Datei herunterladen','Technische Fehler','Quellen abgeschlossen','Aktuelle Quelle','Enthält Domains, technische Codes und Bewertungen je Kriterium, aber keine Profiltexte oder Zugangsdaten. Nur gezielt mit einer vertrauenswürdigen Person teilen.'],
+    };
+}
+
+function jobSearchDebugSource(string $url): array
+{
+    // Paths, query strings, fragments and URL credentials may contain private tokens.
+    $host=strtolower((string)(parse_url($url,PHP_URL_HOST) ?: ''));
+    return ['host'=>preg_match('/^[a-z0-9.-]{1,253}$/D',$host)?$host:'', 'url_fingerprint'=>hash('sha256',$url)];
+}
+
+function jobSearchDebugError(Throwable $error): array
+{
+    $message=$error->getMessage();
+    $code=match(true) {
+        str_contains($message,'KI-Prüfung'),str_contains($message,'KI-Stellensuche'),str_contains($message,'KI-Suche')=>'ai_service_error',
+        str_contains($message,'HTTP 403'),str_contains($message,'HTTP 429')=>'portal_blocked',
+        str_contains($message,'HTTP 404'),str_contains($message,'HTTP 410'),str_contains($message,'abgelaufen oder nicht mehr')=>'unavailable',
+        str_contains($message,'nicht ausreichend belegbar')=>'availability_unknown',
+        str_contains($message,'Netzwerkfehler')=>'network_error',
+        str_contains($message,'aufgelöst')=>'dns_failed',
+        str_contains($message,'Nicht öffentliche'),str_contains($message,'Nicht erlaubte')=>'unsafe_target',
+        $error instanceof JsonException=>'invalid_json',
+        str_contains($message,'Suchkriterien'),$message==='Search criteria changed'=>'criteria_changed',
+        str_contains($message,'passt nicht')=>'original_identity_mismatch',
+        str_contains($message,'Weiterleitung'),str_contains($message,'Schleife')=>'redirect_limit',
+        str_contains($message,'überschreitet')=>'size_limit',
+        str_contains($message,'nicht gelesen'),str_contains($message,'keine einzelne Stellenanzeige'),str_contains($message,'Originaltext')=>'original_unreadable',
+        default=>'internal_error',
+    };
+    $type=get_class($error);
+    $result=['code'=>$code,'error_class'=>in_array($type,['Error','TypeError','ValueError','RuntimeException','JsonException','Exception'],true)?$type:'Exception','line'=>$error->getLine(),'error_fingerprint'=>hash('sha256',$message)];
+    if (preg_match('/\bHTTP (\d{3})\b/',$message,$match)) $result['http_status']=(int)$match[1];
+    if (preg_match('/Netzwerkfehler (\d{1,3})/',$message,$match)) $result['curl_errno']=(int)$match[1];
+    if ($error instanceof Error && preg_match('/Call to undefined function ([a-zA-Z0-9_\\\\]+)\(/',$message,$match)) $result['missing_function']=$match[1];
+    if ($error instanceof Error && preg_match('/Class "([a-zA-Z0-9_\\\\]+)" not found/',$message,$match)) $result['missing_class']=$match[1];
+    // Never export arbitrary exception messages, response bodies, traces or headers.
+    return $result;
+}
+
+function jobSearchDebugEvent(array &$state, array $event): void
+{
+    $allowed=['stage','outcome','code','error_class','availability','missing_function','missing_class','error_fingerprint'];
+    $safe=['at_utc'=>gmdate('c')];
+    foreach ($allowed as $key) if (isset($event[$key]) && preg_match('/^[a-zA-Z0-9_\\\\-]{1,100}$/D',(string)$event[$key])) $safe[$key]=(string)$event[$key];
+    foreach (['duration_ms','http_status','curl_errno','score','found','queued','round','line'] as $key) if (isset($event[$key]) && is_numeric($event[$key])) $safe[$key]=max(0,(int)$event[$key]);
+    foreach (['url','original_url'] as $key) if (!empty($event[$key])) $safe[$key]=jobSearchDebugSource((string)$event[$key]);
+    if (isset($event['source_chain'])) $safe['source_chain']=array_map('jobSearchDebugSource',array_slice((array)$event['source_chain'],0,4));
+    if (isset($event['checks'])) {
+        $safe['checks']=[];
+        foreach (array_slice((array)$event['checks'],0,20) as $check) {
+            if (preg_match('/^[a-z_]{1,40}$/D',(string)($check['criterion'] ?? '')) && in_array($check['verdict'] ?? '',['met','partial','unmet','unknown'],true)) $safe['checks'][]=['criterion'=>$check['criterion'],'verdict'=>$check['verdict']];
+        }
+    }
+    $state['debug_events'][]=$safe;
+    if (count($state['debug_events'])>250) { array_shift($state['debug_events']); $state['debug_dropped']=(int)($state['debug_dropped'] ?? 0)+1; }
+}
+
+function jobSearchDebugReport(array $state, int $uid): array
+{
+    if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
+    $criteria=[];
+    foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.8','exported_at_utc'=>gmdate('c'),
+        'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
+        'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
+        'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
+        'limited'=>!empty($state['limited']),'target'=>(int)($state['criteria']['total_count'] ?? 0),
+        'counters'=>['attempted'=>(int)($state['checked'] ?? 0),'accepted'=>count($state['jobs'] ?? []),'not_imported'=>(int)($state['rejected'] ?? 0),'technical_errors'=>(int)($state['technical_errors'] ?? 0),'sources_completed'=>(int)($state['source_index'] ?? 0),'sources_total'=>count($state['sources'] ?? [])],
+        'active_criteria'=>$criteria,'match_threshold'=>70,'events'=>$state['debug_events'],'dropped_events'=>(int)($state['debug_dropped'] ?? 0),
+        'privacy'=>'No profile values, original texts, contact details, credentials, raw error messages, URL paths, queries, fragments or session IDs. Domain names and derived match ratings remain potentially sensitive. No automatic transmission.'];
+}
+
 function verifiedSearchScript(string $locale): string
 {
     $labels=match($locale){
@@ -8773,10 +8868,15 @@ function verifiedSearchScript(string $locale): string
         'es-MX'=>['Búsqueda verificada','Leyendo anuncios originales y comparando criterios …','Cancelar','Ver resultados','Falló la búsqueda. Inténtalo de nuevo.','Verificadas','Compatibles','Descartadas','Fuentes consultadas','Búsqueda terminada.','Se alcanzó el límite de búsqueda; no se agotaron todas las posibilidades.'],
         default=>['Geprüfte Stellensuche','Originalausschreibungen lesen und Suchkriterien vergleichen …','Abbrechen','Ergebnisse anzeigen','Die Suche ist fehlgeschlagen. Bitte erneut versuchen.','Geprüft','Passend','Ausgeschlossen','Quellen geprüft','Suche abgeschlossen.','Suchgrenze erreicht; es wurden nicht alle Möglichkeiten ausgeschöpft.'],
     };
+    $debugLabels=jobSearchDebugLabels($locale);
+    $labels[5]=match($locale){'fr-CH'=>'Traitées','en-GB'=>'Processed','pt-BR'=>'Processadas','es-MX'=>'Procesadas',default=>'Verarbeitet'};
     $html=<<<'HTML'
+<style>#verified-search-dialog [hidden]{display:none!important}</style>
 <script>
 (()=>{
- const labels=__LABELS__, button=document.querySelector('button[value="search_ai_jobs"]'), form=button?.closest('form');if(!form)return;
+ const labels=__LABELS__, debugLabels=__DEBUG_LABELS__, button=document.querySelector('button[value="search_ai_jobs"]'), form=button?.closest('form');if(!form)return;
+ const debugLink=document.createElement('a');debugLink.className='button';debugLink.href='/?page=job_search_debug_download';debugLink.textContent=debugLabels[0];
+ const debugHint=document.createElement('p');debugHint.textContent=debugLabels[4];form.after(debugLink,debugHint);
  form.querySelector('button[value="save_platform_search_criteria"]')?.remove();let timer;
  let saving=Promise.resolve();
  const save=()=>{const data=new FormData(form);data.set('action','save_platform_search_criteria');saving=saving.then(()=>fetch(location.href,{method:'POST',body:data,credentials:'same-origin'})).catch(()=>{});};
@@ -8784,10 +8884,11 @@ function verifiedSearchScript(string $locale): string
  let running=false;
  form.addEventListener('submit',async event=>{
   if(event.submitter!==button)return;event.preventDefault();if(running)return;running=true;clearTimeout(timer);
-  const modal=document.createElement('dialog');modal.style.cssText='box-sizing:border-box;width:min(36rem,calc(100vw - 2rem));padding:1.5rem;border:0;border-radius:12px';
+  const modal=document.createElement('dialog');modal.id='verified-search-dialog';modal.style.cssText='box-sizing:border-box;width:min(36rem,calc(100vw - 2rem));max-height:90vh;overflow:auto;padding:1.5rem;border:0;border-radius:12px';
   const title=document.createElement('h2'),status=document.createElement('p'),progress=document.createElement('progress'),elapsed=document.createElement('p'),cancel=document.createElement('button'),view=document.createElement('button');
   title.textContent=labels[0];status.textContent=labels[1];status.setAttribute('role','status');status.setAttribute('aria-live','polite');progress.style.width='100%';cancel.textContent=labels[2];view.textContent=labels[3];view.hidden=true;
-  modal.append(title,status,progress,elapsed,cancel,view);document.body.append(modal);modal.showModal();cancel.focus();
+  const download=debugLink.cloneNode(true);download.style.display='block';download.style.marginTop='1rem';
+  modal.append(title,status,progress,elapsed,cancel,view,download);document.body.append(modal);modal.showModal();cancel.focus();
   const controller=new AbortController();let cancelled=false;const started=Date.now();const clock=setInterval(()=>elapsed.textContent=Math.floor((Date.now()-started)/1000)+' s',1000);
   modal.addEventListener('cancel',e=>e.preventDefault());cancel.addEventListener('click',()=>{cancelled=true;controller.abort();clearInterval(clock);modal.close();modal.remove();running=false;});
   view.addEventListener('click',()=>location.assign('/?page=job_platform_search#results'));
@@ -8798,7 +8899,7 @@ function verifiedSearchScript(string $locale): string
    while(!cancelled){
     const data=new FormData();data.set('csrf',String(initial.get('csrf')||''));data.set('action','advance_verified_job_search');data.set('search_id',start.search_id);
     const state=await send(data);if(cancelled)break;
-    status.textContent=labels[5]+': '+state.checked+' · '+labels[6]+': '+state.accepted+' · '+labels[7]+': '+state.rejected+' · '+labels[8]+': '+state.sources_checked+'/'+state.sources_total;
+    status.textContent=labels[5]+': '+state.checked+' · '+labels[6]+': '+state.accepted+' · '+labels[7]+': '+state.rejected+' · '+debugLabels[1]+': '+(state.technical_errors||0)+' · '+debugLabels[2]+': '+state.sources_checked+'/'+state.sources_total+(state.current_source?' · '+debugLabels[3]+': '+state.current_source:'');
     if(state.done){status.textContent+=' — '+(state.limited?labels[10]:labels[9]);progress.hidden=true;view.hidden=false;clearInterval(clock);view.focus();break;}
    }
   }catch(error){if(!cancelled){status.textContent=labels[4];progress.hidden=true;view.hidden=false;clearInterval(clock);}}
@@ -8806,7 +8907,7 @@ function verifiedSearchScript(string $locale): string
  })();
 </script>
 HTML;
-    return str_replace('__LABELS__',json_encode($labels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR),$html);
+    return str_replace(['__LABELS__','__DEBUG_LABELS__'],[json_encode($labels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR),json_encode($debugLabels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR)],$html);
 }
 
 function canonicalJobUrl(string $url): string
@@ -8825,29 +8926,40 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
     if (count($state['jobs']) >= $state['criteria']['total_count']) { $state['done']=true; return; }
     if ($state['checked']>=60) { $state['done']=true; $state['limited']=true; return; }
     if (!$state['queue']) {
+        if (!empty($state['advance_source'])) { $state['source_index']++; $state['round']=0; $state['advance_source']=false; }
         if ($state['source_index']>=count($state['sources'])) { $state['done']=true; return; }
         $source=$state['sources'][$state['source_index']];
         $discovery=$state['criteria']; $discovery['total_count']=15;
         $discovery['preferred_sources']=$source!=='' ? [$source] : [];
         $discovery['exclude_urls']=array_keys($state['seen']);
-        $found=openAiJobSearch($config,$uid,$discovery); $added=0;
+        $started=microtime(true);
+        try { $found=openAiJobSearch($config,$uid,$discovery); }
+        catch (Throwable $error) {
+            jobSearchDebugEvent($state,['stage'=>'discovery','outcome'=>'error','url'=>$source,'duration_ms'=>(microtime(true)-$started)*1000]+jobSearchDebugError($error));
+            $state['technical_errors']=(int)($state['technical_errors'] ?? 0)+1;
+            throw $error;
+        }
+        $added=0;
         foreach ($found as $candidate) {
             $key=canonicalJobUrl((string)$candidate['url']);
             if (isset($state['seen'][$key]) || isset($state['excluded'][$key])) continue;
             $state['seen'][$key]=true; $state['queue'][]=$candidate['url']; $added++;
         }
         $state['round']++;
+        jobSearchDebugEvent($state,['stage'=>'discovery','outcome'=>'completed','url'=>$source,'found'=>count($found),'queued'=>$added,'round'=>$state['round'],'duration_ms'=>(microtime(true)-$started)*1000]);
         if ($added===0 || $state['round']>=3) {
             if ($added>0) $state['limited']=true;
-            $state['source_index']++; $state['round']=0;
+            $state['advance_source']=true;
         }
         return;
     }
-    $url=array_shift($state['queue']); $state['checked']++;
+    $url=array_shift($state['queue']); $state['checked']++; $started=microtime(true); $diagnostic=[];
     try {
-        $draft=verifiedJobImport($config,$uid,$url,$state['criteria']);
+        $draft=verifiedJobImport($config,$uid,$url,$state['criteria'],$diagnostic);
         $original=canonicalJobUrl($draft['original_url']);
-        if (isset($state['originals'][$original]) || isset($state['excluded'][$original]) || !$draft['assessment']['eligible']) { $state['rejected']++; return; }
+        $outcome=isset($state['originals'][$original])?'duplicate':(isset($state['excluded'][$original])?'user_excluded':(!$draft['assessment']['eligible']?'profile_rejected':'accepted'));
+        jobSearchDebugEvent($state,['stage'=>'assessment','outcome'=>$outcome,'url'=>$url,'original_url'=>$draft['original_url'],'score'=>$draft['assessment']['score'],'checks'=>$draft['assessment']['checks'],'duration_ms'=>(microtime(true)-$started)*1000]+$diagnostic);
+        if ($outcome!=='accepted') { $state['rejected']++; return; }
         $state['originals'][$original]=true;
         $assessment=$draft['assessment'];
         $state['jobs'][]=['company'=>$draft['company'],'location'=>$draft['location'],'title'=>$assessment['title'],'description'=>$assessment['summary'],
@@ -8856,6 +8968,10 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
             'display_locale'=>$state['criteria']['display_locale'],'display_revision'=>1];
         $state['jobs']=sortJobMatches($state['jobs']);
     } catch (Throwable $error) {
+        $failure=jobSearchDebugError($error);
+        $technical=!in_array($failure['code'],['unavailable','availability_unknown','original_identity_mismatch'],true);
+        jobSearchDebugEvent($state,['outcome'=>$technical?'technical_error':'unverifiable','url'=>$url,'duration_ms'=>(microtime(true)-$started)*1000]+$failure+$diagnostic+['stage'=>'original_read']);
+        if ($technical) $state['technical_errors']=(int)($state['technical_errors'] ?? 0)+1;
         // An unavailable verification service is not evidence of an unsuitable job.
         if (str_contains($error->getMessage(),'KI-Prüfung') || $error instanceof JsonException) throw $error;
         $state['rejected']++;
@@ -10612,7 +10728,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $searchId=bin2hex(random_bytes(18));
             $_SESSION['verified_job_search']=['id'=>$searchId,'uid'=>userId(),'expires'=>time()+1800,'criteria'=>$criteria,'sources'=>$preferredSources ?: [''],
                 'source_index'=>0,'round'=>0,'queue'=>[],'seen'=>[],'originals'=>[],'excluded'=>array_fill_keys(array_map('canonicalJobUrl',array_keys($excludedUrls)),true),
-                'jobs'=>[],'checked'=>0,'rejected'=>0,'done'=>false,'limited'=>false];
+                'jobs'=>[],'checked'=>0,'rejected'=>0,'done'=>false,'limited'=>false,'started_at'=>time(),'debug_events'=>[],'technical_errors'=>0];
             if (!empty($_POST['incremental'])) { header('Content-Type: application/json'); header('Cache-Control: no-store'); echo json_encode(['ok'=>true,'search_id'=>$searchId]); exit; }
             unset($_SESSION['job_translation_retry_after']);
             audit($db, userId(), 'other', 'ai_job_search', 0, null, ['count'=>count($_SESSION['ai_job_search_results'])]);
@@ -10622,15 +10738,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'advance_verified_job_search') {
         header('Content-Type: application/json'); header('Cache-Control: no-store');
+        $validSearch=false;
         try {
             $state=$_SESSION['verified_job_search'] ?? [];
             if (($state['uid'] ?? 0)!==userId() || ($state['expires'] ?? 0)<=time() || !hash_equals((string)($state['id'] ?? ''),(string)($_POST['search_id'] ?? ''))) throw new RuntimeException('Invalid search');
+            $validSearch=true;
             if (jobMatchCriteria($state['criteria'])!==jobMatchCriteria(importSearchCriteria($db,userId()))) throw new RuntimeException('Search criteria changed');
             advanceVerifiedJobSearch($config,userId(),$state);
             $_SESSION['verified_job_search']=$state;
             $_SESSION['ai_job_search_results']=$state['jobs'];
-            echo json_encode(['ok'=>true,'done'=>$state['done'],'limited'=>$state['limited'],'checked'=>$state['checked'],'accepted'=>count($state['jobs']),'rejected'=>$state['rejected'],'sources_checked'=>$state['source_index'],'sources_total'=>count($state['sources'])]);
-        } catch (Throwable $error) { http_response_code(422); echo json_encode(['ok'=>false]); }
+            echo json_encode(['ok'=>true,'done'=>$state['done'],'limited'=>$state['limited'],'checked'=>$state['checked'],'accepted'=>count($state['jobs']),'rejected'=>$state['rejected'],'sources_checked'=>$state['source_index'],'sources_total'=>count($state['sources']),'technical_errors'=>$state['technical_errors'] ?? 0,'current_source'=>jobSearchDebugSource((string)($state['sources'][$state['source_index']] ?? ''))['host']]);
+        } catch (Throwable $error) {
+            if ($validSearch) {
+                jobSearchDebugEvent($state,['stage'=>'search_step','outcome'=>'failed']+jobSearchDebugError($error));
+                $state['failed']=true;
+                $_SESSION['verified_job_search']=$state;
+                $_SESSION['ai_job_search_results']=$state['jobs'];
+            }
+            http_response_code(422); echo json_encode(['ok'=>false]);
+        }
         exit;
     }
 
@@ -12136,7 +12262,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.7';
+$codeVersion = '2.0.8';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -12190,6 +12316,20 @@ if ($page === 'verify_email') {
         flash(tr('flash.auth.verify_link_invalid'), 'danger');
     }
     redirect('/?page=login');
+}
+if ($page === 'job_search_debug_download') {
+    requireLogin();
+    header('Cache-Control: private, no-store, max-age=0');
+    header('X-Content-Type-Options: nosniff');
+    try { $report=jobSearchDebugReport((array)($_SESSION['verified_job_search'] ?? []),userId()); }
+    catch (RuntimeException) {
+        http_response_code(404); header('Content-Type: text/plain; charset=utf-8');
+        exit(match(currentLocale()){'fr-CH'=>'Aucun diagnostic. Lance une nouvelle recherche.','en-GB'=>'No diagnostic report. Start a new search first.','pt-BR'=>'Nenhum diagnóstico. Inicie uma nova busca.','es-MX'=>'Sin diagnóstico. Inicia una nueva búsqueda.',default=>'Noch kein Diagnosebericht. Bitte zuerst eine neue Suche starten.'});
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="jema-jobs-debug-'.gmdate('Ymd-His').'.json"');
+    echo json_encode($report,JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    exit;
 }
 if ($page === 'document_download') {
     requireLogin();

@@ -1,10 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.7 deployed; Serverdatei und öffentliche Versionsanzeige verifiziert. Angemeldete Importabnahme offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.8 lokal vorbereitet; Deployment und angemeldete Abnahme offen. Letzter bestätigter Live-Stand 2.0.7. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Verifizierte Suche und Import 2.0.7 (deployed)
+## Suchdiagnose 2.0.8 (lokaler Stand)
+
+job_search_debug_download exportiert die letzte protokollierte Suche der eigenen Sitzung als JSON-Anhang. requireLogin und effektive Benutzer-ID begrenzen den Zugriff; kein Report für eine fremde oder alte unprotokollierte Suche. Cache-Control private/no-store und nosniff; keine Datei im öffentlichen Dateisystem. Maximal 250 bereinigte Ereignisse in verified_job_search, entfernte Ereignisse werden gezählt. Neue Suche ersetzt den Bericht; Sitzungsende beendet den Zugriff. Ein noch laufender Request kann wegen des PHP-Sessionlocks den Download verzögern. Abbruch liefert einen Teilstand, keinen erfundenen erfolgreichen Abschluss.
+
+Discovery protokolliert Quelle, gefundene/eingereihte Anzahl und Laufzeit. Kandidaten protokollieren Originalabruf, Verfügbarkeitsprüfung, Parsing oder Match-Auswertung; Erfolg, Profilablehnung, Dublette, Benutzerausschluss, unprüfbare Verfügbarkeit und technische Fehler bleiben unterscheidbar. Match-Diagnose enthält nur Kriteriennamen und met/partial/unmet/unknown sowie Score und Gewichtung, keine Profilwerte oder Belegtexte. Der Fehlerschritt bleibt auch bei abgefangenem Suchabbruch erhalten. Laufzeitinformationen PHP/cURL/DOM/mbstring helfen, fehlende Serverfunktionen zu erkennen.
+
+Strikte Feldliste statt Export der gesamten Session: Domains und SHA-256-URL-Fingerprints statt Pfad/Query/Fragment/URL-Zugangsdaten. Fehlercodes, HTTP-/cURL-Nummern, Quellzeile und gegebenenfalls Name einer fehlenden Funktion/Klasse statt vollständiger Exception-/API-Antworten oder Stacktraces. Keine API-Schlüssel, Cookies, Session-IDs, Kontakt-/Inserattexte oder Konfiguration. Domains und abgeleitete Bewertungen bleiben potenziell vertraulich; gezielte manuelle Weitergabe, kein automatischer Versand. Bericht dient der Ursachenanalyse, behebt aber nicht automatisch die Ursache der 13 früheren Ausschlüsse.
+
+Download-Link auf der Seite und im Modal in fünf Sprachen. Status nennt Verarbeitet, technischen Fehleranteil, abgeschlossene Quellen und aktuelle Domain. Eine lokale hidden-CSS-Regel verhindert, dass globale Button-/Progress-Styles den Ergebnisbutton während der Suche oder den Balken nach Abschluss sichtbar halten. Suche, Match-Schwelle und Importregeln bleiben unverändert. Keine DB-Migration.
+
+## Verifizierte Suche und Import 2.0.7 (historisch deployed)
 
 - Discovery liefert nur Kandidaten-URLs. Vor der Anzeige liest die App jede Originalanzeige einschließlich erkannter Drill-down-Links. HTTP 404/410, erkannte Soft-404, Ablaufhinweise und vergangenes validThrough schließen die Anzeige aus. Ein zukünftiges validThrough oder ein aktives Bewerbungsbedienelement gilt als Verfügbarkeitsindiz; alte Anzeigen ohne aktuelle Frist und Anzeigen ohne positives Indiz bleiben unbekannt und werden nicht vorgeschlagen. Das ist keine Garantie einer tatsächlich noch unbesetzten Stelle.
 - Die KI erhält vollständigen Originaltext und strukturierte Originalmetadaten, keine bloßen Such-Snippets. Jede bewertete Dimension verlangt ein überprüfbares wörtliches Zitat aus der Originalquelle. Firmenmarketing beweist keine Stelleneigenschaft. Die App berechnet den gewichteten Score: Rolle 35, Ort 20, Pensum 15, Ebene/Arbeitsmodell/Stellenart/Lohn je 10, Benefits 3, Ausschlüsse 15, Reise/Verfügbarkeit/weitere Wünsche je 5; nur aktive Kriterien zählen. Erfüllt = 1, teilweise = 0,5, unbekannt/nicht erfüllt = 0. Beliebiges Arbeitsmodell ist kein Kriterium. Fehlende Rolle/Ort-Belege und belegte harte Konflikte schließen aus. Vorläufiger Vorschlagsschwellenwert 70 %. Semantische Interpretation und Übersetzungsqualität bleiben modellabhängig.

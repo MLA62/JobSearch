@@ -33,6 +33,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `help`
 - `job_platform_search`
 - `job_room_helper`
+- `job_search_debug_download`
 - `jobs`
 - `login`
 - `pendents`
@@ -408,7 +409,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importCompanyPageDetails(string $html, string $company): array`
 - `function jobAvailability(string $html, int $now): array`
 - `function companyResearchLinks(string $html, string $base): array`
-- `function importFromUrl(string $url): array`
+- `function importFromUrl(string $url, array &$diagnostic = []): array`
 - `function importJobHtml(string $html, string $url): array`
 - `function importFromText(string $text): array`
 - `function timezoneChoices(): array`
@@ -443,10 +444,15 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobFactValue(string $entity, string $field, string $value): mixed`
 - `function applyJobEvidence(array $draft, array $response, array $criteria): array`
 - `function jobStructuredResponse(array $config, int $uid, string $instructions, array $input, array $schema): array`
-- `function verifiedJobImport(array $config, int $uid, string $url, array $criteria): array`
+- `function verifiedJobImport(array $config, int $uid, string $url, array $criteria, array &$diagnostic = []): array`
 - `function importSearchCriteria(mysqli $db, int $uid): array`
 - `function openAiJobSearch(array $config, int $userId, array $criteria): array`
 - `function visibleVerifiedJobs(array $jobs, array $criteria, int $now): array`
+- `function jobSearchDebugLabels(string $locale): array`
+- `function jobSearchDebugSource(string $url): array`
+- `function jobSearchDebugError(Throwable $error): array`
+- `function jobSearchDebugEvent(array &$state, array $event): void`
+- `function jobSearchDebugReport(array $state, int $uid): array`
 - `function verifiedSearchScript(string $locale): string`
 - `function canonicalJobUrl(string $url): string`
 - `function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void`

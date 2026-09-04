@@ -31,6 +31,11 @@ Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
 
+Ergänzung 2.0.8: Downloadbarer Diagnosebericht zur Suche, damit tatsächliche
+Profilablehnungen von Abruf-/Prüffehlern unterschieden werden können. Nur die eigene
+Sitzung exportieren, keine Zugangsdaten oder vollständigen Profil-/Inserat-/Kontakttexte.
+Keine automatische Übermittlung. Unbrauchbare Kandidaten bleiben außerhalb der Tabelle.
+
 Ergänzung 2.0.7: Ausschließlich brauchbare, aktuell belegbar verfügbare und profilbezogen
 geprüfte Anzeigen in der Ergebnistabelle. Abgelaufene, unlesbare, unprüfbare, unpassende,
 gelöschte und doppelte Kandidaten ausschließen und die Suche fortsetzen. Suchmaschinen-

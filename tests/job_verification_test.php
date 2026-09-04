@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
-foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
+foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
 $now=strtotime('2026-09-04T12:00:00Z');
 $ad=static fn(array $fields,string $body=''):string=>'<html><script type="application/ld+json">'.json_encode(['@type'=>'JobPosting','title'=>'Sales Manager']+$fields).'</script><main>'.$body.'</main></html>';
 foreach ([
@@ -38,9 +38,10 @@ helpAssert(jobFactValue('job','workload_max','101')===null && jobFactValue('job'
 helpAssert(canonicalJobUrl('https://example.test/job/1?utm_source=x')==='https://example.test/job/1','Tracking variants deduplicated');
 
 // Exercise actual incremental orchestration with deterministic external boundaries.
-function openAiJobSearch(array $config,int $uid,array $criteria):array { return array_map(static fn($id)=>['url'=>'https://example.test/'.$id],['expired','unknown','mismatch','deleted','good','duplicate']); }
+function openAiJobSearch(array $config,int $uid,array $criteria):array { if (isset($GLOBALS['discoveryFixtureError'])) throw $GLOBALS['discoveryFixtureError']; return array_map(static fn($id)=>['url'=>'https://example.test/'.$id],['expired','unknown','mismatch','deleted','good','duplicate']); }
 function verifiedJobImport(array $config,int $uid,string $url,array $criteria):array {
     global $enriched;
+    if (isset($GLOBALS['verificationFixtureError'])) throw $GLOBALS['verificationFixtureError'];
     if (str_ends_with($url,'expired') || str_ends_with($url,'unknown')) throw new RuntimeException('Unavailable');
     $draft=$enriched+['company'=>'Example SA','location'=>'Bern','original_url'=>'https://original.test/good'];
     if (str_ends_with($url,'mismatch')) $draft['assessment']['eligible']=false;
@@ -56,4 +57,16 @@ $old=$row; $old['verified_at']=time()-901;
 $legacy=$row; unset($legacy['verification_revision']);
 helpAssert(visibleVerifiedJobs([$old,$legacy],$criteria,time())===[],'Stale and legacy unverified results not displayed');
 helpAssert(visibleVerifiedJobs([$row],['query'=>'Nurse','location'=>'Bern'],time())===[],'Profile changes invalidate old matches');
+helpAssert(count(array_filter($state['debug_events'],static fn($event)=>($event['outcome']??'')==='profile_rejected'))===1,'Profile rejection logged with its own outcome');
+helpAssert(count(array_filter($state['debug_events'],static fn($event)=>($event['outcome']??'')==='accepted'))===1,'Only accepted candidate logged as accepted');
+$GLOBALS['verificationFixtureError']=new RuntimeException('Das Portal blockiert den automatischen Abruf (HTTP 403).');
+$blocked=$state;$blocked['done']=false;$blocked['queue']=['https://example.test/blocked'];
+advanceVerifiedJobSearch([],7,$blocked);
+helpAssert(end($blocked['debug_events'])['code']==='portal_blocked' && end($blocked['debug_events'])['http_status']===403,'Actual search preserves blocked portal reason');
+unset($GLOBALS['verificationFixtureError']);
+$GLOBALS['discoveryFixtureError']=new RuntimeException('Die KI-Stellensuche ist fehlgeschlagen (HTTP 429).');
+$failure=$state;$failure['done']=false;$failure['queue']=[];$failure['source_index']=0;$failure['advance_source']=false;
+try { advanceVerifiedJobSearch([],7,$failure); throw new LogicException('Service error swallowed'); }
+catch (RuntimeException $error) { helpAssert(end($failure['debug_events'])['stage']==='discovery' && end($failure['debug_events'])['code']==='ai_service_error','Service failure leaves diagnostic event before propagation, not a portal block'); }
+unset($GLOBALS['discoveryFixtureError']);
 echo "$helpChecks verification checks passed\n";
