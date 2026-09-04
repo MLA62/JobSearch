@@ -1,6 +1,6 @@
 # Version 2.0.8 – Downloadbare Suchdiagnose
 
-Stand: 2026-09-04. Lokal vorbereitet; Deployment ausstehend.
+Stand: 2026-09-04. Nach externer TOTP-Freigabe deployed.
 
 ## Änderungen
 
@@ -24,7 +24,13 @@ Diagnose-/Datenschutztests, PHP-Regressionstests und Chromium-Download-/Dialogte
 Upload vorbereitet aus Quell-Commit 9bd0764042c610f8d03aa65592971c2899f8ed5f.
 Lokal und GitHub vor Vorschlag synchron, Arbeitsstand sauber.
 987248 Bytes, SHA-256 2aabd0ea529d0e978f5748ebccc8f552cf46a2e5ae24bf420c6eb34ad358c785.
-Remote-Vergleich bestätigt unveränderten vorherigen Stand 2.0.7. Ausführung wartet auf TOTP-Freigabe.
+Remote-Vergleich vor dem Upload bestätigte unveränderten vorherigen Stand 2.0.7.
+Freigegebenen Upload ausgeführt am 2026-09-04T16:33:13+00:00.
+Remote-Datei danach: 987248 Bytes, Modus 0644, SHA-256 identisch mit dem vorgeschlagenen Inhalt.
+Öffentliche Login-Seite: HTTP 200, Version 2.0.8 und Loginformular vorhanden; keine
+sichtbare PHP-Fatal-/Parse-/Uncaught-Fehlermeldung. Anonymer Diagnose-Download zeigt
+Login statt Diagnosebericht. Kein produktiver Suchlauf oder angemeldeter Download
+als Test ausgeführt; fachliche Abnahme und Analyse einer neuen Debug-Datei bleiben offen.
 
 Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe nach externer TOTP-Freigabe.
 Vorheriger bestätigter Stand 2.0.7: Quell-Commit 7d37e9a11bebcff060a5af511fb19151b8e53d93,

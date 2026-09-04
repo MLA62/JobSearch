@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.8 lokal vorbereitet; Deployment und angemeldete Abnahme offen. Letzter bestätigter Live-Stand 2.0.7. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.8 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldete Abnahme offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Suchdiagnose 2.0.8 (lokaler Stand)
+## Suchdiagnose 2.0.8 (deployed)
 
 job_search_debug_download exportiert die letzte protokollierte Suche der eigenen Sitzung als JSON-Anhang. requireLogin und effektive Benutzer-ID begrenzen den Zugriff; kein Report für eine fremde oder alte unprotokollierte Suche. Cache-Control private/no-store und nosniff; keine Datei im öffentlichen Dateisystem. Maximal 250 bereinigte Ereignisse in verified_job_search, entfernte Ereignisse werden gezählt. Neue Suche ersetzt den Bericht; Sitzungsende beendet den Zugriff. Ein noch laufender Request kann wegen des PHP-Sessionlocks den Download verzögern. Abbruch liefert einen Teilstand, keinen erfundenen erfolgreichen Abschluss.
 
