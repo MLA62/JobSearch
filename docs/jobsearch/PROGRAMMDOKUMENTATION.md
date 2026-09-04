@@ -4,7 +4,23 @@ Stand: 2026-09-04. Version 2.0.5 deployed; Serverdatei und öffentliche Versions
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Originalimport 2.0.5
+## Speicherkorrekturen 2.0.6 (noch nicht deployed)
+
+Die Diagnose fand drei konkrete Lücken im Stand 2.0.5: Eine einzelne Schnellimport-URL
+landete im Formularentwurf; save_job übernahm daraus weder company_details noch contacts.
+Vorhandene Kontakte wurden ohne Ergänzung sofort übersprungen. Ein alter Session-Entwurf
+konnte zudem die Ansicht des bereits importierten Jobs überlagern.
+
+Übernehmen, einzelne Schnellimport-URL und mehrere URLs verwenden jetzt importStoreDraft:
+Firma, fehlende Adressfelder, Job und Kontakte werden gemeinsam transaktional gespeichert.
+Wiederimport anhand eigener identischer Quell-URL korrigiert die Arbeitgeberzuordnung und
+Originalfelder, behält Notizen/Status/Dokumente. Vorhandene Kontaktpersonen erhalten nur
+fehlende Felder; gefüllte Kontaktangaben bleiben unverändert. Veraltete Vorschauen werden
+beim URL-Import verworfen. Freitext verwendet weiterhin die manuelle Formularvorschau.
+Keine automatische Bestandsbereinigung beim Deployment, keine Erweiterung der Parserabdeckung.
+Die konkrete vom Benutzer zuletzt betroffene Anzeige ist noch nicht bestätigt.
+
+## Originalimport 2.0.5 (historischer Release-Stand)
 
 - Der Import folgt erkannten Original-Links bis zu drei Inseratseiten. Jobs.ch/Jobup: externalUrl aus serialisiertem Seitenzustand; sonst explizit beschriftete Original-Links. Der erste Kandidat wird verwendet, nicht beliebig weitere Links durchsucht. Ein Titelvergleich verhindert offensichtliche Fehlzuordnungen, ist aber kein semantischer Identitätsbeweis.
 - Bei ohws.prospective.ch wird der sichtbare main-Inhalt mit Absätzen übernommen, statt nur die verkürzte Schema-Beschreibung. Kontakte aus contactInfo-Absätzen bzw. applicationContact werden zusätzlich zu strukturierten Kontakten gespeichert. Das ist keine universelle Erkennung jedes Portal-Layouts.

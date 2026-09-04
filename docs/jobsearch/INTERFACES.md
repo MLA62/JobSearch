@@ -391,6 +391,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importUpsertCompany(mysqli $db, int $uid, string $companyName, array $details = []): int`
 - `function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, array $contact): void`
 - `function importDraftContacts(mysqli $db, int $uid, int $companyId, int $jobId, array $draft): void`
+- `function importStoreDraft(mysqli $db, int $uid, array $draft): array`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
 - `function importResolveUrl(string $base, string $reference): string`
 - `function importFetchHtml(string $url): array`

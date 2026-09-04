@@ -31,6 +31,10 @@ Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
 
+Ergänzung 2.0.6: Ein einzelner URL-Schnellimport und Mehrfachimport müssen denselben
+vollständigen Speicherweg nutzen. Vorhandene Kontakte werden bei gleicher Zuordnung
+um belegte leere Felder ergänzt; eine alte Vorschau darf den importierten Job nicht verdecken.
+
 Ergänzung 04.09.2026 für 2.0.5: Erkannte Links zur Originalausschreibung verfolgen,
 deren belegte Arbeitgeber- und Kontaktangaben übernehmen und fehlende Firmenadresse auf
 der explizit verlinkten Arbeitgeberwebsite prüfen. Keine Adressen erfinden und keine

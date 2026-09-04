@@ -1,7 +1,7 @@
 # JeMa Jobs
 
 Stand: 04.09.2026. Version 2.0.5 deployed; Serverdatei und öffentliche Versionsanzeige verifiziert.
-Aktueller Freigabe-/Prüfstand: [Release 2.0.5](docs/jobsearch/RELEASE-2.0.5.md).
+Aktueller Quellstand: 2.0.6 in Vorbereitung; [Release 2.0.6](docs/jobsearch/RELEASE-2.0.6.md).
 Historische angemeldete Abnahmen gelten nicht automatisch für diese Änderungen.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

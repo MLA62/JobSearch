@@ -1,5 +1,5 @@
 {
-  "version": "2.0.5",
+  "version": "2.0.6",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -328,7 +328,8 @@
         "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
           ],
           "tips": [
-        "Die KI liefert Vorschläge, keine automatischen Bewerbungen. Titel, Kurzbeschreibung und Match-Begründung erscheinen in der aktuellen App-Sprache. Beim Übernehmen folgt der Import erkannten Links zur Originalausschreibung und übernimmt deren Text in der Originalsprache sowie belegte Firmen- und Kontaktangaben. Die verlinkte Firmenwebsite kann fehlende Adressfelder ergänzen; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert Firma, Titel, Ort und Originalbeschreibung, nicht deine Notizen oder Dokumente. Blockierte oder nicht lesbare Originalseiten können nicht importiert werden. Ohne Browser-Renderer wird kein automatisches Original-PDF oder PNG erzeugt; ein echter PDF-/Bild-Upload bleibt möglich. Alte automatisch erzeugte Tabellen-PDFs sind keine originalgetreuen Seitenkopien und bleiben unverändert gespeichert."
+        "Die KI liefert Vorschläge, keine automatischen Bewerbungen. Titel, Kurzbeschreibung und Match-Begründung erscheinen in der aktuellen App-Sprache. Beim Übernehmen folgt der Import erkannten Links zur Originalausschreibung und übernimmt deren Text in der Originalsprache sowie belegte Firmen- und Kontaktangaben. Die verlinkte Firmenwebsite kann fehlende Adressfelder ergänzen; vorhandene Firmenangaben bleiben erhalten. Erneutes Übernehmen aktualisiert Firma, Titel, Ort und Originalbeschreibung, nicht deine Notizen oder Dokumente. Blockierte oder nicht lesbare Originalseiten können nicht importiert werden. Ohne Browser-Renderer wird kein automatisches Original-PDF oder PNG erzeugt; ein echter PDF-/Bild-Upload bleibt möglich. Alte automatisch erzeugte Tabellen-PDFs sind keine originalgetreuen Seitenkopien und bleiben unverändert gespeichert.",
+        "Schnellimport speichert auch eine einzelne URL direkt mit Firma, Adresse und Kontaktpersonen und öffnet danach den Job. Wiederimport ergänzt leere Kontaktfelder und aktualisiert die Arbeitgeberzuordnung; bestehende Angaben bleiben erhalten. Eine alte Importvorschau wird dabei verworfen. Eingefügter Freitext bleibt dagegen ein prüfbarer Formularentwurf."
           ]
         },
         "fr-CH": {
@@ -341,7 +342,8 @@
         "Reprends une offre du tableau seulement après vérification."
           ],
           "tips": [
-        "L’IA propose des offres sans envoyer de candidature. Le titre, le résumé et la justification du score sont affichés dans la langue actuelle de l’application. Reprendre suit les liens reconnus vers l’annonce originale et importe son texte dans la langue d’origine ainsi que les coordonnées attestées de l’entreprise et des contacts. Le site lié de l’entreprise peut compléter l’adresse manquante sans écraser les données existantes. Réimporter actualise l’entreprise, le titre, le lieu et la description, pas tes notes ni tes documents. Une annonce originale bloquée ou illisible ne peut pas être importée. Sans moteur de navigateur, aucun PDF ou PNG original n’est créé automatiquement; tu peux toujours joindre un vrai PDF ou une image. Les anciens PDF tabulaires générés ne sont pas des copies fidèles et restent conservés."
+        "L’IA propose des offres sans envoyer de candidature. Le titre, le résumé et la justification du score sont affichés dans la langue actuelle de l’application. Reprendre suit les liens reconnus vers l’annonce originale et importe son texte dans la langue d’origine ainsi que les coordonnées attestées de l’entreprise et des contacts. Le site lié de l’entreprise peut compléter l’adresse manquante sans écraser les données existantes. Réimporter actualise l’entreprise, le titre, le lieu et la description, pas tes notes ni tes documents. Une annonce originale bloquée ou illisible ne peut pas être importée. Sans moteur de navigateur, aucun PDF ou PNG original n’est créé automatiquement; tu peux toujours joindre un vrai PDF ou une image. Les anciens PDF tabulaires générés ne sont pas des copies fidèles et restent conservés.",
+        "L’import rapide enregistre aussi une URL unique avec l’entreprise, l’adresse et les contacts, puis ouvre l’offre. Réimporter complète les champs de contact vides et actualise l’entreprise associée sans écraser les données existantes. Un ancien aperçu est écarté. Le texte libre collé reste un brouillon de formulaire à vérifier."
           ]
         },
         "en-GB": {
@@ -354,7 +356,8 @@
         "Take over a job from the result table only after reviewing it."
           ],
           "tips": [
-        "AI suggests jobs without sending applications. The title, summary and match explanation use the current app language. Take over follows recognised links to the original advertisement and imports its original-language text and evidenced employer and contact details. The linked employer website may fill missing address fields without overwriting existing details. Reimporting updates the employer, title, location and description, not your notes or documents. Blocked or unreadable original advertisements cannot be imported. Without a browser renderer, no original PDF or PNG is created automatically; genuine PDF/image uploads remain available. Previously generated table PDFs are not faithful page copies and remain stored unchanged."
+        "AI suggests jobs without sending applications. The title, summary and match explanation use the current app language. Take over follows recognised links to the original advertisement and imports its original-language text and evidenced employer and contact details. The linked employer website may fill missing address fields without overwriting existing details. Reimporting updates the employer, title, location and description, not your notes or documents. Blocked or unreadable original advertisements cannot be imported. Without a browser renderer, no original PDF or PNG is created automatically; genuine PDF/image uploads remain available. Previously generated table PDFs are not faithful page copies and remain stored unchanged.",
+        "Quick import saves even a single URL with its employer, address and contacts, then opens the job. Reimport fills empty contact fields and updates the employer association without overwriting existing details. Any stale import preview is discarded. Pasted free text remains a form draft for review."
           ]
         },
         "pt-BR": {
@@ -367,7 +370,8 @@
         "Importe uma vaga da tabela somente após revisá-la."
           ],
           "tips": [
-        "A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da compatibilidade usam o idioma atual do aplicativo. Ao importar, links reconhecidos levam ao anúncio original, cujo texto no idioma original e dados comprovados da empresa e dos contatos são importados. O site vinculado da empresa pode completar campos de endereço ausentes sem substituir dados existentes. Reimportar atualiza empresa, título, local e descrição, não suas anotações nem documentos. Anúncios originais bloqueados ou ilegíveis não podem ser importados. Sem um renderizador de navegador, nenhum PDF ou PNG original é criado automaticamente; o envio de um PDF ou imagem real continua disponível. PDFs tabulares gerados anteriormente não são cópias fiéis da página e permanecem armazenados sem alterações."
+        "A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da compatibilidade usam o idioma atual do aplicativo. Ao importar, links reconhecidos levam ao anúncio original, cujo texto no idioma original e dados comprovados da empresa e dos contatos são importados. O site vinculado da empresa pode completar campos de endereço ausentes sem substituir dados existentes. Reimportar atualiza empresa, título, local e descrição, não suas anotações nem documentos. Anúncios originais bloqueados ou ilegíveis não podem ser importados. Sem um renderizador de navegador, nenhum PDF ou PNG original é criado automaticamente; o envio de um PDF ou imagem real continua disponível. PDFs tabulares gerados anteriormente não são cópias fiéis da página e permanecem armazenados sem alterações.",
+        "A importação rápida salva também uma única URL com empresa, endereço e contatos e abre a vaga. Reimportar completa campos de contato vazios e atualiza a empresa vinculada sem substituir dados existentes. Uma prévia antiga é descartada. Texto livre colado continua sendo um rascunho de formulário para revisão."
           ]
         },
         "es-MX": {
@@ -380,7 +384,8 @@
         "Importa una vacante de la tabla solo después de revisarla."
           ],
           "tips": [
-        "La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación de compatibilidad usan el idioma actual de la aplicación. Al importar, se siguen enlaces reconocidos al anuncio original y se importan su texto en el idioma original y los datos comprobados de la empresa y sus contactos. El sitio vinculado de la empresa puede completar campos de dirección faltantes sin sustituir datos existentes. Reimportar actualiza empresa, título, lugar y descripción, no tus notas ni documentos. Los anuncios originales bloqueados o ilegibles no se pueden importar. Sin un renderizador de navegador, no se crea automáticamente ningún PDF o PNG original; sigue siendo posible adjuntar un PDF o imagen auténticos. Los PDF tabulares generados anteriormente no son copias fieles de la página y se conservan sin cambios."
+        "La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación de compatibilidad usan el idioma actual de la aplicación. Al importar, se siguen enlaces reconocidos al anuncio original y se importan su texto en el idioma original y los datos comprobados de la empresa y sus contactos. El sitio vinculado de la empresa puede completar campos de dirección faltantes sin sustituir datos existentes. Reimportar actualiza empresa, título, lugar y descripción, no tus notas ni documentos. Los anuncios originales bloqueados o ilegibles no se pueden importar. Sin un renderizador de navegador, no se crea automáticamente ningún PDF o PNG original; sigue siendo posible adjuntar un PDF o imagen auténticos. Los PDF tabulares generados anteriormente no son copias fieles de la página y se conservan sin cambios.",
+        "La importación rápida guarda también una sola URL con empresa, dirección y contactos y abre la vacante. Reimportar completa campos de contacto vacíos y actualiza la empresa vinculada sin sustituir datos existentes. Se descarta cualquier vista previa antigua. El texto libre pegado sigue siendo un borrador de formulario para revisar."
           ]
         }
       }

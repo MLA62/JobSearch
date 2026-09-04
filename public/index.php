@@ -3452,6 +3452,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A IA sugere vagas sem enviar candidaturas. Título, resumo e justificativa da compatibilidade usam o idioma atual do aplicativo. Ao importar, links reconhecidos levam ao anúncio original, cujo texto no idioma original e dados comprovados da empresa e dos contatos são importados. O site vinculado da empresa pode completar campos de endereço ausentes sem substituir dados existentes. Reimportar atualiza empresa, título, local e descrição, não suas anotações nem documentos. Anúncios originais bloqueados ou ilegíveis não podem ser importados. Sem um renderizador de navegador, nenhum PDF ou PNG original é criado automaticamente; o envio de um PDF ou imagem real continua disponível. PDFs tabulares gerados anteriormente não são cópias fiéis da página e permanecem armazenados sem alterações.',
     'es-MX' => 'La IA propone vacantes sin enviar candidaturas. Título, resumen y explicación de compatibilidad usan el idioma actual de la aplicación. Al importar, se siguen enlaces reconocidos al anuncio original y se importan su texto en el idioma original y los datos comprobados de la empresa y sus contactos. El sitio vinculado de la empresa puede completar campos de dirección faltantes sin sustituir datos existentes. Reimportar actualiza empresa, título, lugar y descripción, no tus notas ni documentos. Los anuncios originales bloqueados o ilegibles no se pueden importar. Sin un renderizador de navegador, no se crea automáticamente ningún PDF o PNG original; sigue siendo posible adjuntar un PDF o imagen auténticos. Los PDF tabulares generados anteriormente no son copias fieles de la página y se conservan sin cambios.',
   ),
+  'help.v2.search.tips.1' =>
+  array (
+    'de-CH' => 'Schnellimport speichert auch eine einzelne URL direkt mit Firma, Adresse und Kontaktpersonen und öffnet danach den Job. Wiederimport ergänzt leere Kontaktfelder und aktualisiert die Arbeitgeberzuordnung; bestehende Angaben bleiben erhalten. Eine alte Importvorschau wird dabei verworfen. Eingefügter Freitext bleibt dagegen ein prüfbarer Formularentwurf.',
+    'fr-CH' => 'L’import rapide enregistre aussi une URL unique avec l’entreprise, l’adresse et les contacts, puis ouvre l’offre. Réimporter complète les champs de contact vides et actualise l’entreprise associée sans écraser les données existantes. Un ancien aperçu est écarté. Le texte libre collé reste un brouillon de formulaire à vérifier.',
+    'en-GB' => 'Quick import saves even a single URL with its employer, address and contacts, then opens the job. Reimport fills empty contact fields and updates the employer association without overwriting existing details. Any stale import preview is discarded. Pasted free text remains a form draft for review.',
+    'pt-BR' => 'A importação rápida salva também uma única URL com empresa, endereço e contatos e abre a vaga. Reimportar completa campos de contato vazios e atualiza a empresa vinculada sem substituir dados existentes. Uma prévia antiga é descartada. Texto livre colado continua sendo um rascunho de formulário para revisão.',
+    'es-MX' => 'La importación rápida guarda también una sola URL con empresa, dirección y contactos y abre la vacante. Reimportar completa campos de contacto vacíos y actualiza la empresa vinculada sin sustituir datos existentes. Se descarta cualquier vista previa antigua. El texto libre pegado sigue siendo un borrador de formulario para revisar.',
+  ),
   'help.v2.search.title' =>
   array (
     'de-CH' => 'Stellen suchen',
@@ -3743,7 +3751,7 @@ function helpTopicDefinitions(): array
       1 => 'jobs#quick-import',
     ),
     'step_count' => 4,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   5 =>
   array (
@@ -7559,7 +7567,15 @@ function importUpsertContact(mysqli $db, int $uid, int $companyId, int $jobId, a
     $position = jobDisplayText((string)($contact['position'] ?? ''),150);
     if ($first === '' && $last === '' && $email === '') return;
     $existing = dbOne($db, 'SELECT id FROM contacts WHERE owner_user_id=? AND company_id=? AND job_id=? AND deleted_at IS NULL AND ((?<>"" AND email=?) OR (?<>"" AND first_name=? AND last_name=?)) LIMIT 1', 'iiisssss', [$uid,$companyId,$jobId,$email,$email,$first.$last,$first,$last]);
-    if ($existing) return;
+    if ($existing) {
+        $contactId=(int)$existing['id'];
+        foreach (['first_name'=>$first,'last_name'=>$last,'email'=>$email,'phone'=>$phone,'position'=>$position] as $field=>$value) {
+            if ($value==='') continue;
+            $stmt=$db->prepare("UPDATE contacts SET `$field`=? WHERE id=? AND owner_user_id=? AND company_id=? AND job_id=? AND deleted_at IS NULL AND (`$field` IS NULL OR TRIM(`$field`)=\"\")");
+            $stmt->bind_param('siiii',$value,$contactId,$uid,$companyId,$jobId); $stmt->execute();
+        }
+        return;
+    }
     $stmt = $db->prepare('INSERT INTO contacts (owner_user_id, company_id, job_id, first_name, last_name, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
     $stmt->bind_param('iiisssss',$uid,$companyId,$jobId,$first,$last,$position,$email,$phone); $stmt->execute();
     audit($db,$uid,'create','contact',(int)$stmt->insert_id,null,['source'=>'original_ad_import','company_id'=>$companyId,'job_id'=>$jobId]);
@@ -7569,6 +7585,43 @@ function importDraftContacts(mysqli $db, int $uid, int $companyId, int $jobId, a
 {
     $contacts=$draft['contacts'] ?? (empty($draft['contact']) ? [] : [$draft['contact']]);
     foreach ($contacts as $contact) if (is_array($contact)) importUpsertContact($db,$uid,$companyId,$jobId,$contact);
+}
+
+function importStoreDraft(mysqli $db, int $uid, array $draft): array
+{
+    $title=trim((string)($draft['title'] ?? ''));
+    $companyName=trim((string)($draft['company'] ?? ''));
+    $sourceUrl=trim((string)($draft['source_url'] ?? ''));
+    $location=trim((string)($draft['location'] ?? $draft['location_text'] ?? ''));
+    $description=trim((string)($draft['description'] ?? ''));
+    if ($title==='' || $companyName==='' || $description==='' || $sourceUrl==='') throw new RuntimeException('Die Originalausschreibung enthält keine vollständigen Importdaten.');
+    $db->begin_transaction();
+    try {
+        $companyId=importUpsertCompany($db,$uid,$companyName,(array)($draft['company_details'] ?? []));
+        $existing=dbOne($db,'SELECT id, company_id, title, location_text, description FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1','is',[$uid,$sourceUrl]);
+        if ($existing) {
+            $jobId=(int)$existing['id'];
+            $stmt=$db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=? WHERE id=? AND owner_user_id=? AND deleted_at IS NULL');
+            $stmt->bind_param('isssii',$companyId,$title,$location,$description,$jobId,$uid);
+        } else {
+            $status='open'; $workplace='unknown'; $engagement='permanent'; $term='unknown';
+            $stmt=$db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('iissssssss',$uid,$companyId,$title,$location,$status,$workplace,$engagement,$term,$sourceUrl,$description);
+        }
+        $stmt->execute();
+        if (!$existing) $jobId=(int)$stmt->insert_id;
+        importDraftContacts($db,$uid,$companyId,$jobId,$draft);
+        audit($db,$uid,$existing ? 'update' : 'create','job',$jobId,$existing,[
+            'source'=>'original_ad_import','company_id'=>$companyId,'title'=>$title,
+            'source_url'=>$sourceUrl,'original_url'=>$draft['original_url'] ?? $sourceUrl,
+            'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null,
+        ]);
+        $db->commit();
+        return ['job_id'=>$jobId,'company_id'=>$companyId,'created'=>!$existing];
+    } catch (Throwable $error) {
+        $db->rollback();
+        throw $error;
+    }
 }
 
 function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool
@@ -10116,38 +10169,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'prepare_ai_job_import') {
         $url = trim((string) ($_POST['job_url'] ?? ''));
         if (!filter_var($url, FILTER_VALIDATE_URL) || !str_starts_with($url, 'https://')) { http_response_code(422); exit('Invalid URL'); }
-        $importTransaction = false;
         try {
-            $draft = importFromUrl($url);
-            $title = trim((string) ($draft['title'] ?? ''));
-            $companyName = trim((string) ($draft['company'] ?? ''));
-            if ($title === '' || $companyName === '') throw new RuntimeException('Die Originalausschreibung enthält keinen vollständigen Jobtitel und keine Firma.');
-            $uid = userId(); $sourceUrl = (string) ($draft['source_url'] ?? $url);
-            $db->begin_transaction(); $importTransaction = true;
-            $companyId = importUpsertCompany($db, $uid, $companyName, (array)($draft['company_details'] ?? []));
-            $existing = dbOne($db, 'SELECT id, company_id, title, location_text, description FROM jobs WHERE owner_user_id=? AND source_url=? AND deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
-            $location = trim((string) ($draft['location'] ?? '')); $description = trim((string) ($draft['description'] ?? ''));
-            if ($existing) {
-                // A deliberate repeat import repairs these source-derived fields only.
-                // Preserve notes, status, applications and user documents.
-                $jobId = (int)$existing['id'];
-                $stmt = $db->prepare('UPDATE jobs SET company_id=?, title=?, location_text=?, description=? WHERE id=? AND owner_user_id=? AND deleted_at IS NULL');
-                $stmt->bind_param('isssii', $companyId, $title, $location, $description, $jobId, $uid); $stmt->execute();
-                importDraftContacts($db, $uid, $companyId, $jobId, $draft);
-                audit($db, $uid, 'update', 'job', $jobId, $existing, ['company_id'=>$companyId,'title'=>$title,'location_text'=>$location,'description'=>$description,'source'=>'original_ad_reimport','original_url'=>$draft['original_url'] ?? $sourceUrl,'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null]);
-                $db->commit(); $importTransaction = false;
-                redirect('/?page=jobs&edit=' . $jobId . '#new');
-            }
-            $status='open'; $workplace='unknown'; $engagement='permanent'; $term='unknown';
-            $stmt=$db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description); $stmt->execute(); $jobId=(int)$stmt->insert_id;
-            importDraftContacts($db, $uid, $companyId, $jobId, $draft);
-            // No renderer is available: a reformatted field table is not an original ad.
-            // Existing attachments are preserved; genuine PDF/image uploads still work.
-            audit($db, $uid, 'create', 'job', $jobId, null, ['source'=>'ai_job_search_import','company_id'=>$companyId,'source_url'=>$sourceUrl,'original_url'=>$draft['original_url'] ?? $sourceUrl,'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null]);
-            $db->commit(); $importTransaction = false;
-            redirect('/?page=jobs&edit=' . $jobId . '#new');
-        } catch (Throwable $exception) { if ($importTransaction) $db->rollback(); error_log('AI job import failed: '.$exception->getMessage()); flash('Die Ausschreibung konnte nicht vollständig importiert werden: '.$exception->getMessage(), 'danger'); redirect('/?page=job_platform_search'); }
+            $saved = importStoreDraft($db, userId(), importFromUrl($url));
+        } catch (Throwable $exception) {
+            error_log('AI job import failed: '.$exception->getMessage());
+            flash('Die Ausschreibung konnte nicht vollständig importiert werden: '.$exception->getMessage(), 'danger');
+            redirect('/?page=job_platform_search');
+        }
+        unset($_SESSION['import_draft']);
+        redirect('/?page=jobs&edit=' . $saved['job_id'] . '#new');
     }
 
     if ($action === 'exclude_ai_job') {
@@ -10181,54 +10211,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         $importUrls = array_values($importUrls);
-        if (count($importUrls) > 1) {
-            $created = 0; $skipped = 0; $failed = 0; $uid = userId(); $failReasons = []; $lastImportedJobId = 0;
+        // A single URL must persist the same company/contact data as a URL batch.
+        unset($_SESSION['import_draft']);
+        if (count($importUrls) > 1 || (count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls))) {
+            $created = 0; $updated = 0; $failed = 0; $uid = userId(); $failReasons = []; $lastImportedJobId = 0;
             foreach ($importUrls as $sourceUrl) {
                 try {
-                    $draft = importFromUrl($sourceUrl);
-                    $sourceUrl = (string) ($draft['source_url'] ?? $sourceUrl);
-                    $title = trim((string) ($draft['title'] ?? ''));
-                    if ($title === '') {
-                        $failed++;
-                        if (count($failReasons) < 3) {
-                            $failReasons[] = (parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': kein Titel erkannt';
-                        }
-                        continue;
-                    }
-                    $companyName = trim((string) ($draft['company'] ?? '')) ?: tr('jobs.new_company_from_import');
-                    $companyId = importUpsertCompany($db, $uid, $companyName, (array)($draft['company_details'] ?? []));
-                    $existing = dbOne($db, 'SELECT j.id,j.title,c.name AS company_name FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.source_url=? AND j.deleted_at IS NULL LIMIT 1', 'is', [$uid, $sourceUrl]);
-                    if ($existing) {
-                        importRepairExistingJob($db, $uid, $existing, $draft, $companyId);
-                        $lastImportedJobId = (int) $existing['id'];
-                        importDraftContacts($db, $uid, $companyId, $lastImportedJobId, $draft);
-                        $skipped++;
-                        continue;
-                    }
-                    $location = trim((string) ($draft['location'] ?? $draft['location_text'] ?? ''));
-                    $description = trim((string) ($draft['description'] ?? $sourceUrl));
-                    $status = 'open'; $workplace = 'unknown'; $engagement = 'permanent'; $term = 'unknown';
-                    $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, status, workplace_type, engagement_type, contract_term, source_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-                    $stmt->bind_param('iissssssss', $uid, $companyId, $title, $location, $status, $workplace, $engagement, $term, $sourceUrl, $description);
-                    $stmt->execute();
-                    $jobId = (int) $stmt->insert_id;
-                    importDraftContacts($db, $uid, $companyId, $jobId, $draft);
-                    audit($db, $uid, 'create', 'job', $jobId, null, ['title' => $title, 'company_id' => $companyId, 'source_url' => $sourceUrl]);
-                    $lastImportedJobId = $jobId;
-                    $created++;
+                    $saved = importStoreDraft($db, $uid, importFromUrl($sourceUrl));
+                    $lastImportedJobId = $saved['job_id'];
+                    if ($saved['created']) $created++; else $updated++;
                 } catch (Throwable $exception) {
                     $failed++;
-                    if (count($failReasons) < 3) {
-                        $failReasons[] = (parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': ' . $exception->getMessage();
-                    }
+                    if (count($failReasons) < 3) $failReasons[] = (parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': ' . $exception->getMessage();
                 }
             }
-            $message = $created . ' Jobs importiert, ' . $skipped . ' Dubletten übersprungen, ' . $failed . ' fehlgeschlagen.';
-            if ($failReasons) {
-                $message .= ' Fehlerbeispiele: ' . implode(' | ', $failReasons);
-            }
-            flash($message);
-            redirect($lastImportedJobId > 0 ? '/?page=jobs&edit=' . $lastImportedJobId . '#new' : '/?page=jobs');
+            $message = $created . ' Jobs importiert, ' . $updated . ' aktualisiert, ' . $failed . ' fehlgeschlagen.';
+            if ($failReasons) $message .= ' Fehlerbeispiele: ' . implode(' | ', $failReasons);
+            flash($message, $failed > 0 ? 'warning' : 'success');
+            redirect($lastImportedJobId > 0 ? '/?page=jobs&edit=' . $lastImportedJobId . '#new' : '/?page=job_platform_search');
         }
         try {
             $_SESSION['import_draft'] = count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)
@@ -11625,7 +11625,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.5';
+$codeVersion = '2.0.6';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

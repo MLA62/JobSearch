@@ -35,6 +35,16 @@ git diff --check
 
 ## Browser-Fixtures
 
+### Importspeicherung 2.0.6
+
+`job_import_storage_test.php` führt den tatsächlichen gemeinsamen importStoreDraft-Writer
+gegen eine simulierte DB aus: Firmenadresse, zwei Kontakte, Wiederimport ohne Dubletten,
+Ergänzung leerer Kontaktfelder, Erhalt bestehender Angaben/Notizen/Status, korrigierte
+Arbeitgeberzuordnung, Eigentümertrennung und Rollback bei Kontaktfehler. 254 Prüfungen.
+`job_drilldown_test.php` prüft zusätzlich die Verdrahtung beider POST-Einstiege mit diesem
+Writer und das Entfernen veralteter Vorschauen. Das ersetzt keinen angemeldeten Import
+mit echter MariaDB; insbesondere der Produktionsabruf der zuletzt betroffenen URL bleibt offen.
+
 ### Originalimport 2.0.5
 
 - `php -n tests/job_drilldown_test.php`: Original-Link, tatsächlicher Arbeitgeber, mehrere Kontakte, Firmenfooter, Quellenkette, fehlende und falsche Originalseite. Netzwerk mit synthetischen HTML-Seiten simuliert; Transaktionsgrenzen und Wegfall des Tabellen-PDFs als Quellvertrag geprüft.

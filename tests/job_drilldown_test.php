@@ -53,7 +53,11 @@ verify(!empty($partial['import_warnings']) && empty($partial['company_details'][
 $handler=substr($source,strpos($source,"if (\$action === 'prepare_ai_job_import')"));
 $handler=substr($handler,0,strpos($handler,"if (\$action === 'exclude_ai_job')"));
 verify(!str_contains($handler,'pdfTableBytes') && !str_contains($handler,'file_put_contents'),'Import never creates a fake original PDF or attachment');
-verify(str_contains($handler,'begin_transaction()') && substr_count($handler,'commit()')===2 && str_contains($handler,'rollback()'),'Both AI import storage paths have explicit transaction boundaries (source contract)');
+verify(str_contains($handler,'importStoreDraft($db, userId(), importFromUrl($url))'),'AI import uses tested shared writer');
+$quick=substr($source,strpos($source,"if (\$action === 'preview_import')"));
+$quick=substr($quick,0,strpos($quick,"if (\$action === 'save_profile_link')"));
+verify(str_contains($quick,'count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)') && str_contains($quick,'importStoreDraft($db, $uid, importFromUrl($sourceUrl))'),'Single-URL and batch quick imports use the same tested writer');
+verify(str_contains($handler,"unset(\$_SESSION['import_draft'])") && str_contains($quick,"unset(\$_SESSION['import_draft'])"),'Stale preview cannot hide the newly imported job or its contacts');
 
 if (in_array('--live-fixture',$argv,true)) {
     // Input is fetched read-only by the caller; no real ad or person is stored in Git.
