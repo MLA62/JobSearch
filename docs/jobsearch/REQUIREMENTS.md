@@ -1,6 +1,6 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.0.15.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.0.
 Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
 ## Produkt und Grenzen
@@ -30,6 +30,14 @@ Vor Ort, Hybrid und Remote sind unterscheidbar. Nur vor Ort darf nicht als Remot
 Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
+
+Ergänzung 2.1.0: Beim Vorbereiten einer Bewerbung werden Betreff, Begleit-E-Mail und
+Motivationsschreiben in der Benutzersprache aus den verfügbaren Profil-, Stellen-, Firmen- und
+Kontaktdaten sowie dem lesbaren Inhalt der aktuellen Lebenslaufversion vorausgefüllt. Fehlende Fakten werden nicht erfunden. Alle drei Texte bleiben frei
+bearbeitbar. Ein zweizeiliges KI-Instruktionsfeld kann eine gemeinsame Überarbeitung auslösen;
+vorhandene Benutzertexte werden nur durch diesen ausdrücklichen Auftrag ersetzt. Die Aktion
+versendet keine E-Mail und reicht keine Bewerbung ein. Bei vorübergehend fehlender KI stehen
+bearbeitbare Grundentwürfe bereit.
 
 Ergänzung 2.0.15: Die Ergebnis-Zusammenfassung nutzt höchstens zwölf sichtbare Zeilen und
 bis zu 2000 Zeichen in der Benutzersprache. Für eine höhere Ausbeute soll bereits die Discovery

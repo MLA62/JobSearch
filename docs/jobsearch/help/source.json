@@ -1,5 +1,5 @@
 {
-  "version": "2.0.15",
+  "version": "2.1.0",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -652,9 +652,10 @@
       "text": {
         "de-CH": {
           "title": "Bewerbungsworkflow",
-          "summary": "Entwurf → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
+          "summary": "Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
           "steps": [
-            "Bereite die Bewerbung vor und prüfe Empfänger, Inhalte und zugeordnete Dokumente.",
+            "Beim Vorbereiten füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.",
+            "Passe die drei Texte direkt an oder beschreibe im zweizeiligen KI-Instruktionsfeld die gewünschte gemeinsame Überarbeitung; die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
             "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
           ],
@@ -664,9 +665,10 @@
         },
         "fr-CH": {
           "title": "Parcours de candidature",
-          "summary": "Brouillon → Prête → Envoyée → Entretiens → Acceptation ou refus.",
+          "summary": "Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens → Acceptation ou refus.",
           "steps": [
-            "Prépare la candidature et vérifie destinataire, contenu et documents associés.",
+            "Lors de la préparation, l’application préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.",
+            "Modifie directement les trois textes ou décris la révision commune souhaitée dans le champ d’instruction IA sur deux lignes; rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
             "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
           ],
@@ -676,9 +678,10 @@
         },
         "en-GB": {
           "title": "Application workflow",
-          "summary": "Draft → Ready → Sent → Interviews → Accepted or rejected.",
+          "summary": "Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or rejected.",
           "steps": [
-            "Prepare the application and check its recipient, content and assigned documents.",
+            "When preparing an application, the app prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.",
+            "Edit the three texts directly or describe the requested joint revision in the two-line AI instruction field; nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
             "Record each interview as a separate appointment and document acceptance or rejection."
           ],
@@ -688,9 +691,10 @@
         },
         "pt-BR": {
           "title": "Fluxo de candidatura",
-          "summary": "Rascunho → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
+          "summary": "Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
           "steps": [
-            "Prepare a candidatura e confira destinatário, conteúdo e documentos associados.",
+            "Ao preparar a candidatura, o aplicativo preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.",
+            "Edite os três textos diretamente ou descreva a revisão conjunta no campo de instrução de IA com duas linhas; nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
             "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
           ],
@@ -700,9 +704,10 @@
         },
         "es-MX": {
           "title": "Proceso de solicitud",
-          "summary": "Borrador → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
+          "summary": "Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
           "steps": [
-            "Prepara la solicitud y revisa destinatario, contenido y documentos asociados.",
+            "Al preparar la solicitud, la aplicación completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.",
+            "Edita directamente los tres textos o describe la revisión conjunta en el campo de instrucción de IA de dos líneas; en esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
             "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
           ],

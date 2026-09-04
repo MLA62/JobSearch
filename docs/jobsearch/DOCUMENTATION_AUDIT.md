@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-03. Ausgangspunkt: verifizierter Releasecode 541e02d / 1.18.0.
-Stand 1.18.1 ist deployed. Server-Hash und angemeldete Hilfepruefung in allen fuenf Sprachen sind bestaetigt.
+Stand: 2026-09-04. Version 2.1.0 ist dokumentiert und für die TOTP-Freigabe vorbereitet.
+Bestätigter produktiver Stand bleibt 2.0.15; frühere Nachweise sind historische Belege.
 
 ## Umfang
 

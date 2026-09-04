@@ -1,6 +1,15 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 03.09.2026. Aktuelles Verhalten ab 1.18.0; Hilfe-Dokumentation 1.18.1.
+Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.0.
+
+## Textvorbereitung mit KI
+
+- Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
+- Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
+- Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
+- Eine zweizeilige, nicht gespeicherte KI-Instruktion kann alle drei aktuellen Texte gemeinsam überarbeiten.
+- Die KI-Aktion selbst ändert weder Versandstatus noch Versandzeit und versendet keine Nachricht.
+- Bei einem API-Ausfall werden bearbeitbare Grundentwürfe eingesetzt; fehlende Fakten werden nicht erfunden.
 
 ## Statusvertrag
 

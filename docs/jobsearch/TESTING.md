@@ -1,9 +1,15 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-03. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-04. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
+
+Ergänzung 2.1.0: `application_ai_texts_test.php` prüft Versionsstand, strukturierte
+Responses-Ausgabe, deaktivierte API-Speicherung, benutzergebundene Sicherheitskennung,
+Initialisierung mit Ausfallentwurf, drei gemeinsam aktualisierte Felder und das zweizeilige,
+begrenzte Instruktionsfeld. Der Test verwendet keine echten Bewerbungsdaten und ruft die API nicht
+auf. Syntax, kompletter PHP-Satz, Hilfe in fünf Sprachen und Dokumentationsgeneratoren bleiben Pflicht.
 
 Ergänzung 2.0.15: `job_source_limit_test.php` startet einen Vertiefungsstand mit acht
 verbleibenden Prüfplätzen. Eine Quelle ohne neue eindeutige URL scheidet aus; die andere erhält

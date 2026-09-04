@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.0.15 mit bis zu zwölfzeiliger Zusammenfassung und ergiebigerer Frische-/Restbudgetsuche ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt.
-Aktueller Nachweis: [Release 2.0.15](docs/jobsearch/RELEASE-2.0.15.md). Vorheriger bestätigter Live-Stand: [2.0.14](docs/jobsearch/RELEASE-2.0.14.md).
+Stand: 04.09.2026. Version 2.1.0 ergänzt KI-gestützte, bearbeitbare Entwürfe für Betreff, Begleit-E-Mail und Motivationsschreiben. Das Deployment folgt nach externer TOTP-Freigabe.
+Aktueller Nachweis: [Release 2.1.0](docs/jobsearch/RELEASE-2.1.0.md). Vorheriger bestätigter Live-Stand: [2.0.15](docs/jobsearch/RELEASE-2.0.15.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
