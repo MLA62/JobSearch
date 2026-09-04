@@ -21,6 +21,11 @@ Diagnose-/Datenschutztests, PHP-Regressionstests und Chromium-Download-/Dialogte
 
 ## Deployment und Rückweg
 
+Upload vorbereitet aus Quell-Commit 9bd0764042c610f8d03aa65592971c2899f8ed5f.
+Lokal und GitHub vor Vorschlag synchron, Arbeitsstand sauber.
+987248 Bytes, SHA-256 2aabd0ea529d0e978f5748ebccc8f552cf46a2e5ae24bf420c6eb34ad358c785.
+Remote-Vergleich bestätigt unveränderten vorherigen Stand 2.0.7. Ausführung wartet auf TOTP-Freigabe.
+
 Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe nach externer TOTP-Freigabe.
 Vorheriger bestätigter Stand 2.0.7: Quell-Commit 7d37e9a11bebcff060a5af511fb19151b8e53d93,
 971638 Bytes, Modus 0644, SHA-256 7c5c1cbff4f38538989ad6296a97553e15d1305defb7f779304765a6c31cfe86.
