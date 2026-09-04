@@ -4,7 +4,10 @@ Stand: 2026-09-04. Version 2.0.5 deployed; Serverdatei und öffentliche Versions
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Speicherkorrekturen 2.0.6 (noch nicht deployed)
+## Speicherkorrekturen 2.0.6 (deployed)
+
+Deployment vom 04.09.2026: Serverdatei und öffentliche Versionsanzeige bestätigt;
+angemeldete fachliche Abnahme bleibt offen. Der nachfolgende 2.0.5-Abschnitt ist historisch.
 
 Die Diagnose fand drei konkrete Lücken im Stand 2.0.5: Eine einzelne Schnellimport-URL
 landete im Formularentwurf; save_job übernahm daraus weder company_details noch contacts.

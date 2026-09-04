@@ -1,6 +1,6 @@
 # Version 2.0.6 – Vollständige Speicherung beim URL-Import
 
-Stand 2026-09-04. In Vorbereitung, noch nicht deployed.
+Stand 2026-09-04. Nach erfolgreicher externer TOTP-Freigabe deployed.
 
 ## Ursache und Änderungen
 
@@ -28,7 +28,10 @@ Angemeldete Funktionsabnahme sowie ein echter MariaDB-Rollbacktest bleiben separ
 Finaler vorgeschlagener Quell-Commit: e81199c9d709e36c26d4099855da0809ae246679.
 Dateigröße 935715 Bytes, SHA-256 721652d20b6dc45fe781e1916cd97ced6e5f2da330cd63400561d92cc82da41f.
 Dieser Vorschlag enthält zusätzlich den Dialog und die Sortierung; die vorherige, nicht ausgeführte Vorbereitung ist überholt.
-Freigabe ausstehend. Lokal und GitHub waren vor dem Vorschlag identisch, Arbeitsstand sauber.
+Freigabe ausgeführt am 2026-09-04T15:14:01+00:00. Lokal und GitHub waren vor dem Vorschlag identisch, Arbeitsstand sauber.
+Remote-Datei nach dem Upload: 935715 Bytes, Modus 0644; SHA-256 stimmt mit dem oben genannten Quellinhalt überein.
+Öffentliche Login-Seite: HTTP 200, Version 2.0.6 und Loginformular vorhanden; keine sichtbare PHP-Fatal-/Parse-Fehlermeldung.
+Keine produktiven Testimports oder Bestandskorrekturen als Deploymentprobe ausgeführt. Angemeldete Abnahme bleibt separat offen.
 
 Ziel ausschließlich public_html/jobs.jema.business/index.php inklusive generierter Hilfe in fünf Sprachen.
 Vorheriger Stand 2.0.5: Quell-Commit c34d46994107d704f4674cc04d20a96a361c17d5,
