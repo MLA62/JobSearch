@@ -1,5 +1,5 @@
 {
-  "version": "2.0.2",
+  "version": "2.0.3",
   "reviewed": "2026-09-03",
   "locales": [
     "de-CH",
@@ -325,7 +325,7 @@
         "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile.",
         "Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.",
         "Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Die ausgewählten Portale werden abgearbeitet, bis die gewünschte Anzahl erreicht ist oder alle Quellen ausgeschöpft sind.",
-        "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil; übernimm eine Stelle erst nach eigener Prüfung."
+        "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
           ],
           "tips": [
         "Die KI liefert Vorschläge. Sie überträgt keine Bewerbung und speichert keine Stelle ohne deinen Übernehmen-Schritt."
