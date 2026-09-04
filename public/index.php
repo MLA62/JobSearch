@@ -3398,21 +3398,29 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.0' =>
   array (
-    'de-CH' => 'Prüfe Suchbegriffe, Orte und Plattformen.',
-    'fr-CH' => 'Vérifie les mots-clés, lieux et plateformes.',
-    'en-GB' => 'Check keywords, locations and platforms.',
-    'pt-BR' => 'Confira palavras-chave, locais e plataformas.',
-    'es-MX' => 'Revisa palabras clave, lugares y plataformas.',
+    'de-CH' => 'Gib Suchbegriff, Suchort, gewünschte Trefferzahl und Plattformen direkt ein und wähle Suchkriterien speichern.',
+    'fr-CH' => 'Saisis directement le terme, le lieu, le nombre souhaité et les plateformes, puis enregistre les critères.',
+    'en-GB' => 'Enter the search term, location, desired number and platforms directly, then save the criteria.',
+    'pt-BR' => 'Informe diretamente o termo, o local, a quantidade desejada e as plataformas, depois salve os critérios.',
+    'es-MX' => 'Introduce directamente el término, la ubicación, la cantidad deseada y las plataformas, y guarda los criterios.',
   ),
   'help.v2.search.steps.1' =>
   array (
-    'de-CH' => 'Erzeuge den Rechercheprompt und führe die Recherche im externen Werkzeug aus.',
-    'fr-CH' => 'Génère le prompt puis effectue la recherche dans l’outil externe.',
-    'en-GB' => 'Generate the prompt and run the research in the external tool.',
-    'pt-BR' => 'Gere o prompt e faça a pesquisa na ferramenta externa.',
-    'es-MX' => 'Genera el prompt y realiza la búsqueda en la herramienta externa.',
+    'de-CH' => 'Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.',
+    'fr-CH' => 'Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.',
+    'en-GB' => 'Profile defaults deliberately replace all saved criteria with the current profile values.',
+    'pt-BR' => 'Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.',
+    'es-MX' => 'Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.',
   ),
   'help.v2.search.steps.2' =>
+  array (
+    'de-CH' => 'Optional schlägt die KI einen präziseren Suchbegriff und Suchort vor; überprüfe den Vorschlag vor der Suche.',
+    'fr-CH' => 'En option, l’IA propose un terme et un lieu plus précis ; vérifie la proposition avant la recherche.',
+    'en-GB' => 'Optionally, AI suggests a more precise term and location; review the suggestion before searching.',
+    'pt-BR' => 'Opcionalmente, a IA sugere um termo e local mais precisos; revise a sugestão antes de pesquisar.',
+    'es-MX' => 'De forma opcional, la IA sugiere un término y una ubicación más precisos; revisa la sugerencia antes de buscar.',
+  ),
+  'help.v2.search.steps.3' =>
   array (
     'de-CH' => 'Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport.',
     'fr-CH' => 'Colle les liens directs vérifiés, un par ligne, dans l’import rapide.',
@@ -3422,19 +3430,19 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.summary' =>
   array (
-    'de-CH' => 'Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.',
-    'fr-CH' => 'Le prompt de recherche utilise tes préférences et les plateformes choisies.',
-    'en-GB' => 'The research prompt uses your preferences and selected job platforms.',
-    'pt-BR' => 'O prompt de pesquisa usa suas preferências e plataformas selecionadas.',
-    'es-MX' => 'El prompt de investigación utiliza tus preferencias y plataformas elegidas.',
+    'de-CH' => 'Die Seite übernimmt zuerst Suchbegriff, Ort und Plattformen aus deinem Profil. Eigene Eingaben bleiben gespeichert, bis du die Standardwerte erneut lädst.',
+    'fr-CH' => 'La page reprend d’abord le terme, le lieu et les plateformes de ton profil. Tes propres saisies restent enregistrées jusqu’au rechargement des valeurs par défaut.',
+    'en-GB' => 'The page initially takes the search term, location and platforms from your profile. Your own entries stay saved until you load the defaults again.',
+    'pt-BR' => 'A página usa inicialmente o termo, o local e as plataformas do seu perfil. Suas próprias entradas permanecem salvas até que você recarregue os padrões.',
+    'es-MX' => 'La página usa primero el término, la ubicación y las plataformas de tu perfil. Tus propios datos permanecen guardados hasta que cargues de nuevo los valores predeterminados.',
   ),
   'help.v2.search.tips.0' =>
   array (
-    'de-CH' => 'Suchresultate sind Vorschläge. Die App garantiert weder Erreichbarkeit noch Aktualität externer Inserate.',
-    'fr-CH' => 'Les résultats sont des propositions. L’application ne garantit pas la disponibilité ni l’actualité des annonces externes.',
-    'en-GB' => 'Search results are suggestions. The app does not guarantee availability or freshness of external advertisements.',
-    'pt-BR' => 'Os resultados são sugestões. O aplicativo não garante a disponibilidade ou atualização dos anúncios externos.',
-    'es-MX' => 'Los resultados son sugerencias. La aplicación no garantiza la disponibilidad ni vigencia de anuncios externos.',
+    'de-CH' => 'Die KI überträgt nur Suchkriterien, keine Dokumente, Bewerbungen oder Stellenresultate. Suchresultate bleiben Vorschläge.',
+    'fr-CH' => 'L’IA ne transmet que les critères de recherche, jamais les documents, candidatures ou résultats. Les résultats restent des propositions.',
+    'en-GB' => 'AI sends only search criteria, never documents, applications or search results. Results remain suggestions.',
+    'pt-BR' => 'A IA envia apenas critérios de pesquisa, nunca documentos, candidaturas ou resultados. Os resultados continuam sendo sugestões.',
+    'es-MX' => 'La IA solo envía criterios de búsqueda, nunca documentos, candidaturas ni resultados. Los resultados siguen siendo sugerencias.',
   ),
   'help.v2.search.title' =>
   array (
@@ -3726,7 +3734,7 @@ function helpTopicDefinitions(): array
       0 => 'job_platform_search',
       1 => 'jobs#quick-import',
     ),
-    'step_count' => 3,
+    'step_count' => 4,
     'tip_count' => 1,
   ),
   5 =>
@@ -7880,12 +7888,20 @@ function jobPreferenceLocation(array $preference, array $currentUser): string
 
 function profileJobSearchCriteria(array $preference, array $currentUser, array $platformRows): array
 {
-    return [
+    return array_merge([
         'search_query' => jobPreferenceQuery($preference),
         'search_location' => jobPreferenceLocation($preference, $currentUser),
         'total_count' => 15,
         'platform_ids' => array_map(static fn(array $platform): int => (int) $platform['id'], $platformRows),
-    ];
+    ], [
+        'desired_roles' => (string) ($preference['desired_roles'] ?? ''), 'desired_locations' => (string) ($preference['desired_locations'] ?? ''),
+        'remote_preference' => (string) ($preference['remote_preference'] ?? 'any'), 'employment_types' => (string) ($preference['employment_types'] ?? ''),
+        'workload_min' => (string) ($preference['workload_min'] ?? ''), 'workload_max' => (string) ($preference['workload_max'] ?? ''),
+        'salary_min' => (string) ($preference['salary_min'] ?? ''), 'salary_period' => (string) ($preference['salary_period'] ?? 'year'),
+        'desired_level' => (string) ($preference['desired_level'] ?? ''), 'desired_benefits' => (string) ($preference['desired_benefits'] ?? ''),
+        'excluded_industries' => (string) ($preference['excluded_industries'] ?? ''), 'willing_to_relocate' => !empty($preference['willing_to_relocate']) ? '1' : '0',
+        'travel_percentage' => (string) ($preference['travel_percentage'] ?? ''), 'available_from' => (string) ($preference['available_from'] ?? ''), 'preference_notes' => (string) ($preference['notes'] ?? ''),
+    ]);
 }
 
 function savedJobSearchCriteria(mysqli $db, int $userId, array $preference, array $currentUser, array $platformRows): array
@@ -7896,23 +7912,25 @@ function savedJobSearchCriteria(mysqli $db, int $userId, array $preference, arra
         return $defaults;
     }
     $activePlatformIds = array_map(static fn(array $platform): int => (int) $platform['id'], $platformRows);
-    $platformIds = json_decode((string) $saved['platform_ids_json'], true);
+    $storedPayload = json_decode((string) $saved['platform_ids_json'], true);
+    $platformIds = is_array($storedPayload) && isset($storedPayload['platform_ids']) ? $storedPayload['platform_ids'] : $storedPayload;
     $platformIds = is_array($platformIds) ? array_values(array_intersect($activePlatformIds, array_unique(array_map('intval', $platformIds)))) : [];
-    return [
-        'search_query' => trim((string) $saved['search_query']),
-        'search_location' => trim((string) $saved['search_location']),
+    $criteria = is_array($storedPayload['criteria'] ?? null) ? $storedPayload['criteria'] : [];
+    return array_merge($defaults, [
+        'search_query' => trim((string) $saved['search_query']) ?: $defaults['search_query'],
+        'search_location' => trim((string) $saved['search_location']) ?: $defaults['search_location'],
         'total_count' => min(100, max(1, (int) $saved['total_count'])),
         'platform_ids' => $platformIds,
-    ];
+    ], array_intersect_key($criteria, $defaults));
 }
 
-function saveJobSearchCriteria(mysqli $db, int $userId, string $query, string $location, int $total, array $platformIds): void
+function saveJobSearchCriteria(mysqli $db, int $userId, string $query, string $location, int $total, array $platformIds, array $criteria = []): void
 {
     $query = substr(trim($query), 0, 1000);
     $location = substr(trim($location), 0, 500);
     $total = min(100, max(1, $total));
     $platformIds = array_values(array_unique(array_filter(array_map('intval', $platformIds), static fn(int $id): bool => $id > 0)));
-    $platformIdsJson = json_encode($platformIds, JSON_THROW_ON_ERROR);
+    $platformIdsJson = json_encode(['platform_ids' => $platformIds, 'criteria' => $criteria], JSON_THROW_ON_ERROR);
     $stmt = $db->prepare('INSERT INTO user_job_search_criteria (user_id, search_query, search_location, total_count, platform_ids_json) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE search_query=VALUES(search_query), search_location=VALUES(search_location), total_count=VALUES(total_count), platform_ids_json=VALUES(platform_ids_json), updated_at=NOW()');
     $stmt->bind_param('issis', $userId, $query, $location, $total, $platformIdsJson);
     $stmt->execute();
@@ -9578,7 +9596,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $location = trim((string) ($_POST['search_location'] ?? ''));
         $total = min(100, max(1, (int) ($_POST['total_count'] ?? 15)));
         $platformIds = array_values(array_filter(array_map('intval', (array) ($_POST['platform_ids'] ?? []))));
-        saveJobSearchCriteria($db, userId(), $query, $location, $total, $platformIds);
+        $currentCriteria = savedJobSearchCriteria($db, userId(), $preference, is_array($currentUser) ? $currentUser : [], []);
+        $criteria = array_intersect_key($currentCriteria, array_flip(['desired_roles','desired_locations','remote_preference','employment_types','workload_min','workload_max','salary_min','salary_period','desired_level','desired_benefits','excluded_industries','willing_to_relocate','travel_percentage','available_from','preference_notes']));
+        foreach (['desired_roles','desired_locations','remote_preference','workload_min','workload_max','salary_min','salary_period','desired_level','desired_benefits','excluded_industries','travel_percentage','available_from','preference_notes'] as $field) if (array_key_exists($field, $_POST)) $criteria[$field] = trim((string) $_POST[$field]);
+        if (array_key_exists('employment_types', $_POST)) $criteria['employment_types'] = implode(',', array_map('strval', (array) $_POST['employment_types']));
+        if (array_key_exists('willing_to_relocate', $_POST)) $criteria['willing_to_relocate'] = '1';
+        saveJobSearchCriteria($db, userId(), $query, $location, $total, $platformIds, $criteria);
         audit($db, userId(), 'update', 'job_search_criteria', userId(), null, ['source' => 'manual']);
         flash('Suchkriterien gespeichert.');
         redirect('/?page=job_platform_search');
@@ -11131,7 +11154,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.0';
+$codeVersion = '2.0.1';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -12408,45 +12431,17 @@ startUiTranslationBuffer($appLocale);
         seedJobPlatforms($db);
         $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
         // Der eigentliche Suchbegriff stammt ausschliesslich aus den gewünschten Rollen.
-        $profileRoleQuery = jobPreferenceQuery($preference);
-        $location = jobPreferenceLocation($preference, $currentUser);
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
         $searchCriteria = savedJobSearchCriteria($db, userId(), $preference, $currentUser, $platformRows);
         $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
         $aiNote = trim((string) ($_SESSION['job_search_ai_note'] ?? ''));
         unset($_SESSION['job_search_ai_note']);
-        $employmentLabels = ['full_time'=>tr('profile.employment.full_time'),'part_time'=>tr('profile.employment.part_time'),'temporary'=>tr('profile.employment.temporary'),'contract'=>tr('profile.employment.contract'),'internship'=>tr('profile.employment.internship'),'freelance'=>tr('profile.employment.freelance')];
-        $selectedEmployment = array_filter(explode(',', (string)($preference['employment_types'] ?? '')));
-        $languageSkills = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [userId()]);
-        $languageSkillText = implode(', ', array_filter(array_map(static fn(array $skill): string => trim((string)$skill['language_name'] . ' ' . (string)$skill['cefr_level']), $languageSkills)));
-        $profileLocationParts = array_filter([
-            trim((string)($currentUser['city'] ?? '')),
-            trim((string)($currentUser['region'] ?? '')),
-            trim((string)($currentUser['country_code'] ?? '')),
-        ]);
-        $promptFacts = array_values(array_filter([
-            trim((string)($preference['desired_roles'] ?? '')) !== '' ? tr('job_search.fact.roles') . ': ' . trim((string)$preference['desired_roles']) : '',
-            trim((string)($preference['desired_locations'] ?? '')) !== '' ? tr('job_search.fact.locations') . ': ' . trim((string)$preference['desired_locations']) : '',
-            $profileLocationParts ? tr('profile.city') . '/' . tr('profile.region') . '/' . tr('profile.country') . ': ' . implode(', ', $profileLocationParts) : '',
-            $languageSkillText !== '' ? tr('profile.language_skills_title') . ': ' . $languageSkillText : '',
-            ($preference['remote_preference'] ?? 'any') !== 'any' ? tr('jobs.workplace_type') . ': ' . (workplaceTypeOptions()[(string)$preference['remote_preference']] ?? (string)$preference['remote_preference']) : '',
-            $selectedEmployment ? tr('profile.employment_types') . ': ' . implode(', ', array_map(static fn(string $type): string => $employmentLabels[$type] ?? $type, $selectedEmployment)) : '',
-            ($preference['workload_min'] ?? '') !== '' || ($preference['workload_max'] ?? '') !== '' ? tr('profile.workload') . ': ' . trim((string)($preference['workload_min'] ?? '')) . '-' . trim((string)($preference['workload_max'] ?? '')) . '%' : '',
-            ($preference['salary_min'] ?? '') !== '' ? tr('profile.salary') . ': ' . number_format((float)$preference['salary_min'], 0, '.', "'") . ' ' . (string)($preference['salary_currency'] ?? 'CHF') . ' ' . (salaryPeriodOptions()[(string)($preference['salary_period'] ?? 'year')] ?? '') : '',
-            trim((string)($preference['desired_level'] ?? '')) !== '' ? tr('profile.desired_level') . ': ' . trim((string)$preference['desired_level']) : '',
-            trim((string)($preference['desired_benefits'] ?? '')) !== '' ? tr('profile.desired_benefits') . ': ' . trim((string)$preference['desired_benefits']) : '',
-            trim((string)($preference['excluded_industries'] ?? '')) !== '' ? tr('profile.exclusions') . ': ' . trim((string)$preference['excluded_industries']) : '',
-            !empty($preference['willing_to_relocate']) ? tr('profile.willing_to_relocate') : '',
-            ($preference['travel_percentage'] ?? '') !== '' ? tr('profile.travel_percentage') . ': ' . (int)$preference['travel_percentage'] . '%' : '',
-            trim((string)($preference['available_from'] ?? '')) !== '' ? tr('profile.available_from') . ': ' . trim((string)$preference['available_from']) : '',
-            trim((string)($preference['notes'] ?? '')) !== '' ? tr('profile.preference_notes') . ': ' . trim((string)$preference['notes']) : '',
-        ]));
+        $promptFacts = [];
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('job_search.section')) ?></p><h1><?= e(tr('job_search.title')) ?></h1></div><span><?= e(tr('job_search.active_portals', null, ['count' => (string) count($platformRows)])) ?></span></div>
         <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button type="submit" name="action" value="reset_platform_search_criteria"><?= e(tr('job_search.profile_defaults')) ?></button></form></div></div>
-            <?php if($profileRoleQuery === ''): ?><p class="alert warning"><?= e(tr('job_search.missing_query')) ?></p><?php else: ?><p class="meta-line"><?= e(tr('job_search.query_from_profile')) ?>: <strong><?= e($profileRoleQuery) ?></strong><?= $location !== '' ? ' · ' . e(tr('jobs.location')) . ': <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
-            <?php if($promptFacts): ?><ul class="profile-criteria"><?php foreach($promptFacts as $fact): ?><li><?= e($fact) ?></li><?php endforeach; ?></ul><?php endif; ?>
             <?php if($aiNote !== ''): ?><p class="alert success"><?= e($aiNote) ?></p><?php endif; ?>
+            <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchprofil</h3><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><input type="hidden" name="search_query" value="<?= e($searchCriteria['search_query']) ?>"><input type="hidden" name="search_location" value="<?= e($searchCriteria['search_location']) ?>"><input type="hidden" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"><?php foreach($searchCriteria['platform_ids'] as $platformId): ?><input type="hidden" name="platform_ids[]" value="<?= (int)$platformId ?>"><?php endforeach; ?><button type="submit" name="action" value="save_platform_search_criteria">Suchprofil speichern</button></form>
             <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Suchkriterien</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button type="submit" name="action" value="suggest_job_search_criteria"><?= e(tr('job_search.ai_suggest')) ?></button><button class="primary" type="submit" name="action" value="generate_platform_search" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></div><p class="meta-line"><strong><?= e(tr('job_search.ai_assist')) ?>:</strong> <?= e(tr('job_search.ai_hint')) ?></p><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div></form>
         </section>
         <section class="panel prompt-panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.chatgpt_section')) ?></p><h2><?= e(tr('job_search.prompt_title')) ?></h2></div><div class="actions copy-actions"><button type="button" data-copy-target="chatgpt-job-prompt"><?= e(tr('job_search.copy_prompt')) ?></button><a class="button" href="/?page=jobs#quick-import"><?= e(tr('job_search.to_quick_import')) ?></a></div></div><label><?= e(tr('job_search.prompt')) ?><textarea id="chatgpt-job-prompt" rows="15" readonly></textarea></label><p class="meta-line"><?= e(tr('job_search.copy_instruction')) ?></p></section>

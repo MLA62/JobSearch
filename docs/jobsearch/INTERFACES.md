@@ -7,6 +7,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 ## GET-Seiten und Exportendpunkte
 
 - `about`
+- `admin_ai`
 - `admin_job_platforms`
 - `admin_users`
 - `application_documents_temp`
@@ -92,6 +93,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `request_cleanup`
 - `request_password_reset`
 - `reset_password`
+- `reset_platform_search_criteria`
 - `revoke_admin_support`
 - `revoke_share`
 - `rotate_calendar_feed`
@@ -104,6 +106,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `save_job_platform`
 - `save_job_question`
 - `save_mail_activity`
+- `save_platform_search_criteria`
 - `save_profile`
 - `save_profile_link`
 - `save_report`
@@ -115,7 +118,9 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `start_application`
 - `stop_admin_support`
 - `submit_online_application`
+- `suggest_job_search_criteria`
 - `sync_google_calendar`
+- `test_openai_connection`
 - `test_smtp_settings`
 - `update_calendar_event`
 - `update_contact_log`
@@ -129,7 +134,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 
 Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergaenzt werden. Werte sind bewusst nicht enthalten.
 
-`action`, `address`, `answer_text`, `application_id`, `application_url`, `applied_at`, `available_from`, `base_entity`, `base_url`, `channel`, `city`, `company_id`, `company_ids[]`, `company_notes`, `company_phone`, `company_region_key`, `confirm_duplicate`, `contact_company_id`, `contact_email`, `contact_id`, `contact_notes`, `contract_term`, `cover_letter_text`, `csrf`, `cutoff_date`, `date`, `department`, `description`, `desired_benefits`, `desired_level`, `desired_locations`, `desired_roles`, `direction`, `display_type`, `document_description`, `document_id`, `document_language`, `document_return`, `document_scope`, `document_title`, `document_type_id`, `download_policy`, `email`, `email_body`, `email_subject`, `employment_types[]`, `ends_at`, `engagement_type`, `event_id`, `event_location`, `event_notes`, `event_request_id`, `event_status`, `event_title`, `event_type`, `excluded_industries`, `expires_at`, `facebook_url`, `first_name`, `fixed_term_end`, `fixed_term_start`, `from_email`, `from_name`, `google_calendar_id`, `id`, `imap_encryption`, `imap_host`, `imap_port`, `imap_sent_folder`, `import_payload`, `intermediary_company_id`, `is_active`, `is_admin`, `is_intermediary`, `job_id`, `job_ids[]`, `job_notes`, `job_room_interview`, `job_room_registration`, `job_room_result`, `language_codes[]`, `language_levels[]`, `last_name`, `link_id`, `link_name`, `link_url`, `linkedin_url`, `location_text`, `log_body`, `log_channel`, `log_id`, `log_status`, `mail_application_id`, `mail_application_status`, `mail_body`, `mail_channel`, `mail_company_id`, `mail_contact_id`, `mail_direction`, `mail_footer`, `mail_occurred_at`, `mail_subject`, `mobile`, `month`, `name`, `new_company_name`, `new_password`, `new_password_confirm`, `notes`, `occurred_at`, `online_notes`, `other_profile_url`, `outcome`, `page`, `password`, `password_confirm`, `permission`, `phone`, `platform_id`, `platform_ids[]`, `platform_name`, `platform_notes`, `portal_account`, `position`, `postal_code`, `preference_notes`, `preferred_language`, `preview_hash`, `primary_contact_id`, `purpose`, `question_id`, `question_text`, `recipient_email`, `reference_number`, `region_key`, `remote_preference`, `remove_language_indexes[]`, `replace_document_id`, `report_columns[]`, `report_description`, `report_dir`, `report_id`, `report_name`, `report_q`, `report_sort`, `report_status`, `return_to`, `salary_min`, `salary_period`, `save_sent_copy`, `search_query`, `search_url_template`, `set_primary`, `sf_clear_filter`, `sf_context`, `sf_field`, `sf_filter`, `sf_filter_multi[]`, `sf_reset`, `sf_sort`, `share_id`, `share_target`, `smtp_encryption`, `smtp_host`, `smtp_password`, `smtp_port`, `smtp_username`, `sort_order`, `source_url`, `starts_at`, `status`, `status_comment`, `subject`, `target_language`, `timezone`, `title`, `token`, `total_count`, `totp_code`, `translation_body`, `translation_target`, `translation_title`, `travel_percentage`, `user_document_id`, `user_document_ids[]`, `user_id`, `valid_from`, `valid_until`, `view`, `viewport`, `watermark_enabled`, `website`, `willing_to_relocate`, `workload_max`, `workload_min`, `workplace_type`, `x_url`
+`action`, `address`, `answer_text`, `application_id`, `application_url`, `applied_at`, `available_from`, `base_entity`, `base_url`, `channel`, `city`, `company_id`, `company_ids[]`, `company_notes`, `company_phone`, `company_region_key`, `confirm_duplicate`, `contact_company_id`, `contact_email`, `contact_id`, `contact_notes`, `contract_term`, `cover_letter_text`, `csrf`, `cutoff_date`, `date`, `department`, `description`, `desired_benefits`, `desired_level`, `desired_locations`, `desired_roles`, `direction`, `display_type`, `document_description`, `document_id`, `document_language`, `document_return`, `document_scope`, `document_title`, `document_type_id`, `download_policy`, `email`, `email_body`, `email_subject`, `employment_types[]`, `ends_at`, `engagement_type`, `event_id`, `event_location`, `event_notes`, `event_request_id`, `event_status`, `event_title`, `event_type`, `excluded_industries`, `expires_at`, `facebook_url`, `first_name`, `fixed_term_end`, `fixed_term_start`, `from_email`, `from_name`, `google_calendar_id`, `id`, `imap_encryption`, `imap_host`, `imap_port`, `imap_sent_folder`, `import_payload`, `intermediary_company_id`, `is_active`, `is_admin`, `is_intermediary`, `job_id`, `job_ids[]`, `job_notes`, `job_room_interview`, `job_room_registration`, `job_room_result`, `language_codes[]`, `language_levels[]`, `last_name`, `link_id`, `link_name`, `link_url`, `linkedin_url`, `location_text`, `log_body`, `log_channel`, `log_id`, `log_status`, `mail_application_id`, `mail_application_status`, `mail_body`, `mail_channel`, `mail_company_id`, `mail_contact_id`, `mail_direction`, `mail_footer`, `mail_occurred_at`, `mail_subject`, `mobile`, `month`, `name`, `new_company_name`, `new_password`, `new_password_confirm`, `notes`, `occurred_at`, `online_notes`, `other_profile_url`, `outcome`, `page`, `password`, `password_confirm`, `permission`, `phone`, `platform_id`, `platform_ids[]`, `platform_name`, `platform_notes`, `portal_account`, `position`, `postal_code`, `preference_notes`, `preferred_language`, `preview_hash`, `primary_contact_id`, `purpose`, `question_id`, `question_text`, `recipient_email`, `reference_number`, `region_key`, `remote_preference`, `remove_language_indexes[]`, `replace_document_id`, `report_columns[]`, `report_description`, `report_dir`, `report_id`, `report_name`, `report_q`, `report_sort`, `report_status`, `return_to`, `salary_min`, `salary_period`, `save_sent_copy`, `search_location`, `search_query`, `search_url_template`, `set_primary`, `sf_clear_filter`, `sf_context`, `sf_field`, `sf_filter`, `sf_filter_multi[]`, `sf_reset`, `sf_sort`, `share_id`, `share_target`, `smtp_encryption`, `smtp_host`, `smtp_password`, `smtp_port`, `smtp_username`, `sort_order`, `source_url`, `starts_at`, `status`, `status_comment`, `subject`, `target_language`, `timezone`, `title`, `token`, `total_count`, `totp_code`, `translation_body`, `translation_target`, `translation_title`, `travel_percentage`, `user_document_id`, `user_document_ids[]`, `user_id`, `valid_from`, `valid_until`, `view`, `viewport`, `watermark_enabled`, `website`, `willing_to_relocate`, `workload_max`, `workload_min`, `workplace_type`, `x_url`
 
 ## Funktionssignaturen
 
@@ -199,6 +204,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function flash(string $message, string $type = 'success'): void`
 - `function outboundEmailEnabled(array $config): bool`
 - `function secretKey(array $config): string`
+- `function openAiConnectionCheck(array $config, int $userId): array`
 - `function encryptSecret(array $config, string $plain): ?string`
 - `function decryptSecret(array $config, ?string $stored): string`
 - `function appUrl(array $config): string`
@@ -397,6 +403,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function seedJobPlatforms(mysqli $db): void`
 - `function jobPreferenceQuery(array $preference): string`
 - `function jobPreferenceLocation(array $preference, array $currentUser): string`
+- `function profileJobSearchCriteria(array $preference, array $currentUser, array $platformRows): array`
+- `function savedJobSearchCriteria(mysqli $db, int $userId, array $preference, array $currentUser, array $platformRows): array`
+- `function saveJobSearchCriteria(mysqli $db, int $userId, string $query, string $location, int $total, array $platformIds, array $criteria = []): void`
+- `function openAiJobSearchSuggestion(array $config, int $userId, string $query, string $location, array $profileContext): array`
 - `function platformSearchUrl(array $platform, string $query, string $location, int $limit): string`
 - `function translationTargetOptions(mysqli $db, int $userId): array`
 - `function translationTargetExists(mysqli $db, int $userId, string $entityType, int $entityId): bool`

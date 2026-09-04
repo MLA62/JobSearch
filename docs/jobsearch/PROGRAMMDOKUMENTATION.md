@@ -1,7 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-03. Fachlicher Ausgangsstand: 1.18.0, Commit 541e02d.
-Die Hilfe-Erweiterung 1.18.1, Quellstand ab2bf9c, ist deployed; Server-Hash und angemeldete Hilfepruefung in fuenf Sprachen sind bestaetigt.
+Stand: 2026-09-04. Version 2.0.1 erweitert die Jobsuche um gespeicherte, pro Benutzer isolierte Kriterien und eine bewusst ausgelöste KI-Vorschlagsfunktion. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
@@ -37,7 +36,7 @@ Der Neuaufbau darf diese monolithische Struktur aufteilen, muss aber die fachlic
 | `dashboard` | Einstieg und Kennzahlen des effektiven Kontos; kein anderer Datenbestand als in den Fachlisten. |
 | `profile`, `profile_links` | Person, Adresse, Land/Region, Zeitzone, App-Sprache, Sprachen, gewuenschte Rollen/Orte, Arbeitsmodell, Stellenarten, Pensum von/bis, Lohn, Verfuegbarkeit, Benefits, Ausschluesse; SMTP, Signatur, Kalender und Supportfreigabe. Links separat pflegen. |
 | `documents` | Titel, Typ, tatsaechliche Dokumentsprache, Version und Datei. Upload, Metadaten, Download, Zuordnung und Loeschung sind eigene Aktionen. |
-| `job_platform_search` | Suchwuensche und Plattformen in einen Rechercheprompt uebernehmen. Externe Recherche, danach kontrollierter Import, kein autonomer Bewerbungsversand. |
+| `job_platform_search` | Suchbegriff, Suchort, Trefferzahl und Plattformen sind direkt editierbar und pro Benutzer speicherbar. Beim ersten Aufruf stammen sie aus dem Profil; nur „Standardwerte aus dem Profil“ überschreibt sie wieder. Die KI kann auf bewussten Klick einen begrenzten Suchvorschlag erstellen; sie erhält nur Suchkriterien. Externe Recherche und Import bleiben kontrolliert, kein autonomer Bewerbungsversand. |
 | `jobs` | Firma oder neue Firma, mehrzeiliger Titel, Ort, Arbeitsmodell, Pensum von/bis, Stellenart, Vertragsdauer/Datumsbereich, Lohn mit Periode, Status, Quell-URL, Inseratdatei, Beschreibung/Notizen und Kontakte. |
 | `companies` | Firma, Vermittlerrolle, Adresse, Region, Telefon, E-Mail, Website, zugehoerige Kontakte/Jobs/Bewerbungen. Adressen umbrechen. |
 | `contacts` | Person/Funktion, Firma, Kontaktwege/Sprache, Stellen-/Bewerbungszuordnung; Kontakt-Log und E-Mail-Protokollierung. Zaehlung bedeutet Aktivitaeten, nicht Bewerbungen. |

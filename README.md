@@ -18,7 +18,7 @@ Es gibt keinen separaten Aufgaben-/Pendenzenbereich.
 6. [Schnittstellen](docs/jobsearch/INTERFACES.md): Seiten, POST-Aktionen, Formulare und Funktionen.
 7. [Sprachkonzept](docs/jobsearch/DB_I18N_CONCEPT.md): Laufzeitauflosung und Hilfekatalog.
 8. [Deployment](docs/jobsearch/DEPLOYMENT.md), [Tests](docs/jobsearch/TESTING.md) und [Audit](docs/jobsearch/DOCUMENTATION_AUDIT.md).
-9. [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md), [Release 1.18.1](docs/jobsearch/releases/1.18.1.md).
+9. [Produktentscheidungen](docs/jobsearch/PRODUCT_DECISIONS.md), [Release 2.0.1](docs/jobsearch/releases/2.0.1.md).
 
 [Deutsche Hilfe](docs/jobsearch/help/de-CH.md), [fr-CH](docs/jobsearch/help/fr-CH.md),
 [en-GB](docs/jobsearch/help/en-GB.md), [pt-BR](docs/jobsearch/help/pt-BR.md),

@@ -1,5 +1,5 @@
 {
-  "version": "1.18.1",
+  "version": "2.0.1",
   "reviewed": "2026-09-03",
   "locales": [
     "de-CH",
@@ -320,62 +320,67 @@
       "text": {
         "de-CH": {
           "title": "Stellen suchen",
-          "summary": "Der Rechercheprompt verwendet deine Suchwünsche und ausgewählten Jobplattformen.",
+      "summary": "Die Seite übernimmt zuerst Suchbegriff, Ort und Plattformen aus deinem Profil. Eigene Eingaben bleiben gespeichert, bis du die Standardwerte erneut lädst.",
           "steps": [
-            "Prüfe Suchbegriffe, Orte und Plattformen.",
-            "Erzeuge den Rechercheprompt und führe die Recherche im externen Werkzeug aus.",
+        "Gib Suchbegriff, Suchort, gewünschte Trefferzahl und Plattformen direkt ein und wähle Suchkriterien speichern.",
+        "Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.",
+        "Optional schlägt die KI einen präziseren Suchbegriff und Suchort vor; überprüfe den Vorschlag vor der Suche.",
             "Übernimm geprüfte direkte Inserat-URLs, eine pro Zeile, in den Schnellimport."
           ],
           "tips": [
-            "Suchresultate sind Vorschläge. Die App garantiert weder Erreichbarkeit noch Aktualität externer Inserate."
+        "Die KI überträgt nur Suchkriterien, keine Dokumente, Bewerbungen oder Stellenresultate. Suchresultate bleiben Vorschläge."
           ]
         },
         "fr-CH": {
           "title": "Rechercher des offres",
-          "summary": "Le prompt de recherche utilise tes préférences et les plateformes choisies.",
+      "summary": "La page reprend d’abord le terme, le lieu et les plateformes de ton profil. Tes propres saisies restent enregistrées jusqu’au rechargement des valeurs par défaut.",
           "steps": [
-            "Vérifie les mots-clés, lieux et plateformes.",
-            "Génère le prompt puis effectue la recherche dans l’outil externe.",
+        "Saisis directement le terme, le lieu, le nombre souhaité et les plateformes, puis enregistre les critères.",
+        "Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.",
+        "En option, l’IA propose un terme et un lieu plus précis ; vérifie la proposition avant la recherche.",
             "Colle les liens directs vérifiés, un par ligne, dans l’import rapide."
           ],
           "tips": [
-            "Les résultats sont des propositions. L’application ne garantit pas la disponibilité ni l’actualité des annonces externes."
+        "L’IA ne transmet que les critères de recherche, jamais les documents, candidatures ou résultats. Les résultats restent des propositions."
           ]
         },
         "en-GB": {
           "title": "Search for jobs",
-          "summary": "The research prompt uses your preferences and selected job platforms.",
+      "summary": "The page initially takes the search term, location and platforms from your profile. Your own entries stay saved until you load the defaults again.",
           "steps": [
-            "Check keywords, locations and platforms.",
-            "Generate the prompt and run the research in the external tool.",
+        "Enter the search term, location, desired number and platforms directly, then save the criteria.",
+        "Profile defaults deliberately replace all saved criteria with the current profile values.",
+        "Optionally, AI suggests a more precise term and location; review the suggestion before searching.",
             "Paste verified direct advertisement URLs, one per line, into quick import."
           ],
           "tips": [
-            "Search results are suggestions. The app does not guarantee availability or freshness of external advertisements."
+        "AI sends only search criteria, never documents, applications or search results. Results remain suggestions."
           ]
         },
         "pt-BR": {
           "title": "Pesquisar vagas",
-          "summary": "O prompt de pesquisa usa suas preferências e plataformas selecionadas.",
+      "summary": "A página usa inicialmente o termo, o local e as plataformas do seu perfil. Suas próprias entradas permanecem salvas até que você recarregue os padrões.",
           "steps": [
-            "Confira palavras-chave, locais e plataformas.",
-            "Gere o prompt e faça a pesquisa na ferramenta externa.",
+        "Informe diretamente o termo, o local, a quantidade desejada e as plataformas, depois salve os critérios.",
+        "Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.",
+        "Opcionalmente, a IA sugere um termo e local mais precisos; revise a sugestão antes de pesquisar.",
             "Cole os links diretos verificados, um por linha, na importação rápida."
           ],
           "tips": [
-            "Os resultados são sugestões. O aplicativo não garante a disponibilidade ou atualização dos anúncios externos."
+        "A IA envia apenas critérios de pesquisa, nunca documentos, candidaturas ou resultados. Os resultados continuam sendo sugestões."
           ]
         },
         "es-MX": {
           "title": "Buscar vacantes",
-          "summary": "El prompt de investigación utiliza tus preferencias y plataformas elegidas.",
+      "summary": "La página usa primero el término, la ubicación y las plataformas de tu perfil. Tus propios datos permanecen guardados hasta que cargues de nuevo los valores predeterminados.",
           "steps": [
-            "Revisa palabras clave, lugares y plataformas.",
-            "Genera el prompt y realiza la búsqueda en la herramienta externa.",
+        "Introduce directamente el término, la ubicación, la cantidad deseada y las plataformas, y guarda los criterios.",
+        "Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.",
+        "De forma opcional, la IA sugiere un término y una ubicación más precisos; revisa la sugerencia antes de buscar.",
             "Pega enlaces directos verificados, uno por línea, en la importación rápida."
           ],
           "tips": [
-            "Los resultados son sugerencias. La aplicación no garantiza la disponibilidad ni vigencia de anuncios externos."
+        "La IA solo envía criterios de búsqueda, nunca documentos, candidaturas ni resultados. Los resultados siguen siendo sugerencias."
           ]
         }
       }
