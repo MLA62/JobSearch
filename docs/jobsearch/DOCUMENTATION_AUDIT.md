@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.3 ist dokumentiert und zur Bereitstellung vorbereitet.
-Version 2.1.2 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.3 ist dokumentiert und deployed.
+Produktionsdatei, öffentliche Version, mobile KI-Klicklogik und KI-Modal sind bestätigt; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -50,6 +50,9 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - Die Vertragstests decken die mobile direkte Klickbehandlung, das vor dem Request gezeichnete
   KI-Modal, die zuverlässige Neuladung nach Erfolg sowie leere und ausgefüllte KI-Instruktionen ab.
 - Externe OpenAI-Aufrufe und die Produktionsdatenbank werden durch diese Tests nicht verändert.
+- Alle 28 PHP-Testdateien, PHP-Syntax, beide Generatoren mit `--check` und `git diff --check`
+  bestanden. Nach TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200,
+  Version 2.1.3, KI-Modal, mobile Klicklogik und das Fehlen sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.2
 

@@ -1,6 +1,6 @@
 # Version 2.1.3 – zuverlässige KI-Bewerbungstexte auf Mobilgeräten
 
-Stand: 04.09.2026. Bereitstellungskandidat.
+Stand: 04.09.2026. Deployed.
 
 ## Änderungen
 
@@ -17,4 +17,8 @@ PHP-Syntax, alle PHP-Vertragstests, Hilfe in fünf Sprachen, Referenzgeneratoren
 
 ## Deployment
 
-Nach TOTP-Freigabe wird ausschließlich `public_html/jobs.jema.business/index.php` ersetzt und anschließend per Hash sowie öffentlichem HTTP-Aufruf verifiziert.
+Nach externer TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` aus
+Quell-Commit `9a248b1` ersetzt. Die Produktionsdatei hat 1033647 Bytes, Modus 0644 und SHA-256
+`f40ed05750dd2ff9f0708c004f35f910cef8dce02842c19e8ec0156223818c3b`; sie entspricht exakt den
+geprüften lokalen Bytes. Die öffentliche Seite liefert HTTP 200, zeigt Version 2.1.3, enthält
+KI-Modal und mobile Klicklogik und zeigt keinen PHP-Laufzeitfehler.

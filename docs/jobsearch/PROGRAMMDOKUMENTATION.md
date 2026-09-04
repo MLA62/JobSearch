@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.3 ist zur Bereitstellung vorbereitet; 2.1.2 ist der zuvor bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.3 ist deployed. Produktionsdatei, öffentliche Versionsanzeige, mobile Klicklogik, KI-Modal und fehlende sichtbare PHP-Laufzeitfehler sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## Mobile KI-Textaktion 2.1.3
 
