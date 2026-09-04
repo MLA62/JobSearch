@@ -3494,11 +3494,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.tips.6' =>
   array (
-    'de-CH' => 'Bei mehreren ausgewählten Suchmaschinen wechselt die Suche nach zehn rohen URL-Treffern zur nächsten. Abgelaufene, unpassende, doppelte und ausgeschlossene Treffer zählen für diesen Wechsel mit, nicht für die gewünschte Zahl passender Jobs. Bei nur einer Suchmaschine gilt die bisherige Suchregel. Sicherheitsgrenzen bleiben bestehen; der Wechsel bedeutet nicht, dass die Quelle vollständig ausgeschöpft ist.',
-    'fr-CH' => 'Avec plusieurs moteurs sélectionnés, la recherche passe au suivant après dix URL brutes. Les annonces expirées, inadaptées, en double ou exclues comptent pour ce changement, pas pour le nombre de postes adaptés souhaité. Avec un seul moteur, la règle précédente reste valable. Les limites de sécurité restent actives ; le changement ne signifie pas que la source est épuisée.',
-    'en-GB' => 'With multiple search engines selected, the search moves to the next after ten raw URL results. Expired, unsuitable, duplicate and excluded results count towards this switch, not the requested number of matching jobs. A single engine keeps the previous search rule. Safety limits still apply; switching does not mean the source is exhausted.',
-    'pt-BR' => 'Com vários buscadores selecionados, a busca passa ao próximo após dez URLs brutas. Resultados expirados, incompatíveis, duplicados e excluídos contam para essa troca, não para a quantidade desejada de vagas compatíveis. Com um único buscador, permanece a regra anterior. Os limites de segurança continuam ativos; a troca não significa que a fonte foi esgotada.',
-    'es-MX' => 'Con varios buscadores seleccionados, la búsqueda pasa al siguiente después de diez URL sin filtrar. Los resultados vencidos, incompatibles, duplicados y excluidos cuentan para el cambio, no para la cantidad deseada de empleos compatibles. Con un solo buscador se mantiene la regla anterior. Los límites de seguridad siguen vigentes; el cambio no significa que la fuente se haya agotado.',
+    'de-CH' => 'Schon ein brauchbarer Treffer bedeutet: Suche erfolgreich. Die Suche läuft trotzdem bis zur gewünschten Trefferzahl oder ihrem Ende weiter. Technische Unterbrechungen und Suchgrenzen bleiben als Hinweise sichtbar. Bei mehreren Suchmaschinen wird das Budget von 60 Prüfungen annähernd gleich verteilt: bei 16 Quellen drei oder vier rohe URL-Treffer pro Quelle statt zehn. Auch später ausgeschlossene Treffer zählen. Einzelsuche unverändert; Abbruch, Dienstfehler oder ein früher erreichtes Trefferziel können die Suche vorzeitig beenden.',
+    'fr-CH' => 'Un seul résultat exploitable signifie que la recherche est réussie. Elle continue néanmoins jusqu’au nombre souhaité ou à sa fin. Les interruptions techniques et limites restent signalées. Avec plusieurs moteurs, le budget de 60 vérifications est réparti presque également : pour 16 sources, trois ou quatre URL brutes par source au lieu de dix. Les résultats écartés comptent aussi. Un seul moteur reste inchangé ; annulation, erreur de service ou objectif atteint peuvent terminer la recherche plus tôt.',
+    'en-GB' => 'One usable result already means the search is successful. Searching nevertheless continues towards the requested count or completion. Technical interruptions and limits remain visible as notices. With multiple engines, the budget of 60 checks is shared approximately equally: for 16 sources, three or four raw URL results per source instead of ten. Subsequently excluded results also count. Single-engine search is unchanged; cancellation, service errors or an early reached target can end the search sooner.',
+    'pt-BR' => 'Um resultado aproveitável já significa busca bem-sucedida. A busca continua até a quantidade desejada ou seu encerramento. Interrupções técnicas e limites continuam visíveis como avisos. Com vários buscadores, o orçamento de 60 verificações é distribuído quase igualmente: para 16 fontes, três ou quatro URLs brutas por fonte em vez de dez. Resultados excluídos também contam. Um único buscador permanece inalterado; cancelamento, erro do serviço ou meta atingida podem encerrar a busca antes.',
+    'es-MX' => 'Un resultado útil ya significa búsqueda exitosa. La búsqueda continúa hasta la cantidad deseada o su finalización. Las interrupciones técnicas y los límites siguen visibles como avisos. Con varios buscadores, el presupuesto de 60 verificaciones se reparte casi por igual: para 16 fuentes, tres o cuatro URL sin filtrar por fuente en vez de diez. Los resultados excluidos también cuentan. Un solo buscador no cambia; cancelación, error del servicio o meta alcanzada pueden terminar antes la búsqueda.',
   ),
   'help.v2.search.title' =>
   array (
@@ -8897,10 +8897,11 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.10','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.0.11','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
+        'successful'=>count($state['jobs'] ?? [])>0,
         'limited'=>!empty($state['limited']),'target'=>(int)($state['criteria']['total_count'] ?? 0),
         'counters'=>['attempted'=>(int)($state['checked'] ?? 0),'accepted'=>count($state['jobs'] ?? []),'not_imported'=>(int)($state['rejected'] ?? 0),'technical_errors'=>(int)($state['technical_errors'] ?? 0),'sources_completed'=>(int)($state['source_index'] ?? 0),'sources_total'=>count($state['sources'] ?? [])],
         'active_criteria'=>$criteria,'match_threshold'=>70,'events'=>$state['debug_events'],'dropped_events'=>(int)($state['debug_dropped'] ?? 0),
@@ -8917,12 +8918,19 @@ function verifiedSearchScript(string $locale): string
         default=>['Geprüfte Stellensuche','Originalausschreibungen lesen und Suchkriterien vergleichen …','Abbrechen','Ergebnisse anzeigen','Die Suche ist fehlgeschlagen. Bitte erneut versuchen.','Geprüft','Passend','Ausgeschlossen','Quellen geprüft','Suche abgeschlossen.','Suchgrenze erreicht; es wurden nicht alle Möglichkeiten ausgeschöpft.'],
     };
     $debugLabels=jobSearchDebugLabels($locale);
+    $resultLabels=match($locale) {
+        'fr-CH'=>['Recherche réussie.','Aucune offre compatible trouvée.','La suite de la recherche a été interrompue.'],
+        'en-GB'=>['Search successful.','No matching jobs found.','Further searching was interrupted.'],
+        'pt-BR'=>['Busca bem-sucedida.','Nenhuma vaga compatível encontrada.','A continuação da busca foi interrompida.'],
+        'es-MX'=>['Búsqueda exitosa.','No se encontraron empleos compatibles.','Se interrumpió la búsqueda adicional.'],
+        default=>['Suche erfolgreich.','Keine passenden Jobs gefunden.','Die weitere Suche wurde unterbrochen.'],
+    };
     $labels[5]=match($locale){'fr-CH'=>'Traitées','en-GB'=>'Processed','pt-BR'=>'Processadas','es-MX'=>'Procesadas',default=>'Verarbeitet'};
     $html=<<<'HTML'
 <style>#verified-search-dialog [hidden]{display:none!important}</style>
 <script>
 (()=>{
- const labels=__LABELS__, debugLabels=__DEBUG_LABELS__, button=document.querySelector('button[value="search_ai_jobs"]'), form=button?.closest('form');if(!form)return;
+ const labels=__LABELS__, debugLabels=__DEBUG_LABELS__, resultLabels=__RESULT_LABELS__, button=document.querySelector('button[value="search_ai_jobs"]'), form=button?.closest('form');if(!form)return;
  const debugLink=document.createElement('a');debugLink.className='button';debugLink.href='/?page=job_search_debug_download';debugLink.textContent=debugLabels[0];
  const debugHint=document.createElement('p');debugHint.textContent=debugLabels[4];form.after(debugLink,debugHint);
  form.querySelector('button[value="save_platform_search_criteria"]')?.remove();let timer;
@@ -8940,7 +8948,8 @@ function verifiedSearchScript(string $locale): string
   const controller=new AbortController();let cancelled=false;const started=Date.now();const clock=setInterval(()=>elapsed.textContent=Math.floor((Date.now()-started)/1000)+' s',1000);
   modal.addEventListener('cancel',e=>e.preventDefault());cancel.addEventListener('click',()=>{cancelled=true;controller.abort();clearInterval(clock);modal.close();modal.remove();running=false;});
   view.addEventListener('click',()=>location.assign('/?page=job_platform_search#results'));
-  async function send(data){const response=await fetch('/?page=job_platform_search',{method:'POST',body:data,credentials:'same-origin',signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw new Error('Request failed');const result=await response.json();if(!result.ok)throw new Error('Search failed');return result;}
+  let accepted=0;
+  async function send(data){const response=await fetch('/?page=job_platform_search',{method:'POST',body:data,credentials:'same-origin',signal:controller.signal,headers:{Accept:'application/json'}});const result=await response.json();if(Number.isInteger(result.accepted)&&result.accepted>=0)accepted=result.accepted;if(!response.ok||!result.ok)throw new Error('Search failed');return result;}
   try{
    await saving;if(cancelled)return;
    const initial=new FormData(form);initial.set('action','search_ai_jobs');initial.set('incremental','1');const start=await send(initial);
@@ -8948,14 +8957,15 @@ function verifiedSearchScript(string $locale): string
     const data=new FormData();data.set('csrf',String(initial.get('csrf')||''));data.set('action','advance_verified_job_search');data.set('search_id',start.search_id);
     const state=await send(data);if(cancelled)break;
     status.textContent=labels[5]+': '+state.checked+' · '+labels[6]+': '+state.accepted+' · '+labels[7]+': '+state.rejected+' · '+debugLabels[1]+': '+(state.technical_errors||0)+' · '+debugLabels[2]+': '+state.sources_checked+'/'+state.sources_total+(state.current_source?' · '+debugLabels[3]+': '+state.current_source:'');
-    if(state.done){status.textContent+=' — '+(state.limited?labels[10]:labels[9]);progress.hidden=true;view.hidden=false;clearInterval(clock);view.focus();break;}
+    if(accepted>0)status.textContent=resultLabels[0]+' '+status.textContent;
+    if(state.done){if(!accepted)status.textContent=resultLabels[1]+' '+status.textContent;status.textContent+=' — '+labels[9]+(state.limited?' '+labels[10]:'');progress.hidden=true;view.hidden=false;clearInterval(clock);view.focus();break;}
    }
-  }catch(error){if(!cancelled){status.textContent=labels[4];progress.hidden=true;view.hidden=false;clearInterval(clock);}}
+  }catch(error){if(!cancelled){status.textContent=accepted>0?resultLabels[0]+' '+labels[6]+': '+accepted+' — '+resultLabels[2]:labels[4];progress.hidden=true;view.hidden=false;clearInterval(clock);}}
  });
  })();
 </script>
 HTML;
-    return str_replace(['__LABELS__','__DEBUG_LABELS__'],[json_encode($labels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR),json_encode($debugLabels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR)],$html);
+    return str_replace(['__LABELS__','__DEBUG_LABELS__','__RESULT_LABELS__'],[json_encode($labels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR),json_encode($debugLabels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR),json_encode($resultLabels,JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR)],$html);
 }
 
 function canonicalJobUrl(string $url): string
@@ -8968,22 +8978,38 @@ function canonicalJobUrl(string $url): string
     return strtolower($parts['scheme'] ?? 'https').'://'.strtolower($parts['host']).rtrim($parts['path'] ?? '/','/').($query ? '?'.http_build_query($query) : '');
 }
 
+function jobSearchSourceQuota(int $count, int $index): int
+{
+    if ($count<=1) return 45;
+    return max(1,intdiv(60,$count)+($index<60%$count ? 1 : 0));
+}
+
 function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
 {
     if (!empty($state['done'])) return;
     if (count($state['jobs']) >= $state['criteria']['total_count']) { $state['done']=true; return; }
-    if ($state['checked']>=60) { $state['done']=true; $state['limited']=true; return; }
+    if ($state['checked']>=60) {
+        if (!$state['queue'] && !empty($state['advance_source'])) { $state['source_index']++; $state['advance_source']=false; }
+        $state['done']=true; $state['limited']=true; return;
+    }
     $multipleSources=count($state['sources'])>1;
     // An older in-flight search has no raw counter. Do not drain its old 15/45-item source batch.
     if ($multipleSources && !array_key_exists('source_raw',$state) && $state['round']>0) {
         $state['queue']=[]; $state['advance_source']=true; $state['limited']=true;
     }
     $state['source_raw']=(int)($state['source_raw'] ?? 0);
+    $quota=jobSearchSourceQuota(count($state['sources']),(int)$state['source_index']);
+    if ($multipleSources && $state['source_raw']>$quota) {
+        $consumed=max(0,$state['source_raw']-count($state['queue']));
+        $state['queue']=array_slice($state['queue'],0,max(0,$quota-$consumed));
+        $state['source_raw']=$quota; $state['advance_source']=true; $state['limited']=true;
+    }
     if (!$state['queue']) {
         if (!empty($state['advance_source'])) { $state['source_index']++; $state['round']=0; $state['source_raw']=0; $state['advance_source']=false; }
         if ($state['source_index']>=count($state['sources'])) { $state['done']=true; return; }
         $source=$state['sources'][$state['source_index']];
-        $discovery=$state['criteria']; $discovery['total_count']=$multipleSources ? max(1,10-$state['source_raw']) : 15;
+        $quota=jobSearchSourceQuota(count($state['sources']),(int)$state['source_index']);
+        $discovery=$state['criteria']; $discovery['total_count']=$multipleSources ? min(15,max(1,$quota-$state['source_raw'])) : 15;
         $discovery['preferred_sources']=$source!=='' ? [$source] : [];
         $discovery['exclude_urls']=array_keys($state['seen']);
         $started=microtime(true);
@@ -9004,7 +9030,7 @@ function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void
         }
         $state['round']++;
         jobSearchDebugEvent($state,['stage'=>'discovery','outcome'=>'completed','url'=>$source,'found'=>count($found),'queued'=>$added,'round'=>$state['round'],'duration_ms'=>(microtime(true)-$started)*1000]);
-        if ($added===0 || $state['round']>=3 || ($multipleSources && $state['source_raw']>=10)) {
+        if ($added===0 || $state['round']>=3 || ($multipleSources && $state['source_raw']>=$quota)) {
             if ($added>0) $state['limited']=true;
             $state['advance_source']=true;
         }
@@ -10812,7 +10838,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['verified_job_search']=$state;
                 $_SESSION['ai_job_search_results']=$state['jobs'];
             }
-            http_response_code(422); echo json_encode(['ok'=>false]);
+            http_response_code(422); echo json_encode(['ok'=>false,'accepted'=>$validSearch ? count($state['jobs']) : 0]);
         }
         exit;
     }
@@ -12319,7 +12345,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.0.10';
+$codeVersion = '2.0.11';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

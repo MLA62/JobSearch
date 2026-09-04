@@ -1,10 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.10 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldete Prüfung des Quellenwechsels noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.11 vorbereitet, noch nicht deployed. Bestätigter Live-Stand 2.0.10. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Quellenwechsel 2.0.10 (deployed)
+## Gleichmäßige Quellenverteilung und Erfolg 2.0.11 (vorbereitet)
+
+Mindestens ein akzeptierter verifizierter Treffer bedeutet Sucherfolg, unabhängig von Zielzahl oder späteren Abruffehlern. Das Modal zeigt den Erfolg bereits während der weiteren Suche, bei begrenztem Abschluss und nach späterem Abbruch des Dienstes. Ohne Treffer wird zwischen abgeschlossener Suche ohne Ergebnis und technischem Fehler unterschieden. Die Suche endet nicht schon beim ersten Treffer; das Ziel bleibt unverändert. Der Debugbericht führt successful getrennt vom technischen status (laufend/abgeschlossen/fehlgeschlagen). Fehler werden nicht unterdrückt und unprüfbare Jobs bleiben ausgeschlossen.
+
+jobSearchSourceQuota verteilt 60 Prüfplätze auf N ausgewählte Quellen: floor(60/N), die ersten 60 mod N Quellen erhalten einen zusätzlichen Platz. Bei 16 Quellen zwölfmal vier und viermal drei rohe Kandidaten. Die Restanforderung wird wie bisher vor Ausschlüssen/Dubletten gezählt und serverseitig begrenzt. Ein einzelner Discovery-Aufruf verlangt höchstens 15; drei Runden pro Quelle und frühere Beendigung ohne neue Kandidaten bleiben bestehen. Einzelquelle unverändert. Ungenutzte Quoten werden nicht neu verteilt. Bei mehr als 60 Quellen mindestens ein Platz je Quelle, jedoch bleibt die Gesamtgrenze 60: vollständige Abdeckung ist dann nicht möglich. Trefferziel, Abbruch, Sitzungsablauf oder Dienstausfall können weiterhin früher beenden.
+
+Alte Zehner-Warteschlangen werden anhand des bereits verbrauchten Rohanteils auf die neue Quote gekürzt; akzeptierte Treffer bleiben erhalten. Match-Gewichte, Mindestscore und Datenbank-Schreibregeln unverändert. Keine Migration.
+
+## Quellenwechsel 2.0.10 (historisch deployed)
 
 Bei mehreren Quellen zählt source_raw die gelieferten URL-Kandidaten vor Dubletten-/Benutzerausschluss und Original-/Match-Prüfung. Nach insgesamt zehn rohen Treffern der Quelle wird deren Prüfwarteschlange abgearbeitet und anschließend zur nächsten ausgewählten Quelle gewechselt. Discovery fragt nur die verbleibende Anzahl an; serverseitiges Abschneiden begrenzt übergroße Antworten. Kleine Antworten können bis zur bisherigen Drei-Runden-Grenze ergänzt werden. Keine neuen Kandidaten bedeutet weiterhin früherer Wechsel. Einzelsuche bleibt bei bisherigen 15 Kandidaten je Discovery-Runde.
 

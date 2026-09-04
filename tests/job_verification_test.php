@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
+helpLoadFunction('jobSearchSourceQuota');
 foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
 $now=strtotime('2026-09-04T12:00:00Z');
 if (in_array('--availability-probe',$argv,true)) {

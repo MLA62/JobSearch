@@ -10,6 +10,10 @@ helpAssert($classified['code']==='portal_blocked' && $classified['http_status']=
 jobSearchDebugEvent($state,['stage'=>'original_read','outcome'=>'technical_error','url'=>$url,'duration_ms'=>42,'raw'=>'SECRET_BODY','quote'=>'SECRET_QUOTE']+$classified);
 jobSearchDebugEvent($state,['stage'=>'assessment','outcome'=>'profile_rejected','score'=>64,'checks'=>[['criterion'=>'roles','verdict'=>'met','quote'=>'SECRET_TEXT','reason'=>'SECRET_REASON'],['criterion'=>'location','verdict'=>'unknown']]]);
 $report=jobSearchDebugReport($state,7);$json=json_encode($report,JSON_THROW_ON_ERROR);
+helpAssert($report['successful']===(count($state['jobs'] ?? [])>0),'Search success follows useful result count');
+$withResult=$state; $withResult['jobs']=[['verification_revision'=>1]]; $withResult['failed']=true;
+$withResultReport=jobSearchDebugReport($withResult,7);
+helpAssert($withResultReport['successful']===true && $withResultReport['status']==='failed','Useful result means success while technical interruption remains explicit');
 helpAssert(!str_contains($json,'SECRET_') && !str_contains($json,'private-path') && !str_contains($json,'private-user'),'Export omits profile values, URL credentials/path/query/fragment, raw errors, text and session IDs');
 helpAssert($report['events'][0]['url']['host']==='portal.example' && strlen($report['events'][0]['url']['url_fingerprint'])===64,'Host and opaque per-URL correlation remain');
 helpAssert($report['events'][1]['checks'][1]['verdict']==='unknown' && $report['active_criteria']['roles']['weight']===35,'Useful criterion diagnostics without private values');

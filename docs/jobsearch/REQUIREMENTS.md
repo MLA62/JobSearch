@@ -31,7 +31,7 @@ Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
 
-Ergänzung 2.0.10: Bei mehr als einer ausgewählten Suchmaschine nach zehn rohen URL-Treffern zur nächsten wechseln. Treffer vor Prüfung und Dublettenfilter zählen, nicht nur passende Jobs. Bei nur einer Suchmaschine unverändert. Schutzgrenzen und früh erreichtes Trefferziel bleiben wirksam; Quellenwechsel ist keine Behauptung vollständiger Ausschöpfung.
+Ergänzung 2.0.11 (ersetzt die Zehnerregel aus 2.0.10): Schon ein brauchbarer Treffer macht die Suche erfolgreich. Zur Zielzahl weitersuchen, technische Einschränkungen gesondert anzeigen. Das Gesamtprüfbudget bei mehreren Quellen annähernd gleich auf alle ausgewählten Suchmaschinen verteilen. Rohe Kandidaten vor Ausschlüssen zählen; eine Einzelquelle bleibt unverändert. Keine Aussage vollständiger Ausschöpfung allein durch Quellenwechsel.
 
 Ergänzung 2.0.9: Jeder aktive Match-Kriterienname ist im technischen Antwortvertrag fest vorgegeben und genau einmal erforderlich. Fehler in diesem Vertrag sind sichtbare technische Fehler, keine fachliche Profilablehnung. Unprüfbare Anzeigen bleiben ausgeschlossen; zusätzliche Erkennungsregeln dürfen keine unbelegte Verfügbarkeit behaupten.
 

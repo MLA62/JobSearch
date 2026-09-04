@@ -3,7 +3,7 @@
 return [
     'app_name' => 'JeMa Jobs',
     'app_url' => 'https://jobs.jema.business',
-    'app_version' => '2.0.10',
+    'app_version' => '2.0.11',
     'app_key' => 'replace-with-64-random-hex-characters',
     // Nur serverseitig hinterlegen; niemals in Git, Browser-Code oder Logs ausgeben.
     'openai_api_key' => '',

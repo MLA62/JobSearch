@@ -8,7 +8,7 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
 (async()=>{
  const browser=await chromium.launch({headless:true});
  try {
-  for(const scenario of ['success','limited','cancel','failure']) {
+  for(const scenario of ['success','limited','cancel','failure','no_matches','failure_after_result']) {
    const page=await browser.newPage({viewport:{width:390,height:844}});
    let steps=0,release;
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -19,7 +19,8 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
     if(body.includes('advance_verified_job_search')) {
      steps++;
      if(steps===1)await new Promise(resolve=>release=resolve);
-     try {await route.fulfill({status:scenario==='failure'?422:200,contentType:'application/json',body:JSON.stringify({ok:scenario!=='failure',done:steps===3,limited:scenario==='limited',checked:steps,accepted:1,rejected:steps-1,sources_checked:1,sources_total:2})});}catch{}
+     const failed=scenario==='failure'||(scenario==='failure_after_result'&&steps===2),accepted=['failure','no_matches'].includes(scenario)?0:1;
+     try {await route.fulfill({status:failed?422:200,contentType:'application/json',body:JSON.stringify({ok:!failed,done:steps===3,limited:scenario==='limited',checked:steps,accepted,rejected:steps-accepted,sources_checked:1,sources_total:2})});}catch{}
     }else if(body.includes('search_ai_jobs')) return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,search_id:'fixture-search'})});
     else throw new Error('Unexpected action');
    });
@@ -39,7 +40,7 @@ const debugBody=execFileSync('php',['-n',path.join(__dirname,'job_search_debug_t
     release();await page.getByRole('button',{name:'Ergebnisse anzeigen',exact:true}).waitFor();
     assert(await page.locator('dialog').evaluate(x=>x.open),'Completion does not close dialog');
     const status=await page.getByRole('status').innerText();
-    assert.match(status,scenario==='failure'?/fehlgeschlagen/:scenario==='limited'?/nicht alle Möglichkeiten/:/Verarbeitet: 3.*Passend: 1.*Ausgeschlossen: 2.*Technische Fehler: 0.*Quellen abgeschlossen: 1\/2.*abgeschlossen/);
+    assert.match(status,scenario==='failure'?/fehlgeschlagen/:scenario==='no_matches'?/Keine passenden Jobs gefunden/:scenario==='failure_after_result'?/Suche erfolgreich.*Passend: 1.*unterbrochen/:scenario==='limited'?/Suche erfolgreich.*nicht alle Möglichkeiten/:/Suche erfolgreich.*Verarbeitet: 3.*Passend: 1.*Ausgeschlossen: 2.*Technische Fehler: 0.*Quellen abgeschlossen: 1\/2.*abgeschlossen/);
     if(scenario==='success') {const out=path.join(process.env.TEMP||'/tmp','jema-search-dialog');fs.mkdirSync(out,{recursive:true});await page.screenshot({path:path.join(out,'complete.png')});}
    }
    assert.deepEqual(errors,[]);await page.close();console.log('PASS search dialog '+scenario);
