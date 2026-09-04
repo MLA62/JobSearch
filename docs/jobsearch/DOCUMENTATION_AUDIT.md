@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.2 ist dokumentiert und zur Freigabe vorbereitet.
-Version 2.1.1 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.2 ist dokumentiert und deployed.
+Produktionsdatei, öffentliche Version und KI-Fusszeile ohne Kontingentanzeige sind bestätigt; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -50,7 +50,7 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - Alle 28 PHP-Testdateien bestanden; darin 3513 Hilfe-Inhaltsprüfungen und 1124 Hilfeseed-Prüfungen.
 - PHP-Syntax für Anwendung und Beispielkonfiguration, beide Generatoren mit `--check` sowie `git diff --check` bestanden.
 - Der Vertragstest prüft KI-Modal, Abbruchsteuerung, Hersteller-/Modellkennzeichnung und das Fehlen der unzuverlässigen Kontingentanzeige.
-- Externe OpenAI-Aufrufe und die Produktionsdatenbank wurden durch die Tests nicht verändert. Liveprüfung folgt nach TOTP-Freigabe.
+- Externe OpenAI-Aufrufe und die Produktionsdatenbank wurden durch die Tests nicht verändert. Nach TOTP-Freigabe wurden HTTP 200, Version 2.1.2, KI-Kennzeichnung, fehlende Kontingentanzeige und fehlende sichtbare PHP-Fehler öffentlich bestätigt.
 
 ## Historische Prüfstände
 

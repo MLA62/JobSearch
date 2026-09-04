@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.2 ist zur Freigabe vorbereitet; 2.1.1 ist der bestätigte Live-Stand. Version 2.1.2 behält den KI-Arbeitsdialog und entfernt die unzuverlässige Kontingentanzeige samt Nutzungstelemetrie. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.2 ist deployed. Produktionsdatei, öffentliche Versionsanzeige, KI-Kennzeichnung und die entfernte Kontingentanzeige sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## KI-Kennzeichnung 2.1.2
 

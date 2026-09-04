@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.1.2 mit KI-Arbeitsdialog und ehrlicher KI-Kennzeichnung ohne unzuverlässige Kontingentanzeige ist zur Freigabe vorbereitet.
+Stand: 04.09.2026. Version 2.1.2 mit KI-Arbeitsdialog und ehrlicher KI-Kennzeichnung ohne unzuverlässige Kontingentanzeige ist deployed.
 Aktueller Nachweis: [Release 2.1.2](docs/jobsearch/RELEASE-2.1.2.md). Vorheriger bestätigter Live-Stand: [2.1.1](docs/jobsearch/RELEASE-2.1.1.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
