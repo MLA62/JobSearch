@@ -11,7 +11,7 @@ verify(importResolveUrl('https://example.test/a/b/','../original/?x=1') === 'htt
 verify(importResolveUrl('https://example.test/a','javascript:alert(1)') === '','Script links rejected');
 verify(importSameJob(['title'=>'Key Account Manager (m/w/d)'],['title'=>'Key Account Manager']) === true,'Same title on original accepted');
 verify(importSameJob(['title'=>'Key Account Manager'],['title'=>'Software Engineer']) === false,'Different advertisement not accepted');
-$schema=['@type'=>'JobPosting','title'=>'Key Account Manager','hiringOrganization'=>['name'=>'Example Logistics AG'],'description'=>'Short schema extract'];
+$schema=['@type'=>'JobPosting','title'=>'Key Account Manager','hiringOrganization'=>['name'=>'Example Logistics AG'],'description'=>'Short schema extract','validThrough'=>'2099-12-31'];
 $original='<html><head><script type="application/ld+json">'.json_encode($schema).'</script></head><body><header><a href="https://employer.example/" title="Example Logistics AG"><img alt="Example Logistics AG"></a></header><main><section><h1>Key Account Manager</h1><p>Complete original responsibilities.</p></section><section id="contact"><div class="contactInfo"><p>Example Logistics AG<br>Anna Muster<br>Leiterin Personal<br>061 555 12 34<br>anna@employer.example</p></div><div class="contactInfo"><p>Herr<br>Peter Beispiel<br>Geschäftsführer<br>peter@employer.example</p></div></section></main></body></html>';
 $draft=importJobHtml($original,$originalUrl);
 verify($draft['company']==='Example Logistics AG','Actual employer taken from original');
@@ -53,10 +53,10 @@ verify(!empty($partial['import_warnings']) && empty($partial['company_details'][
 $handler=substr($source,strpos($source,"if (\$action === 'prepare_ai_job_import')"));
 $handler=substr($handler,0,strpos($handler,"if (\$action === 'exclude_ai_job')"));
 verify(!str_contains($handler,'pdfTableBytes') && !str_contains($handler,'file_put_contents'),'Import never creates a fake original PDF or attachment');
-verify(str_contains($handler,'importStoreDraft($db, userId(), importFromUrl($url))'),'AI import uses tested shared writer');
+verify(str_contains($handler,'verifiedJobImport($config,userId(),$url,importSearchCriteria($db,userId()))'),'AI import uses verified original and current criteria');
 $quick=substr($source,strpos($source,"if (\$action === 'preview_import')"));
 $quick=substr($quick,0,strpos($quick,"if (\$action === 'save_profile_link')"));
-verify(str_contains($quick,'count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)') && str_contains($quick,'importStoreDraft($db, $uid, importFromUrl($sourceUrl))'),'Single-URL and batch quick imports use the same tested writer');
+verify(str_contains($quick,'count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)') && str_contains($quick,'verifiedJobImport($config,$uid,$sourceUrl,importSearchCriteria($db,$uid))'),'Single-URL and batch imports use the same verified enrichment');
 verify(str_contains($handler,"unset(\$_SESSION['import_draft'])") && str_contains($quick,"unset(\$_SESSION['import_draft'])"),'Stale preview cannot hide the newly imported job or its contacts');
 
 if (in_array('--live-fixture',$argv,true)) {

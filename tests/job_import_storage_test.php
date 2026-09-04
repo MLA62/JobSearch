@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
-foreach (['jobDisplayText','importUpsertCompany','importUpsertContact','importDraftContacts','importStoreDraft'] as $name) helpLoadFunction($name);
+foreach (['jobDisplayText','importUpsertCompany','importUpsertContact','importDraftContacts','importStoreDraft','jobFactFields','jobFactValue'] as $name) helpLoadFunction($name);
 
 class mysqli {
     public array $companies = [];
@@ -39,16 +39,22 @@ class ImportStatement {
             $this->db->contacts[$this->insert_id]=array_combine(['owner_user_id','company_id','job_id','first_name','last_name','position','email','phone'],$p)+['id'=>$this->insert_id];
         } elseif (str_starts_with($this->sql,'UPDATE contacts')) {
             preg_match('/SET `([a-z_0-9]+)`/',$this->sql,$match); $field=$match[1];
-            helpAssert(str_contains($this->sql,'owner_user_id=? AND company_id=? AND job_id=?') && str_contains($this->sql,'IS NULL OR TRIM'),'Contact enrichment is scoped and preserves nonempty fields');
+            helpAssert(str_contains($this->sql,'owner_user_id=? AND company_id=?') && str_contains($this->sql,'IS NULL OR TRIM'),'Contact enrichment is scoped and preserves nonempty fields');
             $row=&$this->db->contacts[$p[1]];
-            if ($row['owner_user_id']===$p[2] && $row['company_id']===$p[3] && $row['job_id']===$p[4] && trim((string)($row[$field]??''))==='') $row[$field]=$p[0];
+            if ($row['owner_user_id']===$p[2] && $row['company_id']===$p[3] && trim((string)($row[$field]??''))==='') $row[$field]=$p[0];
         } elseif (str_starts_with($this->sql,'INSERT INTO jobs')) {
             $this->insert_id=count($this->db->jobs)+1;
             $this->db->jobs[$this->insert_id]=array_combine(['owner_user_id','company_id','title','location_text','status','workplace_type','engagement_type','contract_term','source_url','description'],$p)+['id'=>$this->insert_id,'notes'=>''];
+        } elseif (str_starts_with($this->sql,'UPDATE jobs SET match_score')) {
+            $row=&$this->db->jobs[$p[2]];
+            if ($row['owner_user_id']===$p[3]) { $row['match_score']=$p[0]; $row['raw_import_data']=$p[1]; }
+        } elseif (str_starts_with($this->sql,'UPDATE jobs SET `')) {
+            preg_match('/SET `([a-z_0-9]+)`/',$this->sql,$match);$field=$match[1];$row=&$this->db->jobs[$p[1]];
+            if ($row['owner_user_id']===$p[2] && (str_contains($this->sql,'1=1') || !isset($row[$field]) || $row[$field]==='' || $row[$field]==='unknown')) $row[$field]=$p[0];
         } elseif (str_starts_with($this->sql,'UPDATE jobs')) {
             helpAssert(str_contains($this->sql,'owner_user_id=?'),'Job write is owner-scoped');
             $row=&$this->db->jobs[$p[4]];
-            if ($row['owner_user_id']===$p[5]) foreach (['company_id','title','location_text','description'] as $i=>$field) $row[$field]=$p[$i];
+            if ($row['owner_user_id']===$p[5]) foreach (['company_id','title','location_text','description'] as $i=>$field) if ($field==='company_id' || empty($row[$field])) $row[$field]=$p[$i];
         } else { throw new RuntimeException('Unexpected SQL'); }
     }
 }
@@ -58,11 +64,14 @@ function dbOne(mysqli $db,string $sql,string $types='',array $params=[]): ?array
         foreach ($db->companies as $row) if ($row['owner_user_id']===$params[0] && $row['name']===$params[1]) return $row;
     } elseif (str_contains($sql,'FROM contacts')) {
         foreach ($db->contacts as $row) {
-            if ($row['owner_user_id']===$params[0] && $row['company_id']===$params[1] && $row['job_id']===$params[2]
-                && (($params[3]!=='' && $row['email']===$params[4]) || ($params[5]!=='' && $row['first_name']===$params[6] && $row['last_name']===$params[7]))) return $row;
+            if ($row['owner_user_id']===$params[0] && $row['company_id']===$params[1]
+                && (($params[2]!=='' && $row['email']===$params[3]) || ($params[4]!=='' && $row['first_name']===$params[5] && $row['last_name']===$params[6] && ($params[7]==='' || trim($row['email']??'')==='')))) return $row;
         }
     } elseif (str_contains($sql,'FROM jobs')) {
-        foreach ($db->jobs as $row) if ($row['owner_user_id']===$params[0] && $row['source_url']===$params[1]) return $row;
+        foreach ($db->jobs as $row) {
+            $raw=json_decode($row['raw_import_data']??'{}',true);
+            if ($row['owner_user_id']===$params[0] && (in_array($row['source_url'],[$params[1],$params[2]],true) || ($raw['original_url']??'')===$params[3])) return $row;
+        }
     } else { throw new RuntimeException('Unexpected lookup'); }
     return null;
 }
@@ -89,6 +98,9 @@ importUpsertContact($db,7,$id,11,$contact+['phone'=>'+41 32 555 99 00']);
 helpAssert($db->contacts[1]['phone']==='+41 32 555 99 00','Existing contact receives missing phone');
 importUpsertContact($db,7,$id,11,['first_name'=>'Anne','last_name'=>'Dupont','email'=>'changed@example.test','phone'=>'999','position'=>'Changed']);
 helpAssert($db->contacts[1]['email']==='anne@example.test' && $db->contacts[1]['position']==='RH' && $db->contacts[1]['phone']==='+41 32 555 99 00','Existing contact details are not overwritten');
+helpAssert(count($db->contacts)===3,'Same name with conflicting email is not silently merged');
+importUpsertContact($db,7,$id,99,$contact+['department'=>'Human Resources']);
+helpAssert(count($db->contacts)===3 && $db->contacts[1]['department']==='Human Resources','Same person across jobs is enriched without duplication');
 
 $db=new mysqli();
 $draft=['title'=>'Account Manager','company'=>'Original Employer SA','source_url'=>'https://example.test/jobs/one','location'=>'Bienne','description'=>'Full original job text','company_details'=>['address_line1'=>'Rue Exemple 12','postal_code'=>'2502','city'=>'Bienne'],'contacts'=>[$contact,['first_name'=>'Marc','last_name'=>'Exemple','email'=>'marc@example.test']]];
@@ -100,9 +112,18 @@ $db->jobs[$jobId]['notes']='Private note'; $db->jobs[$jobId]['status']='interest
 $repeat=importStoreDraft($db,7,$draft);
 helpAssert(!$repeat['created'] && count($db->jobs)===1 && count($db->contacts)===2,'Shared writer reimport is idempotent');
 helpAssert($db->jobs[$jobId]['notes']==='Private note' && $db->jobs[$jobId]['status']==='interesting','Reimport preserves private notes and status');
+$verified=$draft+['original_url'=>'https://original.test/one','assessment'=>['revision'=>1,'score'=>82,'checks'=>[]],'job_details'=>['workload_min'=>80,'workload_max'=>100,'requirements'=>'Original requirements'],'research_sources'=>[['id'=>'original','url'=>'https://original.test/one','text'=>'Original requirements']]];
+importStoreDraft($db,7,$verified);
+$stored=json_decode($db->jobs[$jobId]['raw_import_data'],true,512,JSON_THROW_ON_ERROR);
+helpAssert($db->jobs[$jobId]['match_score']===82 && $stored['verification']['score']===82,'Recomputed score and evidence stored');
+helpAssert((int)$db->jobs[$jobId]['workload_min']===80 && $db->jobs[$jobId]['requirements']==='Original requirements','Typed job fields persisted');
+$verified['source_url']='https://another-portal.test/one';$verified['description']='Newly verified original';$verified['title']='Different title';
+$same=importStoreDraft($db,7,$verified);
+helpAssert($same['job_id']===$jobId && count($db->jobs)===1,'Same original through another portal reuses existing job');
+helpAssert($db->jobs[$jobId]['title']===$draft['title'] && $db->jobs[$jobId]['description']===$draft['description'],'Existing populated original fields preserved');
 $replacement=$draft; $replacement['company']='Correct Employer SA';
-$fixed=importStoreDraft($db,7,$replacement);
-helpAssert($fixed['job_id']===$jobId && $fixed['company_id']!==$firmId && $db->jobs[$jobId]['company_id']===$fixed['company_id'],'Deliberate repeat corrects employer association on both entry paths');
+try { importStoreDraft($db,7,$replacement); throw new RuntimeException('Expected conflict'); }
+catch (RuntimeException $error) { helpAssert(str_contains($error->getMessage(),'anderen Firma'),'Conflicting employer is not silently overwritten'); }
 $other=importStoreDraft($db,8,$draft);
 helpAssert($other['job_id']!==$jobId && $other['company_id']!==$firmId,'Other user has separate job and company');
 $before=[$db->companies,$db->contacts,$db->jobs];

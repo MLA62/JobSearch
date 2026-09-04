@@ -5,6 +5,16 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.7: `job_verification_test.php` prüft Ablauf-/Soft-404-Erkennung,
+unbekannte Verfügbarkeit, Belegbindung, harte Profilkonflikte, Score, Quellenfelder,
+fortgesetzte Suche, Ausschlüsse, Dubletten und veraltete Ergebnislisten.
+`job_import_storage_test.php` prüft zusätzlich Wiederverwendung über Original-URL,
+firmenweite Kontakte, Konflikte und Speicherung von Feldern/Match-Nachweisen.
+`node tests/job_search_dialog_visual.cjs` und `node tests/job_import_dialog_visual.cjs`
+prüfen die echten Dialogscripts mit Chromium und simulierten HTTP-Antworten; Playwright
+über die Umgebungsvariable PLAYWRIGHT_MODULE oder installiertes Paket bereitstellen.
+Keine produktive DB-/API-Abnahme aus diesen isolierten Tests ableiten.
+
 Aus dem Repository-Stamm:
 
 ```powershell

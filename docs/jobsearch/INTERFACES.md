@@ -56,6 +56,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `admin_reset_user_password`
 - `admin_start_support`
 - `admin_update_user`
+- `advance_verified_job_search`
 - `apply_workflow_migration`
 - `attach_application_document`
 - `autosave_application`
@@ -405,6 +406,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importVisibleContacts(DOMDocument $document, DOMXPath $xpath, string $company): array`
 - `function importCompanyWebsite(DOMXPath $xpath, string $company, string $url): string`
 - `function importCompanyPageDetails(string $html, string $company): array`
+- `function jobAvailability(string $html, int $now): array`
+- `function companyResearchLinks(string $html, string $base): array`
 - `function importFromUrl(string $url): array`
 - `function importJobHtml(string $html, string $url): array`
 - `function importFromText(string $text): array`
@@ -433,7 +436,20 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function mergeJobDisplayTranslations(array $jobs, array $translated, string $locale): array`
 - `function localizeJobResults(array $config, int $userId, array $jobs, string $locale): array`
 - `function jobTranslationFailure(string $locale): string`
+- `function jobMatchCriteria(array $criteria): array`
+- `function jobEvidenceQuote(array $sources, string $sourceId, string $quote): bool`
+- `function jobEvidenceScore(array $criteria, array $checks, array $sources): array`
+- `function jobFactFields(): array`
+- `function jobFactValue(string $entity, string $field, string $value): mixed`
+- `function applyJobEvidence(array $draft, array $response, array $criteria): array`
+- `function jobStructuredResponse(array $config, int $uid, string $instructions, array $input, array $schema): array`
+- `function verifiedJobImport(array $config, int $uid, string $url, array $criteria): array`
+- `function importSearchCriteria(mysqli $db, int $uid): array`
 - `function openAiJobSearch(array $config, int $userId, array $criteria): array`
+- `function visibleVerifiedJobs(array $jobs, array $criteria, int $now): array`
+- `function verifiedSearchScript(string $locale): string`
+- `function canonicalJobUrl(string $url): string`
+- `function advanceVerifiedJobSearch(array $config, int $uid, array &$state): void`
 - `function platformSearchUrl(array $platform, string $query, string $location, int $limit): string`
 - `function translationTargetOptions(mysqli $db, int $userId): array`
 - `function translationTargetExists(mysqli $db, int $userId, string $entityType, int $entityId): bool`
