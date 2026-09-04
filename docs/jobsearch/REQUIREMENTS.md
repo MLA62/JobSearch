@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.0.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.1.
+
+Ergänzung 2.1.1: Länger dauernde KI-Aktionen zeigen modal `In Arbeit` mit sichtbarer
+Aktivität und Abbrechen. Die Fusszeile jeder Seite nennt OpenAI und das konfigurierte Modell.
+Sie zeigt außerdem den geschätzten Rest des für JeMa Jobs konfigurierten App-Kontingents in
+Prozent. Die Schätzung basiert auf den von der App seit 2.1.1 erfassten Response-Tokenzahlen und
+den konfigurierten Modellpreisen; sie darf nicht als OpenAI-Abrechnungssaldo bezeichnet werden.
 Diese Anforderungen beschreiben das gewollte Verhalten. Abweichungen des Bestands stehen in PROGRAMMDOKUMENTATION.md.
 
 ## Produkt und Grenzen

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.1.0'=>"\$codeVersion = '2.1.0'",
+    'version 2.1.1'=>"\$codeVersion = '2.1.1'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
