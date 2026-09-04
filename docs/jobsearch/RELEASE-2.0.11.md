@@ -17,7 +17,9 @@ Zielzahl, Abbruch, Dienstfehler oder Sitzungsablauf können vor vollständiger Q
 
 ## Deployment und Rückweg
 
-Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe, neue externe TOTP-Freigabe erforderlich. Quell-Commit und Uploadnachweis folgen.
+Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Exakter Upload aus Quell-Commit e0a6c38b9edd73e5b6d93da43addb95a2631ece3 vorgeschlagen; lokal und GitHub synchron. Neue externe TOTP-Freigabe erforderlich, noch nicht ausgeführt.
+996248 Bytes, SHA-256 b95e3dccb675b2782649c1d5e1f6f5497217f8d172b80885595943c83a3122e2.
+Remote-Vergleich vor Vorschlag bestätigte unveränderten Stand 2.0.10. Live-Verifikation folgt nach Freigabe und Ausführung.
 
 Vorheriger bestätigter Stand 2.0.10: Quell-Commit 3e6524b3e5a874f255f5614584536279e6817597,
 993558 Bytes, Modus 0644, SHA-256 aa8e9d3ae53fb2b7093be014c11c26109c92663b82c5b28f6dadfe3107c2be97.
