@@ -4246,6 +4246,21 @@ function secretKey(array $config): string
     return hash('sha256', $seed, true);
 }
 
+function openAiConnectionCheck(array $config, int $userId): array
+{
+    $apiKey = trim((string) ($config['openai_api_key'] ?? ''));
+    if ($apiKey === '') throw new RuntimeException('KI-Schlüssel ist nicht serverseitig konfiguriert.');
+    if (!extension_loaded('curl')) throw new RuntimeException('Die PHP-cURL-Erweiterung ist nicht verfügbar.');
+    $payload = json_encode(['model'=>(string)($config['openai_model'] ?? 'gpt-5.6-luna'),'store'=>false,'max_output_tokens'=>16,'reasoning'=>['effort'=>'low'],'safety_identifier'=>hash('sha256', 'jema-jobs-admin:' . $userId),'input'=>'Reply only with PONG.'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    $handle = curl_init('https://api.openai.com/v1/responses');
+    curl_setopt_array($handle, [CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>30,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+    $raw = curl_exec($handle); $status = (int)curl_getinfo($handle, CURLINFO_RESPONSE_CODE); $error = curl_error($handle); curl_close($handle);
+    if (!is_string($raw) || $status < 200 || $status >= 300) throw new RuntimeException('KI-Verbindung fehlgeschlagen (HTTP '.$status.($error !== '' ? ': '.$error : '').').');
+    $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    if (($response['status'] ?? '') !== 'completed' || !is_string($response['id'] ?? null)) throw new RuntimeException('Die KI-Antwort wurde nicht abgeschlossen.');
+    return ['model'=>(string)($response['model'] ?? 'unknown'),'response_id'=>(string)$response['id']];
+}
+
 function encryptSecret(array $config, string $plain): ?string
 {
     if ($plain === '') {
@@ -8524,6 +8539,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=workflow_review');
     }
 
+    if ($action === 'test_openai_connection') {
+        requireLogin();
+        if (userId() !== realUserId() || !isAdmin($db, userId(), $config)) { http_response_code(403); exit('Forbidden'); }
+        try {
+            $result = openAiConnectionCheck($config, userId());
+            audit($db, userId(), 'other', 'openai_connection', 0, null, ['model'=>$result['model'],'response_id'=>$result['response_id']]);
+            flash('OpenAI-Verbindung erfolgreich: ' . $result['model']);
+        } catch (Throwable $exception) {
+            error_log('OpenAI connection test failed: ' . $exception->getMessage());
+            flash('OpenAI-Verbindung fehlgeschlagen. Prüfe die geschützte Serverkonfiguration und das Fehlerprotokoll.', 'danger');
+        }
+        redirect('/?page=admin_ai');
+    }
+
     if ($action === 'register') {
         $email = strtolower(trim((string) $_POST['email']));
         $first = trim((string) $_POST['first_name']);
@@ -10941,7 +10970,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '1.18.1';
+$codeVersion = '2.0.0';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -11355,7 +11384,7 @@ startUiTranslationBuffer($appLocale);
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.application')) ?></button><div class="menu-panel"><a href="/?page=jobs"><?= e(tr('nav.jobs')) ?></a><a href="/?page=job_platform_search"><?= e(tr('nav.job_search')) ?></a><a href="/?page=applications"><?= e(tr('nav.applications')) ?></a></div></div>
             <a class="menu-trigger" href="/?page=calendar&view=agenda"><?= e(tr('nav.calendar')) ?></a>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.reporting')) ?></button><div class="menu-panel"><a href="/?page=reports"><?= e(tr('nav.reports')) ?></a><a href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs_pdf')) ?></a><a href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications_pdf')) ?></a></div></div>
-            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><?php endif; ?></div></div>
+            <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.account')) ?></button><div class="menu-panel"><a href="/?page=profile"><?= e(tr('nav.profile')) ?></a><?php if ($currentUserIsAdmin): ?><a href="/?page=admin_users"><?= e(tr('nav.admin_users')) ?></a><a href="/?page=admin_job_platforms"><?= e(tr('nav.admin_job_platforms')) ?></a><a href="/?page=admin_ai">JeMa Jobs KI</a><?php endif; ?></div></div>
             <div class="menu-group"><button type="button" class="menu-trigger"><?= e(tr('nav.help')) ?></button><div class="menu-panel menu-panel-right"><a href="/?page=help"><?= e(tr('nav.help')) ?></a><a href="/?page=about"><?= e(tr('nav.about')) ?></a></div></div>
         </nav>
         <?php if($supportImpersonating): ?>
@@ -11846,6 +11875,10 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('privacy.section')) ?></p><h1><?= e(tr('privacy.title')) ?></h1></div><span><?= e(bytesLabel($usage)) ?> / <?= e(bytesLabel($quotaBytes)) ?></span></div>
         <div class="split"><section class="panel"><h2><?= e(tr('privacy.storage_quota')) ?></h2><p><?= e(tr('privacy.used_percent', null, ['percent' => number_format($quotaBytes > 0 ? ($usage / $quotaBytes) * 100 : 0, 1)])) ?></p><progress max="<?= (int)$quotaBytes ?>" value="<?= (int)$usage ?>" style="width:100%"></progress><div class="actions"><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('privacy.export_audit')) ?></a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('privacy.export_applications')) ?></a></div></section><section class="panel"><h2><?= e(tr('privacy.request_cleanup')) ?></h2><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><label><?= e(tr('privacy.older_than')) ?><input type="date" name="cutoff_date" value="<?= e((new DateTimeImmutable('-6 months'))->format('Y-m-d')) ?>" required></label><button class="primary" name="action" value="request_cleanup"><?= e(tr('privacy.create_preview_request')) ?></button></form></section></div>
         <section class="panel table-wrap"><h2><?= e(tr('privacy.cleanup_requests')) ?></h2><div class="actions export-actions"><?= sfToolbar('cleanup_requests', $cleanupSf, $cleanupPreserve, $cleanupSfFields) ?></div><table><thead><tr><?= sfHeader('cleanup_requests','cutoff_date',tr('privacy.cutoff_date'),$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','status',tr('common.status'),$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','preview_text',tr('common.preview'),$cleanupSf,$cleanupPreserve) ?><?= sfHeader('cleanup_requests','created_at',tr('common.created'),$cleanupSf,$cleanupPreserve) ?></tr></thead><tbody><?php foreach($cleanupRequests as $request): ?><tr><td><?= e($request['cutoff_date']) ?></td><td><?= e($request['status']) ?></td><td><small><?= e($request['preview_text']) ?></small></td><td><?= e(displayDateTime($request['created_at'], $currentUser)) ?></td></tr><?php endforeach; ?><?php if(!$cleanupRequests): ?><tr><td colspan="4" class="empty"><?= e(tr('privacy.no_cleanup_requests')) ?></td></tr><?php endif; ?></tbody></table></section>
+    <?php elseif ($page === 'admin_ai'): ?>
+        <?php if (!$currentUserIsAdmin || userId() !== realUserId()) { http_response_code(403); exit('Forbidden'); } ?>
+        <div class="page-head"><div><p class="eyebrow">JeMa Jobs KI</p><h1>KI-Verbindung testen</h1></div><span>Nur Administratoren</span></div>
+        <section class="panel"><h2>Serverseitiger Verbindungstest</h2><p>Der Test sendet eine minimale Anfrage an OpenAI. Der API-Schlüssel bleibt ausschliesslich in der geschützten Serverkonfiguration.</p><p class="meta-line">Es werden keine Bewerbungsdaten, Dokumente oder Stelleninhalte übertragen.</p><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="test_openai_connection">OpenAI-Verbindung testen</button></form></section>
     <?php elseif ($page === 'admin_job_platforms'): ?>
         <?php
         if (!$currentUserIsAdmin) {
