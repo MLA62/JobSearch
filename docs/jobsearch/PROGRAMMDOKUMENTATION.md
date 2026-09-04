@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.11 vorbereitet, noch nicht deployed. Bestätigter Live-Stand 2.0.10. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.11 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldeter Test der Quellenverteilung und Erfolgsanzeige noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Gleichmäßige Quellenverteilung und Erfolg 2.0.11 (vorbereitet)
+## Gleichmäßige Quellenverteilung und Erfolg 2.0.11 (deployed)
 
 Mindestens ein akzeptierter verifizierter Treffer bedeutet Sucherfolg, unabhängig von Zielzahl oder späteren Abruffehlern. Das Modal zeigt den Erfolg bereits während der weiteren Suche, bei begrenztem Abschluss und nach späterem Abbruch des Dienstes. Ohne Treffer wird zwischen abgeschlossener Suche ohne Ergebnis und technischem Fehler unterschieden. Die Suche endet nicht schon beim ersten Treffer; das Ziel bleibt unverändert. Der Debugbericht führt successful getrennt vom technischen status (laufend/abgeschlossen/fehlgeschlagen). Fehler werden nicht unterdrückt und unprüfbare Jobs bleiben ausgeschlossen.
 
