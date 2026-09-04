@@ -1,6 +1,6 @@
 # Version 2.0.15 – Mehr aktuelle brauchbare Treffer
 
-Stand: 2026-09-04. Für das Deployment vorbereitet; externe TOTP-Freigabe, Upload und Live-Prüfung stehen noch aus.
+Stand: 2026-09-04. Nach externer TOTP-Freigabe deployed.
 
 ## Diagnose
 
@@ -19,4 +19,8 @@ Der produktive 2.0.14-Bericht schloss alle 16 Quellen ab: 52 geprüfte Kandidate
 
 Alle 26 PHP-Testdateien liefen ohne Warnungen durch. Die 46 Verifikations-, 27 Vertrags- und 27 Diagnoseprüfungen sowie der erweiterte integrierte Quellenlauf bestanden. Dieser gibt alle acht ungenutzten Plätze an eine weiterhin liefernde produktive Quelle zurück und erreicht das unveränderte Gesamtlimit 60. Beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit `--check` und `git diff --check` bestanden. Sechs Chromium-Suchdialog- und vier Chromium-Importdialogfälle bestanden. Externe Antworten sind simuliert; produktive Ausbeute und Laufzeit bleiben nach Deployment mit einem neuen angemeldeten Diagnosebericht zu prüfen.
 
-Geplant ist ausschließlich `public_html/jobs.jema.business/index.php` inklusive generierter In-App-Hilfe. Quellcommit, Serverhash, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz werden nach Deployment ergänzt. Bestätigter vorheriger Live-Stand: Version 2.0.14. Keine Freigabe-ID in Git.
+Deployed wurde ausschließlich `public_html/jobs.jema.business/index.php` inklusive generierter In-App-Hilfe aus Quell-Commit `e956d55d8a24a3472b1ed6e76f19c10178040805`. Keine Datenbank-, Konfigurations- oder Bestandsdatenänderung.
+
+Produktiver Stand: geändert `2026-09-04T19:29:00+00:00`, 1006770 Bytes, Modus 0644, SHA-256 `0d25bdaec2f5d81e70618d0837fbe481d65aaa1429d0785b2ce691bced16ce75`. Der Remote-Hash stimmt exakt mit dem freigegebenen Inhalt überein. Die öffentliche Loginseite liefert HTTP 200, zeigt Version 2.0.15 und enthält keinen sichtbaren PHP-Laufzeitfehler. Der anonyme Debug-Download liefert die Loginseite und keine JSON-Datei. Ein neuer angemeldeter Suchlauf bleibt als produktiver Ausbeute- und Laufzeitnachweis offen.
+
+Vorheriger bestätigter Live-Stand: Version 2.0.14. Rückweg ist ein separat freizugebender Upload der bestätigten 2.0.14-Datei. Keine Freigabe-ID in Git.

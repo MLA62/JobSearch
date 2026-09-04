@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.15 ist für das Deployment vorbereitet; bestätigter Live-Stand ist 2.0.14. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.15 ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Frische Kandidaten und Restbudget 2.0.15 (Deployment ausstehend)
+## Frische Kandidaten und Restbudget 2.0.15 (deployed)
 
 Der produktive Diagnosebericht aus 2.0.14 schloss 16 von 16 Quellen ab und erreichte sieben
 brauchbare Treffer bei 52 geprüften Kandidaten. Von neun vollständig bewertbaren Anzeigen waren
@@ -29,6 +29,10 @@ bevorzugt; spätestens nach dem dritten Vertiefungsdurchgang endet die Suche.
 Zusammenfassungen dürfen bis zu 2000 Zeichen enthalten und nutzen maximal zwölf sichtbare
 Tabellenzeilen. Übersetzung und Primärbewertung verwenden dasselbe Limit. Keine DB-,
 Konfigurations- oder Bestandsdatenänderung.
+
+Das Deployment vom 04.09.2026 bestätigte die exakte Serverdatei, Version 2.0.15 auf der
+öffentlichen Loginseite sowie den Login-Schutz des Debug-Downloads. Ein neuer angemeldeter
+Suchlauf bleibt als produktiver Ausbeute- und Laufzeitnachweis offen.
 
 ## Frühe Resultate und Lohnbelege 2.0.14 (deployed)
 

@@ -1,8 +1,8 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.0.15 mit bis zu zwölfzeiliger Zusammenfassung und ergiebigerer Frische-/Restbudgetsuche ist für das Deployment vorbereitet. Bestätigter Live-Stand ist 2.0.14.
+Stand: 04.09.2026. Version 2.0.15 mit bis zu zwölfzeiliger Zusammenfassung und ergiebigerer Frische-/Restbudgetsuche ist deployed. Serverdatei, öffentliche Versionsanzeige, Login und anonymer Zugriffsschutz des Debug-Downloads sind bestätigt.
 Aktueller Nachweis: [Release 2.0.15](docs/jobsearch/RELEASE-2.0.15.md). Vorheriger bestätigter Live-Stand: [2.0.14](docs/jobsearch/RELEASE-2.0.14.md).
-Deployment, Live-Prüfung und ein neuer angemeldeter produktiver Suchlauf bleiben bis zur externen Freigabe offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
+Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
