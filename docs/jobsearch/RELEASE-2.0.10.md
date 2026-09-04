@@ -17,7 +17,9 @@ Der neue Teilbericht von 2.0.9 zeigt fünf akzeptierte Treffer, zwei Profilableh
 
 ## Deployment und Rückweg
 
-Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Neue externe TOTP-Freigabe erforderlich. Quell-Commit und Uploadnachweis folgen.
+Nur public_html/jobs.jema.business/index.php inklusive generierter Hilfe. Exakter Upload aus Quell-Commit 3e6524b3e5a874f255f5614584536279e6817597 vorgeschlagen; lokal und GitHub synchron. Neue externe TOTP-Freigabe erforderlich, noch nicht ausgeführt.
+993558 Bytes, SHA-256 aa8e9d3ae53fb2b7093be014c11c26109c92663b82c5b28f6dadfe3107c2be97.
+Remote-Vergleich vor Vorschlag bestätigte unveränderten Stand 2.0.9. Keine Konfigurationsdatei im Upload. Live-Verifikation folgt nach Freigabe und Ausführung.
 
 Vorheriger bestätigter Stand 2.0.9: Quell-Commit 8ba5f83dac37eeb9ef33a4dab2a990b641dca833,
 990795 Bytes, Modus 0644, SHA-256 86426e9f82a8b78a2b0bf7d983af916a9d7763deac506d01c298941dc5882b60.
