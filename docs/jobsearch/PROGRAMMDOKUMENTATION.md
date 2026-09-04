@@ -1,6 +1,14 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.5 ist zur Bereitstellung vorbereitet; 2.1.4 ist der zuvor bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.6 ist zur Bereitstellung vorbereitet; 2.1.5 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+
+## Native Bewerbungsvorbereitung 2.1.6
+
+`Bewerbung vorbereiten` wird nach zwei Renderzyklen für das sichtbare Arbeitsmodal als normale
+Browser-Formularnavigation abgeschickt. Der Submit-Buttonwert wird dafür als verborgenes
+Aktionsfeld mitgesendet. Damit folgt Safari der serverseitigen Weiterleitung selbst; clientseitige
+Fetch-Auswertung und JSON-Parsing liegen nicht mehr im kritischen Navigationspfad. `Abbrechen`
+stoppt eine noch laufende Navigation mit `window.stop()`.
 
 ## Zielnavigation nach Bewerbungsvorbereitung 2.1.5
 

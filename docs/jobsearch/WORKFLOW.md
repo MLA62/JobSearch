@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.5.
+Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.6.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 
@@ -11,7 +11,7 @@ Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.5.
 ## Textvorbereitung mit KI
 
 - Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
-- Der asynchrone Aufruf erhält sein Navigationsziel als explizite Serverantwort und öffnet danach den erstellten oder vorhandenen Bewerbungsdatensatz.
+- Nach dem sichtbaren Arbeitsdialog sendet der Browser `Bewerbung vorbereiten` als normale Formularnavigation. Dadurch folgt er der serverseitigen Weiterleitung direkt zum erstellten oder vorhandenen Bewerbungsdatensatz.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
 - Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Bleibt sie leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.

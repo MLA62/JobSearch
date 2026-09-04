@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.5 ist dokumentiert und zur Bereitstellung vorbereitet.
-Version 2.1.4 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.6 ist dokumentiert und zur Bereitstellung vorbereitet.
+Version 2.1.5 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -45,11 +45,20 @@ Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentrale
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
 
+## Pruefstand 2.1.6
+
+- `Bewerbung vorbereiten` nutzt nach dem Modal eine native Browser-Formularnavigation und folgt
+  damit der serverseitigen Weiterleitung ohne clientseitiges Fetch-Parsing.
+- Der Vertragstest prüft Aktionsfeld, native Übermittlung und Abbruch der Navigation.
+
 ## Pruefstand 2.1.5
 
 - Die asynchrone Bewerbungsvorbereitung liefert ein explizites Navigationsziel auf den erzeugten
   oder vorhandenen Bewerbungsdatensatz.
 - Der Browser wertet dieses Ziel aus, ergänzt den Cache-Buster und öffnet die Bewerbung.
+- Alle 28 PHP-Testdateien, PHP-Syntax, Hilfe- und Referenzgeneratoren sowie `git diff --check`
+  bestanden. Nach TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200,
+  Version 2.1.5, KI-Modal und das Fehlen sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.4
 

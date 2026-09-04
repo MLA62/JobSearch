@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.5.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.6.
+
+Ergänzung 2.1.6: `Bewerbung vorbereiten` verwendet nach dem Anzeigen des Arbeitsdialogs eine
+normale Browser-Formularnavigation. Der Browser folgt der serverseitigen Weiterleitung direkt und
+öffnet den erzeugten oder vorhandenen Bewerbungsdatensatz. Der Abbruch kann die noch laufende
+Seitennavigation stoppen.
 
 Ergänzung 2.1.5: `Bewerbung vorbereiten` öffnet nach der Verarbeitung zwingend den neu erstellten
 oder bereits vorhandenen Bewerbungsdatensatz. Die asynchrone KI-Arbeitsanzeige darf nicht zur

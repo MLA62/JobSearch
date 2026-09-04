@@ -1,6 +1,6 @@
 # Version 2.1.5 – Navigation nach Bewerbungsvorbereitung
 
-Stand: 04.09.2026. Bereitstellungskandidat.
+Stand: 04.09.2026. Deployed.
 
 ## Änderungen
 
@@ -10,4 +10,8 @@ Stand: 04.09.2026. Bereitstellungskandidat.
 
 ## Qualität und Deployment
 
-PHP-Syntax, alle Vertragstests, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff werden vor dem Deployment geprüft. Nach TOTP-Freigabe wird ausschließlich `public_html/jobs.jema.business/index.php` ersetzt und anschließend verifiziert.
+PHP-Syntax, alle 28 Vertragstests, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff wurden
+geprüft. Nach TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` aus
+dem geprüften Release-Commit ersetzt. Die Produktionsdatei entspricht exakt dem lokalen
+Release-Stand. Die öffentliche Seite liefert HTTP 200, zeigt Version 2.1.5 und das KI-Modal und
+enthält keinen sichtbaren PHP-Laufzeitfehler.

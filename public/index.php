@@ -12676,7 +12676,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.5';
+$codeVersion = '2.1.6';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14725,6 +14725,7 @@ startUiTranslationBuffer($appLocale);
     const abortButton = dialog?.querySelector('[data-ai-work-abort]');
     const aiActions = new Set(['start_application', 'revise_application_texts_ai', 'suggest_job_search_criteria']);
     let controller = null;
+    let nativeNavigationPending = false;
     if (!dialog || !abortButton) return;
     dialog.addEventListener('cancel', event => event.preventDefault());
     document.addEventListener('click', async event => {
@@ -14743,6 +14744,20 @@ startUiTranslationBuffer($appLocale);
         if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
         try {
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            if (action === 'start_application') {
+                let actionInput = form.querySelector('input[data-ai-native-action]');
+                if (!actionInput) {
+                    actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.dataset.aiNativeAction = '1';
+                    form.appendChild(actionInput);
+                }
+                actionInput.value = action;
+                nativeNavigationPending = true;
+                HTMLFormElement.prototype.submit.call(form);
+                return;
+            }
             const response = await fetch(form.action || window.location.href, {
                 method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal
             });
@@ -14761,6 +14776,10 @@ startUiTranslationBuffer($appLocale);
         }
     });
     abortButton.addEventListener('click', () => {
+        if (nativeNavigationPending) {
+            window.stop();
+            nativeNavigationPending = false;
+        }
         controller?.abort();
         if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
         document.body.classList.remove('modal-open');
