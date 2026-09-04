@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.10 vorbereitet; noch nicht deployed. Bestätigter Live-Stand 2.0.9. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.10 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldete Prüfung des Quellenwechsels noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Quellenwechsel 2.0.10 (vorbereitet)
+## Quellenwechsel 2.0.10 (deployed)
 
 Bei mehreren Quellen zählt source_raw die gelieferten URL-Kandidaten vor Dubletten-/Benutzerausschluss und Original-/Match-Prüfung. Nach insgesamt zehn rohen Treffern der Quelle wird deren Prüfwarteschlange abgearbeitet und anschließend zur nächsten ausgewählten Quelle gewechselt. Discovery fragt nur die verbleibende Anzahl an; serverseitiges Abschneiden begrenzt übergroße Antworten. Kleine Antworten können bis zur bisherigen Drei-Runden-Grenze ergänzt werden. Keine neuen Kandidaten bedeutet weiterhin früherer Wechsel. Einzelsuche bleibt bei bisherigen 15 Kandidaten je Discovery-Runde.
 
