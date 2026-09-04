@@ -1,6 +1,6 @@
 # Version 2.0.13 – Adaptive Quellen für mehr brauchbare Treffer
 
-Stand: 2026-09-04. Vorbereitet, noch nicht deployed.
+Stand: 2026-09-04. Nach externer TOTP-Freigabe deployed.
 
 ## Diagnose
 
@@ -18,6 +18,8 @@ Der bereitgestellte produktive Bericht aus 2.0.12 zeigt bei Ziel 20 insgesamt 53
 
 Alle 26 PHP-Testdateien liefen ohne Warnungen durch. Die 41 Verifikationsprüfungen, der adaptive Quellenlauf, 27 Diagnoseprüfungen, beide Syntaxprüfungen, beide Dokumentationsgeneratoren mit `--check` und `git diff --check` bestanden. Sechs Chromium-Suchdialog- und vier Chromium-Importdialogfälle bestanden. Die adaptiven Netzwerkergebnisse sind deterministisch simuliert; ein neuer produktiver Suchlauf samt Diagnosebericht bleibt nach Deployment erforderlich.
 
-Keine Datenbank-, Konfigurations- oder Bestandsdatenänderung. Deploymentziel bleibt ausschließlich `public_html/jobs.jema.business/index.php` inklusive generierter Hilfe. Exakter Quell-Commit, Hash, externe TOTP-Freigabe, Remotevergleich und öffentliche Prüfung folgen nach vollständiger lokaler Verifikation.
+Keine Datenbank-, Konfigurations- oder Bestandsdatenänderung. Deployed wurde ausschließlich `public_html/jobs.jema.business/index.php` inklusive generierter Hilfe aus Quell-Commit `cf265e5582751719c61af55f07dd52877d84af73`.
+
+Produktiver Stand: geändert `2026-09-04T18:39:11+00:00`, 1002835 Bytes, Modus 0644, SHA-256 `c84e555ef15df3e419903c3baaa9ecdf78b9922ff71f30978e94ae318cd0f973`. Der Remote-Hash stimmt exakt mit dem freigegebenen Inhalt überein. Die öffentliche Loginseite liefert HTTP 200, zeigt Version 2.0.13 und enthält keinen sichtbaren PHP-Laufzeitfehler. Der anonyme Debug-Download liefert die Loginseite und keine JSON-Datei. Ein neuer angemeldeter produktiver Suchlauf samt Diagnosebericht bleibt offen.
 
 Vorheriger bestätigter Live-Stand: Version 2.0.12. Rückweg ist ein separat freizugebender Upload der bestätigten 2.0.12-Datei. Keine Freigabe-ID in Git.
