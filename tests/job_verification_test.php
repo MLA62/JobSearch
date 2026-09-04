@@ -3,6 +3,10 @@ declare(strict_types=1);
 require __DIR__.'/help_test_support.php';
 foreach (['jobDisplayText','findJobPosting','readableText','jobAvailability','jobMatchCriteria','jobEvidenceQuote','jobEvidenceScore','jobFactFields','jobFactValue','applyJobEvidence','canonicalJobUrl','sortJobMatches','visibleVerifiedJobs','jobSearchDebugSource','jobSearchDebugError','jobSearchDebugEvent','advanceVerifiedJobSearch'] as $name) helpLoadFunction($name);
 $now=strtotime('2026-09-04T12:00:00Z');
+if (in_array('--availability-probe',$argv,true)) {
+    echo json_encode(jobAvailability(stream_get_contents(STDIN),time()),JSON_THROW_ON_ERROR);
+    exit;
+}
 $ad=static fn(array $fields,string $body=''):string=>'<html><script type="application/ld+json">'.json_encode(['@type'=>'JobPosting','title'=>'Sales Manager']+$fields).'</script><main>'.$body.'</main></html>';
 foreach ([
     [$ad(['validThrough'=>'2099-12-31'],'Inserat abgelaufen'),'expired'],
@@ -13,6 +17,16 @@ foreach ([
     [$ad([]),'unknown'],
     [$ad([],'<a href="/apply">Apply</a>'),'available'],
     [$ad([],'<button disabled>Apply</button>'),'unknown'],
+    [$ad([],'<div hidden><button>Apply</button></div>'),'unknown'],
+    [$ad([],'<div aria-hidden="true"><a href="/apply">Apply</a></div>'),'unknown'],
+    [$ad([],'<fieldset disabled><button>Apply</button></fieldset>'),'unknown'],
+    [$ad(['validThrough'=>'2099-12-31'],'Es werden keine Bewerbungen mehr angenommen.'),'expired'],
+    [$ad([],'Ne prend rien. Cette entreprise n’accepte plus de candidatures.'),'expired'],
+    [$ad([],'Não aceita mais candidaturas'),'expired'],
+    [$ad([],'Ya no se aceptan solicitudes'),'expired'],
+    [$ad([]).'<button data-modal="job-details-topcard-apply-modal">Bewerben</button>','available'],
+    [$ad([]).'<button hidden data-modal="job-details-topcard-apply-modal">Bewerben</button>','unknown'],
+    ['<button data-modal="job-details-topcard-apply-modal">Bewerben</button>','unknown'],
 ] as [$html,$expected]) helpAssert(jobAvailability($html,$now)['status']===$expected,'Availability: '.$expected);
 $criteria=['query'=>'Sales Manager','location'=>'Bern'];
 $sources=[['id'=>'original','text'=>'Sales Manager in Bern. Full time 100%.'],['id'=>'company_1','text'=>'Sales Manager in Bern.']];
@@ -69,4 +83,12 @@ $failure=$state;$failure['done']=false;$failure['queue']=[];$failure['source_ind
 try { advanceVerifiedJobSearch([],7,$failure); throw new LogicException('Service error swallowed'); }
 catch (RuntimeException $error) { helpAssert(end($failure['debug_events'])['stage']==='discovery' && end($failure['debug_events'])['code']==='ai_service_error','Service failure leaves diagnostic event before propagation, not a portal block'); }
 unset($GLOBALS['discoveryFixtureError']);
+$GLOBALS['verificationFixtureError']=new RuntimeException('Match-Antwortformat ungültig: Kriterienzuordnung.');
+$contractFailure=$state; $contractFailure['done']=false; $contractFailure['queue']=['https://example.test/contract'];
+try { advanceVerifiedJobSearch([],7,$contractFailure); throw new LogicException('Broken contract silently skipped'); }
+catch (RuntimeException $error) {
+    helpAssert(end($contractFailure['debug_events'])['code']==='match_contract_error','Broken match contract recorded and surfaced');
+    helpAssert($contractFailure['rejected']===$state['rejected'],'Technical contract failure is not a profile rejection');
+}
+unset($GLOBALS['verificationFixtureError']);
 echo "$helpChecks verification checks passed\n";

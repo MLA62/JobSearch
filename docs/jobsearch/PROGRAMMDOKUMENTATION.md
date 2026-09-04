@@ -1,8 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.8 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Angemeldete Abnahme offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.9 vorbereitet, noch nicht deployed; bestätigter Live-Stand 2.0.8. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
+
+## Match-Vertrag 2.0.9 (vorbereitet)
+
+Der bereitgestellte Diagnosebericht aus 2.0.8 zeigt 30 Versuche, davon 23 ohne belegbare Verfügbarkeit, sechs technische Kriterienfehler und einen HTTP-404. Keine abgeschlossene Match-Bewertung; das ist kein Nachweis für 30 unpassende Jobs. Die sechs Fehler entsprechen exakt der Meldung über ungültige oder doppelte Match-Kriterien. Der Bericht enthält keine vollständigen URLs; die 23 konkreten Anzeigen können daraus nicht erneut abgerufen werden.
+
+verifiedJobImport baut checks jetzt als strikt geschlossenes JSON-Objekt mit genau den aktiven Kriteriennamen als Pflichtschlüsseln. Die KI benennt diese Schlüssel nicht selbst; jobVerificationChecks validiert Schlüssel, Anzahl, Typen und Urteile nochmals und überführt sie in das bisherige interne Bewertungsformat. Ein leeres Profil erhält keine erfundene Prozentzahl. Belegprüfung, Gewichte, Schwelle, Datenbank-Schreibweg und Quellensuchreihenfolge bleiben unverändert. Fehler im Antwortvertrag werden als match_contract_error protokolliert und sichtbar gemeldet; die Suche verarbeitet dann nicht still weitere Anzeigen als Ablehnungen. Keine automatischen kostenpflichtigen Wiederholungsaufrufe.
+
+Verfügbarkeit: Zusätzliche lokalisierte Hinweise auf geschlossene Bewerbungen haben Vorrang vor Frist/CTA. LinkedIn-Job-Bewerbungsbuttons außerhalb von main werden bei vorhandenen JobPosting-Metadaten erkannt. Explizit versteckte, inaktive oder deaktivierte Bedienelemente zählen nicht. Das ist eine HTML-basierte Prüfung, keine Browserausführung und keine Garantie, dass eine Stelle noch unbesetzt ist. Unprüfbare Anzeigen bleiben ausgeschlossen. Diagnose führt die gelesene Quellenkette und den tatsächlichen letzten Prüfschritt auch beim Abbruch mit.
 
 ## Suchdiagnose 2.0.8 (deployed)
 

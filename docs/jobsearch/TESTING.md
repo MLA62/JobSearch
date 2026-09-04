@@ -5,6 +5,15 @@ Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 ## Automatisierte Basis
 
+Ergänzung 2.0.9: `job_verification_contract_test.php` führt den echten verifiedJobImport,
+die Schemaerzeugung, den Responses-Payload und die Antwort-zu-Score-Konvertierung aus.
+Nur HTML-/HTTP-Grenzen sind simuliert. Pflichtschlüssel, geschlossene Objekte, leeres
+Profil, falsche/übersetzte/doppelte/fehlende Kriterien, Typfehler und falsche Belege testen.
+`job_verification_test.php` prüft zusätzlich lokalisierte Ablaufhinweise, explizit versteckte
+und deaktivierte CTAs sowie die Weitergabe eines Vertragsfehlers statt stiller Ablehnung.
+Option `--availability-probe` liest öffentliches HTML ausschließlich von STDIN und gibt
+den echten Verfügbarkeitsentscheid aus; keine Produktionsdaten oder Zugangsdaten speichern.
+
 Ergänzung 2.0.8: `job_search_debug_test.php` prüft Datenschutz-Feldliste,
 Fehlerklassifikation, fehlende Funktionen/Klassen, Eigentümerprüfung, fehlende historische
 Reports, Ringpuffer und Download-Headervertrag. Der Chromium-Suchdialogtest lädt echte

@@ -31,6 +31,8 @@ Schweizer Regionsliste enthaelt Bern Stadt, Region Biel und Region Solothurn.
 
 ## Firmen, Stellen und Kontakte
 
+Ergänzung 2.0.9: Jeder aktive Match-Kriterienname ist im technischen Antwortvertrag fest vorgegeben und genau einmal erforderlich. Fehler in diesem Vertrag sind sichtbare technische Fehler, keine fachliche Profilablehnung. Unprüfbare Anzeigen bleiben ausgeschlossen; zusätzliche Erkennungsregeln dürfen keine unbelegte Verfügbarkeit behaupten.
+
 Ergänzung 2.0.8: Downloadbarer Diagnosebericht zur Suche, damit tatsächliche
 Profilablehnungen von Abruf-/Prüffehlern unterschieden werden können. Nur die eigene
 Sitzung exportieren, keine Zugangsdaten oder vollständigen Profil-/Inserat-/Kontakttexte.

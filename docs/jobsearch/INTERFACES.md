@@ -444,6 +444,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobFactValue(string $entity, string $field, string $value): mixed`
 - `function applyJobEvidence(array $draft, array $response, array $criteria): array`
 - `function jobStructuredResponse(array $config, int $uid, string $instructions, array $input, array $schema): array`
+- `function jobVerificationChecks(array $criteria, mixed $checks): array`
 - `function verifiedJobImport(array $config, int $uid, string $url, array $criteria, array &$diagnostic = []): array`
 - `function importSearchCriteria(mysqli $db, int $uid): array`
 - `function openAiJobSearch(array $config, int $userId, array $criteria): array`
