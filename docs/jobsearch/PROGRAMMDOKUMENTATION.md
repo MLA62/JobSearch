@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.6 ist zur Bereitstellung vorbereitet; 2.1.5 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.6 ist deployed. Produktionsdatei, öffentliche Versionsanzeige, KI-Modal und fehlende sichtbare PHP-Laufzeitfehler sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## Native Bewerbungsvorbereitung 2.1.6
 

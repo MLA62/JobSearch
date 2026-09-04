@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.6 ist dokumentiert und zur Bereitstellung vorbereitet.
-Version 2.1.5 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.6 ist dokumentiert und deployed.
+Produktionsdatei und öffentliche Version sind bestätigt; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -50,6 +50,9 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - `Bewerbung vorbereiten` nutzt nach dem Modal eine native Browser-Formularnavigation und folgt
   damit der serverseitigen Weiterleitung ohne clientseitiges Fetch-Parsing.
 - Der Vertragstest prüft Aktionsfeld, native Übermittlung und Abbruch der Navigation.
+- Alle 28 PHP-Testdateien, PHP-Syntax, Hilfe- und Referenzgeneratoren sowie `git diff --check`
+  bestanden. Nach TOTP-Freigabe wurden der identische lokale und produktive Release-Stand,
+  HTTP 200, Version 2.1.6, KI-Modal und das Fehlen sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.5
 

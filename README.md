@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.1.6 mit nativer Browsernavigation nach `Bewerbung vorbereiten` ist zur Bereitstellung vorbereitet.
-Aktueller Kandidat: [Release 2.1.6](docs/jobsearch/RELEASE-2.1.6.md). Bestätigter Live-Stand vor dieser Bereitstellung: [2.1.5](docs/jobsearch/RELEASE-2.1.5.md).
+Stand: 04.09.2026. Version 2.1.6 mit nativer Browsernavigation nach `Bewerbung vorbereiten` ist deployed.
+Aktueller Nachweis: [Release 2.1.6](docs/jobsearch/RELEASE-2.1.6.md). Vorheriger bestätigter Live-Stand: [2.1.5](docs/jobsearch/RELEASE-2.1.5.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
