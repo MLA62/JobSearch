@@ -1,6 +1,10 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.4.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.5.
+
+Ergänzung 2.1.5: `Bewerbung vorbereiten` öffnet nach der Verarbeitung zwingend den neu erstellten
+oder bereits vorhandenen Bewerbungsdatensatz. Die asynchrone KI-Arbeitsanzeige darf nicht zur
+aufrufenden Jobseite zurückführen, sofern kein fachlicher Fehler gemeldet wurde.
 
 Ergänzung 2.1.4: Ist das KI-Instruktionsfeld leer, erstellt die KI Betreff, Begleit-E-Mail und
 Motivationsschreiben vollständig neu aus den verfügbaren Bewerbungsdaten und übernimmt keine

@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.1.4 mit eindeutiger Neuerstellungs-/Überarbeitungslogik für KI-Bewerbungstexte ist deployed.
-Aktueller Nachweis: [Release 2.1.4](docs/jobsearch/RELEASE-2.1.4.md). Vorheriger bestätigter Live-Stand: [2.1.3](docs/jobsearch/RELEASE-2.1.3.md).
+Stand: 04.09.2026. Version 2.1.5 mit zuverlässiger Zielnavigation nach `Bewerbung vorbereiten` ist zur Bereitstellung vorbereitet.
+Aktueller Kandidat: [Release 2.1.5](docs/jobsearch/RELEASE-2.1.5.md). Bestätigter Live-Stand vor dieser Bereitstellung: [2.1.4](docs/jobsearch/RELEASE-2.1.4.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

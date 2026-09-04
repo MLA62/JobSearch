@@ -195,6 +195,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function localizedHelpTopics(string $locale): array`
 - `function localizedContextHelpTopics(string $locale): array`
 - `function redirect(string $path = '/'): never`
+- `function redirectAiFetch(string $path): never`
 - `function validCsrfToken(string $token): bool`
 - `function storeCsrfCookie(string $token): void`
 - `function csrfToken(): string`

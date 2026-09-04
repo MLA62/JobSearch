@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.1.4' => "\$codeVersion = '2.1.4'",
+    'version 2.1.5' => "\$codeVersion = '2.1.5'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
@@ -17,6 +17,9 @@ $checks = [
     'action button delegation' => "event.target.closest?.('button[name=\"action\"]')",
     'paint modal before request' => 'requestAnimationFrame(() => requestAnimationFrame(resolve))',
     'post-AI cache buster' => "target.searchParams.set('_ai_done'",
+    'explicit async marker' => "data.set('_ai_fetch', '1')",
+    'JSON redirect contract' => "function redirectAiFetch(string \$path): never",
+    'start application destination' => "redirectAiFetch('/?page=applications&edit='",
     'footer disclosure' => "tr('footer.ai_notice'",
     'manufacturer' => "'manufacturer'=>'OpenAI'",
 ];

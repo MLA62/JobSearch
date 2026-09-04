@@ -1,6 +1,13 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.4 ist deployed. Produktionsdatei, öffentliche Versionsanzeige und fehlende sichtbare PHP-Laufzeitfehler sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.5 ist zur Bereitstellung vorbereitet; 2.1.4 ist der zuvor bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+
+## Zielnavigation nach Bewerbungsvorbereitung 2.1.5
+
+Asynchrone KI-Aktionen kennzeichnen ihren Request. `Bewerbung vorbereiten` antwortet darauf mit
+einem JSON-Navigationsvertrag, der die ID des erzeugten oder bereits vorhandenen
+Bewerbungsdatensatzes enthält. Der Browser öffnet dieses Ziel nach Abschluss ausdrücklich und ist
+nicht mehr auf die vom Fetch-Client interpretierte Weiterleitung angewiesen.
 
 ## Neuerstellung oder instruktionsbasierte Überarbeitung 2.1.4
 

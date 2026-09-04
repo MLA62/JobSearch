@@ -2595,11 +2595,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.0' =>
   array (
-    'de-CH' => 'Beim Vorbereiten füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.',
-    'fr-CH' => 'Lors de la préparation, l’application préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.',
-    'en-GB' => 'When preparing an application, the app prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.',
-    'pt-BR' => 'Ao preparar a candidatura, o aplicativo preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.',
-    'es-MX' => 'Al preparar la solicitud, la aplicación completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.',
+    'de-CH' => 'Beim Vorbereiten öffnet die App nach Abschluss zuverlässig den erzeugten oder bereits vorhandenen Bewerbungsdatensatz und füllt Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.',
+    'fr-CH' => 'Après la préparation, l’application ouvre de manière fiable la candidature créée ou existante et préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.',
+    'en-GB' => 'After preparation, the app reliably opens the created or existing application and prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.',
+    'pt-BR' => 'Após a preparação, o aplicativo abre de forma confiável a candidatura criada ou existente e preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.',
+    'es-MX' => 'Después de la preparación, la aplicación abre de forma fiable la solicitud creada o existente y completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.',
   ),
   'help.v2.applications.steps.1' =>
   array (
@@ -4254,6 +4254,16 @@ function redirect(string $path = '/'): never
 {
     header('Location: ' . $path);
     exit;
+}
+
+function redirectAiFetch(string $path): never
+{
+    if (($_POST['_ai_fetch'] ?? '') === '1') {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['redirect' => $path], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    redirect($path);
 }
 
 function validCsrfToken(string $token): bool
@@ -11967,7 +11977,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (trim((string)($existing['email_subject'] ?? ''))==='' || trim((string)($existing['email_body'] ?? ''))==='' || trim((string)($existing['cover_letter_text'] ?? ''))==='') {
                 initializeApplicationTexts($config,$db,userId(),(int)$existing['id'],$currentUser ?? []);
             }
-            redirect('/?page=applications&edit=' . (int) $existing['id'] . '#application-form');
+            redirectAiFetch('/?page=applications&edit=' . (int) $existing['id'] . '#application-form');
         }
         $uid = userId();
         try {
@@ -11985,12 +11995,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
             $initialized=initializeApplicationTexts($config,$db,$uid,$applicationId,$currentUser ?? []);
             flash($initialized['ai'] ? tr('applications.prepared') : tr('applications.ai_initial_fallback'), $initialized['ai'] ? 'success' : 'warning');
-            redirect('/?page=applications&edit=' . $applicationId . '#application-form');
+            redirectAiFetch('/?page=applications&edit=' . $applicationId . '#application-form');
         } catch (Throwable $exception) {
             try { $db->rollback(); } catch (Throwable) {}
             error_log('Start application failed for job ' . $jobId . ': ' . $exception->getMessage());
             flash(tr('applications.prepare_failed'), 'danger');
-            redirect('/?page=jobs&edit=' . $jobId . '#new');
+            redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
         }
     }
 
@@ -12666,7 +12676,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.4';
+$codeVersion = '2.1.5';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14728,6 +14738,7 @@ startUiTranslationBuffer($appLocale);
         controller = new AbortController();
         const data = new FormData(form);
         data.set('action', action);
+        data.set('_ai_fetch', '1');
         document.body.classList.add('modal-open');
         if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
         try {
@@ -14736,7 +14747,12 @@ startUiTranslationBuffer($appLocale);
                 method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal
             });
             if (!response.ok) throw new Error('HTTP ' + response.status);
-            const target = new URL(response.url || window.location.href, window.location.href);
+            let redirectTarget = response.url || window.location.href;
+            if ((response.headers.get('content-type') || '').includes('application/json')) {
+                const result = await response.json();
+                if (typeof result.redirect === 'string' && result.redirect !== '') redirectTarget = result.redirect;
+            }
+            const target = new URL(redirectTarget, window.location.href);
             target.searchParams.set('_ai_done', Date.now().toString());
             if (!target.hash) target.hash = action === 'revise_application_texts_ai' ? 'application-texts' : 'application-form';
             window.location.assign(target.toString());

@@ -3,6 +3,9 @@
 Stand: 2026-09-04. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.1.5: `ai_progress_quota_test.php` prüft den asynchronen Request-Marker, den expliziten
+JSON-Navigationsvertrag und das Ziel auf den erstellten oder vorhandenen Bewerbungsdatensatz.
+
 Ergänzung 2.1.4: `application_ai_texts_test.php` prüft, dass ein leeres Instruktionsfeld den
 Neuerstellungsauftrag aktiviert und die bisherigen Texte dabei nicht an das Modell übermittelt
 werden. Der bestehende Vertrag für instruktionsbasierte Überarbeitungen bleibt geprüft.
