@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.2 ist dokumentiert und deployed.
-Produktionsdatei, öffentliche Version und KI-Fusszeile ohne Kontingentanzeige sind bestätigt; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.3 ist dokumentiert und zur Bereitstellung vorbereitet.
+Version 2.1.2 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -44,6 +44,12 @@ Workflowbereinigung und Hilfe/Lizenz.
 Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentralen Thema. Technische Export-/Callback-Endpunkte besitzen keine eigene kuenstliche Maske. Sicherheitsthemen sind zentral verfuegbar; die Glühbirne wird im aktuellen Layout nur bei angemeldeten Benutzern gezeigt.
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
+
+## Pruefstand 2.1.3
+
+- Die Vertragstests decken die mobile direkte Klickbehandlung, das vor dem Request gezeichnete
+  KI-Modal, die zuverlässige Neuladung nach Erfolg sowie leere und ausgefüllte KI-Instruktionen ab.
+- Externe OpenAI-Aufrufe und die Produktionsdatenbank werden durch diese Tests nicht verändert.
 
 ## Pruefstand 2.1.2
 

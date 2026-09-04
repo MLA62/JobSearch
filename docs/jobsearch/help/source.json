@@ -1,5 +1,5 @@
 {
-  "version": "2.1.2",
+  "version": "2.1.3",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -655,13 +655,13 @@
           "summary": "Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
           "steps": [
             "Beim Vorbereiten füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.",
-            "Passe die drei Texte direkt an oder beschreibe im zweizeiligen KI-Instruktionsfeld die gewünschte gemeinsame Überarbeitung; die App versendet dabei nichts.",
+            "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion wird diese sichtbar auf die passenden Felder angewendet, ohne Instruktion verbessert die KI alle drei Texte selbständig; die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
             "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
-            "Bei längeren KI-Arbeiten bleibt das Fenster In Arbeit offen. Abbrechen beendet das Warten im Browser und lädt die Seite neu."
+            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet."
           ]
         },
         "fr-CH": {
@@ -669,13 +669,13 @@
           "summary": "Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens → Acceptation ou refus.",
           "steps": [
             "Lors de la préparation, l’application préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.",
-            "Modifie directement les trois textes ou décris la révision commune souhaitée dans le champ d’instruction IA sur deux lignes; rien n’est envoyé à cette étape.",
+            "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, l’IA l’applique visiblement aux champs concernés; sans instruction, elle améliore elle-même les trois textes. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
             "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
-            "Lors d’un traitement IA plus long, la fenêtre Traitement en cours reste ouverte. Annuler interrompt l’attente dans le navigateur et recharge la page."
+            "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte."
           ]
         },
         "en-GB": {
@@ -683,13 +683,13 @@
           "summary": "Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or rejected.",
           "steps": [
             "When preparing an application, the app prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.",
-            "Edit the three texts directly or describe the requested joint revision in the two-line AI instruction field; nothing is sent at this stage.",
+            "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, AI visibly applies it to the relevant fields; without one, AI independently improves all three texts. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
             "Record each interview as a separate appointment and document acceptance or rejection."
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
-            "For longer AI work, the In progress window stays open. Abort stops waiting in the browser and reloads the page."
+            "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open."
           ]
         },
         "pt-BR": {
@@ -697,13 +697,13 @@
           "summary": "Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
           "steps": [
             "Ao preparar a candidatura, o aplicativo preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.",
-            "Edite os três textos diretamente ou descreva a revisão conjunta no campo de instrução de IA com duas linhas; nada é enviado nessa etapa.",
+            "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, a IA a aplica visivelmente aos campos relevantes; sem instrução, melhora os três textos por conta própria. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
             "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
-            "Em tarefas de IA mais longas, a janela Em andamento permanece aberta. Cancelar interrompe a espera no navegador e recarrega a página."
+            "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta."
           ]
         },
         "es-MX": {
@@ -711,13 +711,13 @@
           "summary": "Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
           "steps": [
             "Al preparar la solicitud, la aplicación completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.",
-            "Edita directamente los tres textos o describe la revisión conjunta en el campo de instrucción de IA de dos líneas; en esta etapa no se envía nada.",
+            "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, la IA la aplica visiblemente a los campos pertinentes; sin instrucción, mejora por sí sola los tres textos. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
             "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
-            "En tareas de IA más largas, la ventana En curso permanece abierta. Cancelar interrumpe la espera en el navegador y recarga la página."
+            "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual."
           ]
         }
       }

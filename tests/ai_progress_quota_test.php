@@ -7,12 +7,16 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.1.2' => "\$codeVersion = '2.1.2'",
+    'version 2.1.3' => "\$codeVersion = '2.1.3'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
     'abort controller' => 'new AbortController()',
     'AI actions' => "new Set(['start_application', 'revise_application_texts_ai', 'suggest_job_search_criteria'])",
+    'mobile-safe direct click handler' => "document.addEventListener('click', async event =>",
+    'action button delegation' => "event.target.closest?.('button[name=\"action\"]')",
+    'paint modal before request' => 'requestAnimationFrame(() => requestAnimationFrame(resolve))',
+    'post-AI cache buster' => "target.searchParams.set('_ai_done'",
     'footer disclosure' => "tr('footer.ai_notice'",
     'manufacturer' => "'manufacturer'=>'OpenAI'",
 ];

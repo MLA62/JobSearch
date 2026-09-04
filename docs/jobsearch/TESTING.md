@@ -7,6 +7,10 @@ Ergänzung 2.1.2: `ai_progress_quota_test.php` prüft Version, modalen KI-Arbeit
 Abbruchsteuerung, KI-Hersteller-/Modellkennzeichnung sowie das Fehlen der unzuverlässigen
 Prozent-/Kontingentanzeige. Die Prüfung ruft weder OpenAI noch die Produktionsdatenbank auf.
 
+Ergänzung 2.1.3: Die Vertragstests prüfen die direkte mobile Klickverdrahtung, das Zeichnen des
+Modals vor dem Request, den Cache-Buster nach erfolgreicher KI-Antwort und das definierte Verhalten
+für ausgefüllte sowie leere KI-Instruktionen.
+
 ## Automatisierte Basis
 
 Ergänzung 2.1.0: `application_ai_texts_test.php` prüft Versionsstand, strukturierte

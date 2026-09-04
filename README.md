@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.1.2 mit KI-Arbeitsdialog und ehrlicher KI-Kennzeichnung ohne unzuverlässige Kontingentanzeige ist deployed.
-Aktueller Nachweis: [Release 2.1.2](docs/jobsearch/RELEASE-2.1.2.md). Vorheriger bestätigter Live-Stand: [2.1.1](docs/jobsearch/RELEASE-2.1.1.md).
+Stand: 04.09.2026. Version 2.1.3 mit mobil zuverlässiger KI-Textaktion und vor dem Aufruf sichtbarem Arbeitsdialog ist zur Bereitstellung vorbereitet.
+Aktueller Kandidat: [Release 2.1.3](docs/jobsearch/RELEASE-2.1.3.md). Bestätigter Live-Stand vor dieser Bereitstellung: [2.1.2](docs/jobsearch/RELEASE-2.1.2.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

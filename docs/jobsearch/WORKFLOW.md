@@ -1,11 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.2.
+Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.3.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 
-- Manuell gestartete KI-Vorschläge und KI-Bewerbungstexte öffnen `In Arbeit`; die Seite wechselt erst nach Abschluss.
-- Abbrechen beendet die Browser-Anfrage und lädt die aktuelle Seite neu. Bereits serverseitig abgeschlossene Verarbeitung kann beim Neuladen sichtbar sein.
+- Manuell gestartete KI-Vorschläge und KI-Bewerbungstexte öffnen `In Arbeit` bereits vor dem Request; die Seite wechselt erst nach Abschluss. Die direkte Klickverarbeitung funktioniert auch in mobilen Browsern.
+- Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet. Eine auf dem Server bereits abgeschlossene Transaktion wird dadurch nicht rückgängig gemacht.
 - Die Fusszeile zeigt Hersteller und Modell. Sie zeigt keine lokale Guthaben- oder Kontingentschätzung.
 
 ## Textvorbereitung mit KI
@@ -13,7 +13,7 @@ Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.2.
 - Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
-- Eine zweizeilige, nicht gespeicherte KI-Instruktion kann alle drei aktuellen Texte gemeinsam überarbeiten.
+- Eine zweizeilige, nicht gespeicherte KI-Instruktion wird sichtbar auf alle relevanten aktuellen Texte angewendet. Bleibt sie leer, verbessert die KI alle drei Texte selbständig.
 - Die KI-Aktion selbst ändert weder Versandstatus noch Versandzeit und versendet keine Nachricht.
 - Bei einem API-Ausfall werden bearbeitbare Grundentwürfe eingesetzt; fehlende Fakten werden nicht erfunden.
 

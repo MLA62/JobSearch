@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.2.
+Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.3.
+
+Ergänzung 2.1.3: Der KI-Button für Bewerbungstexte muss auch in mobilen Browsern zuverlässig
+auslösen. Das modale Fenster `In Arbeit` wird vor dem Request sichtbar. Eine ausgefüllte
+KI-Instruktion wird in den betroffenen Texten erkennbar umgesetzt; bei leerem Feld verbessert die
+KI Betreff, Begleit-E-Mail und Motivationsschreiben selbständig. Abbrechen beendet die
+Browser-Anfrage, ohne die aktuelle Seite neu zu laden.
 
 Ergänzung 2.1.2: Die Fusszeile nennt weiterhin KI-Hersteller und Modell, zeigt aber keine
 Prozent-/Kontingentangabe. Die lokale Schätzung aus 2.1.1 ist unzuverlässig und wird mitsamt ihrer

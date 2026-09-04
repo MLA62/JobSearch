@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.1.2'=>"\$codeVersion = '2.1.2'",
+    'version 2.1.3'=>"\$codeVersion = '2.1.3'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -18,6 +18,8 @@ $checks=[
     'manual AI action'=>"\$action === 'revise_application_texts_ai'",
     'two-line instruction'=>'name="ai_text_instruction" rows="2"',
     'instruction length bound'=>'maxlength="2000"',
+    'explicit editing request contract'=>'visibly and substantively apply every feasible requested change',
+    'empty instruction improvement contract'=>'Improve all three texts without additional user instructions.',
     'no automatic sending'=>'Nichts wird automatisch versendet.',
 ];
 foreach($checks as $label=>$needle){
