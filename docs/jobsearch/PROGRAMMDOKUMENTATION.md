@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.0.9 vorbereitet, noch nicht deployed; bestätigter Live-Stand 2.0.8. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.0.9 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Neuer angemeldeter Suchlauf noch offen. Schnellimport und profilbasierte Suche bleiben getrennte Einstiege mit gemeinsamem Prüf-/Importweg. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## Match-Vertrag 2.0.9 (vorbereitet)
+## Match-Vertrag 2.0.9 (deployed)
 
 Der bereitgestellte Diagnosebericht aus 2.0.8 zeigt 30 Versuche, davon 23 ohne belegbare Verfügbarkeit, sechs technische Kriterienfehler und einen HTTP-404. Keine abgeschlossene Match-Bewertung; das ist kein Nachweis für 30 unpassende Jobs. Die sechs Fehler entsprechen exakt der Meldung über ungültige oder doppelte Match-Kriterien. Der Bericht enthält keine vollständigen URLs; die 23 konkreten Anzeigen können daraus nicht erneut abgerufen werden.
 

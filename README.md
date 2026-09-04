@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 04.09.2026. Version 2.0.9 in Vorbereitung; noch nicht deployed. Bestätigter Live-Stand: 2.0.8.
+Stand: 04.09.2026. Version 2.0.9 deployed; Serverdatei, öffentliche Versionsanzeige und anonyme Downloadsperre verifiziert. Neuer angemeldeter Suchlauf noch offen.
 Aktueller Nachweis: [Release 2.0.9](docs/jobsearch/RELEASE-2.0.9.md). Vorheriger Live-Stand: [2.0.8](docs/jobsearch/RELEASE-2.0.8.md).
 Historische angemeldete Abnahmen gelten nicht automatisch für diese Änderungen.
 
