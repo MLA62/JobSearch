@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.4 ist dokumentiert und zur Bereitstellung vorbereitet.
-Version 2.1.3 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.4 ist dokumentiert und deployed.
+Produktionsdatei und öffentliche Version sind bestätigt; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -50,6 +50,9 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - Der KI-Textvertrag unterscheidet vollständige Neuerstellung bei leerer Instruktion von der
   Überarbeitung vorhandener Texte bei ausgefüllter Instruktion.
 - Bei der Neuerstellung werden bisherige Texte nicht an das Modell übermittelt.
+- Alle 28 PHP-Testdateien, PHP-Syntax, Hilfe- und Referenzgeneratoren sowie `git diff --check`
+  bestanden. Nach TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200,
+  Version 2.1.4 und das Fehlen sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.3
 

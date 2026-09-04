@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.4 ist zur Bereitstellung vorbereitet; 2.1.3 ist der zuvor bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.4 ist deployed. Produktionsdatei, öffentliche Versionsanzeige und fehlende sichtbare PHP-Laufzeitfehler sind bestätigt. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## Neuerstellung oder instruktionsbasierte Überarbeitung 2.1.4
 
