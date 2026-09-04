@@ -1,10 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-04. Version 2.1.0 ist für die TOTP-Freigabe vorbereitet; bestätigter Live-Stand bleibt 2.0.15. Version 2.1.0 ergänzt KI-gestützte Bewerbungstexte. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-04. Version 2.1.0 ist deployed. Serverdatei, öffentliche Versionsanzeige und Loginseite sind bestätigt. Version 2.1.0 ergänzt KI-gestützte Bewerbungstexte. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 Verbindliche Produktregeln: [REQUIREMENTS.md](REQUIREMENTS.md), [WORKFLOW.md](WORKFLOW.md).
 Exakte Tabellen, Felder und Funktionssignaturen: [DATA_MODEL.md](DATA_MODEL.md), [INTERFACES.md](INTERFACES.md).
 
-## KI-gestützte Bewerbungstexte 2.1.0 (vorbereitet)
+## KI-gestützte Bewerbungstexte 2.1.0 (deployed)
 
 Beim erstmaligen Vorbereiten einer Bewerbung erzeugt die App in der gewählten Benutzersprache
 einen Betreff, eine kurze Begleit-E-Mail und ein Motivationsschreiben. Als Kontext dienen das

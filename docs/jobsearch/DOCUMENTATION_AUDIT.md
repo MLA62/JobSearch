@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.0 ist dokumentiert und für die TOTP-Freigabe vorbereitet.
-Bestätigter produktiver Stand bleibt 2.0.15; frühere Nachweise sind historische Belege.
+Stand: 2026-09-04. Version 2.1.0 ist dokumentiert und deployed.
+Produktionsdatei, öffentliche Versionsanzeige und Loginseite sind bestätigt; frühere Nachweise sind historische Belege.
 
 ## Umfang
 

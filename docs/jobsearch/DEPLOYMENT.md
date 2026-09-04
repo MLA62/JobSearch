@@ -1,9 +1,9 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-03. Verifizierte Produktionsdatei: 1.18.1 / ab2bf9c.
-Ausgefuehrt am 2026-09-03T16:52:58+00:00, 856169 Bytes, Modus 0644.
-SHA-256: `10170be48f05da1aab920fb685711c9e6a334167122846d3f8d2b7bc7ea65984`.
-Zentrale Hilfe und Such-/Kontextfunktion angemeldet in allen fuenf Sprachen geprueft.
+Stand: 2026-09-04. Verifizierte Produktionsdatei: 2.1.0 / Quell-Commit `5d8f189b861df9fd171e9473386daf1cbc1e3fe1`.
+Ausgefuehrt am 2026-09-04T19:57:18+00:00, 1026470 Bytes, Modus 0644.
+SHA-256: `5883707a5c7e1ebaca28b50f18a8c2fe2f58601fd865ee1bce88a0aef8771de6`.
+Öffentliche Loginseite liefert HTTP 200, zeigt Version 2.1.0 und keinen sichtbaren PHP-Laufzeitfehler.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen
@@ -41,7 +41,15 @@ Diese Werte sind historische Vergleichswerte; vor einer neuen Proposal-Erstellun
 
 Ohne gueltige externe Freigabe bleibt das Deployment ausstehend. Ohne angemeldete Sitzung bleibt die authentisierte Livepruefung ausstehend, auch wenn der Dateiaustausch erfolgreich war.
 
-## Datenwirkung von 1.18.1
+## Datenwirkung von 2.1.0
+
+Beim ersten Request werden die neuen Beschriftungen für KI-Instruktion, Aktion und Status in
+`ui_text_keys`/`ui_text_translations` ergänzt. Die Anwendung nutzt die vorhandenen Bewerbungsfelder;
+es gibt keine Schemaänderung. Erst beim Öffnen einer Bewerbung mit mindestens einem leeren
+Textfeld werden fehlende Entwürfe ergänzt. Vorhandene Betreff-, E-Mail- und Motivationsfelder
+bleiben dabei unverändert. Eine KI-Überarbeitung erfolgt nur nach ausdrücklicher Benutzeraktion.
+
+## Historische Datenwirkung von 1.18.1
 
 Das Hilfe-Release fuegt beim ersten Request den geprueften Katalog in `ui_text_keys`/`ui_text_translations` ein bzw. aktualisiert die aufgefuehrten Hilfe-/Kontextkeys. Es verwendet einen Inhalts-Hash als Marker in `app_migrations`, eine DB-Sperre und eine Transaktion.
 
