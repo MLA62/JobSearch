@@ -1128,6 +1128,30 @@ try {
             'pt-BR' => 'Documento associado sem nome de arquivo',
             'es-MX' => 'Documento asignado sin nombre de archivo',
         ],
+        'job_search.location' => [
+            'de-CH' => 'Suchort', 'fr-CH' => 'Lieu de recherche', 'en-GB' => 'Search location', 'pt-BR' => 'Local de pesquisa', 'es-MX' => 'Ubicación de búsqueda',
+        ],
+        'job_search.profile_defaults' => [
+            'de-CH' => 'Standardwerte aus dem Profil', 'fr-CH' => 'Valeurs par défaut du profil', 'en-GB' => 'Profile defaults', 'pt-BR' => 'Padrões do perfil', 'es-MX' => 'Valores predeterminados del perfil',
+        ],
+        'job_search.profile_defaults_loaded' => [
+            'de-CH' => 'Die Suchkriterien wurden aus dem Profil übernommen.', 'fr-CH' => 'Les critères de recherche ont été repris du profil.', 'en-GB' => 'Search criteria were loaded from your profile.', 'pt-BR' => 'Os critérios de pesquisa foram carregados do perfil.', 'es-MX' => 'Los criterios de búsqueda se cargaron desde el perfil.',
+        ],
+        'job_search.ai_assist' => [
+            'de-CH' => 'KI-Unterstützung', 'fr-CH' => 'Assistance IA', 'en-GB' => 'AI assistance', 'pt-BR' => 'Assistência de IA', 'es-MX' => 'Asistencia con IA',
+        ],
+        'job_search.ai_suggest' => [
+            'de-CH' => 'KI-Suchkriterien vorschlagen', 'fr-CH' => 'Suggérer des critères avec l’IA', 'en-GB' => 'Suggest criteria with AI', 'pt-BR' => 'Sugerir critérios com IA', 'es-MX' => 'Sugerir criterios con IA',
+        ],
+        'job_search.ai_hint' => [
+            'de-CH' => 'Auf Wunsch optimiert die KI nur Suchbegriff und Suchort. Es werden keine Dokumente, Bewerbungen oder Stellenresultate übertragen.', 'fr-CH' => 'Sur demande, l’IA optimise uniquement le terme et le lieu de recherche. Aucun document, dossier de candidature ou résultat d’offre n’est transmis.', 'en-GB' => 'On request, AI optimizes only the search term and location. No documents, applications or job results are sent.', 'pt-BR' => 'Quando solicitado, a IA otimiza apenas o termo e o local de pesquisa. Nenhum documento, candidatura ou resultado de vaga é enviado.', 'es-MX' => 'Cuando se solicita, la IA optimiza solo el término y la ubicación de búsqueda. No se envían documentos, candidaturas ni resultados de ofertas.',
+        ],
+        'job_search.ai_applied' => [
+            'de-CH' => 'Der KI-Vorschlag wurde als deine Suchkriterien übernommen.', 'fr-CH' => 'La proposition de l’IA a été appliquée à tes critères de recherche.', 'en-GB' => 'The AI suggestion has been applied to your search criteria.', 'pt-BR' => 'A sugestão da IA foi aplicada aos seus critérios de pesquisa.', 'es-MX' => 'La sugerencia de IA se aplicó a tus criterios de búsqueda.',
+        ],
+        'job_search.ai_failed' => [
+            'de-CH' => 'Der KI-Vorschlag konnte nicht erstellt werden. Deine bestehenden Suchkriterien bleiben erhalten.', 'fr-CH' => 'La proposition de l’IA n’a pas pu être créée. Tes critères de recherche actuels sont conservés.', 'en-GB' => 'The AI suggestion could not be created. Your existing search criteria were kept.', 'pt-BR' => 'Não foi possível criar a sugestão de IA. Seus critérios de pesquisa atuais foram mantidos.', 'es-MX' => 'No se pudo crear la sugerencia de IA. Se conservaron tus criterios de búsqueda actuales.',
+        ],
     ] as $textKey => $translations) {
         if (isset($managedHelpTexts[$textKey])) { continue; }
         $namespace = substr((string) strtok($textKey, '.'), 0, 80);
@@ -1244,6 +1268,15 @@ try {
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         deleted_at DATETIME NULL,
         UNIQUE KEY uq_job_platform_name (name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $db->query("CREATE TABLE IF NOT EXISTS user_job_search_criteria (
+        user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+        search_query VARCHAR(1000) NOT NULL DEFAULT '',
+        search_location VARCHAR(500) NOT NULL DEFAULT '',
+        total_count TINYINT UNSIGNED NOT NULL DEFAULT 15,
+        platform_ids_json TEXT NOT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_user_job_search_criteria_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     seedJobPlatforms($db);
     ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
@@ -7845,6 +7878,85 @@ function jobPreferenceLocation(array $preference, array $currentUser): string
     return trim((string)($currentUser['city'] ?? '') . ' ' . (string)($currentUser['region'] ?? ''));
 }
 
+function profileJobSearchCriteria(array $preference, array $currentUser, array $platformRows): array
+{
+    return [
+        'search_query' => jobPreferenceQuery($preference),
+        'search_location' => jobPreferenceLocation($preference, $currentUser),
+        'total_count' => 15,
+        'platform_ids' => array_map(static fn(array $platform): int => (int) $platform['id'], $platformRows),
+    ];
+}
+
+function savedJobSearchCriteria(mysqli $db, int $userId, array $preference, array $currentUser, array $platformRows): array
+{
+    $defaults = profileJobSearchCriteria($preference, $currentUser, $platformRows);
+    $saved = dbOne($db, 'SELECT search_query, search_location, total_count, platform_ids_json FROM user_job_search_criteria WHERE user_id=?', 'i', [$userId]);
+    if (!$saved) {
+        return $defaults;
+    }
+    $activePlatformIds = array_map(static fn(array $platform): int => (int) $platform['id'], $platformRows);
+    $platformIds = json_decode((string) $saved['platform_ids_json'], true);
+    $platformIds = is_array($platformIds) ? array_values(array_intersect($activePlatformIds, array_unique(array_map('intval', $platformIds)))) : [];
+    return [
+        'search_query' => trim((string) $saved['search_query']),
+        'search_location' => trim((string) $saved['search_location']),
+        'total_count' => min(100, max(1, (int) $saved['total_count'])),
+        'platform_ids' => $platformIds,
+    ];
+}
+
+function saveJobSearchCriteria(mysqli $db, int $userId, string $query, string $location, int $total, array $platformIds): void
+{
+    $query = substr(trim($query), 0, 1000);
+    $location = substr(trim($location), 0, 500);
+    $total = min(100, max(1, $total));
+    $platformIds = array_values(array_unique(array_filter(array_map('intval', $platformIds), static fn(int $id): bool => $id > 0)));
+    $platformIdsJson = json_encode($platformIds, JSON_THROW_ON_ERROR);
+    $stmt = $db->prepare('INSERT INTO user_job_search_criteria (user_id, search_query, search_location, total_count, platform_ids_json) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE search_query=VALUES(search_query), search_location=VALUES(search_location), total_count=VALUES(total_count), platform_ids_json=VALUES(platform_ids_json), updated_at=NOW()');
+    $stmt->bind_param('issis', $userId, $query, $location, $total, $platformIdsJson);
+    $stmt->execute();
+}
+
+function openAiJobSearchSuggestion(array $config, int $userId, string $query, string $location, array $profileContext): array
+{
+    $apiKey = trim((string) ($config['openai_api_key'] ?? ''));
+    if ($apiKey === '') throw new RuntimeException('KI-Schlüssel ist nicht serverseitig konfiguriert.');
+    if (!extension_loaded('curl')) throw new RuntimeException('Die PHP-cURL-Erweiterung ist nicht verfügbar.');
+    $input = "Optimize these job-search criteria. Return only a JSON object with the string properties query, location and note. Keep the requested role, do not invent qualifications, employers or job listings. query must be at most 240 characters, location at most 180 characters, note at most 180 characters.\n\n" . json_encode([
+        'query' => substr(trim($query), 0, 1000),
+        'location' => substr(trim($location), 0, 500),
+        'profile_context' => array_values(array_filter(array_map(static fn($value): string => substr(trim((string) $value), 0, 300), $profileContext))),
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $payload = json_encode([
+        'model' => (string) ($config['openai_model'] ?? 'gpt-5.6-luna'),
+        'store' => false,
+        'max_output_tokens' => 180,
+        'reasoning' => ['effort' => 'low'],
+        'safety_identifier' => hash('sha256', 'jema-jobs-search:' . $userId),
+        'input' => $input,
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $handle = curl_init('https://api.openai.com/v1/responses');
+    curl_setopt_array($handle, [CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$payload,CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>30,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+    $raw = curl_exec($handle); $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE); $error = curl_error($handle); curl_close($handle);
+    if (!is_string($raw) || $status < 200 || $status >= 300) throw new RuntimeException('KI-Vorschlag fehlgeschlagen (HTTP '.$status.($error !== '' ? ': '.$error : '').').');
+    $response = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+    $output = '';
+    foreach ((array) ($response['output'] ?? []) as $item) {
+        foreach ((array) ($item['content'] ?? []) as $content) {
+            if (($content['type'] ?? '') === 'output_text' && is_string($content['text'] ?? null)) $output .= $content['text'];
+        }
+    }
+    $suggestion = json_decode(trim(preg_replace('/^```(?:json)?\\s*|\\s*```$/u', '', $output) ?? ''), true);
+    if (!is_array($suggestion) || !is_string($suggestion['query'] ?? null)) throw new RuntimeException('Der KI-Vorschlag hatte kein gültiges Format.');
+    return [
+        'query' => substr(trim((string) $suggestion['query']), 0, 240),
+        'location' => substr(trim((string) ($suggestion['location'] ?? $location)), 0, 180),
+        'note' => substr(trim((string) ($suggestion['note'] ?? '')), 0, 180),
+        'model' => (string) ($response['model'] ?? ($config['openai_model'] ?? 'gpt-5.6-luna')),
+    ];
+}
+
 function platformSearchUrl(array $platform, string $query, string $location, int $limit): string
 {
     $template = (string)($platform['search_url_template'] ?? '');
@@ -9461,6 +9573,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=admin_job_platforms');
     }
 
+    if ($action === 'reset_platform_search_criteria') {
+        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+        $platformRows = dbAll($db, 'SELECT id FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
+        $defaults = profileJobSearchCriteria($preference, is_array($currentUser) ? $currentUser : [], $platformRows);
+        saveJobSearchCriteria($db, userId(), $defaults['search_query'], $defaults['search_location'], $defaults['total_count'], $defaults['platform_ids']);
+        audit($db, userId(), 'update', 'job_search_criteria', userId(), null, ['source' => 'profile_defaults']);
+        flash(tr('job_search.profile_defaults_loaded'));
+        redirect('/?page=job_platform_search');
+    }
+
+    if ($action === 'suggest_job_search_criteria') {
+        try {
+            $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
+            $query = trim((string) ($_POST['search_query'] ?? '')) ?: jobPreferenceQuery($preference);
+            $location = trim((string) ($_POST['search_location'] ?? '')) ?: jobPreferenceLocation($preference, is_array($currentUser) ? $currentUser : []);
+            $total = min(100, max(1, (int) ($_POST['total_count'] ?? 15)));
+            $platformIds = array_values(array_filter(array_map('intval', (array) ($_POST['platform_ids'] ?? []))));
+            if ($query === '') throw new RuntimeException(tr('flash.search.query_required'));
+            $suggestion = openAiJobSearchSuggestion($config, userId(), $query, $location, [
+                (string) ($preference['desired_roles'] ?? ''),
+                (string) ($preference['desired_locations'] ?? ''),
+                (string) ($preference['desired_level'] ?? ''),
+                (string) ($preference['employment_types'] ?? ''),
+                (string) ($preference['remote_preference'] ?? ''),
+            ]);
+            saveJobSearchCriteria($db, userId(), $suggestion['query'], $suggestion['location'], $total, $platformIds);
+            audit($db, userId(), 'other', 'job_search_ai_suggestion', 0, null, ['model' => $suggestion['model']]);
+            $_SESSION['job_search_ai_note'] = $suggestion['note'];
+            flash(tr('job_search.ai_applied'));
+        } catch (Throwable $exception) {
+            error_log('Job search AI suggestion failed: ' . $exception->getMessage());
+            flash(tr('job_search.ai_failed'), 'danger');
+        }
+        redirect('/?page=job_platform_search');
+    }
+
     if ($action === 'generate_platform_search') {
         try {
             $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
@@ -9468,7 +9616,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($query === '') {
                 $query = jobPreferenceQuery($preference);
             }
-            $location = jobPreferenceLocation($preference, is_array($currentUser) ? $currentUser : []);
+            $location = trim((string) ($_POST['search_location'] ?? ''));
+            if ($location === '') $location = jobPreferenceLocation($preference, is_array($currentUser) ? $currentUser : []);
             $platformIds = array_values(array_filter(array_map('intval', (array)($_POST['platform_ids'] ?? []))));
             $total = min(100, max(1, (int)($_POST['total_count'] ?? 15)));
             if ($query === '') {
@@ -9479,6 +9628,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash(tr('flash.search.portal_required'), 'warning');
                 redirect('/?page=job_platform_search');
             }
+            saveJobSearchCriteria($db, userId(), $query, $location, $total, $platformIds);
             $platformIdSql = implode(',', array_map('intval', array_unique($platformIds)));
             $platforms = dbAll($db, "SELECT * FROM job_platforms WHERE id IN ($platformIdSql) AND is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name");
             if (!$platforms) {
@@ -12250,7 +12400,10 @@ startUiTranslationBuffer($appLocale);
         $profileRoleQuery = jobPreferenceQuery($preference);
         $location = jobPreferenceLocation($preference, $currentUser);
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');
+        $searchCriteria = savedJobSearchCriteria($db, userId(), $preference, $currentUser, $platformRows);
         $searchResults = is_array($_SESSION['platform_search_results'] ?? null) ? $_SESSION['platform_search_results'] : [];
+        $aiNote = trim((string) ($_SESSION['job_search_ai_note'] ?? ''));
+        unset($_SESSION['job_search_ai_note']);
         $employmentLabels = ['full_time'=>tr('profile.employment.full_time'),'part_time'=>tr('profile.employment.part_time'),'temporary'=>tr('profile.employment.temporary'),'contract'=>tr('profile.employment.contract'),'internship'=>tr('profile.employment.internship'),'freelance'=>tr('profile.employment.freelance')];
         $selectedEmployment = array_filter(explode(',', (string)($preference['employment_types'] ?? '')));
         $languageSkills = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [userId()]);
@@ -12279,10 +12432,11 @@ startUiTranslationBuffer($appLocale);
         ]));
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('job_search.section')) ?></p><h1><?= e(tr('job_search.title')) ?></h1></div><span><?= e(tr('job_search.active_portals', null, ['count' => (string) count($platformRows)])) ?></span></div>
-        <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><a href="/?page=profile"><?= e(tr('job_search.edit_profile_preferences')) ?></a></div>
+        <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><div class="actions"><a href="/?page=profile"><?= e(tr('job_search.edit_profile_preferences')) ?></a><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button type="submit" name="action" value="reset_platform_search_criteria"><?= e(tr('job_search.profile_defaults')) ?></button></form></div></div>
             <?php if($profileRoleQuery === ''): ?><p class="alert warning"><?= e(tr('job_search.missing_query')) ?></p><?php else: ?><p class="meta-line"><?= e(tr('job_search.query_from_profile')) ?>: <strong><?= e($profileRoleQuery) ?></strong><?= $location !== '' ? ' · ' . e(tr('jobs.location')) . ': <strong>' . e($location) . '</strong>' : '' ?></p><?php endif; ?>
             <?php if($promptFacts): ?><ul class="profile-criteria"><?php foreach($promptFacts as $fact): ?><li><?= e($fact) ?></li><?php endforeach; ?></ul><?php endif; ?>
-            <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="generate_platform_search"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($profileRoleQuery) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>" required></label><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="15"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" checked> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div><button class="primary" type="submit" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></form>
+            <?php if($aiNote !== ''): ?><p class="alert success"><?= e($aiNote) ?></p><?php endif; ?>
+            <form method="post" class="stack" data-progress-form data-progress-button-text="<?= e(tr('job_search.progress_button')) ?>" data-progress-steps="<?= e(implode('|', [tr('job_search.progress.prepare_portals'), tr('job_search.progress.build_links'), tr('job_search.progress.prepare_import')])) ?>"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>" required></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="100" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="suggest_job_search_criteria"><?= e(tr('job_search.ai_suggest')) ?></button><button class="primary" type="submit" name="action" value="generate_platform_search" <?= !$platformRows ? 'disabled' : '' ?> data-progress-button><?= e(tr('job_search.create_package')) ?></button></div><p class="meta-line"><strong><?= e(tr('job_search.ai_assist')) ?>:</strong> <?= e(tr('job_search.ai_hint')) ?></p><div class="progress-box" data-progress-box hidden><div class="progress-title"><?= e(tr('job_search.progress_title')) ?></div><div class="progress-track"><span data-progress-bar></span></div><p data-progress-text><?= e(tr('job_search.progress.prepare_portals')) ?></p></div></form>
         </section>
         <section class="panel prompt-panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.chatgpt_section')) ?></p><h2><?= e(tr('job_search.prompt_title')) ?></h2></div><div class="actions copy-actions"><button type="button" data-copy-target="chatgpt-job-prompt"><?= e(tr('job_search.copy_prompt')) ?></button><a class="button" href="/?page=jobs#quick-import"><?= e(tr('job_search.to_quick_import')) ?></a></div></div><label><?= e(tr('job_search.prompt')) ?><textarea id="chatgpt-job-prompt" rows="15" readonly></textarea></label><p class="meta-line"><?= e(tr('job_search.copy_instruction')) ?></p></section>
         <section class="panel" id="results"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.ready_for_import')) ?></p><h2><?= e(tr('job_search.package')) ?></h2></div><?php if($searchResults): ?><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button class="primary" name="action" value="prepare_platform_import"><?= e(tr('job_search.import_package')) ?></button></form><?php endif; ?></div>
@@ -12296,6 +12450,7 @@ startUiTranslationBuffer($appLocale);
                 'researchInstruction' => tr('job_search.prompt.research_instruction'),
                 'strictImport' => tr('job_search.prompt.strict_import'),
                 'searchTerm' => tr('job_search.prompt.search_term'),
+                'location' => tr('job_search.location'),
                 'desiredCount' => tr('job_search.prompt.desired_count'),
                 'profileParameters' => tr('job_search.prompt.profile_parameters'),
                 'preferredPortals' => tr('job_search.prompt.preferred_portals'),
@@ -12329,6 +12484,7 @@ startUiTranslationBuffer($appLocale);
             if (!form || !prompt) return;
             const buildPrompt = () => {
                 const query = form.querySelector('[name="search_query"]')?.value.trim() || text.defaultQuery;
+                const location = form.querySelector('[name="search_location"]')?.value.trim() || '';
                 const total = form.querySelector('[name="total_count"]')?.value || '15';
                 const platforms = Array.from(form.querySelectorAll('input[name="platform_ids[]"]:checked')).map((input) => {
                     const label = input.closest('label');
@@ -12339,6 +12495,7 @@ startUiTranslationBuffer($appLocale);
                     text.strictImport,
                     '',
                     text.searchTerm + ': ' + query,
+                    location ? text.location + ': ' + location : '',
                     text.desiredCount + ': ' + total,
                     facts.length ? text.profileParameters + ':' : '',
                     ...facts.map((fact) => '- ' + fact),
