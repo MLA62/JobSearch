@@ -25,6 +25,11 @@ Angemeldete Funktionsabnahme sowie ein echter MariaDB-Rollbacktest bleiben separ
 
 ## Deployment und Rückweg
 
+Finaler vorgeschlagener Quell-Commit: e81199c9d709e36c26d4099855da0809ae246679.
+Dateigröße 935715 Bytes, SHA-256 721652d20b6dc45fe781e1916cd97ced6e5f2da330cd63400561d92cc82da41f.
+Dieser Vorschlag enthält zusätzlich den Dialog und die Sortierung; die vorherige, nicht ausgeführte Vorbereitung ist überholt.
+Freigabe ausstehend. Lokal und GitHub waren vor dem Vorschlag identisch, Arbeitsstand sauber.
+
 Ziel ausschließlich public_html/jobs.jema.business/index.php inklusive generierter Hilfe in fünf Sprachen.
 Vorheriger Stand 2.0.5: Quell-Commit c34d46994107d704f4674cc04d20a96a361c17d5,
 926119 Bytes, Modus 0644, SHA-256 9690811bb33e3a9ea034db68c361d5e49464201b1a8b54b89fef782799746f5e.
