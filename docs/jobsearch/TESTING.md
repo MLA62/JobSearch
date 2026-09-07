@@ -3,6 +3,10 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.2.4: `rich_text_chronology_test.php` prüft getrennte Commit-Funktionen für HTML und
+WYSIWYG, die sichtbare Übernahme beim Moduswechsel, die verbindliche Aktualisierung jedes
+`formdata`-Payloads sowie die zusätzliche Synchronisierung vor dem Bewerbungs-Autosave.
+
 Ergänzung 2.2.3: `rich_text_chronology_test.php` prüft, dass die HTML-Ansicht beim
 Synchronisieren die verbindliche Quelle ist, ihr bereinigter Inhalt in den WYSIWYG-Editor gelangt
 und unvollständiger Quelltext nicht schon während jedes Tastendrucks normalisiert wird. Derselbe

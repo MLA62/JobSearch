@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.3 ist geprüft und produktiv bestätigt.
+Stand: 2026-09-07. Version 2.2.4 ist als Deployment-Kandidat in Bearbeitung; 2.2.3 ist produktiv bestätigt.
+
+## Verbindlicher Formulartransport für HTML-Inhalte 2.2.4
+
+HTML- und WYSIWYG-Inhalte besitzen getrennte, ausdrückliche Commit-Funktionen. Beim Wechsel aus
+der HTML-Ansicht wird der bereinigte Quelltext unmittelbar in den visuellen Editor geschrieben.
+Zusätzlich synchronisiert jedes `formdata`-Ereignis den aktiven Modus und setzt den tatsächlichen
+Formularwert neu. Das gilt sowohl für native Formularübermittlungen als auch für programmatisch
+erzeugte `FormData`-Objekte. Der Bewerbungs-Autosave synchronisiert Rich-Text-Felder außerdem
+explizit vor der Payload-Erzeugung. Damit kann kein älterer WYSIWYG-Stand eine offene
+HTML-Änderung überschreiben.
 
 ## Verlässlicher Wechsel zwischen HTML und WYSIWYG 2.2.3
 

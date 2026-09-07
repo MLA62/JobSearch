@@ -2865,11 +2865,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.3' =>
   array (
-    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor, einschließlich Listen, Ein-/Ausrücken und Format löschen. Änderungen in der HTML-Ansicht werden beim Zurückschalten auf WYSIWYG, Speichern oder KI-Aufruf übernommen. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.',
-    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé via le mini-éditeur, y compris les listes, les retraits et l’effacement de la mise en forme. Les modifications faites dans la vue HTML sont reprises lors du retour au mode WYSIWYG, de l’enregistrement ou d’un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.',
-    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting through the mini editor, including lists, indentation and clear formatting. Changes made in HTML view are applied when switching back to WYSIWYG, saving or starting an AI action. Cards and tables show plain text; the dossier shows the formatting.',
-    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro por meio do minieditor, incluindo listas, recuo e remoção de formatação. Alterações feitas na visualização HTML são aplicadas ao voltar ao WYSIWYG, salvar ou iniciar uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.',
-    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro mediante el minieditor, incluidas listas, sangrías y borrado de formato. Los cambios hechos en la vista HTML se aplican al volver a WYSIWYG, guardar o iniciar una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.',
+    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.',
+    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.',
+    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.',
+    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.',
+    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.',
   ),
   'help.v2.applications.tips.4' =>
   array (
@@ -13004,7 +13004,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.2.3';
+$codeVersion = '2.2.4';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14669,6 +14669,7 @@ startUiTranslationBuffer($appLocale);
                     requestRunning = true;
                     const requestedRevision = revision;
                     setState('saving');
+                    form.querySelectorAll('textarea[data-rich-ready="1"]').forEach(source => source.dispatchEvent(new Event('jema:richtext-sync')));
                     const data = new FormData(form);
                     data.set('action', 'autosave_application');
                     data.delete('recipient_email');
@@ -15338,13 +15339,17 @@ startUiTranslationBuffer($appLocale);
         const editor = document.createElement('div'); editor.className = 'rich-text-editor'; editor.contentEditable = 'true'; editor.setAttribute('role','textbox'); editor.setAttribute('aria-multiline','true');
         const looksHtml = /<(?:p|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h2|h3)\b/i.test(source.value);
         editor.innerHTML = sanitize(looksHtml ? source.value : plainToHtml(source.value));
-        const sync = (notify = true) => {
-            const editingSource = shell.classList.contains('is-source');
-            const clean = sanitize(editingSource ? source.value : editor.innerHTML);
+        const commitSource = (notify = true) => {
+            const clean = sanitize(source.value);
             source.value = clean;
-            if (editingSource) editor.innerHTML = clean;
+            editor.innerHTML = clean;
             if (notify) source.dispatchEvent(new Event('input',{bubbles:true}));
         };
+        const commitEditor = (notify = true) => {
+            source.value = sanitize(editor.innerHTML);
+            if (notify) source.dispatchEvent(new Event('input',{bubbles:true}));
+        };
+        const sync = (notify = true) => shell.classList.contains('is-source') ? commitSource(notify) : commitEditor(notify);
         const command = (label, title, handler) => { const button=document.createElement('button'); button.type='button'; button.textContent=label; button.title=title; button.addEventListener('mousedown',(event)=>event.preventDefault()); button.addEventListener('click',()=>{editor.focus();handler();sync();}); toolbar.appendChild(button); };
         command('¶',labels.paragraph,()=>document.execCommand('formatBlock',false,'p'));
         command('B',labels.bold,()=>document.execCommand('bold'));
@@ -15358,13 +15363,14 @@ startUiTranslationBuffer($appLocale);
         command('🖼',labels.image,()=>{const url=window.prompt(labels.imagePrompt);if(/^https:\/\//i.test(url||''))document.execCommand('insertImage',false,url);});
         command('▦',labels.table,()=>document.execCommand('insertHTML',false,`<table><tbody><tr><th>${labels.heading}</th><th>${labels.heading}</th></tr><tr><td>${labels.content}</td><td>${labels.content}</td></tr></tbody></table><p><br></p>`));
         command('―',labels.divider,()=>document.execCommand('insertHorizontalRule'));
-        const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){sync();shell.classList.remove('is-source');editor.focus();}else{sync(false);shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
+        const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){commitSource();shell.classList.remove('is-source');editor.focus();}else{commitEditor(false);shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
         source.addEventListener('jema:richtext-load',()=>{editor.innerHTML=sanitize(source.value);});
         source.addEventListener('jema:richtext-sync',()=>sync(false));
         editor.addEventListener('input',sync);
         editor.addEventListener('paste',(event)=>{event.preventDefault();const html=event.clipboardData?.getData('text/html');const text=event.clipboardData?.getData('text/plain')||'';document.execCommand('insertHTML',false,sanitize(html||plainToHtml(text)));sync();});
         const wasRequired = source.required; source.required = false;
         source.parentNode.insertBefore(shell,source); shell.append(toolbar,editor,source); source.classList.add('rich-text-source');
+        source.form?.addEventListener('formdata',(event)=>{sync(false);event.formData.set(source.name,source.value);});
         source.form?.addEventListener('submit',(event)=>{sync();if(wasRequired && !editor.innerText.trim() && !editor.querySelector('img,table')){event.preventDefault();editor.focus();}});
     });
 })();

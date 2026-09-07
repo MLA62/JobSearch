@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.3.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.4.
+
+Ergänzung 2.2.4: Der Editor muss HTML-Quelltext beim Wechsel auf WYSIWYG unmittelbar sichtbar
+übernehmen. Jede native oder programmatische Formularübermittlung muss den aktuell aktiven
+Editormodus unmittelbar vor dem Erzeugen der Nutzdaten synchronisieren. Dies gilt insbesondere
+für manuelles Speichern, Autosave und KI-Aktionen; ein älterer visueller Inhalt darf den offenen
+HTML-Stand nie überschreiben.
 
 Ergänzung 2.2.3: Änderungen in der HTML-Ansicht eines Mehrzeilenfelds werden beim Umschalten auf
 WYSIWYG sichtbar übernommen. Solange die HTML-Ansicht aktiv ist, ist ihr Inhalt auch beim

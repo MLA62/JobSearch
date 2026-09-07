@@ -1,6 +1,12 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.3 ist dokumentiert, geprüft und produktiv bereitgestellt.
+Stand: 2026-09-07. Version 2.2.4 ist dokumentiert und wird vor der Bereitstellung vollständig geprüft; 2.2.3 ist produktiv bestätigt.
+
+## Pruefstand 2.2.4
+
+- HTML und WYSIWYG besitzen getrennte Commit-Wege; der Wechsel aus HTML schreibt unmittelbar in den visuellen Editor.
+- Native Übermittlung und programmatisches `FormData` setzen den Feldwert nochmals aus dem aktiven Modus.
+- Der Bewerbungs-Autosave synchronisiert Rich-Text-Felder ausdrücklich vor der Payload-Erzeugung.
 
 ## Pruefstand 2.2.3
 
