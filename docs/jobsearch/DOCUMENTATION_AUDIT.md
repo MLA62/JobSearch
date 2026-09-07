@@ -1,12 +1,14 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.4 ist dokumentiert und wird vor der Bereitstellung vollständig geprüft; 2.2.3 ist produktiv bestätigt.
+Stand: 2026-09-07. Version 2.2.4 ist dokumentiert, geprüft und produktiv bereitgestellt.
 
 ## Pruefstand 2.2.4
 
 - HTML und WYSIWYG besitzen getrennte Commit-Wege; der Wechsel aus HTML schreibt unmittelbar in den visuellen Editor.
 - Native Übermittlung und programmatisches `FormData` setzen den Feldwert nochmals aus dem aktiven Modus.
 - Der Bewerbungs-Autosave synchronisiert Rich-Text-Felder ausdrücklich vor der Payload-Erzeugung.
+- PHP-Syntax, alle 31 automatisierten PHP-Testdateien sowie Hilfe- und Referenzgeneratoren wurden erfolgreich geprüft.
+- Nach externer TOTP-Freigabe sind lokale und produktive Datei mit SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc` bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.2.4; seit dem Deployment entstand kein neuer PHP-Fehlereintrag.
 
 ## Pruefstand 2.2.3
 

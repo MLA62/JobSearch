@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.4 ist als Deployment-Kandidat in Bearbeitung; 2.2.3 ist produktiv bestätigt.
+Stand: 2026-09-07. Version 2.2.4 ist geprüft und produktiv bestätigt.
 
 ## Verbindlicher Formulartransport für HTML-Inhalte 2.2.4
 

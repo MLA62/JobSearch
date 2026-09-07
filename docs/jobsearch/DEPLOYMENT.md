@@ -1,6 +1,6 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-07. Verifizierte Produktionsdatei: 2.2.3 / Quell-Commit `c0a096170fa2fa5774778c58a0ed37a70619bbf3` / SHA-256 `c23ee604d4948ca4ce1df92e0895a8d5ece75f53484dd5eb063eb2f161fa482e`.
+Stand: 2026-09-07. Verifizierte Produktionsdatei: 2.2.4 / Quell-Commit `f7c0b040fb74eaf4fd373ab33bea60214e6fdad5` / SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc`.
 Ausgefuehrt am 2026-09-04T19:57:18+00:00, 1026470 Bytes, Modus 0644.
 SHA-256: `5883707a5c7e1ebaca28b50f18a8c2fe2f58601fd865ee1bce88a0aef8771de6`.
 Öffentliche Loginseite liefert HTTP 200, zeigt Version 2.1.0 und keinen sichtbaren PHP-Laufzeitfehler.

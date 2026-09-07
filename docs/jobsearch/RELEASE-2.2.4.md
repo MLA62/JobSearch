@@ -12,5 +12,9 @@ Stand: 07.09.2026
 
 ## Prüfung und Bereitstellung
 
-Die Bereitstellung erfolgt nach PHP-Syntaxprüfung, vollständiger Testsuite sowie Prüfung der
-generierten Hilfe und Referenzdokumente über den externen TOTP-Freigabeablauf.
+PHP-Syntax, alle 31 automatisierten PHP-Testdateien sowie die generierte Hilfe und Referenz wurden
+geprüft. Quell-Commit `f7c0b040fb74eaf4fd373ab33bea60214e6fdad5` wurde nach externer
+TOTP-Freigabe nach `public_html/jobs.jema.business/index.php` bereitgestellt. Lokale und produktive
+Datei sind mit SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc`
+bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.2.4; seit dem Deployment entstand
+kein neuer PHP-Fehlereintrag. Konfiguration und Datenbankschema blieben unverändert.
