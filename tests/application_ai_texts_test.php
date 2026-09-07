@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.2.0'=>"\$codeVersion = '2.2.0'",
+    'version 2.2.1'=>"\$codeVersion = '2.2.1'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -19,6 +19,9 @@ $checks=[
     'two-line instruction'=>'name="ai_text_instruction" rows="2"',
     'instruction length bound'=>'maxlength="2000"',
     'explicit editing request contract'=>'visibly and substantively apply every feasible requested change',
+    'unchanged result retry'=>'Your previous result left one or more required text fields unchanged',
+    'email and cover change verification'=>"foreach (['email_body','cover_letter_text'] as \$field)",
+    'specific user-visible failure'=>'applications.ai_failed_detail',
     'empty instruction regeneration contract'=>'create all three texts completely anew',
     'empty instruction excludes current texts'=>"'current_texts'=>\$regenerate ? null : \$currentTexts",
     'no automatic sending'=>'Nichts wird automatisch versendet.',

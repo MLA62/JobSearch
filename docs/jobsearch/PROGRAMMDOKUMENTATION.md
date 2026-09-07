@@ -1,17 +1,35 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.0 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-07. Version 2.2.1 ist für das Deployment vorbereitet; 2.2.0 bleibt bis zur Abnahme der bestätigte Live-Stand.
+
+## Priorität manueller Inserat-Adressen 2.2.1
+
+Die automatische Jobsuche bleibt streng: Nur nachweislich verfügbare Anzeigen dürfen in der
+Vorschlagstabelle erscheinen. Beim Schnellimport ist eine vom Benutzer eingegebene HTTPS-Adresse
+dagegen ein ausdrücklicher Übernahmeauftrag. Eine lesbare, fachlich auswertbare Anzeige wird daher
+auch dann importiert, wenn die Seite keinen technischen Aktualitätsbeleg wie `validThrough` oder
+einen erkennbaren Bewerbungsbutton liefert. Die unsichere Verfügbarkeitsbewertung wird als
+manueller Override im Importnachweis festgehalten; Drill-down, Firmen-/Kontaktsuche, Extraktion,
+Match-Berechnung und Mindestanforderungen an Titel, Firma und Originaltext bleiben aktiv.
+
+Bei einer instruktionsbasierten Überarbeitung prüft die App, dass Begleit-E-Mail und
+Motivationsschreiben tatsächlich verändert wurden. Bleibt eines der beiden Felder unverändert,
+wird der KI-Aufruf einmal mit einem verbindlichen Korrekturhinweis wiederholt. Ein weiterer
+unveränderter Rücklauf wird nicht als Erfolg gemeldet; die bestehenden Texte bleiben erhalten
+und die Meldung enthält eine im Serverlog auffindbare Fehlerreferenz.
 
 ## Formatierte Mehrzeilenfelder und Zeitachsen 2.2.0
 
 Fachliche Langtexte werden als bereinigtes HTML gespeichert. Der Mini-Editor bietet Absätze,
-Fett, Kursiv, Links, externe HTTPS-Bilder, Tabellen, Trennlinien und eine HTML-Ansicht. Serverseitig
+Fett, Kursiv, Links, Aufzählungen, nummerierte Listen, Ein-/Ausrücken, Format löschen,
+externe HTTPS-Bilder, Tabellen, Trennlinien und eine HTML-Ansicht. Serverseitig
 gilt eine Positivliste für Elemente und Attribute; aktive Inhalte, Formulare, eingebettete Frames,
 Ereignisattribute sowie unsichere Link- und Bildprotokolle werden entfernt. Historischer Klartext
 wird beim Bearbeiten und Anzeigen kompatibel in Absätze und Zeilenumbrüche überführt.
 
-HTML-E-Mails behalten die erlaubte Formatierung. PDF- und Klartextexporte sowie KI-Kontexte
-verwenden eine lesbare Textdarstellung, sodass keine HTML-Tags als Inhalt erscheinen. Gemischte
+HTML-E-Mails und das Bewerbungsdossier behalten die erlaubte Formatierung. Karten, Tabellen,
+PDF- und Klartextexporte sowie KI-Kontexte verwenden eine lesbare Textdarstellung, sodass keine
+HTML-Tags als Inhalt erscheinen. Gemischte
 Bewerbungsaktivitäten, Statushistorien, Kontakt-Logs und Audit-Auszüge stehen standardmäßig
 chronologisch vom ältesten zum neuesten Eintrag; begrenzte Ansichten wählen zuerst die neuesten
 Einträge und ordnen diesen Ausschnitt anschließend aufsteigend.

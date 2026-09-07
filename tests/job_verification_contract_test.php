@@ -14,7 +14,7 @@ function curl_close(object $handle): void {}
 function curl_exec(object $handle): string {
     return json_encode(['status'=>'completed','output'=>[['content'=>[['type'=>'output_text','text'=>json_encode($GLOBALS['response'],JSON_THROW_ON_ERROR)]]]]],JSON_THROW_ON_ERROR);
 }
-function importFromUrl(string $url,array &$diagnostic=[]): array {
+function importFromUrl(string $url,array &$diagnostic=[],bool $manualImport=false): array {
     return ['title'=>'Sales Manager','company'=>'Fixture SA','description'=>'Sales Manager in Bern.','company_details'=>[],
         'research_sources'=>[['id'=>'original','text'=>'Sales Manager in Bern.']], 'original_url'=>$url,'availability'=>['reason'=>'future_validThrough']];
 }
@@ -52,5 +52,8 @@ $GLOBALS['response']=$good; $GLOBALS['response']['checks']=new stdClass();
 $empty=verifiedJobImport(['openai_api_key'=>'TEST-ONLY'],7,'https://example.test/job',[]);
 helpAssert($empty['assessment']['score']===null,'Empty profile remains unscored');
 helpAssert(str_contains($GLOBALS['wire'],'"checks":{"type":"object","additionalProperties":false,"properties":{},"required":[]}'),'Empty schema properties encoded as an object on the wire');
+$GLOBALS['response']=$good; $GLOBALS['response']['checks']=null; $manualDiagnostic=[];
+$manual=verifiedJobImport(['openai_api_key'=>'TEST-ONLY'],7,'https://example.test/job',$criteria,$manualDiagnostic,true);
+helpAssert($manual['title']==='Sales Manager' && !isset($manual['assessment']) && $manualDiagnostic['stage']==='manual_import_without_ai_assessment','Manual URL still imports when AI assessment fails');
 helpAssert(jobVerificationChecks([],[])===[],'Empty criteria conversion');
 echo "$helpChecks contract checks passed\n";

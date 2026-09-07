@@ -1,13 +1,23 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.0.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.1.
+
+Ergänzung 2.2.1: Eine manuell im Schnellimport eingegebene Inserat-Adresse gilt als ausdrücklicher
+Importauftrag. Eine lesbare und als Stellenanzeige auswertbare Seite darf nicht allein deshalb
+abgewiesen werden, weil die automatische Verfügbarkeitsprüfung keinen positiven Aktualitätsbeleg
+findet. Die strengere Verfügbarkeitsprüfung der automatischen Vorschlagssuche bleibt unverändert.
 
 Ergänzung 2.2.0: Mehrzeilige fachliche Textfelder wie E-Mail, Motivationsschreiben,
 Begleitschreiben, Beschreibungen, Kommentare und Online-Notizen unterstützen sichere
 HTML-Formatierung. Pro Feld ist ein Mini-Editor mit Absätzen, Fett, Kursiv, Links,
-HTTPS-Bildern, Tabellen, Trennlinien und HTML-Ansicht verfügbar. Aktive oder unsichere Inhalte
+Aufzählungen, nummerierten Listen, Ein-/Ausrücken, Format löschen, HTTPS-Bildern, Tabellen,
+Trennlinien und HTML-Ansicht verfügbar. Aktive oder unsichere Inhalte
 werden serverseitig entfernt. Aktivitäten und Logs werden vom ältesten Eintrag oben bis zum
 neuesten Eintrag unten dargestellt.
+
+Karten und Tabellen zeigen aus diesen Inhalten ausschliesslich lesbaren Klartext mit Absätzen;
+HTML-Tags dürfen dort weder sichtbar sein noch ausgeführt werden. Das Dossier rendert hingegen
+die serverseitig bereinigte HTML-Formatierung.
 
 Ergänzung 2.1.9: Das Feld «Gesendet am» muss vollständige gespeicherte Zeitstempel einschließlich Sekunden browserseitig als gültig akzeptieren und verlustfrei wieder anzeigen.
 

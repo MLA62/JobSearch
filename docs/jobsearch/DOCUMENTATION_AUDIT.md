@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.0 ist dokumentiert und der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.1 ist dokumentiert und für das Deployment vorbereitet; 2.2.0 ist der bestätigte Live-Stand.
+
+## Pruefstand 2.2.1
+
+- Manuell eingegebene Inserat-Adressen überschreiben ausschließlich einen fehlenden automatischen Verfügbarkeitsbeleg; die automatische Suche bleibt streng.
+- Einzel- und Mehrfach-Schnellimport verwenden denselben manuellen Prioritätsmodus mit vollständiger Extraktion und Match-Berechnung.
+- Der Mini-Editor enthält Listen, Ein-/Ausrücken und Format löschen. Karten und Tabellen zeigen Langtexte als Klartext; das Dossier rendert bereinigtes HTML.
+- Bewerbungsfilter, Leerzustand und Arbeitgeberbezug sind in fünf Sprachen vollständig beschriftet.
+- KI-Anweisungen werden gegen tatsächliche Änderungen an Begleit-E-Mail und Motivationsschreiben geprüft; ein unveränderter erster Rücklauf wird einmal wiederholt.
+- Alle 30 PHP-Testdateien bestanden. Das Hilfe-System umfasst 3'628 geprüfte Inhalte und 1'199 Seed-Einträge.
+- Produktionsnachweis folgt nach externer TOTP-Freigabe.
 
 ## Pruefstand 2.2.0
 

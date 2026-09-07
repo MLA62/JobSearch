@@ -3,6 +3,16 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.2.1: `job_drilldown_test.php` prüft getrennt, dass die automatische Suche bei
+unbekannter Verfügbarkeit weiterhin ablehnt, während dieselbe lesbare, manuell eingegebene URL
+mit dokumentiertem Override importiert wird. Der Schnellimport muss diesen Modus für einzelne und
+mehrere URLs verwenden.
+
+`rich_text_chronology_test.php` prüft in 2.2.1 zusätzlich die erweiterten Listen-/Einrückungs-
+Werkzeuge sowie den Darstellungsvertrag: Karten und Tabellen verwenden Klartext, während das
+Dossier das bereinigte HTML rendert. Die Hilfe-Validierung deckt die neuen
+Bewerbungsbeschriftungen in allen unterstützten Sprachen ab.
+
 Ergänzung 2.2.0: `rich_text_chronology_test.php` prüft Positivliste und Entfernung aktiver
 Inhalte, Klartextkompatibilität, die geforderten Mini-Editor-Werkzeuge, lokalisierte Bedienung,
 formatierte HTML-E-Mails sowie chronologische gemischte Aktivitäten, Statushistorien und Logs.

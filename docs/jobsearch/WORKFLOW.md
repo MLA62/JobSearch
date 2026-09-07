@@ -1,12 +1,19 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.0.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.1.
+
+## Manueller Schnellimport
+
+- Eine bewusst eingegebene HTTPS-Inserat-Adresse wird übernommen, sobald die Seite als Stellenanzeige lesbar und vollständig genug für Firma, Titel und Beschreibung ist.
+- Fehlende automatische Aktualitätsbelege blockieren diesen manuellen Import nicht.
+- Original-Drill-down, Firmen- und Kontaktdatenrecherche, Match-Neuberechnung und Dublettenbehandlung laufen weiterhin vollständig.
+- Die automatische profilbasierte Suche zeigt weiterhin nur nachweislich verfügbare Anzeigen.
 
 ## Formatierte Langtexte und Verlauf
 
-- Mehrzeilige fachliche Texte besitzen einen HTML-Mini-Editor für Absätze, Fett, Kursiv, Links, externe HTTPS-Bilder, Tabellen und Trennlinien.
+- Mehrzeilige fachliche Texte besitzen einen HTML-Mini-Editor für Absätze, Fett, Kursiv, Links, Aufzählungen, nummerierte Listen, Ein-/Ausrücken, Format löschen, externe HTTPS-Bilder, Tabellen und Trennlinien.
 - Die HTML-Ansicht erlaubt gezielte Quelltextkorrekturen; beim Speichern entfernt die App nicht erlaubte Elemente, Attribute und URL-Protokolle.
-- E-Mails behalten die sichere Formatierung. PDF-/Textausgaben und KI-Kontexte erhalten daraus lesbaren Klartext.
+- E-Mails und Dossiers behalten die sichere Formatierung. Karten, Tabellen, PDF-/Textausgaben und KI-Kontexte erhalten daraus lesbaren Klartext mit Absätzen.
 - Aktivitäten, Statushistorien, Kontakt-Logs und Audit-Auszüge laufen chronologisch von oben nach unten.
 
 Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel einschließlich Sekunden und erlaubt diese Auflösung bei der Eingabe.

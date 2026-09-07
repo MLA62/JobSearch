@@ -50,13 +50,22 @@ $fixturePages[$originalUrl]=$original;
 unset($fixturePages['https://employer.example/']);
 $partial=importFromUrl($portalUrl);
 verify(!empty($partial['import_warnings']) && empty($partial['company_details']['address_line1']),'Unavailable company page does not invent an address or discard readable original');
+$unknownUrl='https://employer.example/jobs/manual-import';
+$unknownSchema=$schema; unset($unknownSchema['validThrough']);
+$fixturePages[$unknownUrl]='<html><head><script type="application/ld+json">'.json_encode($unknownSchema).'</script></head><body><main><h1>Key Account Manager</h1><p>Complete original responsibilities.</p></main></body></html>';
+$strictDiagnostic=[];
+try { importFromUrl($unknownUrl,$strictDiagnostic); verify(false,'Automatic search must still require availability evidence'); }
+catch (RuntimeException $error) { verify(str_contains($error->getMessage(),'nicht ausreichend belegbar'),'Automatic search remains availability-checked'); }
+$manualDiagnostic=[];
+$manual=importFromUrl($unknownUrl,$manualDiagnostic,true);
+verify(($manual['availability']['manual_override'] ?? false)===true && $manual['source_url']===$unknownUrl,'Manually entered URL overrides unknown availability');
 $handler=substr($source,strpos($source,"if (\$action === 'prepare_ai_job_import')"));
 $handler=substr($handler,0,strpos($handler,"if (\$action === 'exclude_ai_job')"));
 verify(!str_contains($handler,'pdfTableBytes') && !str_contains($handler,'file_put_contents'),'Import never creates a fake original PDF or attachment');
 verify(str_contains($handler,'verifiedJobImport($config,userId(),$url,importSearchCriteria($db,userId()))'),'AI import uses verified original and current criteria');
 $quick=substr($source,strpos($source,"if (\$action === 'preview_import')"));
 $quick=substr($quick,0,strpos($quick,"if (\$action === 'save_profile_link')"));
-verify(str_contains($quick,'count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)') && str_contains($quick,'verifiedJobImport($config,$uid,$sourceUrl,importSearchCriteria($db,$uid))'),'Single-URL and batch imports use the same verified enrichment');
+verify(str_contains($quick,'count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)') && str_contains($quick,'verifiedJobImport($config,$uid,$sourceUrl,importSearchCriteria($db,$uid),$manualDiagnostic,true)'),'Single-URL and batch quick imports use verified enrichment with manual priority');
 verify(str_contains($handler,"unset(\$_SESSION['import_draft'])") && str_contains($quick,"unset(\$_SESSION['import_draft'])"),'Stale preview cannot hide the newly imported job or its contacts');
 
 if (in_array('--live-fixture',$argv,true)) {

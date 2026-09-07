@@ -22,8 +22,11 @@ checkRich(str_contains($safe, 'https://example.test/a.png') && !str_contains($sa
 checkRich(str_contains(sanitizeRichText("Zeile 1\nZeile 2"), '<br>'), 'Legacy plain text keeps line breaks');
 checkRich(in_array('online_notes', richTextFieldNames(), true) && in_array('cover_letter_text', richTextFieldNames(), true), 'Requested long-text fields use editor');
 checkRich(str_contains($source, "command('▦',labels.table") && str_contains($source, "command('🖼',labels.image") && str_contains($source, "sourceButton.textContent='HTML'"), 'Mini editor exposes requested tools');
+checkRich(str_contains($source, "command('•',labels.bullets") && str_contains($source, "command('1.',labels.numbers") && str_contains($source, "command('→',labels.indent") && str_contains($source, "command('←',labels.outdent") && str_contains($source, "command('Tx',labels.clear"), 'Mini editor exposes list, indent and clear-format tools');
 checkRich(str_contains($source, 'richTextHtml($textBody)') && str_contains($source, 'richTextHtml($footer)'), 'Formatted email and footer remain HTML');
 checkRich(str_contains($source, 'const labelSets = {') && str_contains($source, "fr:{paragraph:'Paragraphe'") && str_contains($source, "en:{paragraph:'Paragraph'"), 'Mini editor follows the user language');
+checkRich(!str_contains($source, "mb_strimwidth((string)\$job['description']") && str_contains($source, "mb_strimwidth(richTextPlain((string)\$job['description'])"), 'Job cards and tables render descriptions as plain text');
+checkRich(str_contains($source, "richTextHtml((string)\$application['job_description'])"), 'Application dossier renders sanitized rich text');
 
 $timeline = dossierActivityRows([
     'history'=>[['id'=>2,'changed_at'=>'2026-09-07 14:02:00']],
