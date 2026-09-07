@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.6.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.7.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 
@@ -12,6 +12,8 @@ Stand: 04.09.2026. Aktuelles Verhalten für Release 2.1.6.
 
 - Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
 - Nach dem sichtbaren Arbeitsdialog sendet der Browser `Bewerbung vorbereiten` als normale Formularnavigation. Dadurch folgt er der serverseitigen Weiterleitung direkt zum erstellten oder vorhandenen Bewerbungsdatensatz.
+- Eine gelöschte Bewerbung wird niemals reaktiviert. Sie blockiert keine neue Bewerbung für denselben Job. Parallele Klicks öffnen atomar denselben aktiven Datensatz.
+- Scheitert nur die Textvorbereitung, bleibt die Bewerbung angelegt und wird zur manuellen Bearbeitung geöffnet. Speicher- und Textfehler werden getrennt mit Fehlerreferenz gemeldet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
 - Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Bleibt sie leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.

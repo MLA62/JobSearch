@@ -148,6 +148,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 
 - `function ensureColumn(mysqli $db, string $table, string $column, string $definition, ?string $after = null): void`
 - `function modifyColumnWhenMissingValue(mysqli $db, string $table, string $column, string $value, string $definition): void`
+- `function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, array $columns): void`
 - `function e(?string $value): string`
 - `function ensureIndex(mysqli $db, string $table, string $index, string $definition): void`
 - `function filePickerHtml(string $name, bool $required = true, string $accept = ''): string`

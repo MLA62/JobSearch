@@ -1245,6 +1245,25 @@ function modifyColumnWhenMissingValue(mysqli $db, string $table, string $column,
     }
 }
 
+function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, array $columns): void
+{
+    ensureColumn($db, $table, 'active_unique', '`active_unique` TINYINT GENERATED ALWAYS AS (CASE WHEN `deleted_at` IS NULL THEN 1 ELSE NULL END) STORED', 'deleted_at');
+    $escapedTable = str_replace('`', '``', $table);
+    $escapedIndex = $db->real_escape_string($index);
+    $rows = dbAll($db, "SHOW INDEX FROM `{$escapedTable}` WHERE Key_name='{$escapedIndex}'");
+    usort($rows, static fn(array $left, array $right): int => (int)$left['Seq_in_index'] <=> (int)$right['Seq_in_index']);
+    $current = array_map(static fn(array $row): string => (string)$row['Column_name'], $rows);
+    $wanted = array_values(array_merge($columns, ['active_unique']));
+    if ($current === $wanted) {
+        return;
+    }
+    if ($rows) {
+        $db->query("ALTER TABLE `{$escapedTable}` DROP INDEX `" . str_replace('`', '``', $index) . '`');
+    }
+    $columnSql = implode(',', array_map(static fn(string $column): string => '`' . str_replace('`', '``', $column) . '`', $wanted));
+    $db->query("ALTER TABLE `{$escapedTable}` ADD UNIQUE KEY `" . str_replace('`', '``', $index) . "` ({$columnSql})");
+}
+
 try {
     ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_company_id` BIGINT UNSIGNED NULL', 'job_id');
     ensureColumn($db, 'applications', 'primary_contact_id', '`primary_contact_id` BIGINT UNSIGNED NULL', 'intermediary_company_id');
@@ -1288,8 +1307,22 @@ try {
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         deleted_at DATETIME NULL,
-        UNIQUE KEY uq_job_platform_name (name)
+        active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+        UNIQUE KEY uq_job_platform_name (name, active_unique)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $schemaLock = dbOne($db, "SELECT GET_LOCK('jema_soft_delete_unique_v1', 10) acquired");
+    if ((int)($schemaLock['acquired'] ?? 0) !== 1) {
+        throw new RuntimeException('Soft-delete schema lock could not be acquired.');
+    }
+    try {
+        ensureSoftDeleteUniqueIndex($db, 'users', 'uq_users_email', ['email']);
+        ensureSoftDeleteUniqueIndex($db, 'company_relationships', 'uq_company_relationship', ['owner_user_id', 'intermediary_company_id', 'client_company_id', 'relationship_type']);
+        ensureSoftDeleteUniqueIndex($db, 'job_platforms', 'uq_job_platform_name', ['name']);
+        ensureSoftDeleteUniqueIndex($db, 'jobs', 'uq_job_source_external', ['source_id', 'external_id']);
+        ensureSoftDeleteUniqueIndex($db, 'applications', 'uq_application_user_job', ['user_id', 'job_id']);
+    } finally {
+        $db->query("SELECT RELEASE_LOCK('jema_soft_delete_unique_v1')");
+    }
     $db->query("CREATE TABLE IF NOT EXISTS user_job_search_criteria (
         user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
         search_query VARCHAR(1000) NOT NULL DEFAULT '',
@@ -2033,6 +2066,22 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Em andamento',
     'es-MX' => 'En curso',
   ),
+  'applications.prepare_storage_failed' =>
+  array (
+    'de-CH' => 'Die Bewerbung konnte nicht in der Datenbank angelegt werden. Es wurden keine Bewerbungsdaten geändert. Fehlerreferenz: {reference}.',
+    'fr-CH' => 'La candidature n’a pas pu être créée dans la base de données. Aucune donnée de candidature n’a été modifiée. Référence d’erreur : {reference}.',
+    'en-GB' => 'The application could not be created in the database. No application data was changed. Error reference: {reference}.',
+    'pt-BR' => 'A candidatura não pôde ser criada no banco de dados. Nenhum dado da candidatura foi alterado. Referência do erro: {reference}.',
+    'es-MX' => 'La solicitud no pudo crearse en la base de datos. No se modificaron datos de la solicitud. Referencia del error: {reference}.',
+  ),
+  'applications.prepare_texts_failed' =>
+  array (
+    'de-CH' => 'Die Bewerbung wurde angelegt, aber die Texte konnten nicht vorbereitet werden. Der Datensatz ist geöffnet und kann manuell bearbeitet werden. Fehlerreferenz: {reference}.',
+    'fr-CH' => 'La candidature a été créée, mais les textes n’ont pas pu être préparés. Le dossier est ouvert et peut être modifié manuellement. Référence d’erreur : {reference}.',
+    'en-GB' => 'The application was created, but its texts could not be prepared. The record is open and can be edited manually. Error reference: {reference}.',
+    'pt-BR' => 'A candidatura foi criada, mas os textos não puderam ser preparados. O registro está aberto e pode ser editado manualmente. Referência do erro: {reference}.',
+    'es-MX' => 'La solicitud se creó, pero no se pudieron preparar los textos. El registro está abierto y puede editarse manualmente. Referencia del error: {reference}.',
+  ),
   'context.all_topics' =>
   array (
     'de-CH' => 'Alle Hilfethemen',
@@ -2595,11 +2644,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.0' =>
   array (
-    'de-CH' => 'Beim Vorbereiten öffnet die App nach Abschluss zuverlässig den erzeugten oder bereits vorhandenen Bewerbungsdatensatz und füllt Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.',
-    'fr-CH' => 'Après la préparation, l’application ouvre de manière fiable la candidature créée ou existante et préremplit l’objet, l’e-mail d’accompagnement et la lettre de motivation à partir du profil, du poste, de l’entreprise, des contacts et du CV actuel lisible.',
-    'en-GB' => 'After preparation, the app reliably opens the created or existing application and prefills the subject, accompanying email and cover letter from profile, job, company and contact data plus the readable current CV.',
-    'pt-BR' => 'Após a preparação, o aplicativo abre de forma confiável a candidatura criada ou existente e preenche assunto, e-mail de apresentação e carta de motivação com dados do perfil, vaga, empresa, contatos e o CV atual legível.',
-    'es-MX' => 'Después de la preparación, la aplicación abre de forma fiable la solicitud creada o existente y completa el asunto, el correo de presentación y la carta de motivación con datos del perfil, puesto, empresa, contactos y el CV actual legible.',
+    'de-CH' => 'Beim Vorbereiten legt die App eine neue Bewerbung an oder öffnet die bereits aktive Bewerbung. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage. Danach füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.',
+    'fr-CH' => 'Lors de la préparation, l’application crée une nouvelle candidature ou ouvre celle qui est déjà active. Les candidatures supprimées restent supprimées et ne bloquent pas une nouvelle création. Elle préremplit ensuite l’objet, l’e-mail et la lettre de motivation avec les données disponibles.',
+    'en-GB' => 'When preparing, the app creates a new application or opens the already active one. Deleted applications stay deleted and do not block a new record. It then prefills the subject, accompanying email and cover letter from the available profile, job, company, contact and CV data.',
+    'pt-BR' => 'Ao preparar, o aplicativo cria uma nova candidatura ou abre a que já está ativa. Candidaturas excluídas continuam excluídas e não bloqueiam um novo registro. Depois, preenche assunto, e-mail e carta com os dados disponíveis.',
+    'es-MX' => 'Al preparar, la aplicación crea una solicitud nueva o abre la que ya está activa. Las solicitudes eliminadas permanecen eliminadas y no bloquean un registro nuevo. Después completa el asunto, el correo y la carta con los datos disponibles.',
   ),
   'help.v2.applications.steps.1' =>
   array (
@@ -11972,36 +12021,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash(tr('flash.jobs.unavailable'), 'danger');
             redirect('/?page=jobs');
         }
-        $existing = dbOne($db, 'SELECT id, email_subject, email_body, cover_letter_text FROM applications WHERE user_id=? AND job_id=? AND deleted_at IS NULL', 'ii', [userId(), $jobId]);
-        if ($existing) {
-            if (trim((string)($existing['email_subject'] ?? ''))==='' || trim((string)($existing['email_body'] ?? ''))==='' || trim((string)($existing['cover_letter_text'] ?? ''))==='') {
-                initializeApplicationTexts($config,$db,userId(),(int)$existing['id'],$currentUser ?? []);
-            }
-            redirectAiFetch('/?page=applications&edit=' . (int) $existing['id'] . '#application-form');
-        }
         $uid = userId();
+        $applicationId = 0;
+        $created = false;
         try {
             $db->begin_transaction();
             $applicationUrl = trim((string) ($job['source_url'] ?? '')) ?: null;
-            $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, channel, application_url) VALUES (?, ?, 'draft', 'website', ?)");
+            $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, channel, application_url) VALUES (?, ?, 'draft', 'website', ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)");
             $stmt->bind_param('iis', $uid, $jobId, $applicationUrl);
             $stmt->execute();
             $applicationId = (int) $stmt->insert_id;
-            $history = $db->prepare("INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, NULL, 'draft', NULL)");
-            $history->bind_param('ii', $applicationId, $uid);
-            $history->execute();
-            syncApplicationWorkflow($db, $uid, $applicationId);
-            audit($db, $uid, 'create', 'application', $applicationId, null, ['job_id' => $jobId, 'status' => 'draft', 'channel' => 'website', 'application_url' => $applicationUrl]);
+            $created = $stmt->affected_rows === 1;
+            if ($applicationId <= 0) {
+                throw new RuntimeException('No application identifier was returned.');
+            }
+            if ($created) {
+                $history = $db->prepare("INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, NULL, 'draft', NULL)");
+                $history->bind_param('ii', $applicationId, $uid);
+                $history->execute();
+                syncApplicationWorkflow($db, $uid, $applicationId);
+                audit($db, $uid, 'create', 'application', $applicationId, null, ['job_id' => $jobId, 'status' => 'draft', 'channel' => 'website', 'application_url' => $applicationUrl]);
+            }
             $db->commit();
-            $initialized=initializeApplicationTexts($config,$db,$uid,$applicationId,$currentUser ?? []);
-            flash($initialized['ai'] ? tr('applications.prepared') : tr('applications.ai_initial_fallback'), $initialized['ai'] ? 'success' : 'warning');
-            redirectAiFetch('/?page=applications&edit=' . $applicationId . '#application-form');
         } catch (Throwable $exception) {
             try { $db->rollback(); } catch (Throwable) {}
-            error_log('Start application failed for job ' . $jobId . ': ' . $exception->getMessage());
-            flash(tr('applications.prepare_failed'), 'danger');
+            $reference = strtoupper(bin2hex(random_bytes(4)));
+            error_log('Application storage failed [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
+            flash(tr('applications.prepare_storage_failed', null, ['reference' => $reference]), 'danger');
             redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
         }
+        try {
+            $initialized=initializeApplicationTexts($config,$db,$uid,$applicationId,$currentUser ?? []);
+            flash($initialized['ai'] ? tr('applications.prepared') : tr('applications.ai_initial_fallback'), $initialized['ai'] ? 'success' : 'warning');
+        } catch (Throwable $exception) {
+            $reference = strtoupper(bin2hex(random_bytes(4)));
+            error_log('Application text preparation failed [' . $reference . '] for application ' . $applicationId . ': ' . $exception->getMessage());
+            flash(tr('applications.prepare_texts_failed', null, ['reference' => $reference]), 'warning');
+        }
+        redirectAiFetch('/?page=applications&edit=' . $applicationId . '#application-form');
     }
 
     if ($action === 'set_intermediary') {
@@ -12676,7 +12733,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.6';
+$codeVersion = '2.1.7';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

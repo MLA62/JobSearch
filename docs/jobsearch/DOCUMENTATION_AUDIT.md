@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-04. Version 2.1.6 ist dokumentiert und deployed.
-Produktionsdatei und öffentliche Version sind bestätigt; frühere Nachweise sind historische Belege.
+Stand: 2026-09-07. Version 2.1.7 ist dokumentiert und zur Bereitstellung vorbereitet.
+Version 2.1.6 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -44,6 +44,14 @@ Workflowbereinigung und Hilfe/Lizenz.
 Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentralen Thema. Technische Export-/Callback-Endpunkte besitzen keine eigene kuenstliche Maske. Sicherheitsthemen sind zentral verfuegbar; die Glühbirne wird im aktuellen Layout nur bei angemeldeten Benutzern gezeigt.
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
+
+## Pruefstand 2.1.7
+
+- Alle 29 PHP-Testdateien bestanden; das Help-System umfasst 3'525 geprüfte Inhalte und 1'134 Seed-Einträge.
+- Der neue Vertragstest deckt alle soft-gelöschten Tabellen mit fachlicher Eindeutigkeit ab.
+- Gelöschte Datensätze blockieren keine Neuanlage; aktive Dubletten bleiben verhindert.
+- Bewerbungsspeicherung und Textvorbereitung besitzen getrennte, handlungsorientierte Meldungen
+  mit korrelierbarer Fehlerreferenz.
 
 ## Pruefstand 2.1.6
 

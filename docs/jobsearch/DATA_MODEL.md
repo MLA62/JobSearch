@@ -76,7 +76,8 @@ CREATE TABLE users (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_users_email (email),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_users_email (email, active_unique),
     KEY idx_users_name (last_name, first_name),
     CONSTRAINT fk_users_language FOREIGN KEY (preferred_language) REFERENCES languages(code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -351,7 +352,8 @@ CREATE TABLE company_relationships (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
@@ -382,7 +384,8 @@ CREATE TABLE job_platforms (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_job_platform_name (name)
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_job_platform_name (name, active_unique)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE jobs (
@@ -419,7 +422,8 @@ CREATE TABLE jobs (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_job_source_external (source_id, external_id),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_job_source_external (source_id, external_id, active_unique),
     KEY idx_jobs_owner_status (owner_user_id, status),
     KEY idx_jobs_company (company_id),
     KEY idx_jobs_dates (published_at, expires_at),
@@ -535,7 +539,8 @@ CREATE TABLE applications (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_application_user_job (user_id, job_id),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_application_user_job (user_id, job_id, active_unique),
     KEY idx_applications_status_date (user_id, status, applied_at),
     KEY idx_applications_next_action (user_id, next_action_at),
     KEY idx_applications_intermediary (intermediary_company_id),
@@ -899,7 +904,8 @@ CREATE TABLE IF NOT EXISTS company_relationships (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
@@ -1259,6 +1265,38 @@ ALTER TABLE user_smtp_settings
     ADD COLUMN imap_sent_folder VARCHAR(255) NULL AFTER imap_encryption;
 ```
 
+## 15_soft_delete_uniqueness.sql
+
+```sql
+-- JeMa Jobs 2.1.7: Gelöschte Datensätze blockieren keine Neuanlage.
+-- Pro fachlichem Schlüssel bleibt höchstens ein aktiver Datensatz erlaubt.
+
+ALTER TABLE users
+    ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    DROP INDEX uq_users_email,
+    ADD UNIQUE KEY uq_users_email (email, active_unique);
+
+ALTER TABLE company_relationships
+    ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    DROP INDEX uq_company_relationship,
+    ADD UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique);
+
+ALTER TABLE job_platforms
+    ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    DROP INDEX uq_job_platform_name,
+    ADD UNIQUE KEY uq_job_platform_name (name, active_unique);
+
+ALTER TABLE jobs
+    ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    DROP INDEX uq_job_source_external,
+    ADD UNIQUE KEY uq_job_source_external (source_id, external_id, active_unique);
+
+ALTER TABLE applications
+    ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    DROP INDEX uq_application_user_job,
+    ADD UNIQUE KEY uq_application_user_job (user_id, job_id, active_unique);
+```
+
 ## Zusaetzliche Runtime-DDL
 
 Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PHP-Notation und gegebenenfalls Interpolation sind vor einer manuellen Ausfuehrung auf SQL aufzuloesen.
@@ -1360,7 +1398,8 @@ Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PH
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         deleted_at DATETIME NULL,
-        UNIQUE KEY uq_job_platform_name (name)
+        active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+        UNIQUE KEY uq_job_platform_name (name, active_unique)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
 ```
 
@@ -1501,6 +1540,10 @@ Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PH
 ```
 
 ## Bedingte Spalten und Index-Erweiterungen
+
+```php
+ensureColumn($db, $table, 'active_unique', '`active_unique` TINYINT GENERATED ALWAYS AS (CASE WHEN `deleted_at` IS NULL THEN 1 ELSE NULL END) STORED', 'deleted_at');
+```
 
 ```php
 ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_company_id` BIGINT UNSIGNED NULL', 'job_id');

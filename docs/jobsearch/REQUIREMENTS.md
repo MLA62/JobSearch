@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 04.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.6.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.7.
+
+Ergänzung 2.1.7: Gelöschte Datensätze bleiben gelöscht und dürfen eine fachlich gleiche
+Neuanlage in keiner Tabelle blockieren. Eindeutigkeitsregeln mit `deleted_at` gelten nur für
+aktive Datensätze. Dies betrifft Benutzer-E-Mail, Firmenbeziehungen, Jobportale, externe
+Stellenidentitäten und Bewerbungen pro Job. Gleichzeitige Neuanlagen derselben aktiven Bewerbung
+werden atomar auf einen Datensatz zusammengeführt. Fehlermeldungen nennen Verarbeitungsschritt,
+Datenwirkung und eine im Serverlog auffindbare Fehlerreferenz.
 
 Ergänzung 2.1.6: `Bewerbung vorbereiten` verwendet nach dem Anzeigen des Arbeitsdialogs eine
 normale Browser-Formularnavigation. Der Browser folgt der serverseitigen Weiterleitung direkt und

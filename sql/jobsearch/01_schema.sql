@@ -50,7 +50,8 @@ CREATE TABLE users (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_users_email (email),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_users_email (email, active_unique),
     KEY idx_users_name (last_name, first_name),
     CONSTRAINT fk_users_language FOREIGN KEY (preferred_language) REFERENCES languages(code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -325,7 +326,8 @@ CREATE TABLE company_relationships (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
@@ -356,7 +358,8 @@ CREATE TABLE job_platforms (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_job_platform_name (name)
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_job_platform_name (name, active_unique)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE jobs (
@@ -393,7 +396,8 @@ CREATE TABLE jobs (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_job_source_external (source_id, external_id),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_job_source_external (source_id, external_id, active_unique),
     KEY idx_jobs_owner_status (owner_user_id, status),
     KEY idx_jobs_company (company_id),
     KEY idx_jobs_dates (published_at, expires_at),
@@ -509,7 +513,8 @@ CREATE TABLE applications (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
-    UNIQUE KEY uq_application_user_job (user_id, job_id),
+    active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
+    UNIQUE KEY uq_application_user_job (user_id, job_id, active_unique),
     KEY idx_applications_status_date (user_id, status, applied_at),
     KEY idx_applications_next_action (user_id, next_action_at),
     KEY idx_applications_intermediary (intermediary_company_id),

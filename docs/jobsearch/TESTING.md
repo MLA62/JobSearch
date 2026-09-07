@@ -1,7 +1,11 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-04. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
+
+Ergänzung 2.1.7: `soft_delete_uniqueness_test.php` prüft die aktive Eindeutigkeit aller fünf
+betroffenen Tabellen, Laufzeit- und SQL-Migration, atomare Bewerbungserstellung, das Verbot einer
+Reaktivierung sowie getrennte Fehlermeldungen mit Referenz. Der Test verändert keine Datenbank.
 
 Ergänzung 2.1.6: `ai_progress_quota_test.php` prüft die native Formularübermittlung für
 `Bewerbung vorbereiten`, das verborgene Aktionsfeld und den Navigationsabbruch.
