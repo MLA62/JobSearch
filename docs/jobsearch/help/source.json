@@ -1,5 +1,5 @@
 {
-  "version": "2.1.8",
+  "version": "2.1.9",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -661,7 +661,8 @@
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
-            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet."
+            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
+            "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden."
           ]
         },
         "fr-CH": {
@@ -675,7 +676,8 @@
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
-            "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte."
+            "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
+            "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises."
           ]
         },
         "en-GB": {
@@ -689,7 +691,8 @@
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
-            "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open."
+            "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open.",
+            "The Sent at field accepts the stored timestamp, including seconds."
           ]
         },
         "pt-BR": {
@@ -703,7 +706,8 @@
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
-            "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta."
+            "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
+            "O campo Enviada em aceita o horário armazenado, incluindo segundos."
           ]
         },
         "es-MX": {
@@ -717,7 +721,8 @@
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
-            "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual."
+            "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
+            "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos."
           ]
         }
       }

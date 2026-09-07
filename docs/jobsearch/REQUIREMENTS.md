@@ -1,6 +1,8 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.8.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.9.
+
+Ergänzung 2.1.9: Das Feld «Gesendet am» muss vollständige gespeicherte Zeitstempel einschließlich Sekunden browserseitig als gültig akzeptieren und verlustfrei wieder anzeigen.
 
 Ergänzung 2.1.8: Gelöschte Datensätze bleiben gelöscht und dürfen eine fachlich gleiche
 Neuanlage in keiner Tabelle blockieren. Eindeutigkeitsregeln mit `deleted_at` gelten nur für

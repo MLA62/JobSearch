@@ -2714,6 +2714,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.',
     'es-MX' => 'La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.',
   ),
+  'help.v2.applications.tips.2' =>
+  array (
+    'de-CH' => 'Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.',
+    'fr-CH' => 'Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.',
+    'en-GB' => 'The Sent at field accepts the stored timestamp, including seconds.',
+    'pt-BR' => 'O campo Enviada em aceita o horário armazenado, incluindo segundos.',
+    'es-MX' => 'El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.',
+  ),
   'help.v2.applications.title' =>
   array (
     'de-CH' => 'Bewerbungsworkflow',
@@ -4005,7 +4013,7 @@ function helpTopicDefinitions(): array
       1 => 'calendar',
     ),
     'step_count' => 4,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   9 =>
   array (
@@ -12749,7 +12757,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.8';
+$codeVersion = '2.1.9';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14332,7 +14340,7 @@ startUiTranslationBuffer($appLocale);
                 <div class="three">
                     <label><?= e(tr('common.status')) ?><select name="status"><?php foreach(array_intersect_key($applicationStatuses, array_flip(array_merge(applicationStatusSequence(), ['rejected', (string)$applicationEdit['status']]))) as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['status']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-                    <label data-sent-date <?= in_array($applicationEdit['status'], ['draft','ready'], true) ? 'hidden' : '' ?>><?= e(tr('applications.sent_at')) ?><input type="datetime-local" name="applied_at" value="<?= e(applicationWorkflowView($applicationEdit)['sent_at'] ? date('Y-m-d\TH:i', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
+                    <label data-sent-date <?= in_array($applicationEdit['status'], ['draft','ready'], true) ? 'hidden' : '' ?>><?= e(tr('applications.sent_at')) ?><input type="datetime-local" step="1" name="applied_at" value="<?= e(applicationWorkflowView($applicationEdit)['sent_at'] ? date('Y-m-d\TH:i:s', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
                 <?php $registration = dbOne($db, 'SELECT job_room_registration FROM applications WHERE id=? AND user_id=?', 'ii', [(int)$applicationEdit['id'], userId()])['job_room_registration'] ?? 'unknown'; ?>
                 <div class="job-room-compact" role="group" aria-label="<?= e(tr('applications.job_room_status')) ?>">

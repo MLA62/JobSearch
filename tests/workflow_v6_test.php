@@ -25,6 +25,7 @@ check(isset(applicationStatusOptions()['offer']),'Legacy statuses can still be d
 check(applicationExportData([$row],[])[0][0]==='10.09.2026','Exports contain only the workflow date, without time');
 check(count(applicationExportHeaders())===5 && count(applicationExportData([$row],[])[0])===5,'CSV and PDF have the same five data columns');
 check(applicationSentAt(['applied_at'=>'2026-09-03 09:16:42'],'sent','2026-09-03T09:16')==='2026-09-03 09:16:42','Autosave preserves seconds');
+check(str_contains($source, 'type="datetime-local" step="1" name="applied_at"') && str_contains($source, "date('Y-m-d\\TH:i:s', strtotime(\$applicationEdit['applied_at']))"), 'Sent-at input accepts and renders stored seconds');
 check(applicationSentAt(['applied_at'=>null],'interview',null)===null,'No guessed submission date from interview status');
 check(applicationSentAt(['applied_at'=>'2026-09-03 09:16:42'],'ready',null)===null,'Reset to preparation removes current submission claim');
 check(workflowCalendarRange('2026-09-03T00:00','')[0]==='2026-09-03 00:00:00','Midnight is a timed appointment');

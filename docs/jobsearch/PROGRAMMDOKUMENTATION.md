@@ -1,6 +1,10 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.1.8 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-07. Version 2.1.9 ist zur Bereitstellung vorbereitet; 2.1.8 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+
+## Zeitstempelvalidierung 2.1.9
+
+Das Feld `applied_at` wird mit Sekunden aus der Datenbank und aus der automatischen Speicherung zurückgegeben. Das zugehörige `datetime-local`-Feld erlaubt deshalb mit `step="1"` Sekundenwerte und rendert den vollständigen Zeitstempel. Damit ist ein gespeicherter Wert wie `14:02:21` browserseitig gültig und ohne erzwungenes Runden erneut speicherbar.
 
 ## Soft-delete-sichere Neuanlage 2.1.8
 

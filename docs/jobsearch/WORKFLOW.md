@@ -1,6 +1,8 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.8.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.9.
+
+Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel einschließlich Sekunden und erlaubt diese Auflösung bei der Eingabe.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 

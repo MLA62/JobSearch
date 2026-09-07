@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.1.8 ist dokumentiert und der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.1.9 ist dokumentiert und zur Bereitstellung vorbereitet; 2.1.8 ist der bestätigte Live-Stand.
 Frühere Nachweise sind historische Belege.
 
 ## Umfang
@@ -44,6 +44,11 @@ Workflowbereinigung und Hilfe/Lizenz.
 Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentralen Thema. Technische Export-/Callback-Endpunkte besitzen keine eigene kuenstliche Maske. Sicherheitsthemen sind zentral verfuegbar; die Glühbirne wird im aktuellen Layout nur bei angemeldeten Benutzern gezeigt.
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
+
+## Pruefstand 2.1.9
+
+- «Gesendet am» rendert und akzeptiert Sekundenwerte konsistent; der Browser weist gespeicherte Zeitstempel nicht mehr als ungültig zurück.
+- Der Workflow-Vertragstest deckt Eingabeauflösung und Sekundenformat ab.
 
 ## Pruefstand 2.1.8
 
