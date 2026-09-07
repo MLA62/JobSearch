@@ -1,9 +1,9 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-07. Zielrelease 2.3.0 ist lokal vorbereitet. Der verifizierte Produktionsstand bleibt bis zur externen TOTP-Freigabe 2.2.4 / Quell-Commit `f7c0b040fb74eaf4fd373ab33bea60214e6fdad5` / SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc`.
-Ausgefuehrt am 2026-09-04T19:57:18+00:00, 1026470 Bytes, Modus 0644.
-SHA-256: `5883707a5c7e1ebaca28b50f18a8c2fe2f58601fd865ee1bce88a0aef8771de6`.
-Öffentliche Loginseite liefert HTTP 200, zeigt Version 2.1.0 und keinen sichtbaren PHP-Laufzeitfehler.
+Stand: 2026-09-07. Release 2.3.0 ist produktiv deployed und per HTTPS verifiziert.
+Quell-Commits: `320c46e` Security-Härtung, `f044f1d` 2FA-Header-Randfall.
+Produktiver `index.php`-SHA-256: `b0ccedab1b9e158c8d50b0d21ae069ba6dd2e84c254ee6e8578a50cbb4f62310`, 1'091'841 Bytes, Modus 0644.
+Öffentliche Seite liefert HTTP 200, Version 2.3.0 sowie HSTS, CSP, nosniff, DENY und no-referrer.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen
@@ -38,7 +38,7 @@ Diese Werte sind historische Vergleichswerte; vor einer neuen Proposal-Erstellun
 8. Oeffentlichen HTTP-Check sowie angemeldete betroffene Seiten pruefen. Fuenf Sprachen, Desktop und schmales Fenster fuer Hilfereleases.
 9. Releaseprotokoll mit Commit, Ziel, Hash, Zeiten, Pruefumfang und offenen Punkten aktualisieren.
 
-Ohne gueltige externe Freigabe bleibt das Deployment ausstehend. Ohne angemeldete Sitzung bleibt die authentisierte Livepruefung ausstehend, auch wenn der Dateiaustausch erfolgreich war.
+Ohne angemeldete Sitzung bleibt die authentisierte Livepruefung ausstehend, auch wenn der Dateiaustausch erfolgreich war.
 
 ## Datenwirkung von 2.1.0
 

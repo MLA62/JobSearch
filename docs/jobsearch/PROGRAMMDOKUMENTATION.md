@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.3.0 ist lokal geprüft; die Produktionsbestätigung erfolgt nach TOTP-Freigabe.
+Stand: 2026-09-07. Version 2.3.0 ist produktiv deployed und per HTTPS verifiziert.
 
 ## Security Hardening 2.3.0
 
