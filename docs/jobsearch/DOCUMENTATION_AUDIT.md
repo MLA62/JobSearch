@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.1.8 ist dokumentiert und zur Bereitstellung vorbereitet.
-Version 2.1.6 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
+Stand: 2026-09-07. Version 2.1.8 ist dokumentiert und der bestätigte Live-Stand.
+Frühere Nachweise sind historische Belege.
 
 ## Umfang
 
@@ -53,6 +53,8 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 - Fremdschlüssel erhalten vor dem Austausch eines bisher stützenden Unique-Indexes einen eigenen Index.
 - Bewerbungsspeicherung und Textvorbereitung besitzen getrennte, handlungsorientierte Meldungen
   mit korrelierbarer Fehlerreferenz.
+- Nach TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200, Version 2.1.8
+  und das Fehlen neuer Schema- sowie sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.6
 
