@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.1 ist für das Deployment vorbereitet; 2.2.0 bleibt bis zur Abnahme der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.1 ist der bestätigte Live-Stand.
 
 ## Priorität manueller Inserat-Adressen 2.2.1
 

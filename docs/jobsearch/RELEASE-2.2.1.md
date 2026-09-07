@@ -1,6 +1,6 @@
 # Version 2.2.1 – manuelle Inserat-Adresse hat Vorrang
 
-Stand: 07.09.2026. Deployment vorbereitet; bestätigter Live-Vorgänger ist Version 2.2.0.
+Stand: 07.09.2026. Produktiv bereitgestellt und technisch bestätigt.
 
 ## Änderungen
 
@@ -15,4 +15,4 @@ Stand: 07.09.2026. Deployment vorbereitet; bestätigter Live-Vorgänger ist Vers
 
 ## Nachweis
 
-PHP-Syntax, alle PHP-Testdateien, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff werden vor der TOTP-Freigabe geprüft. Das Deployment ersetzt ausschließlich `public_html/jobs.jema.business/index.php`; Konfiguration und Datenbankschema bleiben unverändert.
+PHP-Syntax, alle 30 PHP-Testdateien, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff wurden vor der TOTP-Freigabe geprüft. Commit `da4335b90eeda7c842ea811da7470617b169e8e6` wurde nach `public_html/jobs.jema.business/index.php` bereitgestellt. Lokale und produktive Datei sind mit SHA-256 `c40ecd95dc908b1d66449a6a972c4628cf1f4c942836a350faf466121c6805d3` bytegleich. Die öffentliche Seite lieferte HTTP 200 und Version 2.2.1; seit dem Deployment entstand kein neuer PHP-Fehlereintrag. Konfiguration und Datenbankschema blieben unverändert.

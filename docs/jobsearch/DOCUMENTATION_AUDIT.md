@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.1 ist dokumentiert und für das Deployment vorbereitet; 2.2.0 ist der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.1 ist dokumentiert und der bestätigte Live-Stand.
 
 ## Pruefstand 2.2.1
 
@@ -10,7 +10,7 @@ Stand: 2026-09-07. Version 2.2.1 ist dokumentiert und für das Deployment vorber
 - Bewerbungsfilter, Leerzustand und Arbeitgeberbezug sind in fünf Sprachen vollständig beschriftet.
 - KI-Anweisungen werden gegen tatsächliche Änderungen an Begleit-E-Mail und Motivationsschreiben geprüft; ein unveränderter erster Rücklauf wird einmal wiederholt.
 - Alle 30 PHP-Testdateien bestanden. Das Hilfe-System umfasst 3'628 geprüfte Inhalte und 1'199 Seed-Einträge.
-- Produktionsnachweis folgt nach externer TOTP-Freigabe.
+- Nach externer TOTP-Freigabe wurden identische lokale und produktive Dateibytes (SHA-256 `c40ecd95dc908b1d66449a6a972c4628cf1f4c942836a350faf466121c6805d3`), HTTP 200, Version 2.2.1 und kein neuer PHP-Fehlereintrag bestätigt.
 
 ## Pruefstand 2.2.0
 
