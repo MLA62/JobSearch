@@ -50,6 +50,8 @@ Documentos gerais e arquivos específicos da candidatura podem ser associados se
 
 O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia.
 
+Para substituir um arquivo, selecione primeiro o documento atual em Nova versão de. Título, tipo, idioma, descrição e datas de validade são preenchidos; o novo arquivo recebe automaticamente o próximo número de versão. A versão anterior só deixa de ser atual após o arquivo e o banco de dados serem salvos com sucesso.
+
 [Documentos e versões](https://jobs.jema.business/?page=documents&lang=pt-BR) | [Fluxo de candidatura](https://jobs.jema.business/?page=applications&lang=pt-BR)
 
 ## Pesquisar vagas

@@ -50,6 +50,8 @@ Los documentos generales y los específicos de una solicitud se pueden asociar p
 
 El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía.
 
+Para sustituir un archivo, selecciona primero el documento actual en Nueva versión de. Se recuperan título, tipo, idioma, descripción y fechas de validez; el archivo nuevo recibe automáticamente el siguiente número de versión. La versión anterior solo deja de ser actual cuando se guardan correctamente el archivo y la base de datos.
+
 [Documentos y versiones](https://jobs.jema.business/?page=documents&lang=es-MX) | [Proceso de solicitud](https://jobs.jema.business/?page=applications&lang=es-MX)
 
 ## Buscar vacantes

@@ -8,6 +8,11 @@ Ergänzung 2.2.2: `application_ai_texts_test.php`, `ai_progress_quota_test.php` 
 das Stoppen des Autosaves, die native Formularnavigation und den verbindlichen Auftrag, eine
 ausgefüllte Instruktion in beiden Langtexten umzusetzen.
 
+`document_version_flow_test.php` prüft beide Geltungsbereiche (Profil und Bewerbung), die Auswahl
+nur aktueller eigener Ausgangsdokumente, Übernahme der Metadaten einschließlich beider
+Gültigkeitsdaten, Ermittlung von `MAX(version)+1`, Transaktion, Rollback und Entfernung einer nach
+DB-Fehler verwaisten Upload-Datei. Die Gesamtsuite umfasst damit 31 PHP-Testdateien.
+
 Ergänzung 2.2.1: `job_drilldown_test.php` prüft getrennt, dass die automatische Suche bei
 unbekannter Verfügbarkeit weiterhin ablehnt, während dieselbe lesbare, manuell eingegebene URL
 mit dokumentiertem Override importiert wird. Der Schnellimport muss diesen Modus für einzelne und

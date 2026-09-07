@@ -50,6 +50,8 @@ Stammdokumente und bewerbungsspezifische Unterlagen bleiben getrennt zuordenbar.
 
 Die Dokumentsprache ist unabhängig von der App-Sprache. Eine Zuordnung ist noch kein Versand.
 
+Wähle für einen Dateiersatz zuerst das bestehende aktuelle Dokument unter Neue Version von. Titel, Typ, Sprache, Beschreibung und Gültigkeitsdaten werden übernommen; die neue Datei erhält automatisch die nächste Versionsnummer. Erst nach erfolgreicher Datei- und Datenbankspeicherung wird die bisherige Version als nicht aktuell markiert.
+
 [Dokumente und Versionen](https://jobs.jema.business/?page=documents&lang=de-CH) | [Bewerbungsworkflow](https://jobs.jema.business/?page=applications&lang=de-CH)
 
 ## Stellen suchen

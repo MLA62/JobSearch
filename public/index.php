@@ -3175,6 +3175,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia.',
     'es-MX' => 'El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía.',
   ),
+  'help.v2.documents.tips.1' =>
+  array (
+    'de-CH' => 'Wähle für einen Dateiersatz zuerst das bestehende aktuelle Dokument unter Neue Version von. Titel, Typ, Sprache, Beschreibung und Gültigkeitsdaten werden übernommen; die neue Datei erhält automatisch die nächste Versionsnummer. Erst nach erfolgreicher Datei- und Datenbankspeicherung wird die bisherige Version als nicht aktuell markiert.',
+    'fr-CH' => 'Pour remplacer un fichier, sélectionne d’abord le document actuel sous Nouvelle version de. Le titre, le type, la langue, la description et les dates de validité sont repris; le nouveau fichier reçoit automatiquement le numéro de version suivant. L’ancienne version n’est marquée comme non actuelle qu’après l’enregistrement réussi du fichier et de la base de données.',
+    'en-GB' => 'To replace a file, first select the current document under New version of. Title, type, language, description and validity dates are carried over; the new file automatically receives the next version number. The previous version is marked non-current only after both file and database storage succeed.',
+    'pt-BR' => 'Para substituir um arquivo, selecione primeiro o documento atual em Nova versão de. Título, tipo, idioma, descrição e datas de validade são preenchidos; o novo arquivo recebe automaticamente o próximo número de versão. A versão anterior só deixa de ser atual após o arquivo e o banco de dados serem salvos com sucesso.',
+    'es-MX' => 'Para sustituir un archivo, selecciona primero el documento actual en Nueva versión de. Se recuperan título, tipo, idioma, descripción y fechas de validez; el archivo nuevo recibe automáticamente el siguiente número de versión. La versión anterior solo deja de ser actual cuando se guardan correctamente el archivo y la base de datos.',
+  ),
   'help.v2.documents.title' =>
   array (
     'de-CH' => 'Dokumente und Versionen',
@@ -4106,7 +4114,7 @@ function helpTopicDefinitions(): array
       1 => 'applications',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   4 =>
   array (
@@ -11810,42 +11818,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $jobId = (int) $application['job_id'];
         }
+        $oldDoc = null;
+        if ($replaceId > 0) {
+            $oldDoc = dbOne($db, 'SELECT id, title, document_type_id, language_code, description, valid_from, valid_until, version, scope, application_id FROM user_documents WHERE id=? AND user_id=? AND scope=? AND is_current=1 AND deleted_at IS NULL', 'iis', [$replaceId, $uid, $scope]);
+            if (!$oldDoc || ($scope === 'application' && (int)($oldDoc['application_id'] ?? 0) !== $applicationId)) {
+                flash(tr('applications.document_wrong_application'), 'danger');
+                redirect($redirectTarget);
+            }
+            $documentTypeId = (int)$oldDoc['document_type_id'];
+            $title = (string)$oldDoc['title'];
+        }
         $type = dbOne($db, 'SELECT id, code FROM document_types WHERE id=?', 'i', [$documentTypeId]);
         if (!$type || !in_array((string) $type['code'], allowedDocumentTypeCodes($scope), true) || $title === '') {
             flash(tr('flash.documents.required'), 'danger');
             redirect($redirectTarget);
         }
+        $uploaded = null;
+        $transactionStarted = false;
         try {
             $uploaded = uploadDocumentFile($_FILES['user_document'] ?? [], $uid);
-            $version = 1;
-            if ($replaceId > 0) {
-                $oldDoc = dbOne($db, 'SELECT id, title, document_type_id, version, scope, application_id FROM user_documents WHERE id=? AND user_id=? AND scope=? AND deleted_at IS NULL', 'iis', [$replaceId, $uid, $scope]);
-                if ($oldDoc) {
-                    if ($scope === 'application' && (int) ($oldDoc['application_id'] ?? 0) !== $applicationId) {
-                        flash(tr('applications.document_wrong_application'), 'danger');
-                        redirect($redirectTarget);
-                    }
-                    $documentTypeId = (int) $oldDoc['document_type_id'];
-                    $title = (string) $oldDoc['title'];
-                    $version = (int) $oldDoc['version'] + 1;
-                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE id=? AND user_id=? AND scope=?');
-                    $stmt->bind_param('iis', $oldDoc['id'], $uid, $scope);
-                    $stmt->execute();
-                }
+            $db->begin_transaction();
+            $transactionStarted = true;
+            $existing = $scope === 'application'
+                ? dbOne($db, 'SELECT COALESCE(MAX(version),0) max_version FROM user_documents WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=? FOR UPDATE', 'isiis', [$uid, $scope, $applicationId, $documentTypeId, $title])
+                : dbOne($db, 'SELECT COALESCE(MAX(version),0) max_version FROM user_documents WHERE user_id=? AND scope=? AND document_type_id=? AND title=? FOR UPDATE', 'isis', [$uid, $scope, $documentTypeId, $title]);
+            $version = ((int)($existing['max_version'] ?? 0)) + 1;
+            if ($scope === 'application') {
+                $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
+                $stmt->bind_param('isiis', $uid, $scope, $applicationId, $documentTypeId, $title);
+                $stmt->execute();
             } else {
-                $existing = $scope === 'application'
-                    ? dbOne($db, 'SELECT MAX(version) max_version FROM user_documents WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=?', 'isiis', [$uid, $scope, $applicationId, $documentTypeId, $title])
-                    : dbOne($db, 'SELECT MAX(version) max_version FROM user_documents WHERE user_id=? AND scope=? AND document_type_id=? AND title=?', 'isis', [$uid, $scope, $documentTypeId, $title]);
-                $version = ((int) ($existing['max_version'] ?? 0)) + 1;
-                if ($scope === 'application') {
-                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND application_id=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
-                    $stmt->bind_param('isiis', $uid, $scope, $applicationId, $documentTypeId, $title);
-                    $stmt->execute();
-                } else {
-                    $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
-                    $stmt->bind_param('isis', $uid, $scope, $documentTypeId, $title);
-                    $stmt->execute();
-                }
+                $stmt = $db->prepare('UPDATE user_documents SET is_current=0 WHERE user_id=? AND scope=? AND document_type_id=? AND title=? AND deleted_at IS NULL');
+                $stmt->bind_param('isis', $uid, $scope, $documentTypeId, $title);
+                $stmt->execute();
             }
             $stmt = $db->prepare('INSERT INTO user_documents (user_id, document_type_id, language_code, scope, application_id, job_id, title, description, original_filename, storage_path, mime_type, file_size, sha256, valid_from, valid_until, version, is_current) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
             $stmt->bind_param('iissiisssssisssi', $uid, $documentTypeId, $languageCode, $scope, $applicationId, $jobId, $title, $description, $uploaded['original'], $uploaded['path'], $uploaded['mime'], $uploaded['size'], $uploaded['sha256'], $validFrom, $validUntil, $version);
@@ -11862,8 +11867,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $linkStmt->execute();
             }
             audit($db, $uid, 'create', 'user_document', $newDocumentId, null, ['title'=>$title,'version'=>$version,'scope'=>$scope,'application_id'=>$applicationId]);
+            $db->commit();
+            $transactionStarted = false;
             flash(tr('flash.documents.saved'));
         } catch (Throwable $exception) {
+            if ($transactionStarted) $db->rollback();
+            if (is_array($uploaded) && !empty($uploaded['path'])) {
+                $failedPath = realpath(__DIR__ . '/' . dirname((string)$uploaded['path']));
+                $storagePath = realpath(storageRoot());
+                $candidate = __DIR__ . '/' . (string)$uploaded['path'];
+                if ($failedPath && $storagePath && str_starts_with($failedPath, $storagePath) && is_file($candidate)) @unlink($candidate);
+            }
             flash(strtr(tr('flash.documents.save_failed'), ['{error}' => $exception->getMessage()]), 'danger');
         }
         redirect($redirectTarget);
@@ -14551,7 +14565,7 @@ startUiTranslationBuffer($appLocale);
         $editLog = $editLogId > 0 ? dbOne($db, 'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE id=? AND owner_user_id=? AND contact_id=?', 'iii', [$editLogId, userId(), (int)($contactEdit['id'] ?? 0)]) : null;
         $documentTypes = $applicationEdit ? dbAll($db, 'SELECT id, code, name_key FROM document_types ORDER BY id') : [];
         $applicationDocumentTypes = $applicationEdit ? documentTypesForScope($documentTypes, 'application') : [];
-        $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND ((d.scope='application' AND d.application_id=?) OR d.scope='profile') AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
+        $applicationDocuments = $applicationEdit ? dbAll($db, "SELECT ad.purpose, d.id, d.scope, d.document_type_id, d.language_code, d.title, d.description, d.valid_from, d.valid_until, d.version, d.is_current, d.original_filename, d.created_at, d.file_size, dt.code type_code, dt.name_key type_name FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND ((d.scope='application' AND d.application_id=?) OR d.scope='profile') AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC", 'iii', [(int)$applicationEdit['id'], userId(), (int)$applicationEdit['id']]) : [];
         $attachedDocumentIds = array_flip(array_map('intval', array_column($applicationDocuments, 'id')));
         $applicationProfileDocuments = $applicationEdit ? dbAll($db, "SELECT d.id, d.title, d.version, d.original_filename, dt.code type_code FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL ORDER BY d.title, d.version DESC", 'i', [userId()]) : [];
         $intermediaryCompanies = $applicationEdit ? array_values(array_filter($companies, static fn (array $company): bool => !empty($company['is_intermediary']) && (int)$company['id'] !== (int)$applicationEdit['company_id'])) : [];
@@ -14748,11 +14762,12 @@ startUiTranslationBuffer($appLocale);
                     <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
                     <input type="hidden" name="document_scope" value="application">
                     <input type="hidden" name="application_id" value="<?= (int)$applicationEdit['id'] ?>">
-                    <label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id"><option value="0"><?= e(tr('documents.new_application_document')) ?></option><?php foreach($applicationDocuments as $doc): if($doc['scope'] !== 'application') continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label>
+                    <label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id" data-document-version-select><option value="0"><?= e(tr('documents.new_application_document')) ?></option><?php foreach($applicationDocuments as $doc): if($doc['scope'] !== 'application' || !(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>" data-document-type-id="<?= (int)$doc['document_type_id'] ?>" data-title="<?= e((string)$doc['title']) ?>" data-language="<?= e((string)$doc['language_code']) ?>" data-description="<?= e((string)$doc['description']) ?>" data-valid-from="<?= e((string)$doc['valid_from']) ?>" data-valid-until="<?= e((string)$doc['valid_until']) ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label>
                     <label><?= e(tr('documents.document_type')) ?><select name="document_type_id"><?php foreach($applicationDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>"><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label>
                     <input type="hidden" name="purpose" value="cover_letter">
-                    <label><?= e(tr('common.title')) ?><input name="document_title" required placeholder="<?= e(tr('documents.title_placeholder_application', null, ['company' => (string)$applicationEdit['company_name']])) ?>"></label>
+                    <label><?= e(tr('common.title')) ?><input name="document_title" placeholder="<?= e(tr('documents.title_placeholder_application', null, ['company' => (string)$applicationEdit['company_name']])) ?>"></label>
                     <label><?= e(tr('profile.language_label')) ?><select name="document_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= $v===$userLanguage?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                    <div class="two"><label><?= e(tr('documents.valid_from')) ?><input type="date" name="valid_from"></label><label><?= e(tr('documents.valid_until')) ?><input type="date" name="valid_until"></label></div>
                     <label><?= e(tr('common.description')) ?><textarea name="document_description" rows="3"></textarea></label>
                     <?= filePickerHtml('user_document') ?>
                     <button class="primary" name="action" value="upload_document"><?= e(tr('applications.save_document')) ?></button>
@@ -14895,7 +14910,7 @@ startUiTranslationBuffer($appLocale);
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('profile.master_data')) ?></p><h1><?= e(tr('documents.title')) ?></h1></div><span><?= count($documents) ?> <?= e(tr('common.versions')) ?></span></div>
         <div class="actions export-actions"><?= sfToolbar('documents', $docSf, $docPreserve, $docSfFields) ?><a class="button" href="/?page=export_pdf&type=documents">PDF</a></div>
-        <div class="split"><section class="panel" id="document-editor"><h2><?= e($editDocument ? tr('documents.edit_document') : tr('documents.upload_document')) ?></h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="document_scope" value="profile"><?php if($editDocument): ?><input type="hidden" name="document_id" value="<?= (int)$editDocument['id'] ?>"><?php else: ?><label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id"><option value="0"><?= e(tr('documents.new_document')) ?></option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><?php endif; ?><label><?= e(tr('documents.document_type')) ?><select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>" <?= (int)($editDocument['document_type_id'] ?? 0)===(int)$type['id']?'selected':'' ?>><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.title')) ?><input name="document_title" required placeholder="<?= e(tr('documents.title_placeholder_profile')) ?>" value="<?= e($editDocument['title'] ?? '') ?>"></label><label><?= e(tr('profile.language_label')) ?><select name="document_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($editDocument['language_code'] ?? $userLanguage)===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="two"><label><?= e(tr('documents.valid_from')) ?><input type="date" name="valid_from" value="<?= e($editDocument['valid_from'] ?? '') ?>"></label><label><?= e(tr('documents.valid_until')) ?><input type="date" name="valid_until" value="<?= e($editDocument['valid_until'] ?? '') ?>"></label></div><label><?= e(tr('common.description')) ?><textarea name="document_description" rows="3"><?= e($editDocument['description'] ?? '') ?></textarea></label><?php if($editDocument): ?><div class="actions"><button class="primary" name="action" value="update_document"><?= e(tr('common.save_changes')) ?></button><a class="button" href="/?page=documents"><?= e(tr('documents.upload_new')) ?></a><a class="button" href="/?page=document_download&id=<?= (int)$editDocument['id'] ?>"><?= e(tr('common.download')) ?></a></div><p class="meta-line"><?= e(tr('documents.replace_file_hint')) ?></p><?php else: ?><?= filePickerHtml('user_document') ?><button class="primary" name="action" value="upload_document"><?= e(tr('common.save')) ?></button><?php endif; ?></form></section>
+        <div class="split"><section class="panel" id="document-editor"><h2><?= e($editDocument ? tr('documents.edit_document') : tr('documents.upload_document')) ?></h2><form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="document_scope" value="profile"><?php if($editDocument): ?><input type="hidden" name="document_id" value="<?= (int)$editDocument['id'] ?>"><?php else: ?><label><?= e(tr('documents.new_version_of')) ?><select name="replace_document_id" data-document-version-select><option value="0"><?= e(tr('documents.new_document')) ?></option><?php foreach($documents as $doc): if(!(int)$doc['is_current']) continue; ?><option value="<?= (int)$doc['id'] ?>" data-document-type-id="<?= (int)$doc['document_type_id'] ?>" data-title="<?= e((string)$doc['title']) ?>" data-language="<?= e((string)$doc['language_code']) ?>" data-description="<?= e((string)$doc['description']) ?>" data-valid-from="<?= e((string)$doc['valid_from']) ?>" data-valid-until="<?= e((string)$doc['valid_until']) ?>"><?= e($doc['title']) ?> · v<?= (int)$doc['version'] ?></option><?php endforeach; ?></select></label><?php endif; ?><label><?= e(tr('documents.document_type')) ?><select name="document_type_id"><?php foreach($profileDocumentTypes as $type): ?><option value="<?= (int)$type['id'] ?>" <?= (int)($editDocument['document_type_id'] ?? 0)===(int)$type['id']?'selected':'' ?>><?= e(documentTypeLabel((string)$type['code'], $userLanguage)) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.title')) ?><input name="document_title" <?= $editDocument ? 'required' : '' ?> placeholder="<?= e(tr('documents.title_placeholder_profile')) ?>" value="<?= e($editDocument['title'] ?? '') ?>"></label><label><?= e(tr('profile.language_label')) ?><select name="document_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($editDocument['language_code'] ?? $userLanguage)===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label><div class="two"><label><?= e(tr('documents.valid_from')) ?><input type="date" name="valid_from" value="<?= e($editDocument['valid_from'] ?? '') ?>"></label><label><?= e(tr('documents.valid_until')) ?><input type="date" name="valid_until" value="<?= e($editDocument['valid_until'] ?? '') ?>"></label></div><label><?= e(tr('common.description')) ?><textarea name="document_description" rows="3"><?= e($editDocument['description'] ?? '') ?></textarea></label><?php if($editDocument): ?><div class="actions"><button class="primary" name="action" value="update_document"><?= e(tr('common.save_changes')) ?></button><a class="button" href="/?page=documents"><?= e(tr('documents.upload_new')) ?></a><a class="button" href="/?page=document_download&id=<?= (int)$editDocument['id'] ?>"><?= e(tr('common.download')) ?></a></div><p class="meta-line"><?= e(tr('documents.replace_file_hint')) ?></p><?php else: ?><?= filePickerHtml('user_document') ?><button class="primary" name="action" value="upload_document"><?= e(tr('common.save')) ?></button><?php endif; ?></form></section>
         <section class="panel table-wrap"><table><thead><tr><?= sfHeader('documents','title',tr('documents.document'),$docSf,$docPreserve) ?><?= sfHeader('documents','type',tr('documents.type'),$docSf,$docPreserve) ?><?= sfHeader('documents','language',tr('profile.language_label'),$docSf,$docPreserve) ?><?= sfHeader('documents','version',tr('documents.version'),$docSf,$docPreserve) ?><?= sfHeader('documents','created_at',tr('common.date'),$docSf,$docPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($documents as $doc): ?><tr class="<?= ((int)$doc['is_current'] ? 'is-selected ' : '') . ($editDocument && (int)$editDocument['id']===(int)$doc['id'] ? 'is-selected' : '') ?>"><td><strong><a class="record-link" href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['title']) ?></a></strong><small><?= e($doc['original_filename']) ?></small></td><td><?= e(documentTypeLabel((string)$doc['type_code'], $userLanguage)) ?></td><td><?= e(documentLanguageChoices()[(string)$doc['language_code']] ?? (trim((string)$doc['language_code']) !== '' ? (string)$doc['language_code'] : tr('common.not_selected'))) ?></td><td>v<?= (int)$doc['version'] ?><?= (int)$doc['is_current'] ? ' · ' . e(tr('common.current')) : '' ?></td><td><?= e(displayDateTime($doc['created_at'], $currentUser)) ?><small><?= number_format(((int)$doc['file_size']) / 1024, 1) ?> KB</small></td><td class="actions"><a href="/?page=documents&edit_document=<?= (int)$doc['id'] ?>#document-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e(tr('common.download')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('documents.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="document_return" value="documents"><input type="hidden" name="id" value="<?= (int)$doc['id'] ?>"><button name="action" value="delete_document"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$documents): ?><tr><td colspan="6" class="empty"><?= e(tr('documents.empty')) ?></td></tr><?php endif; ?></tbody></table></section></div>
     <?php elseif ($page === 'help'): ?>
         <?php
@@ -15153,6 +15168,46 @@ startUiTranslationBuffer($appLocale);
     });
 })();
 (() => {
+    document.querySelectorAll('[data-document-version-select]').forEach((select) => {
+        const form = select.form;
+        if (!form) return;
+        const fields = {
+            document_type_id: form.elements.document_type_id,
+            document_title: form.elements.document_title,
+            document_language: form.elements.document_language,
+            document_description: form.elements.document_description,
+            valid_from: form.elements.valid_from,
+            valid_until: form.elements.valid_until
+        };
+        const defaults = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field?.value || '']));
+        const hydrate = () => {
+            const option = select.selectedOptions[0];
+            const replacing = select.value !== '0' && option;
+            const values = replacing ? {
+                document_type_id: option.dataset.documentTypeId || '',
+                document_title: option.dataset.title || '',
+                document_language: option.dataset.language || '',
+                document_description: option.dataset.description || '',
+                valid_from: option.dataset.validFrom || '',
+                valid_until: option.dataset.validUntil || ''
+            } : defaults;
+            Object.entries(values).forEach(([key, value]) => {
+                const field = fields[key];
+                if (!field) return;
+                field.value = value;
+                field.dispatchEvent(new Event('jema:richtext-load'));
+            });
+            if (fields.document_title) {
+                fields.document_title.required = !replacing;
+                fields.document_title.readOnly = Boolean(replacing);
+            }
+            if (fields.document_type_id) fields.document_type_id.disabled = Boolean(replacing);
+        };
+        select.addEventListener('change', hydrate);
+        hydrate();
+    });
+})();
+(() => {
     const placeMenu = (menu) => {
         if (!menu.open) return;
         const button = menu.querySelector('.sf-button');
@@ -15302,6 +15357,7 @@ startUiTranslationBuffer($appLocale);
         command('―',labels.divider,()=>document.execCommand('insertHorizontalRule'));
         const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){editor.innerHTML=sanitize(source.value);shell.classList.remove('is-source');editor.focus();sync();}else{sync();shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
         source.addEventListener('input',()=>{if(shell.classList.contains('is-source'))editor.innerHTML=sanitize(source.value);});
+        source.addEventListener('jema:richtext-load',()=>{editor.innerHTML=sanitize(source.value);});
         source.addEventListener('jema:richtext-sync',()=>sync(false));
         editor.addEventListener('input',sync);
         editor.addEventListener('paste',(event)=>{event.preventDefault();const html=event.clipboardData?.getData('text/html');const text=event.clipboardData?.getData('text/plain')||'';document.execCommand('insertHTML',false,sanitize(html||plainToHtml(text)));sync();});

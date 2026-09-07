@@ -12,6 +12,13 @@ erzeugten Hintergrund-Request verloren. Das Modell erhält die Benutzerinstrukti
 Bearbeitungsauftrag für beide Langtexte. Unveränderte Rückgaben werden weiterhin nicht als Erfolg
 gespeichert.
 
+Die Dokumentversionierung in 2.2.2 behandelt Profil- und Bewerbungsdokumente gleich: Die Auswahl
+`Neue Version von` lädt Titel, Typ, Sprache, Beschreibung und Gültigkeitsdaten des aktuellen
+Dokuments in das Uploadformular. Der Server bindet die neue Datei an dieselbe Titel-/Typ-Reihe und
+ermittelt die nächste Nummer aus deren höchster vorhandener Version. Dateiablage und sämtliche
+Datenbankänderungen bilden einen fehlersicheren Ablauf. Scheitert ein DB-Schritt, wird die
+Transaktion zurückgerollt, die neue Datei entfernt und die bisherige Version bleibt aktuell.
+
 ## Priorität manueller Inserat-Adressen 2.2.1
 
 Die automatische Jobsuche bleibt streng: Nur nachweislich verfügbare Anzeigen dürfen in der

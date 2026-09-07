@@ -8,6 +8,14 @@ Instruktion, aktueller Begleittext und aktuelles Motivationsschreiben werden gem
 Formularnavigation übermittelt. Eine ausgefüllte Instruktion ist in Begleit-E-Mail und
 Motivationsschreiben sichtbar umzusetzen; unveränderte Langtexte dürfen nicht als Erfolg gelten.
 
+Beim Erstellen einer neuen Dokumentversion werden der bestehende aktuelle Datensatz und seine
+Versionsreihe explizit gewählt. Titel und Typ bleiben derselben Reihe zugeordnet; Sprache,
+Beschreibung sowie Gültig-von/Gültig-bis werden in das Formular übernommen und können für die neue
+Version angepasst werden. Die Versionsnummer ist stets eins höher als die höchste vorhandene
+Version derselben Reihe. Dateiablage, Kennzeichnung der Altversion, neuer DB-Datensatz,
+Textextraktionsstatus und Bewerbungszuordnung werden atomar behandelt; bei einem Fehler bleibt die
+Altversion aktuell und die bereits abgelegte neue Datei wird entfernt.
+
 Ergänzung 2.2.1: Eine manuell im Schnellimport eingegebene Inserat-Adresse gilt als ausdrücklicher
 Importauftrag. Eine lesbare und als Stellenanzeige auswertbare Seite darf nicht allein deshalb
 abgewiesen werden, weil die automatische Verfügbarkeitsprüfung keinen positiven Aktualitätsbeleg

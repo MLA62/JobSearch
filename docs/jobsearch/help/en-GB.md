@@ -50,6 +50,8 @@ Master documents and application-specific files can be assigned separately.
 
 Document language is independent of app language. Assigning a file does not send it.
 
+To replace a file, first select the current document under New version of. Title, type, language, description and validity dates are carried over; the new file automatically receives the next version number. The previous version is marked non-current only after both file and database storage succeed.
+
 [Documents and versions](https://jobs.jema.business/?page=documents&lang=en-GB) | [Application workflow](https://jobs.jema.business/?page=applications&lang=en-GB)
 
 ## Search for jobs

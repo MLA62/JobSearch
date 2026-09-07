@@ -50,6 +50,8 @@ Les documents de base et ceux propres à une candidature restent distincts.
 
 La langue du document est indépendante de celle de l’application. Associer un fichier ne l’envoie pas.
 
+Pour remplacer un fichier, sélectionne d’abord le document actuel sous Nouvelle version de. Le titre, le type, la langue, la description et les dates de validité sont repris; le nouveau fichier reçoit automatiquement le numéro de version suivant. L’ancienne version n’est marquée comme non actuelle qu’après l’enregistrement réussi du fichier et de la base de données.
+
 [Documents et versions](https://jobs.jema.business/?page=documents&lang=fr-CH) | [Parcours de candidature](https://jobs.jema.business/?page=applications&lang=fr-CH)
 
 ## Rechercher des offres

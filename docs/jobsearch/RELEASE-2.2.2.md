@@ -9,6 +9,8 @@ Stand: 07.09.2026. Deployment-Kandidat; produktive Bereitstellung folgt nach ext
 - Die KI-Aktion verwendet eine normale Formularnavigation statt des fehleranfälligen Hintergrundabrufs.
 - Die Benutzerinstruktion ist als vorrangiger Bearbeitungsauftrag für Begleit-E-Mail und Motivationsschreiben formuliert.
 - Unveränderte Langtexte werden weiterhin einmal nachgefordert und danach mit konkreter Fehlerreferenz abgelehnt.
+- Neue Versionen von Profil- und Bewerbungsdokumenten übernehmen Titel, Typ, Sprache, Beschreibung und Gültigkeitsdaten der gewählten aktuellen Version.
+- Die neue Dokumentnummer wird aus der höchsten Nummer derselben Versionsreihe gebildet; Datei und Datenbankänderungen werden transaktional abgesichert und bei Fehlern vollständig zurückgerollt.
 
 ## Prüfung und Deployment
 
