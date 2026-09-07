@@ -13682,6 +13682,9 @@ $bodyClasses = array_filter([
 $appDisplayVersion = preg_replace('/^0\./', '', $appVersion) ?: $appVersion;
 $contextHelpTopics = localizedContextHelpTopics($appLocale);
 $contextHelp = $currentUser ? ($contextHelpTopics[$page] ?? null) : null;
+if ($page === 'two_factor' && empty($_SESSION['pending_2fa_user_id'])) {
+    redirect('/?page=login');
+}
 startUiTranslationBuffer($appLocale);
 
 ?><!doctype html>
@@ -13765,7 +13768,7 @@ startUiTranslationBuffer($appLocale);
         <p><a href="/?page=forgot_password"><?= e(tr('auth.forgot_password')) ?></a></p>
     </section>
 <?php elseif ($page === 'two_factor' && !$currentUser): ?>
-    <?php if (empty($_SESSION['pending_2fa_user_id'])) { redirect('/?page=login'); } ?>
+    <?php if (empty($_SESSION['pending_2fa_user_id'])): ?><p class="alert warning"><?= e(tr('auth.totp_invalid')) ?></p><?php endif; ?>
     <section class="auth-card">
         <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
         <p class="eyebrow"><?= e(tr('auth.security')) ?></p><h1><?= e(tr('auth.two_factor_title')) ?></h1>
