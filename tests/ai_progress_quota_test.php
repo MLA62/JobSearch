@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.1.9' => "\$codeVersion = '2.1.9'",
+    'version 2.2.0' => "\$codeVersion = '2.2.0'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',

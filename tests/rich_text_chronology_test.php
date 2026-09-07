@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+$source = file_get_contents(__DIR__ . '/../public/index.php');
+function repairMojibake(string $value): string { return $value; }
+preg_match('/^function e\(.*?(?=^function ensureIndex)/ms', $source, $richFunctions);
+if (!$richFunctions) throw new RuntimeException('Rich-text functions missing');
+eval(trim($richFunctions[0]));
+preg_match('/^function dossierActivityRows\(.*?(?=^function dossierPdfSections)/ms', $source, $timelineFunction);
+if (!$timelineFunction) throw new RuntimeException('Timeline function missing');
+eval(trim($timelineFunction[0]));
+
+function checkRich(bool $condition, string $message): void
+{
+    if (!$condition) throw new RuntimeException($message);
+    echo "PASS $message\n";
+}
+
+$safe = sanitizeRichText('<p onclick="bad()"><strong>Text</strong><script>alert(1)</script><a href="javascript:bad()">x</a><img src="https://example.test/a.png"><table><tr><td>Zelle</td></tr></table><hr></p>');
+checkRich(str_contains($safe, '<strong>Text</strong>') && str_contains($safe, '<table>') && str_contains($safe, '<hr>'), 'Allowed HTML formatting retained');
+checkRich(str_contains($safe, 'https://example.test/a.png') && !str_contains($safe, 'onclick') && !str_contains($safe, '<script') && !str_contains($safe, 'javascript:'), 'Unsafe HTML and URLs removed');
+checkRich(str_contains(sanitizeRichText("Zeile 1\nZeile 2"), '<br>'), 'Legacy plain text keeps line breaks');
+checkRich(in_array('online_notes', richTextFieldNames(), true) && in_array('cover_letter_text', richTextFieldNames(), true), 'Requested long-text fields use editor');
+checkRich(str_contains($source, "command('▦',labels.table") && str_contains($source, "command('🖼',labels.image") && str_contains($source, "sourceButton.textContent='HTML'"), 'Mini editor exposes requested tools');
+checkRich(str_contains($source, 'richTextHtml($textBody)') && str_contains($source, 'richTextHtml($footer)'), 'Formatted email and footer remain HTML');
+checkRich(str_contains($source, 'const labelSets = {') && str_contains($source, "fr:{paragraph:'Paragraphe'") && str_contains($source, "en:{paragraph:'Paragraph'"), 'Mini editor follows the user language');
+
+$timeline = dossierActivityRows([
+    'history'=>[['id'=>2,'changed_at'=>'2026-09-07 14:02:00']],
+    'contact_logs'=>[['id'=>3,'occurred_at'=>'2026-09-07 14:00:00']],
+    'calendar_events'=>[['id'=>1,'starts_at'=>'2026-09-07 13:40:00']],
+]);
+checkRich(array_column($timeline, 'at') === ['2026-09-07 13:40:00','2026-09-07 14:00:00','2026-09-07 14:02:00'], 'Mixed activities sorted oldest to newest');
+checkRich(!str_contains($source, 'application_status_history WHERE application_id=? ORDER BY changed_at DESC'), 'Status histories are ascending');
+checkRich(!str_contains($source, 'contact_id=? ORDER BY CASE status'), 'Contact logs are chronological rather than status-grouped');
+
+echo "Rich-text and chronology contract passed\n";

@@ -1,6 +1,13 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.9.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.0.
+
+## Formatierte Langtexte und Verlauf
+
+- Mehrzeilige fachliche Texte besitzen einen HTML-Mini-Editor für Absätze, Fett, Kursiv, Links, externe HTTPS-Bilder, Tabellen und Trennlinien.
+- Die HTML-Ansicht erlaubt gezielte Quelltextkorrekturen; beim Speichern entfernt die App nicht erlaubte Elemente, Attribute und URL-Protokolle.
+- E-Mails behalten die sichere Formatierung. PDF-/Textausgaben und KI-Kontexte erhalten daraus lesbaren Klartext.
+- Aktivitäten, Statushistorien, Kontakt-Logs und Audit-Auszüge laufen chronologisch von oben nach unten.
 
 Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel einschließlich Sekunden und erlaubt diese Auflösung bei der Eingabe.
 

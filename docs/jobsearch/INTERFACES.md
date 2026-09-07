@@ -150,6 +150,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function modifyColumnWhenMissingValue(mysqli $db, string $table, string $column, string $value, string $definition): void`
 - `function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, array $columns): void`
 - `function e(?string $value): string`
+- `function richTextFieldNames(): array`
+- `function sanitizeRichText(?string $value): string`
+- `function richTextHtml(?string $value): string`
+- `function richTextPlain(?string $value): string`
 - `function ensureIndex(mysqli $db, string $table, string $index, string $definition): void`
 - `function filePickerHtml(string $name, bool $required = true, string $accept = ''): string`
 - `function cascadeExec(mysqli $db, string $sql, string $types = '', array $values = []): void`
@@ -473,6 +477,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function translationSource(mysqli $db, int $userId, string $entityType, int $entityId, array $currentUser): array`
 - `function translationPrompt(string $targetLanguage, string $title, string $source): string`
 - `function applicationDossier(mysqli $db, int $userId, int $applicationId, array $currentUser): ?array`
+- `function dossierActivityRows(array $dossier): array`
 - `function dossierPdfSections(array $dossier): array`
 - `function ravDossierPdfSections(mysqli $db, int $userId, array $currentUser): array`
 - `function allowedDocumentTypeCodes(string $scope): array`

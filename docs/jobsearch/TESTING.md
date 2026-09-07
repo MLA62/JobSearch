@@ -3,6 +3,10 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.2.0: `rich_text_chronology_test.php` prüft Positivliste und Entfernung aktiver
+Inhalte, Klartextkompatibilität, die geforderten Mini-Editor-Werkzeuge, lokalisierte Bedienung,
+formatierte HTML-E-Mails sowie chronologische gemischte Aktivitäten, Statushistorien und Logs.
+
 Ergänzung 2.1.9: `workflow_v6_test.php` prüft, dass «Gesendet am» gespeicherte Sekunden rendert und das Eingabefeld diese mit `step="1"` akzeptiert.
 
 Ergänzung 2.1.8: `soft_delete_uniqueness_test.php` prüft die aktive Eindeutigkeit aller fünf

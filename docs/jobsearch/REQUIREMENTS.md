@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.9.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.0.
+
+Ergänzung 2.2.0: Mehrzeilige fachliche Textfelder wie E-Mail, Motivationsschreiben,
+Begleitschreiben, Beschreibungen, Kommentare und Online-Notizen unterstützen sichere
+HTML-Formatierung. Pro Feld ist ein Mini-Editor mit Absätzen, Fett, Kursiv, Links,
+HTTPS-Bildern, Tabellen, Trennlinien und HTML-Ansicht verfügbar. Aktive oder unsichere Inhalte
+werden serverseitig entfernt. Aktivitäten und Logs werden vom ältesten Eintrag oben bis zum
+neuesten Eintrag unten dargestellt.
 
 Ergänzung 2.1.9: Das Feld «Gesendet am» muss vollständige gespeicherte Zeitstempel einschließlich Sekunden browserseitig als gültig akzeptieren und verlustfrei wieder anzeigen.
 

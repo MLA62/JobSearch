@@ -1,5 +1,5 @@
 {
-  "version": "2.1.9",
+  "version": "2.2.0",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -440,7 +440,8 @@
             "Speichere die Stelle; lade bei Bedarf das Inserat als PDF oder Bild hoch und bereite eine Bewerbung vor."
           ],
           "tips": [
-            "Prüfe Dubletten vor dem Speichern. Importierte Angaben sind zu kontrollieren; der Match-Wert ist nur eine Orientierung."
+          "Prüfe Dubletten vor dem Speichern. Importierte Angaben sind zu kontrollieren; der Match-Wert ist nur eine Orientierung.",
+          "Mehrzeilige Beschreibungen und Notizen lassen sich mit dem Mini-Editor formatieren. Er unterstützt Absätze, Fett, Kursiv, Links, HTTPS-Bilder, Tabellen und Trennlinien."
           ]
         },
         "fr-CH": {
@@ -452,7 +453,8 @@
             "Enregistre; joins si nécessaire l’annonce en PDF ou en image et prépare une candidature."
           ],
           "tips": [
-            "Vérifie les doublons avant d’enregistrer. Les données importées doivent être contrôlées; le score de correspondance reste indicatif."
+          "Vérifie les doublons avant d’enregistrer. Les données importées doivent être contrôlées; le score de correspondance reste indicatif.",
+          "Les descriptions et notes multilignes peuvent être formatées avec le mini-éditeur: paragraphes, gras, italique, liens, images HTTPS, tableaux et séparateurs."
           ]
         },
         "en-GB": {
@@ -464,7 +466,8 @@
             "Save the job; optionally upload the advertisement as PDF or image and prepare an application."
           ],
           "tips": [
-            "Check duplicates before saving. Verify imported information; the match score is only a guide."
+          "Check duplicates before saving. Verify imported information; the match score is only a guide.",
+          "Use the mini editor to format multi-line descriptions and notes with paragraphs, bold, italic, links, HTTPS images, tables and dividers."
           ]
         },
         "pt-BR": {
@@ -476,7 +479,8 @@
             "Salve; anexe o anúncio em PDF ou imagem se necessário e prepare uma candidatura."
           ],
           "tips": [
-            "Verifique duplicatas antes de salvar. Confira os dados importados; a pontuação de compatibilidade é apenas uma referência."
+          "Verifique duplicatas antes de salvar. Confira os dados importados; a pontuação de compatibilidade é apenas uma referência.",
+          "Use o minieditor para formatar descrições e notas multilinhas com parágrafos, negrito, itálico, links, imagens HTTPS, tabelas e divisórias."
           ]
         },
         "es-MX": {
@@ -488,7 +492,8 @@
             "Guarda; adjunta el anuncio en PDF o imagen si hace falta y prepara una solicitud."
           ],
           "tips": [
-            "Revisa duplicados antes de guardar. Verifica los datos importados; la puntuación de coincidencia es orientativa."
+          "Revisa duplicados antes de guardar. Verifica los datos importados; la puntuación de coincidencia es orientativa.",
+          "Usa el minieditor para dar formato a descripciones y notas multilínea con párrafos, negrita, cursiva, enlaces, imágenes HTTPS, tablas y separadores."
           ]
         }
       }
@@ -586,7 +591,8 @@
             "Ordne bei Bedarf eine Datei zu; plane Nachfassen oder Bewerbungsgespräche separat im Kalender."
           ],
           "tips": [
-            "Die Anzahl der Kontakt-Log-Einträge zählt Aktivitäten, nicht Bewerbungen. Offen/geplant ist eine Teilmenge dieser Einträge."
+          "Die Anzahl der Kontakt-Log-Einträge zählt Aktivitäten, nicht Bewerbungen. Offen/geplant ist eine Teilmenge dieser Einträge.",
+          "Aktivitäten und Logs stehen chronologisch: der älteste Eintrag oben, der neueste unten. Notizen und Nachrichten können mit dem Mini-Editor formatiert werden."
           ]
         },
         "fr-CH": {
@@ -598,7 +604,8 @@
             "Ajoute un fichier si nécessaire; planifie relances et entretiens séparément dans le calendrier."
           ],
           "tips": [
-            "Le nombre d’entrées compte les activités, pas les candidatures. Les entrées ouvertes/planifiées en font partie."
+          "Le nombre d’entrées compte les activités, pas les candidatures. Les entrées ouvertes/planifiées en font partie.",
+          "Les activités et journaux sont chronologiques, du plus ancien en haut au plus récent en bas. Les notes et messages acceptent la mise en forme du mini-éditeur."
           ]
         },
         "en-GB": {
@@ -610,7 +617,8 @@
             "Attach a file if needed; schedule follow-ups and interviews separately in the calendar."
           ],
           "tips": [
-            "The contact-log count measures activities, not applications. Open/planned entries are a subset of that count."
+          "The contact-log count measures activities, not applications. Open/planned entries are a subset of that count.",
+          "Activities and logs are chronological, with the oldest item at the top and newest at the bottom. Notes and messages support mini-editor formatting."
           ]
         },
         "pt-BR": {
@@ -622,7 +630,8 @@
             "Anexe um arquivo se necessário; agende acompanhamentos e entrevistas separadamente no calendário."
           ],
           "tips": [
-            "A contagem do histórico representa atividades, não candidaturas. Registros abertos/planejados fazem parte desse total."
+          "A contagem do histórico representa atividades, não candidaturas. Registros abertos/planejados fazem parte desse total.",
+          "Atividades e históricos aparecem em ordem cronológica, do mais antigo no topo ao mais recente embaixo. Notas e mensagens aceitam a formatação do minieditor."
           ]
         },
         "es-MX": {
@@ -634,7 +643,8 @@
             "Adjunta un archivo si hace falta; programa seguimientos y entrevistas por separado en el calendario."
           ],
           "tips": [
-            "El conteo del registro corresponde a actividades, no solicitudes. Las entradas abiertas/programadas son parte del total."
+          "El conteo del registro corresponde a actividades, no solicitudes. Las entradas abiertas/programadas son parte del total.",
+          "Las actividades y registros aparecen en orden cronológico, del más antiguo arriba al más reciente abajo. Notas y mensajes admiten el formato del minieditor."
           ]
         }
       }
@@ -662,7 +672,8 @@
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
             "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
-            "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden."
+          "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
+          "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor."
           ]
         },
         "fr-CH": {
@@ -677,7 +688,8 @@
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
             "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
-            "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises."
+          "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
+          "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé via le mini-éditeur."
           ]
         },
         "en-GB": {
@@ -692,7 +704,8 @@
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
             "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open.",
-            "The Sent at field accepts the stored timestamp, including seconds."
+          "The Sent at field accepts the stored timestamp, including seconds.",
+          "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting through the mini editor."
           ]
         },
         "pt-BR": {
@@ -707,7 +720,8 @@
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
             "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
-            "O campo Enviada em aceita o horário armazenado, incluindo segundos."
+          "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
+          "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro por meio do minieditor."
           ]
         },
         "es-MX": {
@@ -722,7 +736,8 @@
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
             "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
-            "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos."
+          "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
+          "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro mediante el minieditor."
           ]
         }
       }

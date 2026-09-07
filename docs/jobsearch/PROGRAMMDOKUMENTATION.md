@@ -1,6 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.1.9 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-07. Version 2.2.0 ist für das Deployment vorbereitet; 2.1.9 bleibt bis zur Abnahme der bestätigte Live-Stand.
+
+## Formatierte Mehrzeilenfelder und Zeitachsen 2.2.0
+
+Fachliche Langtexte werden als bereinigtes HTML gespeichert. Der Mini-Editor bietet Absätze,
+Fett, Kursiv, Links, externe HTTPS-Bilder, Tabellen, Trennlinien und eine HTML-Ansicht. Serverseitig
+gilt eine Positivliste für Elemente und Attribute; aktive Inhalte, Formulare, eingebettete Frames,
+Ereignisattribute sowie unsichere Link- und Bildprotokolle werden entfernt. Historischer Klartext
+wird beim Bearbeiten und Anzeigen kompatibel in Absätze und Zeilenumbrüche überführt.
+
+HTML-E-Mails behalten die erlaubte Formatierung. PDF- und Klartextexporte sowie KI-Kontexte
+verwenden eine lesbare Textdarstellung, sodass keine HTML-Tags als Inhalt erscheinen. Gemischte
+Bewerbungsaktivitäten, Statushistorien, Kontakt-Logs und Audit-Auszüge stehen standardmäßig
+chronologisch vom ältesten zum neuesten Eintrag; begrenzte Ansichten wählen zuerst die neuesten
+Einträge und ordnen diesen Ausschnitt anschließend aufsteigend.
 
 ## Zeitstempelvalidierung 2.1.9
 

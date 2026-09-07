@@ -1486,6 +1486,83 @@ function e(?string $value): string
     return htmlspecialchars(repairMojibake((string) $value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function richTextFieldNames(): array
+{
+    return [
+        'email_body', 'cover_letter_text', 'online_notes', 'notes', 'job_notes', 'description',
+        'company_notes', 'contact_notes', 'log_body', 'mail_body', 'document_description',
+        'report_description', 'translation_body', 'question_text', 'answer_text', 'event_notes',
+        'mail_footer', 'platform_notes', 'preference_notes', 'status_comment',
+    ];
+}
+
+function sanitizeRichText(?string $value): string
+{
+    $value = trim(repairMojibake((string)$value));
+    if ($value === '') return '';
+    if (!class_exists(DOMDocument::class)) {
+        return nl2br(e(strip_tags($value)), false);
+    }
+    if (!preg_match('/<(?:p|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h2|h3)\b/i', $value)) {
+        return nl2br(e($value), false);
+    }
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $document->loadHTML('<?xml encoding="UTF-8"><body>' . $value . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    $allowed = ['body','p','br','strong','b','em','i','u','ul','ol','li','blockquote','a','img','table','thead','tbody','tr','th','td','hr','h2','h3'];
+    $dangerous = ['script','style','iframe','object','embed','svg','math','form','input','button','textarea','select','option','link','meta'];
+    $nodes = [];
+    foreach ($document->getElementsByTagName('*') as $node) $nodes[] = $node;
+    foreach (array_reverse($nodes) as $node) {
+        $tag = strtolower($node->nodeName);
+        if (!in_array($tag, $allowed, true)) {
+            if (in_array($tag, $dangerous, true)) {
+                $node->parentNode?->removeChild($node);
+            } else {
+                while ($node->firstChild) $node->parentNode?->insertBefore($node->firstChild, $node);
+                $node->parentNode?->removeChild($node);
+            }
+            continue;
+        }
+        if (!$node->hasAttributes()) continue;
+        $attributes = [];
+        foreach ($node->attributes as $attribute) $attributes[] = $attribute->name;
+        foreach ($attributes as $attribute) {
+            $keep = ($tag === 'a' && in_array($attribute, ['href','title'], true))
+                || ($tag === 'img' && in_array($attribute, ['src','alt','title'], true));
+            if (!$keep) $node->removeAttribute($attribute);
+        }
+        if ($tag === 'a') {
+            $href = trim((string)$node->getAttribute('href'));
+            if (!preg_match('#^(?:https?://|mailto:)#i', $href)) $node->removeAttribute('href');
+            else { $node->setAttribute('target', '_blank'); $node->setAttribute('rel', 'noopener noreferrer'); }
+        }
+        if ($tag === 'img') {
+            $src = trim((string)$node->getAttribute('src'));
+            if (!preg_match('#^https://#i', $src)) $node->parentNode?->removeChild($node);
+        }
+    }
+    $body = $document->getElementsByTagName('body')->item(0);
+    if (!$body) return '';
+    $html = '';
+    foreach ($body->childNodes as $child) $html .= $document->saveHTML($child);
+    return trim($html);
+}
+
+function richTextHtml(?string $value): string
+{
+    return sanitizeRichText($value);
+}
+
+function richTextPlain(?string $value): string
+{
+    $html = sanitizeRichText($value);
+    $html = preg_replace('/<(?:br\s*\/?|\/p|\/div|\/li|\/tr|hr\s*\/?)>/i', "\n", $html) ?? $html;
+    return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+}
+
 function ensureIndex(mysqli $db, string $table, string $index, string $definition): void
 {
     $escapedTable = str_replace('`', '``', $table);
@@ -2722,6 +2799,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'O campo Enviada em aceita o horário armazenado, incluindo segundos.',
     'es-MX' => 'El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.',
   ),
+  'help.v2.applications.tips.3' =>
+  array (
+    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor.',
+    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé via le mini-éditeur.',
+    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting through the mini editor.',
+    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro por meio do minieditor.',
+    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro mediante el minieditor.',
+  ),
   'help.v2.applications.title' =>
   array (
     'de-CH' => 'Bewerbungsworkflow',
@@ -2961,6 +3046,14 @@ function helpTranslationSeeds(): array
     'en-GB' => 'The contact-log count measures activities, not applications. Open/planned entries are a subset of that count.',
     'pt-BR' => 'A contagem do histórico representa atividades, não candidaturas. Registros abertos/planejados fazem parte desse total.',
     'es-MX' => 'El conteo del registro corresponde a actividades, no solicitudes. Las entradas abiertas/programadas son parte del total.',
+  ),
+  'help.v2.contacts.tips.1' =>
+  array (
+    'de-CH' => 'Aktivitäten und Logs stehen chronologisch: der älteste Eintrag oben, der neueste unten. Notizen und Nachrichten können mit dem Mini-Editor formatiert werden.',
+    'fr-CH' => 'Les activités et journaux sont chronologiques, du plus ancien en haut au plus récent en bas. Les notes et messages acceptent la mise en forme du mini-éditeur.',
+    'en-GB' => 'Activities and logs are chronological, with the oldest item at the top and newest at the bottom. Notes and messages support mini-editor formatting.',
+    'pt-BR' => 'Atividades e históricos aparecem em ordem cronológica, do mais antigo no topo ao mais recente embaixo. Notas e mensagens aceitam a formatação do minieditor.',
+    'es-MX' => 'Las actividades y registros aparecen en orden cronológico, del más antiguo arriba al más reciente abajo. Notas y mensajes admiten el formato del minieditor.',
   ),
   'help.v2.contacts.title' =>
   array (
@@ -3257,6 +3350,14 @@ function helpTranslationSeeds(): array
     'en-GB' => 'Check duplicates before saving. Verify imported information; the match score is only a guide.',
     'pt-BR' => 'Verifique duplicatas antes de salvar. Confira os dados importados; a pontuação de compatibilidade é apenas uma referência.',
     'es-MX' => 'Revisa duplicados antes de guardar. Verifica los datos importados; la puntuación de coincidencia es orientativa.',
+  ),
+  'help.v2.jobs.tips.1' =>
+  array (
+    'de-CH' => 'Mehrzeilige Beschreibungen und Notizen lassen sich mit dem Mini-Editor formatieren. Er unterstützt Absätze, Fett, Kursiv, Links, HTTPS-Bilder, Tabellen und Trennlinien.',
+    'fr-CH' => 'Les descriptions et notes multilignes peuvent être formatées avec le mini-éditeur: paragraphes, gras, italique, liens, images HTTPS, tableaux et séparateurs.',
+    'en-GB' => 'Use the mini editor to format multi-line descriptions and notes with paragraphs, bold, italic, links, HTTPS images, tables and dividers.',
+    'pt-BR' => 'Use o minieditor para formatar descrições e notas multilinhas com parágrafos, negrito, itálico, links, imagens HTTPS, tabelas e divisórias.',
+    'es-MX' => 'Usa el minieditor para dar formato a descripciones y notas multilínea con párrafos, negrita, cursiva, enlaces, imágenes HTTPS, tablas y separadores.',
   ),
   'help.v2.jobs.title' =>
   array (
@@ -3965,7 +4066,7 @@ function helpTopicDefinitions(): array
       1 => 'companies',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   6 =>
   array (
@@ -3997,7 +4098,7 @@ function helpTopicDefinitions(): array
       1 => 'companies',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   8 =>
   array (
@@ -4013,7 +4114,7 @@ function helpTopicDefinitions(): array
       1 => 'calendar',
     ),
     'step_count' => 4,
-    'tip_count' => 3,
+    'tip_count' => 4,
   ),
   9 =>
   array (
@@ -4661,10 +4762,10 @@ function linkifyEscapedText(string $escapedText): string
 
 function htmlMailBody(string $textBody, ?string $footer = null): string
 {
-    $body = '<div>' . nl2br(e($textBody), false) . '</div>';
+    $body = '<div>' . richTextHtml($textBody) . '</div>';
     $footer = trim((string) $footer);
     if ($footer !== '') {
-        $body .= '<div style="margin-top:18px;padding-top:10px;border-top:1px solid #d0d7e2;color:#5f6b7a;">' . nl2br(linkifyEscapedText(e($footer)), false) . '</div>';
+        $body .= '<div style="margin-top:18px;padding-top:10px;border-top:1px solid #d0d7e2;color:#5f6b7a;">' . richTextHtml($footer) . '</div>';
     }
     return '<!doctype html><html><body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;line-height:1.35;color:#111827;">' . $body . '</body></html>';
 }
@@ -7282,14 +7383,14 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
     $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [$userId]) ?: [];
     $languages = dbAll($db, 'SELECT language_name, cefr_level FROM user_language_skills WHERE user_id=? ORDER BY language_name', 'i', [$userId]);
     $contacts = dbAll($db, 'SELECT co.name company_name, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.notes FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.application_id=? OR c.job_id=? OR c.company_id=? OR c.company_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [$userId, $applicationId, (int)$application['job_id'], (int)$application['company_id'], (int)($application['intermediary_company_id'] ?? 0)]);
-    $logs = dbAll($db, 'SELECT channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND application_id=? ORDER BY occurred_at DESC LIMIT 20', 'ii', [$userId, $applicationId]);
+    $logs = dbAll($db, 'SELECT channel, direction, status, subject, body, occurred_at, follow_up_at, outcome FROM (SELECT id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND application_id=? ORDER BY occurred_at DESC, id DESC LIMIT 20) recent ORDER BY occurred_at ASC, id ASC', 'ii', [$userId, $applicationId]);
     $documents = dbAll($db, "SELECT d.scope, d.title, d.version, d.original_filename, dt.code type_code FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY d.scope DESC, d.title", 'ii', [$applicationId, $userId]);
     try {
         $cv = dbOne($db, "SELECT d.title, d.version, d.original_filename, COALESCE(NULLIF(txt.corrected_text,''),NULLIF(txt.extracted_text,''),NULLIF(txt.ocr_text,'')) document_text FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id LEFT JOIN document_texts txt ON txt.user_document_id=d.id WHERE d.user_id=? AND d.scope='profile' AND d.is_current=1 AND d.deleted_at IS NULL AND dt.code='cv' ORDER BY d.version DESC, d.updated_at DESC LIMIT 1", 'i', [$userId]);
     } catch (Throwable) {
         $cv = null;
     }
-    $history = dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [$applicationId]);
+    $history = dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
 
     $recipient = !empty($application['primary_contact_id']) ? dbOne($db,
         'SELECT c.first_name, c.last_name, co.name company_name, co.address_line1, co.address_line2, co.postal_code, co.city company_city FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.id=? AND c.owner_user_id=? AND co.owner_user_id=? AND c.deleted_at IS NULL AND co.deleted_at IS NULL AND (c.company_id=? OR c.company_id=?)',
@@ -7338,7 +7439,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
         'Arbeitsort-Modell: ' . (string)$application['workplace_type'],
         'Stellentyp: ' . (string)$application['engagement_type'] . ' / ' . (string)$application['contract_term'],
         'Quelle: ' . (string)$application['source_url'],
-        'Beschreibung: ' . (string)$application['job_description'],
+        'Beschreibung: ' . richTextPlain((string)$application['job_description']),
         '',
         '=== Firma ===',
         'Website: ' . (string)$application['company_website'],
@@ -7353,17 +7454,17 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
         'Online-Bewerbungs-URL: ' . (string)($application['application_url'] ?? ''),
         'Portal / Konto-Hinweis: ' . (string)($application['portal_account'] ?? ''),
         'Referenznummer: ' . (string)($application['reference_number'] ?? ''),
-        'Online-Notizen: ' . (string)($application['online_notes'] ?? ''),
+        'Online-Notizen: ' . richTextPlain((string)($application['online_notes'] ?? '')),
         tr('applications.next_task') . ': ' . applicationWorkflowView($application)['next_task'],
         'Bestehender Betreff: ' . (string)$application['email_subject'],
-        'Bestehender Begleittext: ' . (string)$application['email_body'],
-        'Bestehendes Motivationsschreiben: ' . (string)$application['cover_letter_text'],
-        'Interne Notizen: ' . (string)$application['notes'],
+        'Bestehender Begleittext: ' . richTextPlain((string)$application['email_body']),
+        'Bestehendes Motivationsschreiben: ' . richTextPlain((string)$application['cover_letter_text']),
+        'Interne Notizen: ' . richTextPlain((string)$application['notes']),
         '',
         '=== Kontakte ===',
     ];
     foreach ($contacts as $contact) {
-        $lines[] = trim($contact['company_name'] . ': ' . $contact['first_name'] . ' ' . $contact['last_name'] . ', ' . $contact['position'] . ' ' . $contact['department'] . ', ' . $contact['email'] . ', ' . $contact['phone'] . ' ' . $contact['mobile'] . ', Notizen: ' . $contact['notes']);
+        $lines[] = trim($contact['company_name'] . ': ' . $contact['first_name'] . ' ' . $contact['last_name'] . ', ' . $contact['position'] . ' ' . $contact['department'] . ', ' . $contact['email'] . ', ' . $contact['phone'] . ' ' . $contact['mobile'] . ', Notizen: ' . richTextPlain((string)$contact['notes']));
     }
     if (!$contacts) {
         $lines[] = 'keine Kontakte erfasst';
@@ -7371,7 +7472,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
     $lines[] = '';
     $lines[] = '=== Kontakt-Log ===';
     foreach ($logs as $log) {
-        $lines[] = displayDateTime($log['occurred_at'] ?? null, $currentUser) . ' · ' . $log['channel'] . ' · ' . $log['direction'] . ' · ' . $log['status'] . ' · ' . $log['subject'] . ' · ' . $log['body'] . ' · Ergebnis: ' . $log['outcome'] . ' · Wiedervorlage: ' . displayDateTime($log['follow_up_at'] ?? null, $currentUser);
+        $lines[] = displayDateTime($log['occurred_at'] ?? null, $currentUser) . ' · ' . $log['channel'] . ' · ' . $log['direction'] . ' · ' . $log['status'] . ' · ' . $log['subject'] . ' · ' . richTextPlain((string)$log['body']) . ' · Ergebnis: ' . $log['outcome'] . ' · Wiedervorlage: ' . displayDateTime($log['follow_up_at'] ?? null, $currentUser);
     }
     if (!$logs) {
         $lines[] = 'keine Kontaktaktivitäten erfasst';
@@ -7387,7 +7488,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
     $lines[] = '';
     $lines[] = '=== Statusverlauf ===';
     foreach ($history as $entry) {
-        $lines[] = displayDateTime($entry['changed_at'] ?? null, $currentUser) . ' · ' . $entry['old_status'] . ' -> ' . $entry['new_status'] . ' · ' . $entry['comment'];
+        $lines[] = displayDateTime($entry['changed_at'] ?? null, $currentUser) . ' · ' . $entry['old_status'] . ' -> ' . $entry['new_status'] . ' · ' . richTextPlain((string)$entry['comment']);
     }
     if (!$history) {
         $lines[] = 'kein Statusverlauf vorhanden';
@@ -7470,8 +7571,8 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
     $texts=json_decode($output,true,512,JSON_THROW_ON_ERROR);
     foreach (['email_subject','email_body','cover_letter_text'] as $field) if (!is_string($texts[$field] ?? null) || trim($texts[$field])==='') throw new RuntimeException('Die KI-Antwort enthielt nicht alle drei Texte.');
     $texts['email_subject']=mb_substr(trim($texts['email_subject']),0,255);
-    $texts['email_body']=mb_substr(trim($texts['email_body']),0,20000);
-    $texts['cover_letter_text']=mb_substr(trim($texts['cover_letter_text']),0,40000);
+    $texts['email_body']=sanitizeRichText(mb_substr(trim($texts['email_body']),0,20000));
+    $texts['cover_letter_text']=sanitizeRichText(mb_substr(trim($texts['cover_letter_text']),0,40000));
     return $texts;
 }
 
@@ -7491,6 +7592,8 @@ function initializeApplicationTexts(array $config, mysqli $db, int $userId, int 
     } catch (Throwable $exception) {
         error_log('Initial application AI texts failed for application '.$applicationId.': '.$exception->getMessage());
     }
+    $drafts['email_body']=sanitizeRichText((string)$drafts['email_body']);
+    $drafts['cover_letter_text']=sanitizeRichText((string)$drafts['cover_letter_text']);
     $stmt=$db->prepare('UPDATE applications SET email_subject=?, email_body=?, cover_letter_text=? WHERE id=? AND user_id=?');
     $stmt->bind_param('sssii',$drafts['email_subject'],$drafts['email_body'],$drafts['cover_letter_text'],$applicationId,$userId); $stmt->execute();
     return ['texts'=>$drafts,'ai'=>$ai];
@@ -9507,7 +9610,7 @@ function translationSource(mysqli $db, int $userId, string $entityType, int $ent
         $row = dbOne($db, 'SELECT a.status, a.channel, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.title, c.name company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [$entityId, $userId]);
         if ($row) {
             $title = (string)$row['title'];
-            $lines = ['Bewerbung: ' . $row['title'], 'Firma: ' . $row['company_name'], 'Status: ' . $row['status'], 'Kanal: ' . $row['channel'], 'URL: ' . $row['application_url'], 'Portal: ' . $row['portal_account'], 'Referenz: ' . $row['reference_number'], 'E-Mail-Betreff: ' . $row['email_subject'], '', 'E-Mail-Text:', (string)$row['email_body'], '', 'Motivationsschreiben:', (string)$row['cover_letter_text'], '', 'Online-Notizen:', (string)$row['online_notes'], '', 'Interne Notizen:', (string)$row['notes']];
+            $lines = ['Bewerbung: ' . $row['title'], 'Firma: ' . $row['company_name'], 'Status: ' . $row['status'], 'Kanal: ' . $row['channel'], 'URL: ' . $row['application_url'], 'Portal: ' . $row['portal_account'], 'Referenz: ' . $row['reference_number'], 'E-Mail-Betreff: ' . $row['email_subject'], '', 'E-Mail-Text:', richTextPlain((string)$row['email_body']), '', 'Motivationsschreiben:', richTextPlain((string)$row['cover_letter_text']), '', 'Online-Notizen:', richTextPlain((string)$row['online_notes']), '', 'Interne Notizen:', richTextPlain((string)$row['notes'])];
         }
     } elseif ($entityType === 'contact') {
         $row = dbOne($db, 'SELECT ct.first_name, ct.last_name, ct.position, ct.department, ct.email, ct.phone, ct.mobile, ct.linkedin_url, SUBSTRING(ct.notes,1,65535) notes, c.name company_name FROM contacts ct LEFT JOIN companies c ON c.id=ct.company_id WHERE ct.id=? AND ct.owner_user_id=? AND ct.deleted_at IS NULL', 'ii', [$entityId, $userId]);
@@ -9562,11 +9665,31 @@ function applicationDossier(mysqli $db, int $userId, int $applicationId, array $
     } catch (Throwable) {
         $documents = dbAll($db, 'SELECT ad.purpose, d.id, d.scope, d.title, d.version, d.original_filename, d.created_at, d.file_size, dt.code type_code, "" document_text FROM application_documents ad JOIN user_documents d ON d.id=ad.user_document_id JOIN document_types dt ON dt.id=d.document_type_id WHERE ad.application_id=? AND d.user_id=? AND d.deleted_at IS NULL ORDER BY ad.sort_order, d.scope DESC, d.is_current DESC, d.title, d.version DESC', 'ii', [$applicationId, $userId]);
     }
-    $history = dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [$applicationId]);
-    $contactLogs = dbAll($db, 'SELECT l.id, l.contact_id, l.application_id, l.job_id, l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,65535) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND (l.application_id=? OR (l.application_id IS NULL AND l.job_id=?)) ORDER BY l.occurred_at DESC', 'iii', [$userId, $applicationId, $jobId]);
+    $history = dbAll($db, 'SELECT id, old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
+    $contactLogs = dbAll($db, 'SELECT l.id, l.contact_id, l.application_id, l.job_id, l.channel, l.direction, l.status, l.subject, SUBSTRING(l.body,1,65535) body, l.occurred_at, l.follow_up_at, l.outcome, ct.first_name, ct.last_name, co.name company_name FROM contact_logs l JOIN contacts ct ON ct.id=l.contact_id JOIN companies co ON co.id=l.company_id WHERE l.owner_user_id=? AND (l.application_id=? OR (l.application_id IS NULL AND l.job_id=?)) ORDER BY l.occurred_at ASC, l.id ASC', 'iii', [$userId, $applicationId, $jobId]);
     $calendarEvents = array_values(array_filter(calendarEventRows($db,$userId,new DateTimeImmutable('1900-01-01'),new DateTimeImmutable('2200-01-01')),
         static fn(array $event): bool => (int)$event['application_id']===$applicationId && $event['entry_kind']!=='milestone'));
     return ['application' => $application, 'contacts' => $contacts, 'questions' => $questions, 'documents' => $documents, 'history' => $history, 'contact_logs' => $contactLogs, 'calendar_events' => $calendarEvents, 'generated_at' => date('Y-m-d H:i:s'), 'user' => $currentUser];
+}
+
+function dossierActivityRows(array $dossier): array
+{
+    $rows = [];
+    foreach ((array)($dossier['history'] ?? []) as $entry) {
+        $rows[] = ['kind'=>'history', 'at'=>(string)($entry['changed_at'] ?? ''), 'id'=>(int)($entry['id'] ?? 0), 'entry'=>$entry];
+    }
+    foreach ((array)($dossier['contact_logs'] ?? []) as $entry) {
+        $rows[] = ['kind'=>'contact', 'at'=>(string)($entry['occurred_at'] ?? ''), 'id'=>(int)($entry['id'] ?? 0), 'entry'=>$entry];
+    }
+    foreach ((array)($dossier['calendar_events'] ?? []) as $entry) {
+        $rows[] = ['kind'=>'calendar', 'at'=>(string)($entry['starts_at'] ?? ''), 'id'=>(int)($entry['id'] ?? 0), 'entry'=>$entry];
+    }
+    $kindOrder = ['history'=>0, 'contact'=>1, 'calendar'=>2];
+    usort($rows, static function (array $left, array $right) use ($kindOrder): int {
+        return [$left['at'], $kindOrder[$left['kind']] ?? 9, $left['id']]
+            <=> [$right['at'], $kindOrder[$right['kind']] ?? 9, $right['id']];
+    });
+    return $rows;
 }
 
 function dossierPdfSections(array $dossier): array
@@ -9590,7 +9713,7 @@ function dossierPdfSections(array $dossier): array
             tr('companies.website') . ': ' . (string)$a['company_website'],
             tr('auth.email') . '/' . tr('profile.phone') . ': ' . trim((string)$a['company_email'] . ' / ' . (string)$a['company_phone'], ' /'),
             tr('companies.address') . ': ' . trim((string)$a['address_line1'] . ' ' . (string)$a['address_line2'] . ', ' . (string)$a['postal_code'] . ' ' . (string)$a['company_city'], ' ,'),
-            tr('common.comment') . ': ' . (string)$a['company_notes'],
+            tr('common.comment') . ': ' . richTextPlain((string)$a['company_notes']),
         ],
         tr('jobs.job') => [
             tr('common.title') . ': ' . (string)$a['job_title'],
@@ -9598,15 +9721,15 @@ function dossierPdfSections(array $dossier): array
             tr('common.status') . '/' . tr('jobs.workplace_type') . ': ' . (jobStatusOptions()[(string)$a['job_status']] ?? (string)$a['job_status']) . ' / ' . ($workplaceLabels[(string)$a['workplace_type']] ?? (string)$a['workplace_type']),
             tr('jobs.source_url') . ': ' . (string)$a['source_url'],
             tr('profile.salary') . ': ' . trim((string)$a['salary_min'] . ' ' . (string)$a['salary_currency'] . ' / ' . (salaryPeriodOptions()[(string)$a['salary_period']] ?? (string)$a['salary_period']), ' /'),
-            tr('common.comment') . ': ' . (string)$a['job_notes'],
-            tr('common.description') . ': ' . (string)$a['job_description'],
+            tr('common.comment') . ': ' . richTextPlain((string)$a['job_notes']),
+            tr('common.description') . ': ' . richTextPlain((string)$a['job_description']),
         ],
         tr('applications.application') => [
-            tr('applications.online_notes') . ': ' . (string)$a['online_notes'],
-            tr('applications.internal_notes') . ': ' . (string)$a['application_notes'],
+            tr('applications.online_notes') . ': ' . richTextPlain((string)$a['online_notes']),
+            tr('applications.internal_notes') . ': ' . richTextPlain((string)$a['application_notes']),
             tr('applications.email_subject') . ': ' . (string)$a['email_subject'],
-            tr('applications.email_body') . ': ' . (string)$a['email_body'],
-            tr('applications.cover_letter') . ': ' . (string)$a['cover_letter_text'],
+            tr('applications.email_body') . ': ' . richTextPlain((string)$a['email_body']),
+            tr('applications.cover_letter') . ': ' . richTextPlain((string)$a['cover_letter_text']),
         ],
         tr('nav.contacts') => [],
         tr('jobs.questions') => [],
@@ -9618,7 +9741,7 @@ function dossierPdfSections(array $dossier): array
     $documentsKey = tr('nav.documents');
     $activitiesKey = tr('dossier.activities');
     foreach ((array)$dossier['contacts'] as $c) {
-        $sections[$contactsKey][] = trim((string)$c['last_name'] . ' ' . (string)$c['first_name']) . ' | ' . (string)$c['company_name'] . ' | ' . (string)$c['position'] . ' | ' . trim((string)$c['email'] . ' ' . (string)$c['phone'] . ' ' . (string)$c['mobile']) . ' | ' . tr('common.comment') . ': ' . (string)$c['notes'];
+        $sections[$contactsKey][] = trim((string)$c['last_name'] . ' ' . (string)$c['first_name']) . ' | ' . (string)$c['company_name'] . ' | ' . (string)$c['position'] . ' | ' . trim((string)$c['email'] . ' ' . (string)$c['phone'] . ' ' . (string)$c['mobile']) . ' | ' . tr('common.comment') . ': ' . richTextPlain((string)$c['notes']);
     }
     foreach ((array)$dossier['questions'] as $q) {
         $sections[$questionsKey][] = tr('dossier.question_short') . ': ' . (string)$q['question_text'] . "\n" . tr('dossier.answer_short') . ': ' . (string)$q['answer_text'];
@@ -9627,18 +9750,19 @@ function dossierPdfSections(array $dossier): array
         $sections[$documentsKey][] = (string)$doc['title'] . ' v' . (int)$doc['version'] . ' | ' . (string)$doc['original_filename'] . ' | ' . bytesLabel((int)$doc['file_size']);
         $sections[$documentsKey][] = trim((string)($doc['document_text'] ?? '')) !== '' ? mb_substr((string)$doc['document_text'], 0, 12000) : tr('dossier.no_document_text');
     }
-    foreach ((array)$dossier['history'] as $row) {
-        $oldStatus = trim((string)$row['old_status']);
-        $newStatus = trim((string)$row['new_status']);
-        $sections[$activitiesKey][] = (string)$row['changed_at'] . ' | ' . tr('common.status') . ': '
-            . ($oldStatus !== '' ? ($statusLabels[$oldStatus] ?? $oldStatus) . ' -> ' : '')
-            . ($statusLabels[$newStatus] ?? $newStatus) . ' | ' . (string)$row['comment'];
-    }
-    foreach ((array)$dossier['contact_logs'] as $row) {
-        $sections[$activitiesKey][] = (string)$row['occurred_at'] . ' | ' . tr('contacts.contact') . ': ' . trim((string)$row['first_name'] . ' ' . (string)$row['last_name']) . ' | ' . (string)$row['subject'] . ' | ' . (string)$row['body'] . ' | ' . (string)$row['outcome'];
-    }
-    foreach ((array)$dossier['calendar_events'] as $row) {
-        $sections[$activitiesKey][] = (string)$row['starts_at'] . ' | ' . tr('nav.calendar') . ': ' . (string)$row['title'] . ' | ' . (calendarStatusOptions()[(string)$row['status']] ?? (string)$row['status']) . ' | ' . (string)$row['notes'];
+    foreach (dossierActivityRows($dossier) as $activity) {
+        $row = $activity['entry'];
+        if ($activity['kind'] === 'history') {
+            $oldStatus = trim((string)$row['old_status']);
+            $newStatus = trim((string)$row['new_status']);
+            $sections[$activitiesKey][] = (string)$row['changed_at'] . ' | ' . tr('common.status') . ': '
+                . ($oldStatus !== '' ? ($statusLabels[$oldStatus] ?? $oldStatus) . ' -> ' : '')
+                . ($statusLabels[$newStatus] ?? $newStatus) . ' | ' . richTextPlain((string)$row['comment']);
+        } elseif ($activity['kind'] === 'contact') {
+            $sections[$activitiesKey][] = (string)$row['occurred_at'] . ' | ' . tr('contacts.contact') . ': ' . trim((string)$row['first_name'] . ' ' . (string)$row['last_name']) . ' | ' . (string)$row['subject'] . ' | ' . richTextPlain((string)$row['body']) . ' | ' . (string)$row['outcome'];
+        } else {
+            $sections[$activitiesKey][] = (string)$row['starts_at'] . ' | ' . tr('nav.calendar') . ': ' . (string)$row['title'] . ' | ' . (calendarStatusOptions()[(string)$row['status']] ?? (string)$row['status']) . ' | ' . richTextPlain((string)$row['notes']);
+        }
     }
     foreach ($sections as $key => $lines) {
         if (!$lines) {
@@ -10003,7 +10127,7 @@ function contactLogTimelineHtml(array $logs, array $attachments, array $channels
     <div class="log-timeline">
         <?php foreach($logs as $entry): ?><article class="log-status-<?= e($entry['status']) ?>">
             <div><strong><?= e($entry['subject'] ?: ($channels[$entry['channel']] ?? ucfirst((string)$entry['channel']))) ?></strong><span><?= e(($statuses[$entry['status']] ?? $entry['status']).' · '.($channels[$entry['channel']] ?? $entry['channel']).' · '.$entry['direction'].' · '.displayDateTime($entry['occurred_at'], $currentUser)) ?></span></div>
-            <?php if($entry['body']): ?><p><?= nl2br(e($entry['body'])) ?></p><?php endif; ?>
+            <?php if($entry['body']): ?><div class="rich-text-view"><?= richTextHtml((string)$entry['body']) ?></div><?php endif; ?>
             <?php if($entry['outcome']): ?><small><?= e(tr('contact_log.outcome')) ?>: <?= e($entry['outcome']) ?></small><?php endif; ?>
 
             <?php foreach(($attachments[(int)$entry['id']] ?? []) as $doc): ?><small><?= e(tr('contact_log.attachment')) ?>: <a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e($doc['original_filename']) ?></a></small><?php endforeach; ?>
@@ -10117,6 +10241,11 @@ csrfToken();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
+    foreach (richTextFieldNames() as $richTextField) {
+        if (isset($_POST[$richTextField]) && is_string($_POST[$richTextField])) {
+            $_POST[$richTextField] = sanitizeRichText($_POST[$richTextField]);
+        }
+    }
 
     if ($action === 'apply_workflow_migration') {
         requireLogin();
@@ -12757,7 +12886,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.9';
+$codeVersion = '2.2.0';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -12859,9 +12988,10 @@ if ($page === 'application_dossier') {
     $channelLabels = applicationChannelOptions();
     $contactLogChannels = contactLogChannelOptions();
     $contactLogStatuses = contactLogStatusOptions();
+    $dossierActivities = dossierActivityRows($dossier);
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script><style>.rich-text-view{overflow-wrap:anywhere}.rich-text-view img{max-width:100%;height:auto}.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-view td,.rich-text-view th{border:1px solid #aeb7c2;padding:6px}.rich-text-view hr{border:0;border-top:1px solid #aeb7c2;margin:1em 0}</style></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('dossier.title')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf"><?= e(tr('dossier.create_pdf')) ?></a></div>
@@ -12869,12 +12999,19 @@ if ($page === 'application_dossier') {
             <div><h2><?= e((string)$application['job_title']) ?></h2><p><?= e((string)$application['company_name']) ?><?= $application['intermediary_company_name'] ? ' · ' . e(tr('companies.by')) . ' ' . e((string)$application['intermediary_company_name']) : '' ?></p></div>
             <dl><div><dt><?= e(tr('common.status')) ?></dt><dd><?= e($statusLabels[(string)$application['status']] ?? (string)$application['status']) ?></dd></div><div><dt><?= e(tr('applications.channel')) ?></dt><dd><?= e($channelLabels[(string)$application['channel']] ?? (string)$application['channel']) ?></dd></div><?php if(applicationWorkflowView($application)['sent_at']): ?><div><dt><?= e(tr('applications.sent_at')) ?></dt><dd><?= e(displayDateTime($application['applied_at'], $currentUser)) ?></dd></div><?php endif; ?><?php if(applicationWorkflowView($application)['next_task'] !== ''): ?><div><dt><?= e(tr('applications.next_task')) ?></dt><dd><?= e(applicationWorkflowView($application)['next_task']) ?></dd></div><?php endif; ?></dl>
         </section>
-        <section class="panel dossier-grid"><article><h2><?= e(tr('companies.company')) ?></h2><p><strong><?= e((string)$application['company_name']) ?></strong></p><p><?= e(trim((string)$application['address_line1'] . ' ' . (string)$application['address_line2'])) ?><br><?= e(trim((string)$application['postal_code'] . ' ' . (string)$application['company_city'])) ?></p><p><?= $application['company_website'] ? '<a href="' . e((string)$application['company_website']) . '" target="_blank" rel="noopener">' . e((string)$application['company_website']) . '</a>' : '' ?></p><p><?= e(trim((string)$application['company_email'] . ' ' . (string)$application['company_phone'])) ?></p><p><?= nl2br(e((string)$application['company_notes'])) ?></p></article><article><h2><?= e(tr('jobs.job')) ?></h2><p><strong><?= e((string)$application['job_title']) ?></strong></p><p><?= e((string)$application['location_text']) ?> · <?= e(workplaceTypeOptions()[(string)$application['workplace_type']] ?? (string)$application['workplace_type']) ?> · <?= e(contractTermOptions()[(string)$application['contract_term']] ?? (string)$application['contract_term']) ?></p><p><?= $application['source_url'] ? '<a href="' . e((string)$application['source_url']) . '" target="_blank" rel="noopener">' . e(tr('jobs.open_source_url')) . '</a>' : '' ?></p><p><?= nl2br(e((string)$application['job_notes'])) ?></p></article><article><h2><?= e(tr('applications.application')) ?></h2><p><?= e(tr('applications.online_url')) ?>: <?= $application['application_url'] ? '<a href="' . e((string)$application['application_url']) . '" target="_blank" rel="noopener">' . e((string)$application['application_url']) . '</a>' : e(tr('applications.no_url')) ?></p><p><?= e(tr('applications.portal_account')) ?>: <?= e((string)$application['portal_account']) ?><br><?= e(tr('applications.reference_number')) ?>: <?= e((string)$application['reference_number']) ?></p><p><?= nl2br(e((string)$application['application_notes'])) ?></p></article></section>
-        <section class="panel"><h2><?= e(tr('dossier.job_description')) ?></h2><div class="dossier-text"><?= nl2br(e((string)$application['job_description'])) ?></div></section>
-        <section class="panel"><h2><?= e(tr('dossier.company_contacts')) ?></h2><div class="dossier-list"><?php foreach($dossier['contacts'] as $contact): ?><article><strong><?= e(trim((string)$contact['first_name'] . ' ' . (string)$contact['last_name'])) ?></strong><span><?= e((string)$contact['company_name']) ?> · <?= e(trim((string)$contact['position'] . ' ' . (string)$contact['department'])) ?></span><small><?= e(trim((string)$contact['email'] . ' ' . (string)$contact['phone'] . ' ' . (string)$contact['mobile'])) ?></small><?php if($contact['linkedin_url']): ?><a href="<?= e((string)$contact['linkedin_url']) ?>" target="_blank" rel="noopener">LinkedIn</a><?php endif; ?><p><?= nl2br(e((string)$contact['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['contacts']): ?><p class="empty"><?= e(tr('dossier.no_contacts')) ?></p><?php endif; ?></div></section>
-        <section class="panel"><h2><?= e(tr('jobs.questions')) ?></h2><div class="dossier-list"><?php foreach($dossier['questions'] as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['questions']): ?><p class="empty"><?= e(tr('dossier.no_questions')) ?></p><?php endif; ?></div></section>
+        <section class="panel dossier-grid"><article><h2><?= e(tr('companies.company')) ?></h2><p><strong><?= e((string)$application['company_name']) ?></strong></p><p><?= e(trim((string)$application['address_line1'] . ' ' . (string)$application['address_line2'])) ?><br><?= e(trim((string)$application['postal_code'] . ' ' . (string)$application['company_city'])) ?></p><p><?= $application['company_website'] ? '<a href="' . e((string)$application['company_website']) . '" target="_blank" rel="noopener">' . e((string)$application['company_website']) . '</a>' : '' ?></p><p><?= e(trim((string)$application['company_email'] . ' ' . (string)$application['company_phone'])) ?></p><div class="rich-text-view"><?= richTextHtml((string)$application['company_notes']) ?></div></article><article><h2><?= e(tr('jobs.job')) ?></h2><p><strong><?= e((string)$application['job_title']) ?></strong></p><p><?= e((string)$application['location_text']) ?> · <?= e(workplaceTypeOptions()[(string)$application['workplace_type']] ?? (string)$application['workplace_type']) ?> · <?= e(contractTermOptions()[(string)$application['contract_term']] ?? (string)$application['contract_term']) ?></p><p><?= $application['source_url'] ? '<a href="' . e((string)$application['source_url']) . '" target="_blank" rel="noopener">' . e(tr('jobs.open_source_url')) . '</a>' : '' ?></p><div class="rich-text-view"><?= richTextHtml((string)$application['job_notes']) ?></div></article><article><h2><?= e(tr('applications.application')) ?></h2><p><?= e(tr('applications.online_url')) ?>: <?= $application['application_url'] ? '<a href="' . e((string)$application['application_url']) . '" target="_blank" rel="noopener">' . e((string)$application['application_url']) . '</a>' : e(tr('applications.no_url')) ?></p><p><?= e(tr('applications.portal_account')) ?>: <?= e((string)$application['portal_account']) ?><br><?= e(tr('applications.reference_number')) ?>: <?= e((string)$application['reference_number']) ?></p><div class="rich-text-view"><?= richTextHtml((string)$application['application_notes']) ?></div></article></section>
+        <section class="panel"><h2><?= e(tr('dossier.job_description')) ?></h2><div class="dossier-text rich-text-view"><?= richTextHtml((string)$application['job_description']) ?></div></section>
+        <section class="panel"><h2><?= e(tr('dossier.company_contacts')) ?></h2><div class="dossier-list"><?php foreach($dossier['contacts'] as $contact): ?><article><strong><?= e(trim((string)$contact['first_name'] . ' ' . (string)$contact['last_name'])) ?></strong><span><?= e((string)$contact['company_name']) ?> · <?= e(trim((string)$contact['position'] . ' ' . (string)$contact['department'])) ?></span><small><?= e(trim((string)$contact['email'] . ' ' . (string)$contact['phone'] . ' ' . (string)$contact['mobile'])) ?></small><?php if($contact['linkedin_url']): ?><a href="<?= e((string)$contact['linkedin_url']) ?>" target="_blank" rel="noopener">LinkedIn</a><?php endif; ?><div class="rich-text-view"><?= richTextHtml((string)$contact['notes']) ?></div></article><?php endforeach; ?><?php if(!$dossier['contacts']): ?><p class="empty"><?= e(tr('dossier.no_contacts')) ?></p><?php endif; ?></div></section>
+        <section class="panel"><h2><?= e(tr('jobs.questions')) ?></h2><div class="dossier-list"><?php foreach($dossier['questions'] as $question): ?><article><div class="rich-text-view"><strong><?= richTextHtml((string)$question['question_text']) ?></strong></div><div class="rich-text-view"><?= richTextHtml((string)$question['answer_text']) ?></div></article><?php endforeach; ?><?php if(!$dossier['questions']): ?><p class="empty"><?= e(tr('dossier.no_questions')) ?></p><?php endif; ?></div></section>
         <section class="panel"><h2><?= e(tr('dossier.submitted_documents')) ?></h2><div class="dossier-list"><?php foreach($dossier['documents'] as $doc): ?><article><strong><a href="/?page=document_download&id=<?= (int)$doc['id'] ?>"><?= e((string)$doc['title']) ?> · v<?= (int)$doc['version'] ?></a></strong><span><?= e(documentPurposeLabel((string)$doc['purpose'], (string)($currentUser['preferred_language'] ?? 'de-CH'))) ?> · <?= e((string)$doc['original_filename']) ?> · <?= e(bytesLabel((int)$doc['file_size'])) ?></span><div class="dossier-document-text"><?= trim((string)($doc['document_text'] ?? '')) !== '' ? nl2br(e((string)$doc['document_text'])) : '<p class="empty">' . e(tr('dossier.no_document_text')) . '</p>' ?></div></article><?php endforeach; ?><?php if(!$dossier['documents']): ?><p class="empty"><?= e(tr('dossier.no_documents')) ?></p><?php endif; ?></div></section>
-        <section class="panel"><h2><?= e(tr('dossier.activities')) ?></h2><div class="log-timeline"><?php foreach($dossier['history'] as $entry): ?><article><strong><?= e(tr('common.status')) ?>: <?= e($statusLabels[(string)$entry['old_status']] ?? (string)$entry['old_status']) ?> → <?= e($statusLabels[(string)$entry['new_status']] ?? (string)$entry['new_status']) ?></strong><span><?= e(displayDateTime((string)$entry['changed_at'], $currentUser)) ?></span><p><?= e((string)$entry['comment']) ?></p></article><?php endforeach; ?><?php foreach($dossier['contact_logs'] as $entry): ?><article class="log-status-<?= e((string)$entry['status']) ?>"><strong><?= e((string)$entry['subject']) ?></strong><span><?= e(displayDateTime((string)$entry['occurred_at'], $currentUser)) ?> · <?= e($contactLogChannels[(string)$entry['channel']] ?? (string)$entry['channel']) ?> · <?= e($contactLogStatuses[(string)$entry['status']] ?? (string)$entry['status']) ?></span><small><?= e(trim((string)$entry['first_name'] . ' ' . (string)$entry['last_name'])) ?> · <?= e((string)$entry['company_name']) ?></small><p><?= nl2br(e((string)$entry['body'])) ?></p><?php if($entry['outcome']): ?><small><?= e(tr('contact_log.outcome')) ?>: <?= e((string)$entry['outcome']) ?></small><?php endif; ?></article><?php endforeach; ?><?php foreach($dossier['calendar_events'] as $entry): ?><article><strong><?= e(tr('nav.calendar')) ?>: <?= e((string)$entry['title']) ?></strong><span><?= e(displayDateTime((string)$entry['starts_at'], $currentUser)) ?> · <?= e(calendarStatusOptions()[(string)$entry['status']] ?? (string)$entry['status']) ?></span><p><?= nl2br(e((string)$entry['notes'])) ?></p></article><?php endforeach; ?><?php if(!$dossier['history'] && !$dossier['contact_logs'] && !$dossier['calendar_events']): ?><p class="empty"><?= e(tr('dossier.no_activities')) ?></p><?php endif; ?></div></section>
+        <section class="panel"><h2><?= e(tr('dossier.activities')) ?></h2><div class="log-timeline">
+            <?php foreach($dossierActivities as $activity): $entry=$activity['entry']; ?>
+                <?php if($activity['kind']==='history'): ?><article><strong><?= e(tr('common.status')) ?>: <?= e($statusLabels[(string)$entry['old_status']] ?? (string)$entry['old_status']) ?> → <?= e($statusLabels[(string)$entry['new_status']] ?? (string)$entry['new_status']) ?></strong><span><?= e(displayDateTime((string)$entry['changed_at'], $currentUser)) ?></span><div class="rich-text-view"><?= richTextHtml((string)$entry['comment']) ?></div></article>
+                <?php elseif($activity['kind']==='contact'): ?><article class="log-status-<?= e((string)$entry['status']) ?>"><strong><?= e((string)$entry['subject']) ?></strong><span><?= e(displayDateTime((string)$entry['occurred_at'], $currentUser)) ?> · <?= e($contactLogChannels[(string)$entry['channel']] ?? (string)$entry['channel']) ?> · <?= e($contactLogStatuses[(string)$entry['status']] ?? (string)$entry['status']) ?></span><small><?= e(trim((string)$entry['first_name'] . ' ' . (string)$entry['last_name'])) ?> · <?= e((string)$entry['company_name']) ?></small><div class="rich-text-view"><?= richTextHtml((string)$entry['body']) ?></div><?php if($entry['outcome']): ?><small><?= e(tr('contact_log.outcome')) ?>: <?= e((string)$entry['outcome']) ?></small><?php endif; ?></article>
+                <?php else: ?><article><strong><?= e(tr('nav.calendar')) ?>: <?= e((string)$entry['title']) ?></strong><span><?= e(displayDateTime((string)$entry['starts_at'], $currentUser)) ?> · <?= e(calendarStatusOptions()[(string)$entry['status']] ?? (string)$entry['status']) ?></span><div class="rich-text-view"><?= richTextHtml((string)$entry['notes']) ?></div></article><?php endif; ?>
+            <?php endforeach; ?>
+            <?php if(!$dossierActivities): ?><p class="empty"><?= e(tr('dossier.no_activities')) ?></p><?php endif; ?>
+        </div></section>
     </main></body></html><?php
     exit;
 }
@@ -13002,7 +13139,7 @@ if ($page === 'export_csv') {
         csvResponse('bewerbungen.csv', applicationExportHeaders(), applicationExportData($rows, $currentUser));
     }
     if ($type === 'audit') {
-        $rows = dbAll($db, 'SELECT action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 1000', 'i', [userId()]);
+        $rows = dbAll($db, 'SELECT action, entity_type, entity_id, created_at FROM (SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 1000) recent ORDER BY created_at ASC, id ASC', 'i', [userId()]);
         csvResponse('audit.csv', [tr('audit.action'),tr('calendar.type'),tr('common.time')], array_map(static fn(array $r): array => [$r['action'], $r['entity_type'], $r['created_at']], $rows));
     }
     $jobStatuses = jobStatusOptions();
@@ -13173,6 +13310,9 @@ startUiTranslationBuffer($appLocale);
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script>
+<style>
+.rich-text-shell{display:grid;gap:0;border:1.5px solid var(--line);border-bottom-color:var(--line-strong);border-radius:6px;background:var(--field);overflow:hidden}.rich-text-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);background:var(--surface-subtle)}.rich-text-toolbar button{min-width:36px;padding:5px 8px}.rich-text-editor{min-height:140px;max-height:520px;overflow:auto;padding:12px;background:#fff;color:var(--text);font:inherit;font-weight:400;line-height:1.5}.rich-text-editor:focus{outline:3px solid var(--accent-ring);outline-offset:-3px}.rich-text-editor img,.rich-text-view img{max-width:100%;height:auto}.rich-text-editor table,.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-editor td,.rich-text-editor th,.rich-text-view td,.rich-text-view th{border:1px solid var(--line);padding:6px;vertical-align:top}.rich-text-editor hr,.rich-text-view hr{border:0;border-top:1px solid var(--line);margin:1em 0}.rich-text-source{position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;opacity:0!important;pointer-events:none!important}.rich-text-shell.is-source .rich-text-source{position:static!important;width:100%!important;height:180px!important;opacity:1!important;pointer-events:auto!important}.rich-text-shell.is-source .rich-text-editor{display:none}.rich-text-view{overflow-wrap:anywhere;white-space:normal}.rich-text-view p:first-child{margin-top:0}.rich-text-view p:last-child{margin-bottom:0}
+</style>
 </head>
 <body class="<?= e(implode(' ', $bodyClasses)) ?>">
 <header class="topbar <?= $supportGrant ? 'topbar-support-granted' : '' ?> <?= $supportImpersonating ? 'topbar-support-admin' : '' ?>">
@@ -13344,7 +13484,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('sharing.title')) ?></p><h1><?= e($share['title']) ?></h1></div><span><?= e($share['permission']) ?> · <?= e(tr('common.download')) ?> <?= e($share['download_policy']) ?></span></div>
         <?php if(!empty($share['watermark_enabled'])): ?><p class="filter-note"><?= e(tr('sharing.personal_share_notice', null, ['email' => (string)$share['recipient_email']])) ?></p><?php endif; ?>
         <?php if($guestJobs): ?><section class="panel table-wrap"><h2><?= e(tr('nav.jobs')) ?></h2><table><thead><tr><th><?= e(tr('common.title')) ?></th><th><?= e(tr('companies.company')) ?></th><th><?= e(tr('jobs.location')) ?></th><th><?= e(tr('common.status')) ?></th></tr></thead><tbody><?php foreach($guestJobs as $job): ?><tr><td><strong><?= e($job['title']) ?></strong><?php if(!empty($job['description'])): ?><small><?= e(mb_strimwidth((string)$job['description'],0,220,'...')) ?></small><?php endif; ?></td><td><?= e($job['company_name']) ?></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
-        <?php if($guestApplications): ?><section class="panel table-wrap"><h2><?= e(tr('nav.applications')) ?></h2><table><thead><tr><th><?= e(tr('jobs.job')) ?></th><th><?= e(tr('companies.company')) ?></th><th><?= e(tr('common.status')) ?></th><th><?= e(tr('applications.workflow_date')) ?></th></tr></thead><tbody><?php foreach($guestApplications as $app): ?><tr><td><strong><?= e($app['title']) ?></strong><?php if(!empty($app['cover_letter_text'])): ?><small><?= nl2br(e(mb_strimwidth((string)$app['cover_letter_text'],0,300,'...'))) ?></small><?php endif; ?></td><td><?= e($app['company_name']) ?></td><td><?= e(applicationStatusOptions()[(string)$app['status']] ?? (string)$app['status']) ?></td><td><?= e(displayDateTime($app['latest_workflow_at'], $currentUser ?? [], false)) ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
+        <?php if($guestApplications): ?><section class="panel table-wrap"><h2><?= e(tr('nav.applications')) ?></h2><table><thead><tr><th><?= e(tr('jobs.job')) ?></th><th><?= e(tr('companies.company')) ?></th><th><?= e(tr('common.status')) ?></th><th><?= e(tr('applications.workflow_date')) ?></th></tr></thead><tbody><?php foreach($guestApplications as $app): ?><tr><td><strong><?= e($app['title']) ?></strong><?php if(!empty($app['cover_letter_text'])): ?><small><?= nl2br(e(mb_strimwidth(richTextPlain((string)$app['cover_letter_text']),0,300,'...'))) ?></small><?php endif; ?></td><td><?= e($app['company_name']) ?></td><td><?= e(applicationStatusOptions()[(string)$app['status']] ?? (string)$app['status']) ?></td><td><?= e(displayDateTime($app['latest_workflow_at'], $currentUser ?? [], false)) ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
         <?php if($guestDocuments): ?><section class="panel table-wrap"><h2><?= e(tr('nav.documents')) ?></h2><table><thead><tr><th><?= e(tr('documents.document')) ?></th><th><?= e(tr('documents.file')) ?></th><th><?= e(tr('documents.size')) ?></th><th><?= e(tr('common.download')) ?></th></tr></thead><tbody><?php foreach($guestDocuments as $doc): ?><tr><td><?= e($doc['title']) ?></td><td><?= e($doc['original_filename']) ?></td><td><?= e(bytesLabel((int)$doc['file_size'])) ?></td><td><?php if(in_array((string)$share['download_policy'], ['original','both'], true)): ?><a href="/?page=guest_download&token=<?= e(urlencode($guestToken)) ?>&id=<?= (int)$doc['id'] ?>"><?= e(tr('common.download')) ?></a><?php else: ?><?= e(tr('sharing.download_blocked')) ?><?php endif; ?></td></tr><?php endforeach; ?></tbody></table></section><?php endif; ?>
         <?php if($guestTranslations): ?><section class="panel"><h2><?= e(tr('translations.title')) ?></h2><div class="log-timeline"><?php foreach($guestTranslations as $translation): ?><article><div><strong><?= e($translation['title'] ?: $translation['entity_type'].' #'.$translation['entity_id']) ?></strong><span><?= e($translation['target_language']) ?> · v<?= (int)$translation['version'] ?></span></div><p><?= nl2br(e($translation['body'])) ?></p></article><?php endforeach; ?></div></section><?php endif; ?>
     <?php } ?>
@@ -14257,7 +14397,7 @@ startUiTranslationBuffer($appLocale);
             <label><?= e(tr('common.description')) ?><textarea name="description" rows="6"><?= e($form['description'] ?? '') ?></textarea></label><label><?= e(tr('common.comment')) ?><textarea name="job_notes" rows="4"><?= e($form['notes'] ?? '') ?></textarea></label>
             <?php if(!empty($_GET['duplicate'])): ?><label class="check"><input type="checkbox" name="confirm_duplicate" value="1" required> <?= e(tr('jobs.save_as_separate')) ?></label><?php endif; ?><button class="primary" name="action" value="save_job"><?= e(tr('common.save')) ?></button>
         </form><?php if($edit): ?><form method="post" class="actions editor-actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><button class="primary" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button><a class="button" href="/?page=applications&job_id=<?= (int)$edit['id'] ?>"><?= e(tr('applications.show')) ?></a></form><?php endif; ?></section>
-        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="job-readable-details"><article><h3><?= e(tr('common.description')) ?></h3><div class="readable-text" data-readable-target="description"><?= nl2br(e(readableText((string)($edit['description'] ?? '')))) ?></div></article><article><h3><?= e(tr('common.comment')) ?></h3><div class="readable-text" data-readable-target="job_notes"><?= nl2br(e(readableText((string)($edit['notes'] ?? '')))) ?></div></article></div><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><a class="record-link" href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><script>(()=>{document.querySelectorAll('#new textarea[name="description"], #new textarea[name="job_notes"]').forEach(source=>{const target=document.querySelector(`[data-readable-target="${source.name}"]`);if(!target)return;source.addEventListener('input',()=>{target.textContent=source.value;});});})();</script><?php endif; ?>
+        <?php if($edit): ?><section class="panel" id="job-contacts"><div class="job-readable-details"><article><h3><?= e(tr('common.description')) ?></h3><div class="readable-text rich-text-view" data-readable-target="description"><?= richTextHtml((string)($edit['description'] ?? '')) ?></div></article><article><h3><?= e(tr('common.comment')) ?></h3><div class="readable-text rich-text-view" data-readable-target="job_notes"><?= richTextHtml((string)($edit['notes'] ?? '')) ?></div></article></div><div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.contacts')) ?></p><h2><?= e(tr('jobs.contacts_for_job')) ?></h2></div><a href="/?page=contacts&company_id=<?= (int)$edit['company_id'] ?>"><?= e(tr('jobs.all_company_contacts')) ?></a></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><div class="two"><label><?= e(tr('auth.first_name')) ?><input name="first_name" required></label><label><?= e(tr('auth.last_name')) ?><input name="last_name" required></label></div><div class="two"><label><?= e(tr('contacts.position')) ?><input name="position"></label><label><?= e(tr('contacts.department')) ?><input name="department"></label></div><label><?= e(tr('auth.email')) ?><input type="email" name="contact_email"></label><div class="two"><label><?= e(tr('profile.phone')) ?><input name="phone"></label><label><?= e(tr('profile.mobile')) ?><input name="mobile"></label></div><label>LinkedIn<input type="url" name="linkedin_url"></label><label><?= e(tr('profile.language_label')) ?><select name="preferred_language"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach(documentLanguageChoices() as $v=>$l): ?><option value="<?= e($v) ?>"><?= e($l) ?></option><?php endforeach; ?></select></label><label><?= e(tr('common.comment')) ?><textarea name="contact_notes" rows="3"></textarea></label><button class="primary" name="action" value="save_job_contact"><?= e(tr('contacts.save_contact')) ?></button></form><div class="contact-list"><?php foreach($jobContacts as $contact): ?><article class="<?= (int)$contact['job_id']===(int)$edit['id']?'is-primary':'' ?>"><small><a class="record-link" href="/?page=companies&edit=<?= (int)$contact['company_id'] ?>"><?= e($contact['company_name']) ?></a><?= (int)$contact['job_id']===(int)$edit['id'] ? ' · ' . e(tr('reports.field.job')) : ' · ' . e(tr('companies.company')) ?></small><strong><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e($contact['first_name'].' '.$contact['last_name']) ?></a></strong><span><?= e($contact['position'] ?: $contact['department']) ?></span><?php if($contact['email']): ?><a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a><?php endif; ?><small><?= e($contact['phone'] ?: $contact['mobile']) ?></small><div class="actions"><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>"><?= e(tr('common.edit')) ?></a><a href="/?page=contacts&edit_contact=<?= (int)$contact['id'] ?>#contact-log"><?= e(tr('contact_log.title')) ?></a></div></article><?php endforeach; ?><?php if(!$jobContacts): ?><p class="empty"><?= e(tr('jobs.no_contacts')) ?></p><?php endif; ?></div></div></section><script>(()=>{document.querySelectorAll('#new textarea[name="description"], #new textarea[name="job_notes"]').forEach(source=>{const target=document.querySelector(`[data-readable-target="${source.name}"]`);if(!target)return;source.addEventListener('input',()=>{const editor=source.closest('.rich-text-shell')?.querySelector('.rich-text-editor');if(editor)target.innerHTML=editor.innerHTML;else target.textContent=source.value;});});})();</script><?php endif; ?>
         <?php if($edit): ?><section class="panel" id="job-questions"><div class="section-head"><div><p class="eyebrow"><?= e(tr('jobs.preparation')) ?></p><h2><?= e(tr('jobs.application_questions')) ?></h2></div><span><?= e(tr('jobs.questions_count', null, ['count' => (string) count($jobQuestions)])) ?></span></div><div class="split inner-split"><form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$edit['id'] ?>"><label><?= e(tr('jobs.question')) ?><textarea name="question_text" rows="3" required placeholder="<?= e(tr('jobs.question_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.answer_preparation')) ?><textarea name="answer_text" rows="4" placeholder="<?= e(tr('jobs.answer_placeholder')) ?>"></textarea></label><label><?= e(tr('jobs.sort_order')) ?><input type="number" min="0" name="sort_order" value="<?= count($jobQuestions) + 1 ?>"></label><button class="primary" name="action" value="save_job_question"><?= e(tr('jobs.save_question')) ?></button></form><div class="dossier-list"><?php foreach($jobQuestions as $question): ?><article><strong><?= nl2br(e((string)$question['question_text'])) ?></strong><p><?= nl2br(e((string)$question['answer_text'])) ?></p><form method="post" class="actions" onsubmit="return confirm('<?= e(tr('jobs.delete_question_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="question_id" value="<?= (int)$question['id'] ?>"><button name="action" value="delete_job_question"><?= e(tr('common.delete')) ?></button></form></article><?php endforeach; ?><?php if(!$jobQuestions): ?><p class="empty"><?= e(tr('jobs.no_questions')) ?></p><?php endif; ?></div></div></section><?php endif; ?>
         <?php if($jobView === 'table'): ?><section class="panel table-wrap"><table><thead><tr><?= sfHeader('jobs','created_at',tr('jobs.recorded_at'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','title',tr('common.title'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','company',tr('companies.company'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','location',tr('jobs.location'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','status',tr('common.status'),$jobSf,$jobPreserve) ?><?= sfHeader('jobs','match',tr('jobs.match'),$jobSf,$jobPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><tr><td><?= e(displayDateTime($job['created_at'], $currentUser, false)) ?></td><td><strong><a href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></strong><small><?= e(mb_strimwidth((string)$job['description'],0,120,'...')) ?></small></td><td><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a></td><td><?= e($job['location_text']) ?></td><td><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?><small><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></small><?php if($jobSalaryLabel !== ''): ?><small><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></small><?php endif; ?></td><td><?= $score === null ? '—' : e((string)$score).'%' ?></td><td class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$jobs): ?><tr><td colspan="7" class="empty"><?= e(tr('common.no_results')) ?></td></tr><?php endif; ?></tbody></table></section><?php else: ?><section class="cards"><?php foreach($jobs as $job): [$score,$reasons]=matchJob($job); $jobSalaryLabel=salaryLabel($job,$jobCurrency); ?><article class="job-card <?= $edit && (int)$edit['id']===(int)$job['id']?'is-selected':'' ?>"><div class="job-top"><span class="badge"><?= e(jobStatusOptions()[(string)$job['status']] ?? (string)$job['status']) ?></span><span class="score"><?= $score === null ? '—' : e((string)$score).'%' ?></span></div><p class="meta-line"><?= e(tr('jobs.recorded_at')) ?>: <?= e(displayDateTime($job['created_at'], $currentUser, false)) ?></p><h3><a class="record-link" href="/?page=jobs&edit=<?= (int)$job['id'] ?>#new"><?= e($job['title']) ?></a></h3><p class="company"><a href="/?page=companies&edit=<?= (int)$job['company_id'] ?>"><?= e($job['company_name']) ?></a> · <?= e($job['location_text']) ?></p><p class="meta-line"><?= e(engagementTypeOptions()[(string)$job['engagement_type']] ?? (string)$job['engagement_type']) ?> · <?= e(contractTermOptions()[(string)$job['contract_term']] ?? (string)$job['contract_term']) ?></p><?php if($jobSalaryLabel !== ''): ?><p class="meta-line"><?= e(tr('profile.salary')) ?>: <?= e($jobSalaryLabel) ?></p><?php endif; ?><p><?= e(mb_strimwidth((string)$job['description'],0,180,'...')) ?></p><details><summary><?= e(tr('jobs.why_match', null, ['score' => (string) $score])) ?></summary><ul><?php foreach($reasons as $reason): ?><li><?= e($reason) ?></li><?php endforeach; ?></ul></details><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>"><button class="primary-link" name="action" value="start_application"><?= e(tr('applications.prepare')) ?></button></form><a href="/?page=applications&job_id=<?= (int)$job['id'] ?>"><?= e(tr('nav.applications')) ?></a><?php if(!empty($job['original_document_id'])): ?><a href="/?page=document_download&id=<?= (int)$job['original_document_id'] ?>"><?= e(tr('jobs.original_document_open')) ?></a><?php endif; ?><form method="post" onsubmit="return confirm('<?= e(tr('jobs.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$job['id'] ?>"><button name="action" value="delete_job"><?= e(tr('common.delete')) ?></button></form></div></article><?php endforeach; ?><?php if(!$jobs): ?><div class="empty"><?= e(tr('jobs.empty')) ?></div><?php endif; ?></section><?php endif; ?></div>
         </div>
@@ -14286,7 +14426,7 @@ startUiTranslationBuffer($appLocale);
                 error_log('Application text initialization failed for application '.(int)$applicationEdit['id'].': '.$exception->getMessage());
             }
         }
-        $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at DESC', 'i', [(int)$applicationEdit['id']]) : [];
+        $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [(int)$applicationEdit['id']]) : [];
         $workflowAppointments = $applicationEdit ? dbAll($db, "SELECT id, title, starts_at, ends_at, status FROM calendar_events WHERE owner_user_id=? AND application_id=? AND entry_kind IN ('appointment','action') AND (source_type IS NULL OR source_type='workflow_appointment' OR (source_type='application_next_action' AND title='follow_up') OR source_type='contact_log') AND status<>'cancelled' ORDER BY starts_at ASC, id ASC", 'ii', [userId(), (int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
         $primaryContact = null;
@@ -14300,7 +14440,7 @@ startUiTranslationBuffer($appLocale);
         }
         $selectedContactId = (int) ($_GET['contact'] ?? ($applicationEdit['primary_contact_id'] ?? 0));
         $contactEdit = $selectedContactId > 0 && $applicationEdit ? dbOne($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND (company_id=? OR company_id=? OR application_id=? OR job_id=?) AND deleted_at IS NULL', 'iiiiii', [$selectedContactId, userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : null;
-        $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, contact_id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
+        $contactLogs = $contactEdit ? dbAll($db, 'SELECT id, contact_id, application_id, job_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY occurred_at ASC, id ASC', 'ii', [userId(), (int)$contactEdit['id']]) : [];
         $contactAttachments = $contactEdit ? contactLogAttachments($db, userId(), (int)$contactEdit['id']) : [];
         $editLogId = (int) ($_GET['edit_log'] ?? 0);
         $editLog = $editLogId > 0 ? dbOne($db, 'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE id=? AND owner_user_id=? AND contact_id=?', 'iii', [$editLogId, userId(), (int)($contactEdit['id'] ?? 0)]) : null;
@@ -14368,7 +14508,7 @@ startUiTranslationBuffer($appLocale);
                 <label><?= e(tr('applications.online_notes')) ?><textarea id="online-notes" name="online_notes" rows="3" placeholder="<?= e(tr('applications.online_notes_placeholder')) ?>"><?= e($applicationEdit['online_notes'] ?? '') ?></textarea></label>
                 <div class="actions copy-actions"><button type="button" data-copy-target="application-url"><?= e(tr('applications.copy_url')) ?></button><button type="button" data-copy-target="portal-account"><?= e(tr('applications.copy_portal_hint')) ?></button><button type="button" data-copy-target="reference-number"><?= e(tr('applications.copy_reference')) ?></button><button type="button" data-copy-target="online-notes"><?= e(tr('applications.copy_online_notes')) ?></button></div>
                 <label><?= e(tr('applications.contact_optional')) ?><select name="primary_contact_id"><option value="0"><?= e(tr('applications.no_contact_needed')) ?></option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" <?= (int)$applicationEdit['primary_contact_id']===(int)$contact['id']?'selected':'' ?>><?= e($contact['first_name'].' '.$contact['last_name'].($contact['position'] ? ' · '.$contact['position'] : '')) ?></option><?php endforeach; ?></select></label>
-                <label><?= e(tr('applications.status_comment')) ?><input name="status_comment" placeholder="<?= e(tr('applications.status_comment_placeholder')) ?>"></label>
+                <label><?= e(tr('applications.status_comment')) ?><textarea name="status_comment" rows="3" placeholder="<?= e(tr('applications.status_comment_placeholder')) ?>"></textarea></label>
                 <?php if(!mailEnabledForUser($db, $config, userId())): ?><p class="app-note"><?= e(tr('applications.smtp_missing_note')) ?></p><?php endif; ?>
                 <label><?= e(tr('applications.email_recipient')) ?><input type="email" name="recipient_email" value="<?= e($primaryContact['email'] ?? ($contactEdit['email'] ?? '')) ?>" placeholder="<?= e(tr('applications.email_recipient_placeholder')) ?>" <?= (int)($applicationEdit['primary_contact_id'] ?? 0) > 0 ? 'readonly' : '' ?>></label>
                 <div class="history" id="application-texts"><h3><?= e(tr('job_search.ai_assist')) ?></h3><p class="meta-line"><?= e(tr('applications.ai_instruction_hint')) ?></p></div>
@@ -14473,7 +14613,7 @@ startUiTranslationBuffer($appLocale);
                         ?><li class="<?= $isCurrentWorkflowStatus ? 'is-current' : ($isReachedWorkflowStatus ? 'is-reached' : 'is-future') ?>"><span><?= e($applicationStatuses[$workflowStatus] ?? $workflowStatus) ?></span></li><?php endforeach; ?>
                         <li class="<?= in_array($applicationEdit['status'],['accepted','rejected'],true) ? 'is-current' : 'is-future' ?>"><span><?= e($applicationStatuses['accepted']) ?> / <?= e($applicationStatuses['rejected']) ?></span></li>
                     </ol>
-                    <?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><p><?= e($entry['comment']) ?></p><?php endif; ?></article><?php endforeach; ?>
+                    <?php foreach($history as $entry): ?><article><strong><?= e($applicationStatuses[$entry['new_status']] ?? $entry['new_status']) ?></strong><span><?= e(displayDateTime($entry['changed_at'], $currentUser)) ?></span><?php if($entry['comment']): ?><div class="rich-text-view"><?= richTextHtml((string)$entry['comment']) ?></div><?php endif; ?></article><?php endforeach; ?>
                     <?php if(!$history): ?><p class="empty"><?= e(tr('common.no_results')) ?></p><?php endif; ?>
                 </div>
                 <?php if($workflowAppointments): ?><div class="history">
@@ -14543,7 +14683,12 @@ startUiTranslationBuffer($appLocale);
                     const value = 'value' in target ? target.value : target.textContent;
                     if (!value) return;
                     try {
-                        await navigator.clipboard.writeText(value);
+                        if (target.classList?.contains('rich-text-source') && navigator.clipboard.write && window.ClipboardItem) {
+                            const plainHost = document.createElement('div'); plainHost.innerHTML = value;
+                            await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([value],{type:'text/html'}),'text/plain':new Blob([plainHost.innerText],{type:'text/plain'})})]);
+                        } else {
+                            await navigator.clipboard.writeText(value);
+                        }
                         button.textContent = <?= json_encode(tr('common.copied'), JSON_UNESCAPED_UNICODE) ?>;
                         setTimeout(() => { button.textContent = button.dataset.copyLabel || <?= json_encode(tr('common.copy'), JSON_UNESCAPED_UNICODE) ?>; }, 1200);
                     } catch {
@@ -14591,7 +14736,7 @@ startUiTranslationBuffer($appLocale);
         $contactEdit=$contactEditId>0 ? dbOne($db,'SELECT id, company_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language, notes FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL','ii',[$contactEditId,userId()]) : null;
         $contactLogStatuses=contactLogStatusOptions();
         $contactLogChannels=contactLogChannelOptions();
-        $contactLogs=$contactEdit ? dbAll($db,'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY CASE status WHEN "open" THEN 1 WHEN "planned" THEN 2 WHEN "done" THEN 3 ELSE 4 END, COALESCE(follow_up_at, occurred_at) ASC','ii',[userId(),(int)$contactEdit['id']]) : [];
+        $contactLogs=$contactEdit ? dbAll($db,'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE owner_user_id=? AND contact_id=? ORDER BY occurred_at ASC, id ASC','ii',[userId(),(int)$contactEdit['id']]) : [];
         $contactAttachments=$contactEdit ? contactLogAttachments($db, userId(), (int)$contactEdit['id']) : [];
         $editLogId=(int)($_GET['edit_log'] ?? 0);
         $editLog=$editLogId > 0 ? dbOne($db,'SELECT id, contact_id, application_id, channel, direction, status, subject, SUBSTRING(body,1,65535) body, occurred_at, follow_up_at, outcome FROM contact_logs WHERE id=? AND owner_user_id=? AND contact_id=?','iii',[$editLogId,userId(),(int)($contactEdit['id'] ?? 0)]) : null;
@@ -14776,13 +14921,13 @@ startUiTranslationBuffer($appLocale);
         </section>
     <?php elseif ($page === 'audit'): ?>
         <?php
-        $logs=dbAll($db,'SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC LIMIT 100','i',[userId()]);
+        $logs=dbAll($db,'SELECT id, action, entity_type, entity_id, created_at FROM (SELECT id, action, entity_type, entity_id, created_at FROM audit_log WHERE user_id=? ORDER BY created_at DESC, id DESC LIMIT 100) recent ORDER BY created_at ASC, id ASC','i',[userId()]);
         $auditSfFields = [
             'created_at'=>['label'=>tr('common.time')],
             'action'=>['label'=>tr('audit.action')],
             'entity_type'=>['label'=>tr('common.area')],
         ];
-        $auditSf = sfState('audit', $auditSfFields, ['sort'=>'created_at','dir'=>'desc']);
+        $auditSf = sfState('audit', $auditSfFields, ['sort'=>'created_at','dir'=>'asc']);
         $auditPreserve = ['page'=>'audit'];
         $logs = sfApplyRows($logs, $auditSf, $auditSfFields);
         ?>
@@ -14981,6 +15126,68 @@ startUiTranslationBuffer($appLocale);
                 if (text) text.textContent = messages[step];
             }, 450);
         });
+    });
+})();
+(() => {
+    const richNames = new Set(<?= json_encode(richTextFieldNames(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>);
+    const locale = <?= json_encode(substr($appLocale, 0, 2), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    const labelSets = {
+        de:{paragraph:'Absatz',bold:'Fett',italic:'Kursiv',link:'Link',linkPrompt:'HTTPS-Link oder E-Mail-Adresse',image:'Bild',imagePrompt:'HTTPS-Adresse des Bildes',table:'Tabelle',divider:'Trennlinie',source:'HTML bearbeiten',heading:'Titel',content:'Inhalt'},
+        fr:{paragraph:'Paragraphe',bold:'Gras',italic:'Italique',link:'Lien',linkPrompt:'Lien HTTPS ou adresse e-mail',image:'Image',imagePrompt:"Adresse HTTPS de l’image",table:'Tableau',divider:'Ligne de séparation',source:'Modifier le HTML',heading:'Titre',content:'Contenu'},
+        it:{paragraph:'Paragrafo',bold:'Grassetto',italic:'Corsivo',link:'Link',linkPrompt:'Link HTTPS o indirizzo e-mail',image:'Immagine',imagePrompt:"Indirizzo HTTPS dell’immagine",table:'Tabella',divider:'Linea divisoria',source:"Modifica l’HTML",heading:'Titolo',content:'Contenuto'},
+        en:{paragraph:'Paragraph',bold:'Bold',italic:'Italic',link:'Link',linkPrompt:'HTTPS link or email address',image:'Image',imagePrompt:'HTTPS image address',table:'Table',divider:'Divider',source:'Edit HTML',heading:'Heading',content:'Content'},
+        es:{paragraph:'Párrafo',bold:'Negrita',italic:'Cursiva',link:'Enlace',linkPrompt:'Enlace HTTPS o correo electrónico',image:'Imagen',imagePrompt:'Dirección HTTPS de la imagen',table:'Tabla',divider:'Línea divisoria',source:'Editar HTML',heading:'Título',content:'Contenido'},
+        pt:{paragraph:'Parágrafo',bold:'Negrito',italic:'Itálico',link:'Ligação',linkPrompt:'Ligação HTTPS ou endereço de e-mail',image:'Imagem',imagePrompt:'Endereço HTTPS da imagem',table:'Tabela',divider:'Linha divisória',source:'Editar HTML',heading:'Título',content:'Conteúdo'}
+    };
+    const labels = labelSets[locale] || labelSets.de;
+    const allowed = new Set(['P','BR','STRONG','B','EM','I','U','UL','OL','LI','BLOCKQUOTE','A','IMG','TABLE','THEAD','TBODY','TR','TH','TD','HR','H2','H3']);
+    const dangerous = new Set(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','FORM','INPUT','BUTTON','TEXTAREA','SELECT','OPTION','LINK','META']);
+    const sanitize = (html) => {
+        const documentValue = new DOMParser().parseFromString(`<body>${html || ''}</body>`, 'text/html');
+        Array.from(documentValue.body.querySelectorAll('*')).reverse().forEach((node) => {
+            if (!allowed.has(node.tagName)) {
+                if (dangerous.has(node.tagName)) node.remove(); else node.replaceWith(...node.childNodes);
+                return;
+            }
+            Array.from(node.attributes).forEach((attribute) => {
+                const keep = node.tagName === 'A' && ['href','title'].includes(attribute.name)
+                    || node.tagName === 'IMG' && ['src','alt','title'].includes(attribute.name);
+                if (!keep) node.removeAttribute(attribute.name);
+            });
+            if (node.tagName === 'A') {
+                const href = node.getAttribute('href') || '';
+                if (!/^(https?:\/\/|mailto:)/i.test(href)) node.removeAttribute('href');
+                else { node.target = '_blank'; node.rel = 'noopener noreferrer'; }
+            }
+            if (node.tagName === 'IMG' && !/^https:\/\//i.test(node.getAttribute('src') || '')) node.remove();
+        });
+        return documentValue.body.innerHTML;
+    };
+    const plainToHtml = (value) => String(value || '').split(/\n{2,}/).map((part) => `<p>${part.replace(/[&<>"']/g, (character) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character])).replace(/\n/g,'<br>')}</p>`).join('');
+    document.querySelectorAll('textarea[name]').forEach((source) => {
+        if (!richNames.has(source.name) || source.readOnly || source.dataset.richReady === '1') return;
+        source.dataset.richReady = '1';
+        const shell = document.createElement('div'); shell.className = 'rich-text-shell';
+        const toolbar = document.createElement('div'); toolbar.className = 'rich-text-toolbar'; toolbar.setAttribute('role','toolbar');
+        const editor = document.createElement('div'); editor.className = 'rich-text-editor'; editor.contentEditable = 'true'; editor.setAttribute('role','textbox'); editor.setAttribute('aria-multiline','true');
+        const looksHtml = /<(?:p|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h2|h3)\b/i.test(source.value);
+        editor.innerHTML = sanitize(looksHtml ? source.value : plainToHtml(source.value));
+        const sync = () => { source.value = sanitize(editor.innerHTML); source.dispatchEvent(new Event('input',{bubbles:true})); };
+        const command = (label, title, handler) => { const button=document.createElement('button'); button.type='button'; button.textContent=label; button.title=title; button.addEventListener('mousedown',(event)=>event.preventDefault()); button.addEventListener('click',()=>{editor.focus();handler();sync();}); toolbar.appendChild(button); };
+        command('¶',labels.paragraph,()=>document.execCommand('formatBlock',false,'p'));
+        command('B',labels.bold,()=>document.execCommand('bold'));
+        command('I',labels.italic,()=>document.execCommand('italic'));
+        command('🔗',labels.link,()=>{const url=window.prompt(labels.linkPrompt);if(!url)return;const href=url.includes('@')&&!url.includes('://')?'mailto:'+url:url;if(/^(https?:\/\/|mailto:)/i.test(href))document.execCommand('createLink',false,href);});
+        command('🖼',labels.image,()=>{const url=window.prompt(labels.imagePrompt);if(/^https:\/\//i.test(url||''))document.execCommand('insertImage',false,url);});
+        command('▦',labels.table,()=>document.execCommand('insertHTML',false,`<table><tbody><tr><th>${labels.heading}</th><th>${labels.heading}</th></tr><tr><td>${labels.content}</td><td>${labels.content}</td></tr></tbody></table><p><br></p>`));
+        command('―',labels.divider,()=>document.execCommand('insertHorizontalRule'));
+        const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){editor.innerHTML=sanitize(source.value);shell.classList.remove('is-source');editor.focus();sync();}else{sync();shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
+        source.addEventListener('input',()=>{if(shell.classList.contains('is-source'))editor.innerHTML=sanitize(source.value);});
+        editor.addEventListener('input',sync);
+        editor.addEventListener('paste',(event)=>{event.preventDefault();const html=event.clipboardData?.getData('text/html');const text=event.clipboardData?.getData('text/plain')||'';document.execCommand('insertHTML',false,sanitize(html||plainToHtml(text)));sync();});
+        const wasRequired = source.required; source.required = false;
+        source.parentNode.insertBefore(shell,source); shell.append(toolbar,editor,source); source.classList.add('rich-text-source');
+        source.form?.addEventListener('submit',(event)=>{sync();if(wasRequired && !editor.innerText.trim() && !editor.querySelector('img,table')){event.preventDefault();editor.focus();}});
     });
 })();
 </script>
