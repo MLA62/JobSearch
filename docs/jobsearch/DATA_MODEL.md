@@ -354,6 +354,8 @@ CREATE TABLE company_relationships (
     deleted_at DATETIME NULL,
     active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
     UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
+    KEY idx_company_relationship_owner (owner_user_id),
+    KEY idx_company_relationship_intermediary (intermediary_company_id),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
@@ -906,6 +908,8 @@ CREATE TABLE IF NOT EXISTS company_relationships (
     deleted_at DATETIME NULL,
     active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
     UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
+    KEY idx_company_relationship_owner (owner_user_id),
+    KEY idx_company_relationship_intermediary (intermediary_company_id),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),
@@ -1268,7 +1272,7 @@ ALTER TABLE user_smtp_settings
 ## 15_soft_delete_uniqueness.sql
 
 ```sql
--- JeMa Jobs 2.1.7: Gelöschte Datensätze blockieren keine Neuanlage.
+-- JeMa Jobs 2.1.8: Gelöschte Datensätze blockieren keine Neuanlage.
 -- Pro fachlichem Schlüssel bleibt höchstens ein aktiver Datensatz erlaubt.
 
 ALTER TABLE users
@@ -1278,6 +1282,8 @@ ALTER TABLE users
 
 ALTER TABLE company_relationships
     ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    ADD KEY idx_company_relationship_owner (owner_user_id),
+    ADD KEY idx_company_relationship_intermediary (intermediary_company_id),
     DROP INDEX uq_company_relationship,
     ADD UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique);
 
@@ -1288,11 +1294,13 @@ ALTER TABLE job_platforms
 
 ALTER TABLE jobs
     ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    ADD KEY idx_sd_jobs_source_id (source_id),
     DROP INDEX uq_job_source_external,
     ADD UNIQUE KEY uq_job_source_external (source_id, external_id, active_unique);
 
 ALTER TABLE applications
     ADD COLUMN active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED AFTER deleted_at,
+    ADD KEY idx_sd_applications_user_id (user_id),
     DROP INDEX uq_application_user_job,
     ADD UNIQUE KEY uq_application_user_job (user_id, job_id, active_unique);
 ```

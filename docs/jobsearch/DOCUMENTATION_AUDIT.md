@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.1.7 ist dokumentiert und zur Bereitstellung vorbereitet.
+Stand: 2026-09-07. Version 2.1.8 ist dokumentiert und zur Bereitstellung vorbereitet.
 Version 2.1.6 ist der bestätigte Live-Stand; frühere Nachweise sind historische Belege.
 
 ## Umfang
@@ -45,11 +45,12 @@ Alle 27 interaktiven Seitenzuordnungen teilen Inhalte mit dem passenden zentrale
 
 Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgeglichen. Ein korrigiertes Beispiel: Datenschutz erstellt eine Bereinigungsanfrage, keine direkte Loeschbestaetigung. Hilfeverweise auf Pendenzen und automatisches Nachfassen sind entfernt.
 
-## Pruefstand 2.1.7
+## Pruefstand 2.1.8
 
 - Alle 29 PHP-Testdateien bestanden; das Help-System umfasst 3'525 geprüfte Inhalte und 1'134 Seed-Einträge.
 - Der neue Vertragstest deckt alle soft-gelöschten Tabellen mit fachlicher Eindeutigkeit ab.
 - Gelöschte Datensätze blockieren keine Neuanlage; aktive Dubletten bleiben verhindert.
+- Fremdschlüssel erhalten vor dem Austausch eines bisher stützenden Unique-Indexes einen eigenen Index.
 - Bewerbungsspeicherung und Textvorbereitung besitzen getrennte, handlungsorientierte Meldungen
   mit korrelierbarer Fehlerreferenz.
 

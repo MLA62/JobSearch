@@ -1,14 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.1.7 ist zur Bereitstellung vorbereitet; 2.1.6 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-07. Version 2.1.8 ist zur Bereitstellung vorbereitet; 2.1.6 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
-## Soft-delete-sichere Neuanlage 2.1.7
+## Soft-delete-sichere Neuanlage 2.1.8
 
 Die natürliche Eindeutigkeit der Tabellen `users`, `company_relationships`, `job_platforms`,
 `jobs` und `applications` enthält einen generierten Aktivmarker. Er ist bei aktiven Datensätzen
 `1` und bei gelöschten Datensätzen `NULL`. Damit schützt der eindeutige Index weiterhin aktive
 Dubletten, während beliebig viele historische gelöschte Datensätze eine Neuanlage nicht blockieren.
-Die Laufzeitmigration wird durch ein Datenbank-Advisory-Lock serialisiert.
+Die Laufzeitmigration wird durch ein Datenbank-Advisory-Lock serialisiert. Bevor ein bisher auch
+für einen Fremdschlüssel benötigter Unique-Index ersetzt wird, legt sie einen eigenständigen
+Stützindex an. So bleibt die referenzielle Integrität während der Migration erhalten.
 
 Die Bewerbungserstellung verwendet zusätzlich `INSERT ... ON DUPLICATE KEY` mit
 `LAST_INSERT_ID`, sodass parallele Klicks auf dieselbe aktive Stelle denselben Datensatz öffnen.

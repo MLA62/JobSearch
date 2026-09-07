@@ -328,6 +328,8 @@ CREATE TABLE company_relationships (
     deleted_at DATETIME NULL,
     active_unique TINYINT GENERATED ALWAYS AS (CASE WHEN deleted_at IS NULL THEN 1 ELSE NULL END) STORED,
     UNIQUE KEY uq_company_relationship (owner_user_id, intermediary_company_id, client_company_id, relationship_type, active_unique),
+    KEY idx_company_relationship_owner (owner_user_id),
+    KEY idx_company_relationship_intermediary (intermediary_company_id),
     KEY idx_company_relationship_client (client_company_id),
     CONSTRAINT fk_company_relationship_owner FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_company_relationship_intermediary FOREIGN KEY (intermediary_company_id) REFERENCES companies(id),

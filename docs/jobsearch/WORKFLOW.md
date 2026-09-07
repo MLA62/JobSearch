@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.7.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.1.8.
 
 ## KI-Arbeitsanzeige und Kennzeichnung
 

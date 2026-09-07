@@ -39,7 +39,8 @@ $checks = [
     'generated active marker' => 'CASE WHEN `deleted_at` IS NULL THEN 1 ELSE NULL END',
     'migration lock' => "GET_LOCK('jema_soft_delete_unique_v1', 10)",
     'atomic active duplicate handling' => 'ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)',
-    'no deleted application reactivation' => "UPDATE applications SET deleted_at=NULL",
+    'no deleted record reactivation' => "deleted_at=NULL",
+    'foreign-key support before unique-index replacement' => 'hasSupportingIndex',
     'storage error reference' => "applications.prepare_storage_failed",
     'text preparation error reference' => "applications.prepare_texts_failed",
     'application still opens after text failure' => "redirectAiFetch('/?page=applications&edit=' . \$applicationId . '#application-form')",
@@ -47,8 +48,8 @@ $checks = [
 
 foreach ($checks as $label => $needle) {
     $present = str_contains($php, $needle);
-    if ($label === 'no deleted application reactivation') {
-        if ($present) throw new RuntimeException('Deleted applications must never be reactivated');
+    if ($label === 'no deleted record reactivation') {
+        if ($present) throw new RuntimeException('Deleted records must never be reactivated');
     } elseif (!$present) {
         throw new RuntimeException('Missing ' . $label);
     }

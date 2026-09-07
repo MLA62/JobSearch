@@ -1258,6 +1258,22 @@ function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, a
         return;
     }
     if ($rows) {
+        $allIndexes = dbAll($db, "SHOW INDEX FROM `{$escapedTable}`");
+        $firstColumn = (string)($columns[0] ?? '');
+        $hasSupportingIndex = false;
+        foreach ($allIndexes as $indexRow) {
+            if ((string)$indexRow['Key_name'] !== $index
+                && (int)$indexRow['Seq_in_index'] === 1
+                && (string)$indexRow['Column_name'] === $firstColumn) {
+                $hasSupportingIndex = true;
+                break;
+            }
+        }
+        if (!$hasSupportingIndex && $firstColumn !== '') {
+            $supportName = substr('idx_sd_' . preg_replace('/[^a-z0-9_]+/i', '_', $table . '_' . $firstColumn), 0, 64);
+            $escapedFirstColumn = str_replace('`', '``', $firstColumn);
+            $db->query("ALTER TABLE `{$escapedTable}` ADD KEY `{$supportName}` (`{$escapedFirstColumn}`)");
+        }
         $db->query("ALTER TABLE `{$escapedTable}` DROP INDEX `" . str_replace('`', '``', $index) . '`');
     }
     $columnSql = implode(',', array_map(static fn(string $column): string => '`' . str_replace('`', '``', $column) . '`', $wanted));
@@ -12072,7 +12088,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $uid=userId();
         if ($intermediaryCompanyId > 0) {
-            $relationship = $db->prepare("INSERT INTO company_relationships (owner_user_id, intermediary_company_id, client_company_id, relationship_type) VALUES (?, ?, ?, 'recruitment_agency') ON DUPLICATE KEY UPDATE deleted_at=NULL, updated_at=NOW()");
+            $relationship = $db->prepare("INSERT INTO company_relationships (owner_user_id, intermediary_company_id, client_company_id, relationship_type) VALUES (?, ?, ?, 'recruitment_agency') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), updated_at=NOW()");
             $clientCompanyId=(int)$application['company_id'];
             $relationship->bind_param('iii', $uid, $intermediaryCompanyId, $clientCompanyId);
             $relationship->execute();
@@ -12479,7 +12495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$jobCompany || !$intermediary || $intermediaryCompanyId === (int)$jobCompany['company_id']) {
                 $intermediaryCompanyId = 0;
             } else {
-                $relationship = $db->prepare("INSERT INTO company_relationships (owner_user_id, intermediary_company_id, client_company_id, relationship_type) VALUES (?, ?, ?, 'recruitment_agency') ON DUPLICATE KEY UPDATE deleted_at=NULL, updated_at=NOW()");
+                $relationship = $db->prepare("INSERT INTO company_relationships (owner_user_id, intermediary_company_id, client_company_id, relationship_type) VALUES (?, ?, ?, 'recruitment_agency') ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), updated_at=NOW()");
                 $uid = userId(); $clientCompanyId = (int)$jobCompany['company_id'];
                 $relationship->bind_param('iii', $uid, $intermediaryCompanyId, $clientCompanyId);
                 $relationship->execute();
@@ -12733,7 +12749,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.1.7';
+$codeVersion = '2.1.8';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

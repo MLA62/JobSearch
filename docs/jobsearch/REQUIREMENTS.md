@@ -1,8 +1,8 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.7.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.1.8.
 
-Ergänzung 2.1.7: Gelöschte Datensätze bleiben gelöscht und dürfen eine fachlich gleiche
+Ergänzung 2.1.8: Gelöschte Datensätze bleiben gelöscht und dürfen eine fachlich gleiche
 Neuanlage in keiner Tabelle blockieren. Eindeutigkeitsregeln mit `deleted_at` gelten nur für
 aktive Datensätze. Dies betrifft Benutzer-E-Mail, Firmenbeziehungen, Jobportale, externe
 Stellenidentitäten und Bewerbungen pro Job. Gleichzeitige Neuanlagen derselben aktiven Bewerbung
