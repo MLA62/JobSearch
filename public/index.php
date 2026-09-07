@@ -1,12 +1,43 @@
 <?php
 declare(strict_types=1);
 
+$requestIsHttps = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+    || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
 session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
     'httponly' => true,
-    'secure' => !empty($_SERVER['HTTPS']),
+    'secure' => $requestIsHttps,
     'samesite' => 'Lax',
 ]);
 session_start();
+
+$sessionNow = time();
+$sessionStartedAt = (int) ($_SESSION['session_started_at'] ?? $sessionNow);
+$sessionLastActivityAt = (int) ($_SESSION['session_last_activity_at'] ?? $sessionNow);
+if (!empty($_SESSION['user_id']) && ($sessionNow - $sessionLastActivityAt > 1800 || $sessionNow - $sessionStartedAt > 43200)) {
+    session_unset();
+    session_regenerate_id(true);
+    $sessionStartedAt = $sessionNow;
+}
+$_SESSION['session_started_at'] = $sessionStartedAt;
+$_SESSION['session_last_activity_at'] = $sessionNow;
+
+header('Cache-Control: private, no-store, max-age=0, must-revalidate');
+header('Pragma: no-cache');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: no-referrer');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+header('Cross-Origin-Opener-Policy: same-origin');
+header('Cross-Origin-Resource-Policy: same-origin');
+header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:; connect-src 'self'; upgrade-insecure-requests");
+if ($requestIsHttps) {
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+}
 
 $configPath = __DIR__ . '/config.php';
 if (!is_file($configPath)) {
@@ -28,6 +59,21 @@ try {
 } catch (Throwable $exception) {
     http_response_code(503);
     exit('Database connection failed.');
+}
+
+try {
+    $db->query("CREATE TABLE IF NOT EXISTS auth_rate_limits (
+        bucket_key CHAR(64) PRIMARY KEY,
+        scope VARCHAR(32) NOT NULL,
+        failures SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        window_started_at DATETIME NOT NULL,
+        locked_until DATETIME NULL,
+        last_attempt_at DATETIME NOT NULL,
+        KEY idx_auth_rate_limits_cleanup (last_attempt_at),
+        KEY idx_auth_rate_limits_locked (locked_until)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+} catch (Throwable $exception) {
+    error_log('Authentication rate-limit schema unavailable: ' . $exception->getMessage());
 }
 
 try {
@@ -1358,6 +1404,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     seedJobPlatforms($db);
     ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
+    ensureColumn($db, 'users', 'session_version', '`session_version` INT UNSIGNED NOT NULL DEFAULT 0', 'locked_until');
     ensureColumn($db, 'users', 'facebook_url', '`facebook_url` VARCHAR(500) NULL', 'linkedin_url');
     ensureColumn($db, 'users', 'x_url', '`x_url` VARCHAR(500) NULL', 'facebook_url');
     ensureColumn($db, 'users', 'other_profile_url', '`other_profile_url` VARCHAR(500) NULL', 'x_url');
@@ -1542,6 +1589,7 @@ function sanitizeRichText(?string $value): string
         if ($tag === 'img') {
             $src = trim((string)$node->getAttribute('src'));
             if (!preg_match('#^https://#i', $src)) $node->parentNode?->removeChild($node);
+            else { $node->setAttribute('loading', 'lazy'); $node->setAttribute('referrerpolicy', 'no-referrer'); }
         }
     }
     $body = $document->getElementsByTagName('body')->item(0);
@@ -3887,6 +3935,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Não compartilhe senhas, links de recuperação ou códigos com o suporte.',
     'es-MX' => 'No compartas contraseñas, enlaces de recuperación ni códigos con soporte.',
   ),
+  'help.v2.security.tips.1' =>
+  array (
+    'de-CH' => 'Rücksetzlinks werden ausschließlich per E-Mail versendet und nie auf der Anforderungsseite angezeigt. Nach mehreren Fehlversuchen wird der Zugriff vorübergehend gesperrt.',
+    'fr-CH' => 'Les liens de réinitialisation sont envoyés uniquement par e-mail et ne sont jamais affichés sur la page de demande. Plusieurs échecs entraînent un blocage temporaire.',
+    'en-GB' => 'Reset links are sent by email only and are never displayed on the request page. Repeated failures cause a temporary lockout.',
+    'pt-BR' => 'Links de redefinição são enviados somente por e-mail e nunca aparecem na página de solicitação. Falhas repetidas causam bloqueio temporário.',
+    'es-MX' => 'Los enlaces de restablecimiento se envían solo por correo y nunca aparecen en la página de solicitud. Los fallos repetidos provocan un bloqueo temporal.',
+  ),
   'help.v2.security.title' =>
   array (
     'de-CH' => 'Anmeldung und Sicherheit',
@@ -4098,7 +4154,7 @@ function helpTopicDefinitions(): array
       0 => 'profile',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   3 =>
   array (
@@ -4603,6 +4659,63 @@ function requestHash(string $value): ?string
     return $value === '' ? null : hash('sha256', $value);
 }
 
+function authRateBuckets(string $scope, string $identity): array
+{
+    $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    return [
+        'identity' => hash('sha256', strtolower(trim($scope)) . "\0identity\0" . strtolower(trim($identity))),
+        'ip' => hash('sha256', strtolower(trim($scope)) . "\0ip\0" . $ip),
+    ];
+}
+
+function authRateAllowed(mysqli $db, string $scope, string $identity, int $windowSeconds): bool
+{
+    try {
+        foreach (authRateBuckets($scope, $identity) as $bucket) {
+            $row = dbOne($db, 'SELECT window_started_at, locked_until FROM auth_rate_limits WHERE bucket_key=? AND scope=? LIMIT 1', 'ss', [$bucket, $scope]);
+            if ($row && !empty($row['locked_until']) && strtotime((string)$row['locked_until']) > time()) return false;
+        }
+        return true;
+    } catch (Throwable $exception) {
+        error_log('Authentication rate-limit check failed: ' . $exception->getMessage());
+        return false;
+    }
+}
+
+function recordAuthAttempt(mysqli $db, string $scope, string $identity, int $limit, int $windowSeconds, int $lockSeconds): void
+{
+    $db->begin_transaction();
+    try {
+        foreach (authRateBuckets($scope, $identity) as $bucket) {
+            $row = dbOne($db, 'SELECT failures, window_started_at FROM auth_rate_limits WHERE bucket_key=? AND scope=? FOR UPDATE', 'ss', [$bucket, $scope]);
+            $windowExpired = !$row || strtotime((string)$row['window_started_at']) <= time() - $windowSeconds;
+            $failures = $windowExpired ? 1 : ((int)$row['failures'] + 1);
+            $windowStartedAt = $windowExpired ? date('Y-m-d H:i:s') : (string)$row['window_started_at'];
+            $lockedUntil = $failures >= $limit ? date('Y-m-d H:i:s', time() + $lockSeconds) : null;
+            $stmt = $db->prepare('INSERT INTO auth_rate_limits (bucket_key, scope, failures, window_started_at, locked_until, last_attempt_at) VALUES (?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE failures=VALUES(failures), window_started_at=VALUES(window_started_at), locked_until=VALUES(locked_until), last_attempt_at=NOW()');
+            $stmt->bind_param('ssiss', $bucket, $scope, $failures, $windowStartedAt, $lockedUntil);
+            $stmt->execute();
+        }
+        $db->commit();
+    } catch (Throwable $exception) {
+        $db->rollback();
+        error_log('Authentication rate-limit update failed: ' . $exception->getMessage());
+        throw $exception;
+    }
+}
+
+function clearAuthAttempts(mysqli $db, string $scope, string $identity): void
+{
+    try {
+        $bucket = authRateBuckets($scope, $identity)['identity'];
+        $stmt = $db->prepare('DELETE FROM auth_rate_limits WHERE bucket_key=? AND scope=?');
+        $stmt->bind_param('ss', $bucket, $scope);
+        $stmt->execute();
+    } catch (Throwable $exception) {
+        error_log('Authentication rate-limit cleanup failed: ' . $exception->getMessage());
+    }
+}
+
 function touchUserPresence(mysqli $db, int $userId): void
 {
     if ($userId <= 0) {
@@ -4685,9 +4798,9 @@ function outboundEmailEnabled(array $config): bool
 
 function secretKey(array $config): string
 {
-    $seed = (string) ($config['app_key'] ?? $config['app_secret'] ?? $config['db_password'] ?? '');
-    if ($seed === '') {
-        $seed = 'jema-jobs-local-prototype';
+    $seed = trim((string) ($config['app_key'] ?? ''));
+    if (strlen($seed) < 32 || str_contains(strtolower($seed), 'replace-with')) {
+        throw new RuntimeException('Ein eigener APP_KEY mit mindestens 32 Zeichen ist erforderlich.');
     }
     return hash('sha256', $seed, true);
 }
@@ -4719,13 +4832,13 @@ function encryptSecret(array $config, string $plain): ?string
         return null;
     }
     if (!function_exists('openssl_encrypt')) {
-        throw new RuntimeException('OpenSSL ist für SMTP-Passwörter nicht verfügbar.');
+        throw new RuntimeException('OpenSSL ist für die geschützte Ablage von Zugangsdaten nicht verfügbar.');
     }
     $iv = random_bytes(12);
     $tag = '';
     $cipher = openssl_encrypt($plain, 'aes-256-gcm', secretKey($config), OPENSSL_RAW_DATA, $iv, $tag);
     if ($cipher === false) {
-        throw new RuntimeException('SMTP-Passwort konnte nicht verschlüsselt werden.');
+        throw new RuntimeException('Die Zugangsdaten konnten nicht verschlüsselt werden.');
     }
     return 'v1:' . base64_encode($iv) . ':' . base64_encode($tag) . ':' . base64_encode($cipher);
 }
@@ -4876,8 +4989,8 @@ function buildMailMessage(array $config, string $to, string $subject, string $te
             if (!is_file($path)) {
                 continue;
             }
-            $filename = basename((string) ($attachment['filename'] ?? basename($path)));
-            $mime = (string) ($attachment['mime'] ?? 'application/octet-stream');
+            $filename = trim((string)preg_replace('/[\x00-\x1F\x7F"\\\\]+/u', '_', basename((string) ($attachment['filename'] ?? basename($path))))) ?: 'attachment';
+            $mime = preg_match('#^[a-z0-9.+-]+/[a-z0-9.+-]+$#i', (string)($attachment['mime'] ?? '')) ? (string)$attachment['mime'] : 'application/octet-stream';
             $message .= '--' . $boundary . "\r\n"
                 . 'Content-Type: ' . $mime . '; name="' . addslashes($filename) . '"' . "\r\n"
                 . "Content-Transfer-Encoding: base64\r\n"
@@ -4893,6 +5006,40 @@ function buildMailMessage(array $config, string $to, string $subject, string $te
     return implode("\r\n", $headers) . "\r\n\r\n" . $message;
 }
 
+function publicMailEndpoint(string $host, int $port, array $allowedPorts): array
+{
+    $host = trim($host, " \t\n\r\0\x0B[]");
+    if ($host === '' || !in_array($port, $allowedPorts, true)) {
+        throw new RuntimeException('Nicht erlaubter Mailserver oder Port.');
+    }
+    $addresses = [];
+    if (filter_var($host, FILTER_VALIDATE_IP)) {
+        $addresses[] = $host;
+    } else {
+        foreach (@dns_get_record($host, DNS_A | DNS_AAAA) ?: [] as $record) {
+            $ip = (string)($record['ip'] ?? ($record['ipv6'] ?? ''));
+            if ($ip !== '') $addresses[] = $ip;
+        }
+    }
+    $addresses = array_values(array_unique($addresses));
+    if (!$addresses) throw new RuntimeException('Der Mailserver konnte nicht aufgelöst werden.');
+    foreach ($addresses as $ip) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            throw new RuntimeException('Private oder reservierte Mailserver-Adressen sind nicht erlaubt.');
+        }
+    }
+    usort($addresses, static fn(string $left, string $right): int => (int)str_contains($left, ':') <=> (int)str_contains($right, ':'));
+    $ip = str_contains($addresses[0], ':') ? '[' . $addresses[0] . ']' : $addresses[0];
+    $context = stream_context_create(['ssl' => [
+        'verify_peer' => true,
+        'verify_peer_name' => true,
+        'peer_name' => $host,
+        'SNI_enabled' => true,
+        'disable_compression' => true,
+    ]]);
+    return [$ip, $context];
+}
+
 function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): string
 {
     $host = trim((string) ($config['smtp_host'] ?? ''));
@@ -4902,9 +5049,11 @@ function sendSmtpMail(array $config, string $to, string $subject, string $textBo
     }
 
     $encryption = strtolower(trim((string) ($config['smtp_encryption'] ?? 'tls')));
+    if (!in_array($encryption, ['tls', 'ssl'], true)) throw new RuntimeException('SMTP muss TLS verwenden.');
     $port = (int) ($config['smtp_port'] ?? ($encryption === 'ssl' ? 465 : 587));
-    $target = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
-    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT);
+    [$ip, $context] = publicMailEndpoint($host, $port, [465, 587]);
+    $target = ($encryption === 'ssl' ? 'ssl://' : 'tcp://') . $ip . ':' . $port;
+    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT, $context);
     if (!is_resource($stream)) {
         throw new RuntimeException('SMTP-Verbindung fehlgeschlagen: ' . $errstr);
     }
@@ -5027,14 +5176,16 @@ function saveSentCopyViaImap(array $config, string $message): void
 {
     $host = trim((string) ($config['imap_host'] ?? '')) ?: trim((string) ($config['smtp_host'] ?? ''));
     $encryption = strtolower(trim((string) ($config['imap_encryption'] ?? 'ssl')));
+    if (!in_array($encryption, ['tls', 'ssl'], true)) throw new RuntimeException('IMAP muss TLS verwenden.');
     $port = (int) ($config['imap_port'] ?? ($encryption === 'ssl' ? 993 : 143));
     $username = trim((string) ($config['smtp_username'] ?? ''));
     $password = (string) ($config['smtp_password'] ?? '');
     if ($host === '' || $username === '' || $password === '') {
         throw new RuntimeException('IMAP: Server oder Zugangsdaten fehlen.');
     }
-    $target = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
-    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT);
+    [$ip, $context] = publicMailEndpoint($host, $port, [143, 993]);
+    $target = ($encryption === 'ssl' ? 'ssl://' : 'tcp://') . $ip . ':' . $port;
+    $stream = @stream_socket_client($target, $errno, $errstr, 20, STREAM_CLIENT_CONNECT, $context);
     if (!is_resource($stream)) {
         throw new RuntimeException('IMAP: Verbindung fehlgeschlagen: ' . $errstr);
     }
@@ -5233,6 +5384,48 @@ function activeTotpMethod(mysqli $db, int $userId): ?array
     return dbOne($db, "SELECT * FROM two_factor_methods WHERE user_id=? AND method='totp' AND verified_at IS NOT NULL ORDER BY is_primary DESC, id DESC LIMIT 1", 'i', [$userId]);
 }
 
+function totpSecretValue(array $config, string $stored): string
+{
+    if (!str_starts_with($stored, 'v1:')) return '';
+    return decryptSecret($config, $stored);
+}
+
+function migratePlainTotpSecrets(mysqli $db, array $config): void
+{
+    $rows = dbAll($db, "SELECT id, secret_encrypted FROM two_factor_methods WHERE method='totp' AND secret_encrypted IS NOT NULL AND secret_encrypted<>'' AND secret_encrypted NOT LIKE 'v1:%'");
+    foreach ($rows as $row) {
+        $encrypted = encryptSecret($config, (string)$row['secret_encrypted']);
+        $id = (int)$row['id'];
+        $stmt = $db->prepare("UPDATE two_factor_methods SET secret_encrypted=? WHERE id=? AND secret_encrypted NOT LIKE 'v1:%'");
+        $stmt->bind_param('si', $encrypted, $id);
+        $stmt->execute();
+    }
+}
+
+function applySecurityDataMigration230(mysqli $db, array $config): void
+{
+    $key = 'security_hardening_2_3_0';
+    if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$key])) return;
+    $lock = dbOne($db, "SELECT GET_LOCK('jema-security-2-3-0', 10) acquired");
+    if ((int)($lock['acquired'] ?? 0) !== 1) throw new RuntimeException('Security migration lock unavailable.');
+    try {
+        $db->begin_transaction();
+        if (!dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$key])) {
+            migratePlainTotpSecrets($db, $config);
+            $db->query("UPDATE auth_tokens SET consumed_at=NOW() WHERE token_type='password_reset' AND consumed_at IS NULL");
+            $stmt = $db->prepare('INSERT INTO app_migrations (migration_key) VALUES (?)');
+            $stmt->bind_param('s', $key);
+            $stmt->execute();
+        }
+        $db->commit();
+    } catch (Throwable $exception) {
+        $db->rollback();
+        throw $exception;
+    } finally {
+        $db->query("SELECT RELEASE_LOCK('jema-security-2-3-0')");
+    }
+}
+
 function shareToken(): string
 {
     return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
@@ -5310,7 +5503,7 @@ function cleanupPreview(mysqli $db, int $userId, string $cutoffDate): array
 function csvResponse(string $filename, array $headers, array $rows): never
 {
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    header('Content-Disposition: ' . downloadDisposition($filename));
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
     fputcsv($out, $headers, ';');
@@ -5463,7 +5656,7 @@ function pdfResponse(string $filename, string $title, array $headers, array $row
 {
     $pdf=pdfTableBytes($title,$headers,$rows);
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="'.addslashes($filename).'"');
+    header('Content-Disposition: ' . downloadDisposition($filename));
     header('Content-Length: '.strlen($pdf));
     echo $pdf;
     exit;
@@ -5574,7 +5767,7 @@ function pdfTextResponse(string $filename, string $title, array $sections): neve
     }
     $pdf .= "trailer\n<< /Size " . (max(array_keys($objects)) + 1) . " /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF";
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    header('Content-Disposition: ' . downloadDisposition($filename));
     header('Content-Length: ' . strlen($pdf));
     echo $pdf;
     exit;
@@ -6385,7 +6578,7 @@ function calendarIcsResponse(string $filename, array $events, array $user = []):
 {
     $ics=calendarIcsText($events,$user);
     header('Content-Type: text/calendar; charset=utf-8');
-    header('Content-Disposition: attachment; filename="'.addslashes($filename).'"');
+    header('Content-Disposition: ' . downloadDisposition($filename));
     header('Content-Length: '.strlen($ics));
     echo $ics;
     exit;
@@ -7069,22 +7262,33 @@ function uploadDocumentFile(array $file, int $userId): array
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         throw new RuntimeException(tr('documents.error_upload_failed'));
     }
-    if ((int) $file['size'] > 25 * 1024 * 1024) {
+    if ((int) $file['size'] < 1 || (int) $file['size'] > 25 * 1024 * 1024) {
         throw new RuntimeException(tr('documents.error_too_large'));
     }
     $original = basename((string) $file['name']);
+    $original = trim((string)preg_replace('/[\x00-\x1F\x7F"\\\\]+/u', '_', $original));
+    if ($original === '') $original = 'document';
     $extension = strtolower(pathinfo($original, PATHINFO_EXTENSION));
-    $allowed = ['pdf','doc','docx','jpg','jpeg','png','txt'];
-    if (!in_array($extension, $allowed, true)) {
+    $allowed = [
+        'pdf' => ['application/pdf'],
+        'doc' => ['application/msword','application/CDFV2','application/x-ole-storage','application/octet-stream'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/zip','application/octet-stream'],
+        'jpg' => ['image/jpeg'], 'jpeg' => ['image/jpeg'], 'png' => ['image/png'], 'txt' => ['text/plain'],
+    ];
+    if (!isset($allowed[$extension])) {
         throw new RuntimeException(tr('documents.error_type_not_allowed'));
     }
+    $temporaryPath = (string)($file['tmp_name'] ?? '');
+    if ($temporaryPath === '' || !is_uploaded_file($temporaryPath)) throw new RuntimeException(tr('documents.error_upload_failed'));
+    $detectedMime = function_exists('mime_content_type') ? (mime_content_type($temporaryPath) ?: 'application/octet-stream') : 'application/octet-stream';
+    if (!in_array($detectedMime, $allowed[$extension], true)) throw new RuntimeException(tr('documents.error_type_not_allowed'));
     $dir = ensureDocumentStorage($userId);
     $name = bin2hex(random_bytes(18)) . '.' . $extension;
     $target = $dir . '/' . $name;
     if (!move_uploaded_file((string) $file['tmp_name'], $target)) {
         throw new RuntimeException(tr('documents.error_save_failed'));
     }
-    $mime = function_exists('mime_content_type') ? (mime_content_type($target) ?: 'application/octet-stream') : 'application/octet-stream';
+    $mime = $detectedMime;
     return [
         'original' => $original,
         'path' => 'storage/documents/' . $userId . '/' . $name,
@@ -7092,6 +7296,15 @@ function uploadDocumentFile(array $file, int $userId): array
         'size' => filesize($target) ?: (int) $file['size'],
         'sha256' => hash_file('sha256', $target),
     ];
+}
+
+function downloadDisposition(string $filename, string $mode = 'attachment'): string
+{
+    $mode = $mode === 'inline' ? 'inline' : 'attachment';
+    $clean = trim((string)preg_replace('/[\x00-\x1F\x7F"\\\\]+/u', '_', basename($filename)));
+    if ($clean === '') $clean = 'download';
+    $ascii = preg_replace('/[^A-Za-z0-9._-]+/', '_', $clean) ?: 'download';
+    return $mode . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($clean);
 }
 
 function dbOne(mysqli $db, string $sql, string $types = '', array $values = []): ?array
@@ -7141,47 +7354,28 @@ function statementRows(mysqli_stmt $stmt, ?int $limit = null): array
 
 function queryRowsWithoutMysqlnd(mysqli $db, string $sql, string $types = '', array $values = [], ?int $limit = null): array
 {
-    $query = interpolateSql($db, $sql, $types, $values);
-    $result = $db->query($query);
-    if (!($result instanceof mysqli_result)) {
-        return [];
+    $stmt = $db->prepare($sql);
+    if ($types !== '') $stmt->bind_param($types, ...$values);
+    $stmt->execute();
+    $metadata = $stmt->result_metadata();
+    if (!$metadata) return [];
+    $row = [];
+    $bindings = [];
+    foreach ($metadata->fetch_fields() as $field) {
+        $row[$field->name] = null;
+        $bindings[] =& $row[$field->name];
     }
+    $stmt->bind_result(...$bindings);
     $rows = [];
-    while ($row = $result->fetch_assoc()) {
-        $rows[] = $row;
+    while ($stmt->fetch()) {
+        $rows[] = array_map(static fn($value) => $value, $row);
         if ($limit !== null && count($rows) >= $limit) {
             break;
         }
     }
-    $result->free();
+    $metadata->free();
+    $stmt->close();
     return $rows;
-}
-
-function interpolateSql(mysqli $db, string $sql, string $types, array $values): string
-{
-    if ($types === '') {
-        return $sql;
-    }
-    $offset = 0;
-    foreach ($values as $index => $value) {
-        $pos = strpos($sql, '?', $offset);
-        if ($pos === false) {
-            break;
-        }
-        $type = $types[$index] ?? 's';
-        if ($value === null) {
-            $replacement = 'NULL';
-        } elseif ($type === 'i') {
-            $replacement = (string) (int) $value;
-        } elseif ($type === 'd') {
-            $replacement = (string) (float) $value;
-        } else {
-            $replacement = "'" . $db->real_escape_string((string) $value) . "'";
-        }
-        $sql = substr($sql, 0, $pos) . $replacement . substr($sql, $pos + 1);
-        $offset = $pos + strlen($replacement);
-    }
-    return $sql;
 }
 
 function applicationDocumentAttachmentState(mysqli $db, int $userId, int $applicationId): array
@@ -9411,7 +9605,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.1.0','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.3.0','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -10333,10 +10527,19 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
 }
 
 try { seedReviewedHelp($db); } catch (Throwable $error) { error_log('Help content update failed: '.$error->getMessage()); }
+try { applySecurityDataMigration230($db, $config); }
+catch (Throwable $error) { error_log('Security migration 2.3.0 failed: ' . $error->getMessage()); }
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 if ($page === 'pendents') { redirect('/?page=calendar&view=agenda'); }
 $action = (string) ($_POST['action'] ?? '');
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id=? AND deleted_at IS NULL', 'i', [userId()]) : null;
+if ($currentUser && (int)($_SESSION['session_version'] ?? -1) !== (int)($currentUser['session_version'] ?? 0)) {
+    endUserPresenceSession($db, userId());
+    session_unset();
+    session_regenerate_id(true);
+    $currentUser = null;
+    $page = 'login';
+}
 if ($currentUser) {
     $requestTimezone = (string)($currentUser['timezone'] ?? 'Europe/Zurich');
     if (!in_array($requestTimezone, DateTimeZone::listIdentifiers(), true)) { $requestTimezone = 'Europe/Zurich'; }
@@ -10390,6 +10593,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $last = trim((string) $_POST['last_name']);
         $password = (string) $_POST['password'];
         $preferredLanguage = normalizeLocale((string) ($_POST['preferred_language'] ?? currentLocale(null)));
+        $registrationEnabled = !array_key_exists('registration_enabled', $config) || !empty($config['registration_enabled']);
+        $maximumUsers = max(1, (int)($config['max_users'] ?? 10));
+        $userCount = (int)(dbOne($db, 'SELECT COUNT(*) c FROM users WHERE deleted_at IS NULL')['c'] ?? 0);
+        if (!$registrationEnabled || $userCount >= $maximumUsers || !authRateAllowed($db, 'register', 'registration', 3600)) {
+            flash(tr('flash.auth.register_invalid'), 'danger');
+            redirect('/?page=register');
+        }
+        recordAuthAttempt($db, 'register', 'registration', 5, 3600, 3600);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 10 || $first === '' || $last === '') {
             flash(tr('flash.auth.register_invalid'), 'danger');
             redirect('/?page=register');
@@ -10439,8 +10650,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = strtolower(trim((string) $_POST['email']));
         $password = (string) $_POST['password'];
+        if (!authRateAllowed($db, 'login', $email, 900)) {
+            usleep(250000);
+            flash(tr('flash.auth.login_failed'), 'danger');
+            redirect('/?page=login');
+        }
         $user = dbOne($db, 'SELECT * FROM users WHERE email = ? AND deleted_at IS NULL', 's', [$email]);
-        if (!$user || !password_verify($password, $user['password_hash'])) {
+        $passwordValid = $user
+            ? password_verify($password, (string)$user['password_hash'])
+            : password_verify($password, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+        $accountLocked = $user && !empty($user['locked_until']) && strtotime((string)$user['locked_until']) > time();
+        if (!$user || !$passwordValid || $accountLocked) {
+            recordAuthAttempt($db, 'login', $email, 5, 900, 900);
+            if ($user) {
+                $failed = min(65535, (int)$user['failed_login_count'] + 1);
+                $lockedUntil = $failed >= 5 ? date('Y-m-d H:i:s', time() + 900) : null;
+                $stmt = $db->prepare('UPDATE users SET failed_login_count=?, locked_until=? WHERE id=?');
+                $userIdForFailure = (int)$user['id'];
+                $stmt->bind_param('isi', $failed, $lockedUntil, $userIdForFailure);
+                $stmt->execute();
+            }
             flash(tr('flash.auth.login_failed'), 'danger');
             redirect('/?page=login');
         }
@@ -10452,6 +10681,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash(tr('flash.auth.email_unverified'), 'warning');
             redirect('/?page=login');
         }
+        clearAuthAttempts($db, 'login', $email);
+        $stmt = $db->prepare('UPDATE users SET failed_login_count=0, locked_until=NULL WHERE id=?');
+        $userIdForSuccess = (int)$user['id'];
+        $stmt->bind_param('i', $userIdForSuccess);
+        $stmt->execute();
         $loginLocale = !empty($_SESSION['locale'])
             ? normalizeLocale((string) $_SESSION['locale'])
             : normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
@@ -10474,6 +10708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+        $_SESSION['session_version'] = (int)($user['session_version'] ?? 0);
         $db->query('UPDATE users SET last_login_at = NOW(), last_seen_at = NOW() WHERE id = ' . (int) $user['id']);
         touchUserPresence($db, (int) $user['id']);
         audit($db, (int) $user['id'], 'login', 'user', (int) $user['id'], null, null);
@@ -10482,17 +10717,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'verify_two_factor') {
         $pendingUserId = (int) ($_SESSION['pending_2fa_user_id'] ?? 0);
+        $totpIdentity = (string)$pendingUserId;
+        if ($pendingUserId < 1 || !authRateAllowed($db, 'totp', $totpIdentity, 300)) {
+            usleep(250000);
+            flash(tr('auth.totp_invalid'), 'danger');
+            redirect('/?page=two_factor');
+        }
         $user = $pendingUserId ? dbOne($db, 'SELECT * FROM users WHERE id=? AND deleted_at IS NULL', 'i', [$pendingUserId]) : null;
         $totp = $user ? activeTotpMethod($db, $pendingUserId) : null;
-        if (!$user || !$totp || !verifyTotpCode((string) $totp['secret_encrypted'], (string) ($_POST['totp_code'] ?? ''))) {
+        $totpSecret = $totp ? totpSecretValue($config, (string)$totp['secret_encrypted']) : '';
+        if (!$user || !$totp || $totpSecret === '' || !verifyTotpCode($totpSecret, (string) ($_POST['totp_code'] ?? ''))) {
+            recordAuthAttempt($db, 'totp', $totpIdentity, 5, 300, 900);
             clearAuthenticatedSession();
             flash(tr('auth.totp_invalid'), 'danger');
             redirect('/?page=two_factor');
         }
+        clearAuthAttempts($db, 'totp', $totpIdentity);
         unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
         session_regenerate_id(true);
         $_SESSION['user_id'] = $pendingUserId;
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+        $_SESSION['session_version'] = (int)($user['session_version'] ?? 0);
         $loginLocale = !empty($_SESSION['locale'])
             ? normalizeLocale((string) $_SESSION['locale'])
             : normalizeLocale((string) ($user['preferred_language'] ?? 'de-CH'));
@@ -10515,12 +10760,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'request_password_reset') {
         $email = strtolower(trim((string) $_POST['email']));
+        if (!authRateAllowed($db, 'password_reset', $email, 3600)) {
+            flash(tr('flash.auth.reset_prepared'), 'success');
+            redirect('/?page=forgot_password&sent=1');
+        }
+        recordAuthAttempt($db, 'password_reset', $email, 3, 3600, 3600);
         $user = filter_var($email, FILTER_VALIDATE_EMAIL)
             ? dbOne($db, "SELECT id, status FROM users WHERE email=? AND deleted_at IS NULL AND status NOT IN ('locked','disabled')", 's', [$email])
             : null;
         unset($_SESSION['password_reset_link']);
         unset($_SESSION['password_reset_notice']);
-        if ($user) {
+        if ($user && outboundEmailEnabled($config)) {
             $token = bin2hex(random_bytes(32));
             $tokenHash = hash('sha256', $token);
             $tokenType = 'password_reset';
@@ -10535,21 +10785,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resetLink = (appUrl($config) ?: '') . $resetPath;
             $subject = 'Passwort fur JeMa Jobs zurucksetzen';
             $body = "Hallo\n\nfur dein JeMa Jobs Konto wurde ein Passwort-Reset angefordert.\n\nBitte offne diesen Link innerhalb von 60 Minuten:\n" . $resetLink . "\n\nWenn du den Reset nicht angefordert hast, kannst du diese Nachricht ignorieren.\n";
-            if (mailEnabledForUser($db, $config, (int) $user['id'])) {
-                try {
-                    sendConfiguredMail($db, $config, (int) $user['id'], $email, $subject, $body);
-                    $_SESSION['password_reset_notice'] = tr('flash.auth.reset_mail_sent');
-                } catch (Throwable $exception) {
-                    $_SESSION['password_reset_notice'] = tr('flash.auth.reset_mail_failed');
-                }
-            } else {
-                $_SESSION['password_reset_link'] = $resetLink;
-                $_SESSION['password_reset_notice'] = tr('flash.auth.reset_link_created');
+            try {
+                sendSmtpMail($config, $email, $subject, $body);
+            } catch (Throwable $exception) {
+                $consume = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE id=?');
+                $tokenId = (int)$stmt->insert_id;
+                $consume->bind_param('i', $tokenId);
+                $consume->execute();
+                error_log('Password reset delivery failed for user #' . (int)$user['id']);
             }
             audit($db, (int) $user['id'], 'other', 'auth_token', (int) $stmt->insert_id, null, ['token_type' => 'password_reset']);
-        } else {
-            $_SESSION['password_reset_notice'] = tr('flash.auth.reset_no_account');
         }
+        $_SESSION['password_reset_notice'] = tr('flash.auth.reset_prepared');
         flash(tr('flash.auth.reset_prepared'), 'success');
         redirect('/?page=forgot_password&sent=1');
     }
@@ -10582,7 +10829,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=forgot_password');
         }
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL WHERE id=?');
+        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL, session_version=session_version+1 WHERE id=?');
         $stmt->bind_param('si', $hash, $reset['user_id']);
         $stmt->execute();
         $stmt = $db->prepare('UPDATE auth_tokens SET consumed_at=NOW() WHERE id=?');
@@ -10597,6 +10844,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'logout') {
         endUserPresenceSession($db, realUserId());
         session_destroy();
+        setcookie(session_name(), '', ['expires'=>time()-3600,'path'=>'/','secure'=>$requestIsHttps,'httponly'=>true,'samesite'=>'Lax']);
         redirect('/?page=login');
     }
 
@@ -10778,7 +11026,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=admin_users');
         }
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL WHERE id=?');
+        $stmt = $db->prepare('UPDATE users SET password_hash=?, failed_login_count=0, locked_until=NULL, session_version=session_version+1 WHERE id=?');
         $stmt->bind_param('si', $hash, $targetUserId);
         $stmt->execute();
         $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='password_reset' AND consumed_at IS NULL");
@@ -10842,6 +11090,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("UPDATE auth_tokens SET consumed_at=NOW() WHERE user_id=? AND token_type='two_factor' AND consumed_at IS NULL");
         $stmt->bind_param('i', $targetUserId);
         $stmt->execute();
+        $stmt = $db->prepare('UPDATE users SET session_version=session_version+1 WHERE id=?');
+        $stmt->bind_param('i', $targetUserId);
+        $stmt->execute();
         audit($db, realUserId(), 'delete', 'user', $targetUserId, ['two_factor_reset' => true], ['target_email' => $target['email']]);
         flash(tr('flash.admin.two_factor_reset'));
         redirect('/?page=admin_users');
@@ -10859,9 +11110,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('i', $uid);
         $stmt->execute();
         $label = 'Authenticator-App';
+        $encryptedSecret = encryptSecret($config, $secret);
         $stmt = $db->prepare("INSERT INTO two_factor_methods (user_id, method, label, secret_encrypted, is_primary, verified_at) VALUES (?, 'totp', ?, ?, 1, NOW())");
-        $stmt->bind_param('iss', $uid, $label, $secret);
+        $stmt->bind_param('iss', $uid, $label, $encryptedSecret);
         $stmt->execute();
+        $db->query('UPDATE users SET session_version=session_version+1 WHERE id=' . $uid);
+        $_SESSION['session_version'] = (int)(dbOne($db, 'SELECT session_version FROM users WHERE id=?', 'i', [$uid])['session_version'] ?? 0);
         unset($_SESSION['totp_setup_secret']);
         audit($db, $uid, 'create', 'user', $uid, null, ['two_factor' => 'totp']);
         flash(tr('profile.totp_enabled'));
@@ -10873,6 +11127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("DELETE FROM two_factor_methods WHERE user_id=? AND method='totp'");
         $stmt->bind_param('i', $uid);
         $stmt->execute();
+        $db->query('UPDATE users SET session_version=session_version+1 WHERE id=' . $uid);
+        $_SESSION['session_version'] = (int)(dbOne($db, 'SELECT session_version FROM users WHERE id=?', 'i', [$uid])['session_version'] ?? 0);
         unset($_SESSION['totp_setup_secret']);
         audit($db, $uid, 'delete', 'user', $uid, ['two_factor' => 'totp'], null);
         flash(tr('profile.totp_disabled'));
@@ -11741,7 +11997,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $host = trim((string) ($_POST['smtp_host'] ?? ''));
         $port = (int) ($_POST['smtp_port'] ?? 587);
-        $encryption = in_array((string) ($_POST['smtp_encryption'] ?? 'tls'), ['tls', 'ssl', 'none'], true) ? (string) $_POST['smtp_encryption'] : 'tls';
+        $encryption = in_array((string) ($_POST['smtp_encryption'] ?? 'tls'), ['tls', 'ssl'], true) ? (string) $_POST['smtp_encryption'] : 'tls';
         $username = trim((string) ($_POST['smtp_username'] ?? '')) ?: null;
         $password = (string) ($_POST['smtp_password'] ?? '');
         $fromEmail = trim((string) ($_POST['from_email'] ?? ''));
@@ -11750,11 +12006,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $saveSentCopy = !empty($_POST['save_sent_copy']) ? 1 : 0;
         $imapHost = trim((string) ($_POST['imap_host'] ?? '')) ?: null;
         $imapPort = (int) ($_POST['imap_port'] ?? 993);
-        $imapEncryption = in_array((string) ($_POST['imap_encryption'] ?? 'ssl'), ['tls', 'ssl', 'none'], true) ? (string) $_POST['imap_encryption'] : 'ssl';
+        $imapEncryption = in_array((string) ($_POST['imap_encryption'] ?? 'ssl'), ['tls', 'ssl'], true) ? (string) $_POST['imap_encryption'] : 'ssl';
         $imapSentFolder = trim((string) ($_POST['imap_sent_folder'] ?? '')) ?: null;
         $isActive = !empty($_POST['is_active']) ? 1 : 0;
-        if ($host === '' || $port < 1 || $port > 65535 || $imapPort < 1 || $imapPort > 65535 || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        if ($host === '' || !in_array($port, [465, 587], true) || !in_array($imapPort, [143, 993], true) || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
             flash(tr('flash.smtp.required'), 'danger');
+            redirect('/?page=profile#smtp');
+        }
+        try {
+            publicMailEndpoint($host, $port, [465, 587]);
+            if ($saveSentCopy || $imapHost !== null) publicMailEndpoint($imapHost ?: $host, $imapPort, [143, 993]);
+        } catch (Throwable $exception) {
+            flash($exception->getMessage(), 'danger');
             redirect('/?page=profile#smtp');
         }
         $existing = dbOne($db, 'SELECT smtp_password_encrypted FROM user_smtp_settings WHERE user_id=? LIMIT 1', 'i', [$uid]);
@@ -13004,7 +13267,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.2.4';
+$codeVersion = '2.3.0';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -13085,7 +13348,8 @@ if ($page === 'document_download') {
     }
     header('Content-Type: ' . $document['mime_type']);
     header('Content-Length: ' . (string) $document['file_size']);
-    header('Content-Disposition: inline; filename="' . addslashes($document['original_filename']) . '"');
+    header('Content-Security-Policy: sandbox');
+    header('Content-Disposition: ' . downloadDisposition((string)$document['original_filename']));
     readfile($path);
     exit;
 }
@@ -13109,7 +13373,7 @@ if ($page === 'application_dossier') {
     $dossierActivities = dossierActivityRows($dossier);
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script><style>.rich-text-view{overflow-wrap:anywhere}.rich-text-view img{max-width:100%;height:auto}.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-view td,.rich-text-view th{border:1px solid #aeb7c2;padding:6px}.rich-text-view hr{border:0;border-top:1px solid #aeb7c2;margin:1em 0}</style></head>
+    <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('dossier.title')) ?></title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="/assets/layout.css?v=<?= e($appVersion) ?>"><script defer src="/assets/layout.js?v=<?= e($appVersion) ?>"></script><style>.rich-text-view{overflow-wrap:anywhere}.rich-text-view img{max-width:100%;height:auto}.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-view td,.rich-text-view th{border:1px solid #aeb7c2;padding:6px}.rich-text-view hr{border:0;border-top:1px solid #aeb7c2;margin:1em 0}</style></head>
     <body><main class="container dossier-page">
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('dossier.title')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['job_title']) ?></p></div><span><?= e(displayDateTime((string)$dossier['generated_at'], $currentUser)) ?></span></div>
         <div class="actions export-actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#application-form"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_dossier&id=<?= (int)$applicationId ?>&format=pdf"><?= e(tr('dossier.create_pdf')) ?></a></div>
@@ -13160,7 +13424,7 @@ if ($page === 'application_documents_zip') {
     $filename = 'Bewerbungsunterlagen-' . preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $application['company_name'] . '-' . (string) $application['title']) . '.zip';
     header('Content-Type: application/zip');
     header('Content-Length: ' . (string) filesize($tmp));
-    header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+    header('Content-Disposition: ' . downloadDisposition($filename));
     readfile($tmp);
     @unlink($tmp);
     exit;
@@ -13180,7 +13444,7 @@ if ($page === 'application_documents_temp') {
     }
     startUiTranslationBuffer($appLocale);
     ?><!doctype html>
-        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script></head>
+        <html lang="<?= e(localeHtmlLang($appLocale)) ?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title><?= e(tr('application_docs.temp_folder')) ?></title><link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="/assets/layout.css?v=<?= e($appVersion) ?>"><script defer src="/assets/layout.js?v=<?= e($appVersion) ?>"></script></head>
     <body><main class="container"><section class="panel"><p class="eyebrow"><?= e(tr('application_docs.temp_folder')) ?></p><h1><?= e((string)$application['company_name']) ?></h1><p><?= e((string)$application['title']) ?></p><p class="meta-line"><?= e(tr('application_docs.temp_folder_hint')) ?></p><div class="log-timeline application-documents"><?php foreach($package['items'] as $item): ?><article draggable="true" data-download-url="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><div><strong><a href="/?page=application_temp_file&token=<?= e($package['token']) ?>&file=<?= rawurlencode((string)$item['name']) ?>"><?= e((string)$item['name']) ?></a></strong><span><?= number_format(((int)$item['size']) / 1024, 1) ?> KB</span></div></article><?php endforeach; ?></div><div class="actions"><a class="button" href="/?page=applications&edit=<?= (int)$applicationId ?>#documents"><?= e(tr('dossier.back_to_application')) ?></a><a class="button primary" href="/?page=application_documents_zip&id=<?= (int)$applicationId ?>"><?= e(tr('application_docs.download_zip')) ?></a></div></section></main><script>(()=>{document.querySelectorAll('[draggable="true"]').forEach((card)=>{card.addEventListener('dragstart',(event)=>{const url=new URL(card.dataset.downloadUrl||'',location.origin).href; const title=card.querySelector('strong')?.innerText||url; event.dataTransfer?.setData('text/uri-list',url); event.dataTransfer?.setData('text/plain',title+'\\n'+url);});});})();</script></body></html><?php
     exit;
 }
@@ -13209,7 +13473,7 @@ if ($page === 'application_temp_file') {
     }
     header('Content-Type: ' . $mime);
     header('Content-Length: ' . (string) filesize($path));
-    header('Content-Disposition: attachment; filename="' . addslashes($file) . '"');
+    header('Content-Disposition: ' . downloadDisposition($file));
     readfile($path);
     exit;
 }
@@ -13243,7 +13507,7 @@ if ($page === 'guest_download') {
     audit($db, (int) $share['owner_user_id'], 'read', 'guest_document', (int) $document['id'], null, ['share_id' => (int) $share['id']]);
     header('Content-Type: ' . $document['mime_type']);
     header('Content-Length: ' . (string) $document['file_size']);
-    header('Content-Disposition: attachment; filename="' . addslashes($document['original_filename']) . '"');
+    header('Content-Disposition: ' . downloadDisposition((string)$document['original_filename']));
     readfile($path);
     exit;
 }
@@ -13427,7 +13691,7 @@ startUiTranslationBuffer($appLocale);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($config['app_name']) ?></title>
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@e729866c75285d61b2ac5f908a63a631a9c8b686/public/assets/layout.css"><script defer src="https://cdn.jsdelivr.net/gh/MLA62/JobSearch@a7ab08cd447c48223a4b586ae2fa92d133fd5ca6/public/assets/layout.js"></script>
+<link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="/assets/layout.css?v=<?= e($appVersion) ?>"><script defer src="/assets/layout.js?v=<?= e($appVersion) ?>"></script>
 <style>
 .rich-text-shell{display:grid;gap:0;border:1.5px solid var(--line);border-bottom-color:var(--line-strong);border-radius:6px;background:var(--field);overflow:hidden}.rich-text-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);background:var(--surface-subtle)}.rich-text-toolbar button{min-width:36px;padding:5px 8px}.rich-text-editor{min-height:140px;max-height:520px;overflow:auto;padding:12px;background:#fff;color:var(--text);font:inherit;font-weight:400;line-height:1.5}.rich-text-editor:focus{outline:3px solid var(--accent-ring);outline-offset:-3px}.rich-text-editor img,.rich-text-view img{max-width:100%;height:auto}.rich-text-editor table,.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-editor td,.rich-text-editor th,.rich-text-view td,.rich-text-view th{border:1px solid var(--line);padding:6px;vertical-align:top}.rich-text-editor hr,.rich-text-view hr{border:0;border-top:1px solid var(--line);margin:1em 0}.rich-text-source{position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;opacity:0!important;pointer-events:none!important}.rich-text-shell.is-source .rich-text-source{position:static!important;width:100%!important;height:180px!important;opacity:1!important;pointer-events:auto!important}.rich-text-shell.is-source .rich-text-editor{display:none}.rich-text-view{overflow-wrap:anywhere;white-space:normal}.rich-text-view p:first-child{margin-top:0}.rich-text-view p:last-child{margin-bottom:0}
 .filter-note{align-items:center;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px}.filter-note a{display:inline;white-space:normal}
@@ -13517,9 +13781,7 @@ startUiTranslationBuffer($appLocale);
     <section class="auth-card">
         <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
         <p class="eyebrow"><?= e(tr('auth.account')) ?></p><h1><?= e(tr('auth.forgot_title')) ?></h1>
-        <?php if(!empty($_SESSION['password_reset_link'])): ?>
-            <div class="alert warning"><strong>Testphase:</strong> E-Mail-Versand ist deaktiviert. Nutze diesen Link einmalig: <a href="<?= e($_SESSION['password_reset_link']) ?>">Passwort zurücksetzen</a><input value="<?= e($_SESSION['password_reset_link']) ?>" readonly onclick="this.select()"></div>
-        <?php elseif(!empty($_SESSION['password_reset_notice'])): ?>
+        <?php if(!empty($_SESSION['password_reset_notice'])): ?>
             <div class="alert warning"><?= e($_SESSION['password_reset_notice']) ?></div>
         <?php endif; ?>
         <form method="post" class="stack">
@@ -14177,7 +14439,7 @@ startUiTranslationBuffer($appLocale);
                 <div class="three">
                     <label><?= e(tr('profile.smtp_host')) ?><input name="smtp_host" value="<?= e($smtpSettings['smtp_host'] ?? '') ?>" placeholder="smtp.example.com" required></label>
                     <label><?= e(tr('profile.smtp_port')) ?><input type="number" min="1" max="65535" name="smtp_port" value="<?= e((string)($smtpSettings['smtp_port'] ?? 587)) ?>" required></label>
-                    <label><?= e(tr('profile.smtp_encryption')) ?><select name="smtp_encryption"><?php foreach(['tls'=>'STARTTLS','ssl'=>'SSL/TLS','none'=>tr('profile.smtp_encryption_none')] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['smtp_encryption'] ?? 'tls')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+                    <label><?= e(tr('profile.smtp_encryption')) ?><select name="smtp_encryption"><?php foreach(['tls'=>'STARTTLS','ssl'=>'SSL/TLS'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['smtp_encryption'] ?? 'tls')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
                 </div>
                 <div class="two">
                     <label><?= e(tr('profile.smtp_username')) ?><input name="smtp_username" value="<?= e($smtpSettings['smtp_username'] ?? '') ?>" autocomplete="username"></label>
@@ -14195,7 +14457,7 @@ startUiTranslationBuffer($appLocale);
                     <div class="three">
                         <label><?= e(tr('profile.imap_host')) ?><input name="imap_host" value="<?= e($smtpSettings['imap_host'] ?? '') ?>"></label>
                         <label><?= e(tr('profile.imap_port')) ?><input type="number" min="1" max="65535" name="imap_port" value="<?= e((string)($smtpSettings['imap_port'] ?? 993)) ?>"></label>
-                        <label><?= e(tr('profile.imap_encryption')) ?><select name="imap_encryption"><?php foreach(['ssl'=>'SSL/TLS','tls'=>'STARTTLS','none'=>tr('profile.smtp_encryption_none')] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['imap_encryption'] ?? 'ssl')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+                        <label><?= e(tr('profile.imap_encryption')) ?><select name="imap_encryption"><?php foreach(['ssl'=>'SSL/TLS','tls'=>'STARTTLS'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= ($smtpSettings['imap_encryption'] ?? 'ssl')===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
                     </div>
                     <label><?= e(tr('profile.imap_sent_folder')) ?><input name="imap_sent_folder" value="<?= e($smtpSettings['imap_sent_folder'] ?? '') ?>"><small><?= e(tr('profile.imap_auto_hint')) ?></small></label>
                 </details>
@@ -15326,7 +15588,10 @@ startUiTranslationBuffer($appLocale);
                 if (!/^(https?:\/\/|mailto:)/i.test(href)) node.removeAttribute('href');
                 else { node.target = '_blank'; node.rel = 'noopener noreferrer'; }
             }
-            if (node.tagName === 'IMG' && !/^https:\/\//i.test(node.getAttribute('src') || '')) node.remove();
+            if (node.tagName === 'IMG') {
+                if (!/^https:\/\//i.test(node.getAttribute('src') || '')) node.remove();
+                else { node.loading = 'lazy'; node.referrerPolicy = 'no-referrer'; }
+            }
         });
         return documentValue.body.innerHTML;
     };

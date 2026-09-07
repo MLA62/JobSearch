@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.4.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.3.0.
 
 ## Manueller Schnellimport
 

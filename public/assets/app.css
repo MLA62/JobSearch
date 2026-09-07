@@ -442,7 +442,7 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
     margin: 0;
 }
 .container > .context-help-bar {
-    display: none;
+    display: flex;
 }
 .context-help-host {
     position: relative;

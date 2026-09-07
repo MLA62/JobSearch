@@ -3,8 +3,10 @@
 return [
     'app_name' => 'JeMa Jobs',
     'app_url' => 'https://jobs.jema.business',
-    'app_version' => '2.2.4',
+    'app_version' => '2.3.0',
     'app_key' => 'replace-with-64-random-hex-characters',
+    'registration_enabled' => true,
+    'max_users' => 10,
     // Nur serverseitig hinterlegen; niemals in Git, Browser-Code oder Logs ausgeben.
     'openai_api_key' => '',
     'openai_model' => 'gpt-5.6-luna',

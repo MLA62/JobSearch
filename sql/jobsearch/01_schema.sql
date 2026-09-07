@@ -47,6 +47,7 @@ CREATE TABLE users (
     email_verified_at DATETIME NULL,
     failed_login_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
     locked_until DATETIME NULL,
+    session_version INT UNSIGNED NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
@@ -204,6 +205,17 @@ CREATE TABLE auth_tokens (
     UNIQUE KEY uq_auth_token_hash (token_hash),
     KEY idx_auth_tokens_user_type (user_id, token_type, expires_at),
     CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE auth_rate_limits (
+    bucket_key CHAR(64) PRIMARY KEY,
+    scope VARCHAR(32) NOT NULL,
+    failures SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    window_started_at DATETIME NOT NULL,
+    locked_until DATETIME NULL,
+    last_attempt_at DATETIME NOT NULL,
+    KEY idx_auth_rate_limits_cleanup (last_attempt_at),
+    KEY idx_auth_rate_limits_locked (locked_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE user_preferences (

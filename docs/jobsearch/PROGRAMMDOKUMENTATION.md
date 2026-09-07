@@ -1,6 +1,25 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.4 ist geprüft und produktiv bestätigt.
+Stand: 2026-09-07. Version 2.3.0 ist lokal geprüft; die Produktionsbestätigung erfolgt nach TOTP-Freigabe.
+
+## Security Hardening 2.3.0
+
+Der Passwort-Reset besitzt keinen Browser-Fallback mehr. Tokens entstehen nur bei verfügbarem
+Betreiber-Mailkanal; unabhängig von Adresse und Versandresultat sieht der Anfordernde dieselbe
+Antwort. Eine einmalige Datenmigration entwertet ältere offene Reset-Tokens und verschlüsselt
+bestehende TOTP-Secrets mit AES-256-GCM. Ein verpflichtender separater `app_key` verhindert den
+früheren Rückfall auf Datenbankpasswort oder Prototyp-Schlüssel.
+
+`auth_rate_limits` begrenzt Login, TOTP, Passwort-Reset und Registrierung gleichzeitig nach
+Identität und Quell-IP. `users.session_version` entwertet Sitzungen nach Passwort- oder
+Zwei-Faktor-Änderungen. Sessions verwenden Strict Mode, reine Cookies sowie 30 Minuten
+Inaktivitäts- und zwölf Stunden Maximallaufzeit.
+
+Mailverbindungen lösen ausschließlich öffentliche IP-Adressen auf, verbinden auf das geprüfte
+Ziel und erlauben SMTP 465/587 sowie IMAP 143/993 nur mit TLS. Dokumentuploads prüfen Dateigröße,
+Endung, tatsächlichen Uploadstatus und MIME-Typ. Dateiausgaben verwenden normalisierte Namen und
+werden als Download mit `nosniff` ausgeliefert. CSP, HSTS, Frame-Sperre, Referrer- und
+Permissions-Policy sind zentral gesetzt; Laufzeit-Assets werden lokal ausgeliefert.
 
 ## Verbindlicher Formulartransport für HTML-Inhalte 2.2.4
 

@@ -1,6 +1,16 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.4.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.0.
+
+Ergänzung 2.3.0: Passwort-Rücksetzlinks werden ausschließlich über die zentrale, serverseitige
+Betreiber-Mailkonfiguration versendet und niemals im anfordernden Browser angezeigt. Anmeldung,
+TOTP, Reset und Registrierung sind pro Identität und IP zeitlich begrenzt. TOTP-Secrets und
+Mailpasswörter werden mit einem verpflichtenden separaten App-Schlüssel verschlüsselt. Änderungen
+an Passwort oder Zwei-Faktor-Konfiguration entwerten bestehende Sitzungen. SMTP und IMAP erlauben
+nur öffentliche Ziele, festgelegte Ports und TLS. Uploads müssen Endungs- und MIME-Allow-List
+erfüllen; Downloads verwenden sichere Dateinamen, `nosniff` und eine Sandbox. Browser-Schutzheader
+und lokale Assets reduzieren XSS-, Clickjacking- und Lieferkettenrisiken. Maximal zehn aktive
+Benutzer können registriert werden; der Betreiber kann die Registrierung ganz abschalten.
 
 Ergänzung 2.2.4: Der Editor muss HTML-Quelltext beim Wechsel auf WYSIWYG unmittelbar sichtbar
 übernehmen. Jede native oder programmatische Formularübermittlung muss den aktuell aktiven

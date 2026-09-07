@@ -1,6 +1,6 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-07. Verifizierte Produktionsdatei: 2.2.4 / Quell-Commit `f7c0b040fb74eaf4fd373ab33bea60214e6fdad5` / SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc`.
+Stand: 2026-09-07. Zielrelease 2.3.0 ist lokal vorbereitet. Der verifizierte Produktionsstand bleibt bis zur externen TOTP-Freigabe 2.2.4 / Quell-Commit `f7c0b040fb74eaf4fd373ab33bea60214e6fdad5` / SHA-256 `a4522dccd8777c81a564a5180359306ca28b9e268311deeb6d9d1420e4a256bc`.
 Ausgefuehrt am 2026-09-04T19:57:18+00:00, 1026470 Bytes, Modus 0644.
 SHA-256: `5883707a5c7e1ebaca28b50f18a8c2fe2f58601fd865ee1bce88a0aef8771de6`.
 Öffentliche Loginseite liefert HTTP 200, zeigt Version 2.1.0 und keinen sichtbaren PHP-Laufzeitfehler.
@@ -17,9 +17,8 @@ Niemals `config.php`, private Dateien, Datenbankinhalte oder Secrets aus dem Ent
 - Webadresse: https://jobs.jema.business/
 - PHP-Einstieg: `public_html/jobs.jema.business/index.php`
 - Private Konfiguration und `storage/` bleiben auf dem Ziel unveraendert.
-- App-CSS und Layout-JavaScript sind auf Commit `a7ab08cd447c48223a4b586ae2fa92d133fd5ca6` gepinnt.
-- Layout-CSS ist auf `e729866c75285d61b2ac5f908a63a631a9c8b686` gepinnt.
-- Asset-URLs und Versionen vor jedem Release im tatsaechlichen PHP pruefen. Lokale Assetaenderung allein aendert keine gepinnte Produktionsdatei.
+- App-CSS und Layout-JavaScript werden ab 2.3.0 lokal aus `/assets/` geladen; externe CDN-Laufzeitabhängigkeiten entfallen.
+- Vor 2.3.0 verwendete CDN-Pins bleiben nur als historische Nachweise in älteren Release-Dokumenten erhalten.
 - docs/, tests/, SQL und Entwicklerwerkzeuge gehoeren nicht in den oeffentlichen Webroot.
 
 Baseline vor dieser Runde: SHA-256

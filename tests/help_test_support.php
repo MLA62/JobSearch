@@ -13,7 +13,7 @@ function helpLoadFunction(string $name): void
     eval($match[0]);
 }
 
-foreach (['multilingualUiEnabled','normalizeLocale','browserLocale','currentLocale','tr','dbUiText','repairMojibake','e','helpTranslationSeeds','helpTopicDefinitions','localizedHelpTopics','localizedContextHelpTopics'] as $name) {
+foreach (['multilingualUiEnabled','normalizeLocale','browserLocale','currentLocale','tr','dbUiText','repairMojibake','e','helpTranslationSeeds','helpTopicDefinitions','localizedHelpTopics','localizedContextHelpTopics','richTextFieldNames'] as $name) {
     helpLoadFunction($name);
 }
 

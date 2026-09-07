@@ -3,6 +3,13 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.3.0: `security_hardening_test.php` prüft, dass Reset-Links nicht im Browser landen,
+alle Authentifizierungswege begrenzt sind, TOTP verschlüsselt gespeichert wird, ein separater
+App-Schlüssel erforderlich ist, Mailziele und Ports eingeschränkt sind, unverschlüsselte
+Mailverbindungen fehlen, Schutzheader gesetzt sind, Assets lokal ausgeliefert werden, Uploads
+MIME-geprüft sind und der frühere SQL-Interpolationsfallback entfernt ist. Die Gesamtsuite umfasst
+32 PHP-Testdateien.
+
 Ergänzung 2.2.4: `rich_text_chronology_test.php` prüft getrennte Commit-Funktionen für HTML und
 WYSIWYG, die sichtbare Übernahme beim Moduswechsel, die verbindliche Aktualisierung jedes
 `formdata`-Payloads sowie die zusätzliche Synchronisierung vor dem Bewerbungs-Autosave.

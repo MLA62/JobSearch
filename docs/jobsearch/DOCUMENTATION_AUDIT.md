@@ -1,6 +1,14 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.4 ist dokumentiert, geprüft und produktiv bereitgestellt.
+Stand: 2026-09-07. Version 2.3.0 ist dokumentiert und lokal geprüft; die produktive Bereitstellung wartet auf TOTP-Freigabe.
+
+## Pruefstand 2.3.0
+
+- Der kritische Passwort-Reset-Fallback wurde entfernt; offene Alttokens werden migriert und entwertet.
+- Authentifizierungsbegrenzung, verschlüsselte TOTP-Secrets, Sitzungsentwertung, sichere Mailziele, MIME-Prüfung und Browser-Schutzheader sind implementiert.
+- Externe Laufzeit-Assets wurden durch lokale Dateien ersetzt; der SQL-Fallback interpoliert keine Werte mehr.
+- PHP-Syntax, 32 automatisierte PHP-Testdateien, 3'650 Hilfeinhalte und die generierten Hilfereferenzen sind vor dem Deployment geprüft.
+- Produktionshash, HTTP-Header und Fehlerlog werden nach externer TOTP-Freigabe ergänzt.
 
 ## Pruefstand 2.2.4
 

@@ -1,5 +1,5 @@
 {
-  "version": "2.2.4",
+  "version": "2.3.0",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -181,7 +181,8 @@
             "Nutze bei vergessenem Passwort den Rücksetzablauf; prüfe bei ungültigen Codes die automatische Gerätezeit."
           ],
           "tips": [
-            "Teile Passwörter, Wiederherstellungslinks und Authenticator-Codes nicht mit Supportpersonen."
+            "Teile Passwörter, Wiederherstellungslinks und Authenticator-Codes nicht mit Supportpersonen.",
+            "Rücksetzlinks werden ausschließlich per E-Mail versendet und nie auf der Anforderungsseite angezeigt. Nach mehreren Fehlversuchen wird der Zugriff vorübergehend gesperrt."
           ]
         },
         "fr-CH": {
@@ -193,7 +194,8 @@
             "Utilise la réinitialisation en cas d’oubli; si un code est refusé, vérifie l’heure automatique de l’appareil."
           ],
           "tips": [
-            "Ne communique ni mots de passe, ni liens de récupération, ni codes d’authentification au support."
+            "Ne communique ni mots de passe, ni liens de récupération, ni codes d’authentification au support.",
+            "Les liens de réinitialisation sont envoyés uniquement par e-mail et ne sont jamais affichés sur la page de demande. Plusieurs échecs entraînent un blocage temporaire."
           ]
         },
         "en-GB": {
@@ -205,7 +207,8 @@
             "Use password recovery if needed; check automatic device time when a code is rejected."
           ],
           "tips": [
-            "Do not share passwords, recovery links or authenticator codes with support staff."
+            "Do not share passwords, recovery links or authenticator codes with support staff.",
+            "Reset links are sent by email only and are never displayed on the request page. Repeated failures cause a temporary lockout."
           ]
         },
         "pt-BR": {
@@ -217,7 +220,8 @@
             "Use a recuperação de senha quando necessário; confira a hora automática do dispositivo se o código for recusado."
           ],
           "tips": [
-            "Não compartilhe senhas, links de recuperação ou códigos com o suporte."
+            "Não compartilhe senhas, links de recuperação ou códigos com o suporte.",
+            "Links de redefinição são enviados somente por e-mail e nunca aparecem na página de solicitação. Falhas repetidas causam bloqueio temporário."
           ]
         },
         "es-MX": {
@@ -229,7 +233,8 @@
             "Usa la recuperación de contraseña si hace falta; revisa la hora automática del dispositivo cuando se rechace un código."
           ],
           "tips": [
-            "No compartas contraseñas, enlaces de recuperación ni códigos con soporte."
+            "No compartas contraseñas, enlaces de recuperación ni códigos con soporte.",
+            "Los enlaces de restablecimiento se envían solo por correo y nunca aparecen en la página de solicitud. Los fallos repetidos provocan un bloqueo temporal."
           ]
         }
       }
