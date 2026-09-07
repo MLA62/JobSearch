@@ -1,12 +1,14 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.3 ist dokumentiert und wird vor der Bereitstellung vollständig geprüft; 2.2.2 ist produktiv bestätigt.
+Stand: 2026-09-07. Version 2.2.3 ist dokumentiert, geprüft und produktiv bereitgestellt.
 
 ## Pruefstand 2.2.3
 
 - Änderungen in der HTML-Ansicht werden beim Wechsel zu WYSIWYG, beim Speichern und vor KI-Aktionen als verbindlicher Feldinhalt übernommen.
 - Die Bereinigung wird nicht mehr bei jedem Tastendruck auf möglicherweise unvollständiges HTML angewendet.
 - Der Vertragstest deckt Modusquelle, Übernahme in WYSIWYG und den entfernten verlustanfälligen Live-Abgleich ab.
+- PHP-Syntax, alle 31 automatisierten PHP-Testdateien, 3'639 Hilfeinhalte, 1'204 Hilfe-Seeds und die generierten Referenzen wurden erfolgreich geprüft.
+- Nach externer TOTP-Freigabe sind lokale und produktive Datei mit SHA-256 `c23ee604d4948ca4ce1df92e0895a8d5ece75f53484dd5eb063eb2f161fa482e` bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.2.3; seit dem Deployment entstand kein neuer PHP-Fehlereintrag.
 
 ## Pruefstand 2.2.2
 

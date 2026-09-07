@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.3 ist als Deployment-Kandidat in Bearbeitung; 2.2.2 ist der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.3 ist geprüft und produktiv bestätigt.
 
 ## Verlässlicher Wechsel zwischen HTML und WYSIWYG 2.2.3
 
