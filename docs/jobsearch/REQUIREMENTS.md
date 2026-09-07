@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.2.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.3.
+
+Ergänzung 2.2.3: Änderungen in der HTML-Ansicht eines Mehrzeilenfelds werden beim Umschalten auf
+WYSIWYG sichtbar übernommen. Solange die HTML-Ansicht aktiv ist, ist ihr Inhalt auch beim
+Speichern, Autosave oder KI-Aufruf die verbindliche Quelle. Die Bereinigung erfolgt einmal beim
+Synchronisieren und nicht bei jedem Tastendruck, damit unvollständige Eingaben nicht verloren gehen.
 
 Ergänzung 2.2.2: Beim Klick auf `Texte mit KI erstellen/anpassen` müssen zuerst die sichtbaren
 Rich-Text-Inhalte in die Formularfelder übernommen und ausstehende Autosaves angehalten werden.

@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.2.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.3.
 
 ## Manueller Schnellimport
 
@@ -12,7 +12,7 @@ Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.2.
 ## Formatierte Langtexte und Verlauf
 
 - Mehrzeilige fachliche Texte besitzen einen HTML-Mini-Editor für Absätze, Fett, Kursiv, Links, Aufzählungen, nummerierte Listen, Ein-/Ausrücken, Format löschen, externe HTTPS-Bilder, Tabellen und Trennlinien.
-- Die HTML-Ansicht erlaubt gezielte Quelltextkorrekturen; beim Speichern entfernt die App nicht erlaubte Elemente, Attribute und URL-Protokolle.
+- Die HTML-Ansicht erlaubt gezielte Quelltextkorrekturen. Beim Zurückschalten auf WYSIWYG, Speichern oder KI-Aufruf übernimmt die App diese Änderungen und entfernt dabei nicht erlaubte Elemente, Attribute und URL-Protokolle. Während des Tippens wird unvollständiges HTML nicht vorzeitig normalisiert.
 - E-Mails und Dossiers behalten die sichere Formatierung. Karten, Tabellen, PDF-/Textausgaben und KI-Kontexte erhalten daraus lesbaren Klartext mit Absätzen.
 - Aktivitäten, Statushistorien, Kontakt-Logs und Audit-Auszüge laufen chronologisch von oben nach unten.
 

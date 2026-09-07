@@ -1,5 +1,5 @@
 {
-  "version": "2.2.2",
+  "version": "2.2.3",
   "reviewed": "2026-09-04",
   "locales": [
     "de-CH",
@@ -678,7 +678,7 @@
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
             "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
           "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
-          "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor, einschließlich Listen, Ein-/Ausrücken und Format löschen. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
+          "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor, einschließlich Listen, Ein-/Ausrücken und Format löschen. Änderungen in der HTML-Ansicht werden beim Zurückschalten auf WYSIWYG, Speichern oder KI-Aufruf übernommen. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
           "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch."
           ]
         },
@@ -695,7 +695,7 @@
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
             "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
           "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
-          "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé via le mini-éditeur, y compris les listes, les retraits et l’effacement de la mise en forme. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
+          "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé via le mini-éditeur, y compris les listes, les retraits et l’effacement de la mise en forme. Les modifications faites dans la vue HTML sont reprises lors du retour au mode WYSIWYG, de l’enregistrement ou d’un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
           "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée."
           ]
         },
@@ -712,7 +712,7 @@
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
             "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open.",
           "The Sent at field accepts the stored timestamp, including seconds.",
-          "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting through the mini editor, including lists, indentation and clear formatting. Cards and tables show plain text; the dossier shows the formatting.",
+          "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting through the mini editor, including lists, indentation and clear formatting. Changes made in HTML view are applied when switching back to WYSIWYG, saving or starting an AI action. Cards and tables show plain text; the dossier shows the formatting.",
           "Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response."
           ]
         },
@@ -729,7 +729,7 @@
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
             "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
           "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
-          "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro por meio do minieditor, incluindo listas, recuo e remoção de formatação. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
+          "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro por meio do minieditor, incluindo listas, recuo e remoção de formatação. Alterações feitas na visualização HTML são aplicadas ao voltar ao WYSIWYG, salvar ou iniciar uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
           "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada."
           ]
         },
@@ -746,7 +746,7 @@
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
             "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
           "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
-          "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro mediante el minieditor, incluidas listas, sangrías y borrado de formato. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
+          "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro mediante el minieditor, incluidas listas, sangrías y borrado de formato. Los cambios hechos en la vista HTML se aplican al volver a WYSIWYG, guardar o iniciar una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
           "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios."
           ]
         }

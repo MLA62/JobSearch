@@ -1,6 +1,12 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.2 ist dokumentiert, geprüft und produktiv bereitgestellt.
+Stand: 2026-09-07. Version 2.2.3 ist dokumentiert und wird vor der Bereitstellung vollständig geprüft; 2.2.2 ist produktiv bestätigt.
+
+## Pruefstand 2.2.3
+
+- Änderungen in der HTML-Ansicht werden beim Wechsel zu WYSIWYG, beim Speichern und vor KI-Aktionen als verbindlicher Feldinhalt übernommen.
+- Die Bereinigung wird nicht mehr bei jedem Tastendruck auf möglicherweise unvollständiges HTML angewendet.
+- Der Vertragstest deckt Modusquelle, Übernahme in WYSIWYG und den entfernten verlustanfälligen Live-Abgleich ab.
 
 ## Pruefstand 2.2.2
 

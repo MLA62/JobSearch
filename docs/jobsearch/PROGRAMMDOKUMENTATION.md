@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.2 ist als Deployment-Kandidat geprüft; 2.2.1 ist der zuvor bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.3 ist als Deployment-Kandidat in Bearbeitung; 2.2.2 ist der bestätigte Live-Stand.
+
+## Verlässlicher Wechsel zwischen HTML und WYSIWYG 2.2.3
+
+Der Editor entscheidet beim Synchronisieren anhand des aktuell sichtbaren Bearbeitungsmodus über
+die verbindliche Quelle. In der HTML-Ansicht ist der eingegebene Quelltext maßgebend: Er wird erst
+beim Zurückschalten, Speichern oder KI-Aufruf einmal bereinigt, in den WYSIWYG-Bereich übernommen
+und als Feldwert weitergegeben. Unvollständiges HTML wird während des Tippens nicht fortlaufend
+normalisiert. Dadurch können Zwischenstände weder verlorengehen noch vom vorherigen visuellen
+Editorinhalt überschrieben werden.
 
 ## Zuverlässige KI-Instruktionsübergabe 2.2.2
 
