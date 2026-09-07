@@ -3,6 +3,11 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.2.2: `application_ai_texts_test.php`, `ai_progress_quota_test.php` und
+`rich_text_chronology_test.php` prüfen gemeinsam die Synchronisierung sichtbarer Editorinhalte,
+das Stoppen des Autosaves, die native Formularnavigation und den verbindlichen Auftrag, eine
+ausgefüllte Instruktion in beiden Langtexten umzusetzen.
+
 Ergänzung 2.2.1: `job_drilldown_test.php` prüft getrennt, dass die automatische Suche bei
 unbekannter Verfügbarkeit weiterhin ablehnt, während dieselbe lesbare, manuell eingegebene URL
 mit dokumentiertem Override importiert wird. Der Schnellimport muss diesen Modus für einzelne und

@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.1 ist der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.2 ist als Deployment-Kandidat geprüft; 2.2.1 ist der zuvor bestätigte Live-Stand.
+
+## Zuverlässige KI-Instruktionsübergabe 2.2.2
+
+Vor der KI-Aktion synchronisiert der Browser die tatsächlich sichtbaren Inhalte der Rich-Text-Editoren
+explizit in die zugehörigen Formularfelder. Gleichzeitig werden ausstehende Autosaves angehalten.
+Die Überarbeitung wird anschließend als normale Formularnavigation übermittelt; damit gehen weder
+Instruktion noch aktuelle Begleit-E-Mail oder aktuelles Motivationsschreiben durch einen vorzeitig
+erzeugten Hintergrund-Request verloren. Das Modell erhält die Benutzerinstruktion als vorrangigen
+Bearbeitungsauftrag für beide Langtexte. Unveränderte Rückgaben werden weiterhin nicht als Erfolg
+gespeichert.
 
 ## Priorität manueller Inserat-Adressen 2.2.1
 

@@ -1,6 +1,13 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.1 ist dokumentiert und der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.2 ist dokumentiert und als Deployment-Kandidat geprüft; 2.2.1 ist der zuvor bestätigte Live-Stand.
+
+## Pruefstand 2.2.2
+
+- Sichtbare Rich-Text-Inhalte werden vor der KI-Aktion ausdrücklich in die Formularfelder synchronisiert.
+- Ausstehende Autosaves werden vor der KI-Übermittlung gestoppt; die Aktion nutzt die robuste native Formularnavigation.
+- Die Modellinstruktion verlangt die erkennbare Umsetzung in Begleit-E-Mail und Motivationsschreiben; unveränderte Rückgaben bleiben ein Fehler.
+- PHP-Syntax, alle automatisierten PHP-Testdateien, Hilfe- und Referenzgeneratoren werden vor der TOTP-Freigabe geprüft.
 
 ## Pruefstand 2.2.1
 

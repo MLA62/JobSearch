@@ -1,6 +1,6 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.1.
+Stand: 07.09.2026. Aktuelles Verhalten für Release 2.2.2.
 
 ## Manueller Schnellimport
 
@@ -32,7 +32,7 @@ Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel
 - Scheitert nur die Textvorbereitung, bleibt die Bewerbung angelegt und wird zur manuellen Bearbeitung geöffnet. Speicher- und Textfehler werden getrennt mit Fehlerreferenz gemeldet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
-- Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Bleibt sie leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.
+- Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Vor dem Aufruf synchronisiert der Browser die sichtbaren Mini-Editoren und stoppt ausstehende Autosaves; die Aktion wird als normale Formularnavigation gesendet. Bleibt die Instruktion leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.
 - Die KI-Aktion selbst ändert weder Versandstatus noch Versandzeit und versendet keine Nachricht.
 - Bei einem API-Ausfall werden bearbeitbare Grundentwürfe eingesetzt; fehlende Fakten werden nicht erfunden.
 

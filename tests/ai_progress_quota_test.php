@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.2.1' => "\$codeVersion = '2.2.1'",
+    'version 2.2.2' => "\$codeVersion = '2.2.2'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
@@ -22,6 +22,9 @@ $checks = [
     'start application destination' => "redirectAiFetch('/?page=applications&edit='",
     'native application submission' => "HTMLFormElement.prototype.submit.call(form)",
     'native action field' => "actionInput.dataset.aiNativeAction = '1'",
+    'native AI text revision' => "action === 'start_application' || action === 'revise_application_texts_ai'",
+    'rich editor values synchronized first' => "source.dispatchEvent(new Event('jema:richtext-sync'))",
+    'autosave paused for AI submission' => "form.dispatchEvent(new Event('jema:manual-submit'))",
     'native abort' => 'window.stop()',
     'footer disclosure' => "tr('footer.ai_notice'",
     'manufacturer' => "'manufacturer'=>'OpenAI'",

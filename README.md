@@ -1,8 +1,7 @@
 # JeMa Jobs
 
-Stand: 07.09.2026. Version 2.2.1 priorisiert bewusst manuell eingegebene Inserat-Adressen beim Schnellimport und ist produktiv bereitgestellt.
-Bestätigter Live-Stand: [Release 2.2.1](docs/jobsearch/RELEASE-2.2.1.md).
-Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
+Stand: 07.09.2026. Version 2.2.2 synchronisiert die sichtbaren Rich-Text-Editoren vor der KI-Überarbeitung und übermittelt die Aktion zuverlässig als normale Formularnavigation.
+Release-Kandidat: [Release 2.2.2](docs/jobsearch/RELEASE-2.2.2.md). Bestätigter Live-Stand vor diesem Deployment: [Release 2.2.1](docs/jobsearch/RELEASE-2.2.1.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.1.
+Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.2.2.
+
+Ergänzung 2.2.2: Beim Klick auf `Texte mit KI erstellen/anpassen` müssen zuerst die sichtbaren
+Rich-Text-Inhalte in die Formularfelder übernommen und ausstehende Autosaves angehalten werden.
+Instruktion, aktueller Begleittext und aktuelles Motivationsschreiben werden gemeinsam als normale
+Formularnavigation übermittelt. Eine ausgefüllte Instruktion ist in Begleit-E-Mail und
+Motivationsschreiben sichtbar umzusetzen; unveränderte Langtexte dürfen nicht als Erfolg gelten.
 
 Ergänzung 2.2.1: Eine manuell im Schnellimport eingegebene Inserat-Adresse gilt als ausdrücklicher
 Importauftrag. Eine lesbare und als Stellenanzeige auswertbare Seite darf nicht allein deshalb
