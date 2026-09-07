@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.1.9 ist dokumentiert und zur Bereitstellung vorbereitet; 2.1.8 ist der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.1.9 ist dokumentiert und der bestätigte Live-Stand.
 Frühere Nachweise sind historische Belege.
 
 ## Umfang
@@ -49,6 +49,7 @@ Die Themen wurden fachlich mit den jeweiligen Formularen und Handlern abgegliche
 
 - «Gesendet am» rendert und akzeptiert Sekundenwerte konsistent; der Browser weist gespeicherte Zeitstempel nicht mehr als ungültig zurück.
 - Der Workflow-Vertragstest deckt Eingabeauflösung und Sekundenformat ab.
+- Nach TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200, Version 2.1.9 und das Fehlen neuer sichtbarer PHP-Fehler bestätigt.
 
 ## Pruefstand 2.1.8
 

@@ -1,6 +1,6 @@
 # Version 2.1.9 – gültiger Versandzeitstempel
 
-Stand: 07.09.2026. Bereitstellungskandidat.
+Stand: 07.09.2026. Deployed.
 
 ## Änderungen
 
@@ -10,4 +10,4 @@ Stand: 07.09.2026. Bereitstellungskandidat.
 
 ## Qualität und Deployment
 
-PHP-Syntax, alle 29 PHP-Testdateien, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff werden vor dem Deployment geprüft. Nach TOTP-Freigabe wird ausschließlich `public_html/jobs.jema.business/index.php` ersetzt.
+PHP-Syntax, alle 29 PHP-Testdateien, Hilfe in fünf Sprachen, Referenzgeneratoren und Git-Diff wurden geprüft. Nach TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` ersetzt. Die Produktionsdatei entspricht exakt dem lokalen Release-Stand. Die öffentliche Seite liefert HTTP 200, zeigt Version 2.1.9 und enthält keinen neuen sichtbaren PHP-Fehler.

@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 07.09.2026. Version 2.1.9 korrigiert die Sekundenvalidierung im Feld «Gesendet am» und ist zur Bereitstellung vorbereitet.
-Aktueller Kandidat: [Release 2.1.9](docs/jobsearch/RELEASE-2.1.9.md). Bestätigter Live-Stand: [2.1.8](docs/jobsearch/RELEASE-2.1.8.md).
+Stand: 07.09.2026. Version 2.1.9 korrigiert die Sekundenvalidierung im Feld «Gesendet am» und ist bereitgestellt.
+Bestätigter Live-Stand: [Release 2.1.9](docs/jobsearch/RELEASE-2.1.9.md).
 Ein neuer angemeldeter produktiver Suchlauf bleibt als Ausbeuteprüfung offen; historische Abnahmen gelten nicht automatisch für diese Änderung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

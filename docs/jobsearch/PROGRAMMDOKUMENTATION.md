@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.1.9 ist zur Bereitstellung vorbereitet; 2.1.8 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
+Stand: 2026-09-07. Version 2.1.9 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## Zeitstempelvalidierung 2.1.9
 
