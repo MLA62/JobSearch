@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.2.0 ist für das Deployment vorbereitet; 2.1.9 bleibt bis zur Abnahme der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.0 ist der bestätigte Live-Stand. Historische Release-Nachweise bleiben getrennt von diesem Stand.
 
 ## Formatierte Mehrzeilenfelder und Zeitachsen 2.2.0
 

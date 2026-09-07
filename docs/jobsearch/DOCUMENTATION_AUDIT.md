@@ -1,13 +1,13 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.0 ist dokumentiert und für das Deployment vorbereitet; 2.1.9 ist der bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.0 ist dokumentiert und der bestätigte Live-Stand.
 
 ## Pruefstand 2.2.0
 
 - Sichere HTML-Langtexte, Mini-Editor, formatierte E-Mail-Ausgabe sowie Klartextkonvertierung für PDF, Export und KI-Kontext sind in Code und Test beschrieben.
 - Statushistorien, Kontakt-Logs, gemischte Bewerbungsvorgänge und Audit-Auszüge sind chronologisch aufsteigend spezifiziert.
 - Hilfequelle, fünf generierte Sprachfassungen, Anforderungen, Workflow, Programmdokumentation, Prüfplan und Release-Nachweis werden gemeinsam geprüft.
-- Produktionsnachweis folgt nach externer TOTP-Freigabe.
+- Nach externer TOTP-Freigabe wurden identische lokale und produktive Dateibytes, HTTP 200, Version 2.2.0 und das Fehlen neuer sichtbarer PHP-Fehler bestätigt.
 Frühere Nachweise sind historische Belege.
 
 ## Umfang
