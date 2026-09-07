@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.2.2 ist dokumentiert und als Deployment-Kandidat geprüft; 2.2.1 ist der zuvor bestätigte Live-Stand.
+Stand: 2026-09-07. Version 2.2.2 ist dokumentiert, geprüft und produktiv bereitgestellt.
 
 ## Pruefstand 2.2.2
 
@@ -8,7 +8,8 @@ Stand: 2026-09-07. Version 2.2.2 ist dokumentiert und als Deployment-Kandidat ge
 - Ausstehende Autosaves werden vor der KI-Übermittlung gestoppt; die Aktion nutzt die robuste native Formularnavigation.
 - Die Modellinstruktion verlangt die erkennbare Umsetzung in Begleit-E-Mail und Motivationsschreiben; unveränderte Rückgaben bleiben ein Fehler.
 - Neue Dokumentversionen übernehmen Metadaten und Gültigkeitsdaten, zählen aus der höchsten Serienversion weiter und werden mit Datei-Cleanup transaktional gespeichert.
-- PHP-Syntax, alle 31 automatisierten PHP-Testdateien, Hilfe- und Referenzgeneratoren werden vor der TOTP-Freigabe geprüft.
+- PHP-Syntax, alle 31 automatisierten PHP-Testdateien sowie Hilfe- und Referenzgeneratoren wurden vor der TOTP-Freigabe geprüft.
+- Nach externer TOTP-Freigabe sind lokale und produktive Datei mit SHA-256 `1c43f2a75f5f01807ca8901bfea1dbeae1523ba025700d91e47442a4747d4999` bytegleich. Die öffentliche Seite liefert Version 2.2.2; seit dem Deployment entstand kein neuer PHP-Fehler.
 
 ## Pruefstand 2.2.1
 

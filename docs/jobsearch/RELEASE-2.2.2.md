@@ -1,6 +1,6 @@
 # Version 2.2.2 – zuverlässige KI-Instruktionen
 
-Stand: 07.09.2026. Deployment-Kandidat; produktive Bereitstellung folgt nach externer TOTP-Freigabe.
+Stand: 07.09.2026. Produktiv bereitgestellt nach externer TOTP-Freigabe.
 
 ## Änderungen
 
@@ -14,4 +14,4 @@ Stand: 07.09.2026. Deployment-Kandidat; produktive Bereitstellung folgt nach ext
 
 ## Prüfung und Deployment
 
-PHP-Syntax, automatisierte PHP-Tests, generierte Hilfe in fünf Sprachen, Referenzdateien und Git-Diff werden vor der Freigabe geprüft. Nach der TOTP-Freigabe werden Git-Synchronität, produktiver Dateihash, HTTP-Antwort, Versionsanzeige und Serverfehler kontrolliert und hier ergänzt.
+PHP-Syntax, alle 31 automatisierten PHP-Testdateien, generierte Hilfe in fünf Sprachen, Referenzdateien und Git-Diff wurden vor der Freigabe geprüft. Commit `1cb398c1955d8f767b65ce0ea1ae086365489b65` wurde nach `public_html/jobs.jema.business/index.php` bereitgestellt. Lokale und produktive Datei sind mit SHA-256 `1c43f2a75f5f01807ca8901bfea1dbeae1523ba025700d91e47442a4747d4999` bytegleich. Die öffentliche Seite liefert Version 2.2.2; nach dem Deployment entstand kein neuer PHP-Fehlereintrag. Konfiguration und Datenbankschema blieben unverändert.

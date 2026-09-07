@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 07.09.2026. Version 2.2.2 synchronisiert die sichtbaren Rich-Text-Editoren vor der KI-Überarbeitung und übermittelt die Aktion zuverlässig als normale Formularnavigation.
-Release-Kandidat: [Release 2.2.2](docs/jobsearch/RELEASE-2.2.2.md). Bestätigter Live-Stand vor diesem Deployment: [Release 2.2.1](docs/jobsearch/RELEASE-2.2.1.md).
+Stand: 07.09.2026. Version 2.2.2 synchronisiert die sichtbaren Rich-Text-Editoren vor der KI-Überarbeitung und repariert den vollständigen Dokumentversions-Upload.
+Bestätigter Live-Stand: [Release 2.2.2](docs/jobsearch/RELEASE-2.2.2.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
