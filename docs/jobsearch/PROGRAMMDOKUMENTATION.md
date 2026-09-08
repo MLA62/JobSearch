@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-08. Version 2.3.1 ist lokal geprüft; produktiv ist derzeit 2.3.0.
+Stand: 2026-09-08. Version 2.3.1 ist produktiv deployed und verifiziert.
 
 ## Security Hardening 2.3.0
 

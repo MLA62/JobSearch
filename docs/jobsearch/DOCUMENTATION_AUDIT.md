@@ -1,12 +1,14 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-08. Version 2.3.1 ist dokumentiert und lokal geprüft; produktiv ist derzeit 2.3.0.
+Stand: 2026-09-08. Version 2.3.1 ist dokumentiert, deployed und produktiv verifiziert.
 
 ## Prüfstand 2.3.1
 
 - Karten- und Tabellenfarben wurden heller gesetzt, ohne die Lesbarkeit zu verlieren.
 - Versionsbasiertes Asset-Caching verhindert, dass alte CSS-Dateien im Browser verbleiben.
 - Responsive Browser-Tests in fünf Sprachen und allen getesteten Breiten bestanden.
+- Produktiver `index.php`-Hash `683fe14737453319db535d210a128abb4e72d0775bd1e247cff0a8facf16abc` und `app.css`-Hash `78efab6f67a36f00a5d71f545fa09e6cae408bbbe74766b48a01b7082d3179f5` entsprechen dem getesteten Release.
+- Öffentliche Seite und CSS liefern HTTP 200; Version 2.3.1 und die neuen Inhaltsfarben sind per HTTPS bestätigt.
 
 ## Pruefstand 2.3.0
 
