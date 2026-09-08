@@ -1,9 +1,9 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-07. Release 2.3.0 ist produktiv deployed und per HTTPS verifiziert.
+Stand: 2026-09-08. Release 2.3.1 ist lokal vorbereitet; der produktive Stand ist 2.3.0.
 Quell-Commits: `320c46e` Security-Härtung, `f044f1d` 2FA-Header-Randfall.
 Produktiver `index.php`-SHA-256: `b0ccedab1b9e158c8d50b0d21ae069ba6dd2e84c254ee6e8578a50cbb4f62310`, 1'091'841 Bytes, Modus 0644.
-Öffentliche Seite liefert HTTP 200, Version 2.3.0 sowie HSTS, CSP, nosniff, DENY und no-referrer.
+Öffentliche Seite liefert HTTP 200, Version 2.3.0 sowie HSTS, CSP, nosniff, DENY und no-referrer; 2.3.1 folgt nach TOTP-Freigabe.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen

@@ -1,6 +1,12 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-07. Version 2.3.0 ist dokumentiert, produktiv deployed und per HTTPS geprüft.
+Stand: 2026-09-08. Version 2.3.1 ist dokumentiert und lokal geprüft; produktiv ist derzeit 2.3.0.
+
+## Prüfstand 2.3.1
+
+- Karten- und Tabellenfarben wurden heller gesetzt, ohne die Lesbarkeit zu verlieren.
+- Versionsbasiertes Asset-Caching verhindert, dass alte CSS-Dateien im Browser verbleiben.
+- Responsive Browser-Tests in fünf Sprachen und allen getesteten Breiten bestanden.
 
 ## Pruefstand 2.3.0
 

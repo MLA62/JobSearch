@@ -16,6 +16,7 @@ Stand: 07.09.2026. Status: produktiv deployed und per HTTPS verifiziert.
 - SQL-Fallback verwendet auch ohne mysqlnd Prepared Statements statt Stringinterpolation.
 - Datenmigration `16_security_hardening.sql` und Security-Regressionsuite ergänzt.
 - Ungültige oder veraltete 2FA-Routen werden vor der HTML-Ausgabe auf die Anmeldung umgeleitet; dadurch bleiben Security-Header und Fehlerprotokoll sauber.
+- Tabellen- und Kartentexte verwenden nun ein helleres, weiterhin kontrastreiches Schiefergrau; Überschriften bleiben klar unterscheidbar.
 
 ## Deployment
 

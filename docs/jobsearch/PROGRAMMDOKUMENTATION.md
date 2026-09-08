@@ -1,8 +1,11 @@
 # Programmdokumentation
 
-Stand: 2026-09-07. Version 2.3.0 ist produktiv deployed und per HTTPS verifiziert.
+Stand: 2026-09-08. Version 2.3.1 ist lokal geprüft; produktiv ist derzeit 2.3.0.
 
 ## Security Hardening 2.3.0
+
+Tabellen und Karten verwenden für ihre Inhaltsbereiche eine hellere, weiterhin kontrastreiche
+Textfarbe; Überschriften und Interaktionsfarben bleiben davon getrennt.
 
 Der Passwort-Reset besitzt keinen Browser-Fallback mehr. Tokens entstehen nur bei verfügbarem
 Betreiber-Mailkanal; unabhängig von Adresse und Versandresultat sieht der Anfordernde dieselbe

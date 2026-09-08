@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 07.09.2026. Version 2.3.0 härtet Passwort-Reset, Anmeldung, TOTP, Sessions, Mailverbindungen, Uploads, Downloads und Browser-Ausgaben.
-Release-Dokumentation: [Release 2.3.0](docs/jobsearch/RELEASE-2.3.0.md). Der produktive Stand wird nach externer TOTP-Freigabe verifiziert.
+Stand: 08.09.2026. Version 2.3.1 ergänzt die hellere, kontrastreiche Textdarstellung in Tabellen und Karten.
+Release-Dokumentation: [Release 2.3.1](docs/jobsearch/RELEASE-2.3.1.md). Der produktive Stand wird nach externer TOTP-Freigabe verifiziert.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

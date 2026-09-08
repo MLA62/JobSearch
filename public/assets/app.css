@@ -3,6 +3,8 @@
     --text: #111827;
     --text-soft: #374151;
     --muted: #5f6b7a;
+    --content-text: #4b5563;
+    --content-heading: #374151;
     --page: #f3f4f6;
     --surface: #ffffff;
     --surface-subtle: #f8fafc;
@@ -803,6 +805,19 @@ th {
 }
 tbody tr:nth-child(even) td { background: #f8fafc; }
 tbody tr:hover td { background: #fff7ed; }
+.table-wrap td,
+.table-wrap td p,
+.table-wrap td li,
+.cards > article,
+.application-list > article,
+.job-card,
+.application-card,
+.contact-list article,
+.log-timeline article,
+.kanban article { color: var(--content-text); }
+.table-wrap th,
+.job-card h3,
+.application-card h3 { color: var(--content-heading); }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }

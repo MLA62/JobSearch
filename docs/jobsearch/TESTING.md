@@ -3,6 +3,8 @@
 Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.3.1: Responsive Browser-Tests prüfen die helle Tabellen- und Kartendarstellung.
+
 Ergänzung 2.3.0: `security_hardening_test.php` prüft, dass Reset-Links nicht im Browser landen,
 alle Authentifizierungswege begrenzt sind, TOTP verschlüsselt gespeichert wird, ein separater
 App-Schlüssel erforderlich ist, Mailziele und Ports eingeschränkt sind, unverschlüsselte

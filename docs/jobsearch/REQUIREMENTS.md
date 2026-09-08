@@ -1,6 +1,6 @@
 # Anforderungen
 
-Stand: 07.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.0.
+Stand: 08.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.1.
 
 Ergänzung 2.3.0: Passwort-Rücksetzlinks werden ausschließlich über die zentrale, serverseitige
 Betreiber-Mailkonfiguration versendet und niemals im anfordernden Browser angezeigt. Anmeldung,
