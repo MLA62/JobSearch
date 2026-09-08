@@ -1,10 +1,10 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-08. Release 2.3.1 ist produktiv deployed und verifiziert.
-Quell-Commit: `ecb39d2` UI-Textkontrast 2.3.1.
-Produktiver `index.php`-SHA-256: `683fe14737453319db535d210a128abb4e72d0775bd1e247cff0a8facf16abc`, 1'091'841 Bytes, Modus 0644.
-Produktiver `app.css`-SHA-256: `78efab6f67a36f00a5d71f545fa09e6cae408bbbe74766b48a01b7082d3179f5`, 48'466 Bytes, Modus 0644.
-Öffentliche Seite liefert HTTP 200, Version 2.3.1 sowie HSTS, CSP, nosniff, DENY und no-referrer; das CSS liefert die neuen Inhaltsfarben.
+Stand: 2026-09-08. Release 2.3.2 ist lokal vorbereitet; der produktive Stand ist 2.3.1.
+Quell-Commit: folgt nach lokalem Test und Deployment.
+Produktiver `index.php`-SHA-256 (2.3.1): `683fe14737453319db535d210a128abb4e72d0775bd1e247cff0a8facf16abc`, 1'091'841 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.3.1): `78efab6f67a36f00a5d71f545fa09e6cae408bbbe74766b48a01b7082d3179f5`, 48'466 Bytes, Modus 0644.
+Öffentliche Seite liefert HTTP 200, Version 2.3.1 sowie HSTS, CSP, nosniff, DENY und no-referrer; 2.3.2 folgt nach TOTP-Freigabe.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen

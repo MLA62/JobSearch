@@ -7,12 +7,12 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.3.1' => "\$codeVersion = '2.3.1'",
+    'version 2.3.2' => "\$codeVersion = '2.3.2'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
     'abort controller' => 'new AbortController()',
-    'AI actions' => "new Set(['start_application', 'revise_application_texts_ai', 'suggest_job_search_criteria'])",
+    'AI actions' => "new Set(['start_application', 'revise_application_texts_ai', 'suggest_job_search_criteria', 'admin_ai_request'])",
     'mobile-safe direct click handler' => "document.addEventListener('click', async event =>",
     'action button delegation' => "event.target.closest?.('button[name=\"action\"]')",
     'paint modal before request' => 'requestAnimationFrame(() => requestAnimationFrame(resolve))',
@@ -22,7 +22,10 @@ $checks = [
     'start application destination' => "redirectAiFetch('/?page=applications&edit='",
     'native application submission' => "HTMLFormElement.prototype.submit.call(form)",
     'native action field' => "actionInput.dataset.aiNativeAction = '1'",
-    'native AI text revision' => "action === 'start_application' || action === 'revise_application_texts_ai'",
+    'native AI text revision' => "action === 'start_application' || action === 'revise_application_texts_ai' || action === 'admin_ai_request'",
+    'admin AI action' => "if (\$action === 'admin_ai_request')",
+    'admin AI scope' => 'restricted JeMa Jobs administrator operations assistant',
+    'admin AI web search' => "'tools' => [['type' => 'web_search']]",
     'rich editor values synchronized first' => "source.dispatchEvent(new Event('jema:richtext-sync'))",
     'autosave paused for AI submission' => "form.dispatchEvent(new Event('jema:manual-submit'))",
     'native abort' => 'window.stop()',

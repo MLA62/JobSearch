@@ -4,7 +4,7 @@ require __DIR__.'/help_test_support.php';
 
 $locales = ['de-CH','fr-CH','en-GB','pt-BR','es-MX'];
 helpAssert($helpCatalog['locales'] === $locales, 'Five supported locales');
-helpAssert(count($helpCatalog['topics']) === 24, 'All 24 topics');
+helpAssert(count($helpCatalog['topics']) === 25, 'All 25 topics');
 $ids = []; $pages = [];
 foreach ($helpCatalog['topics'] as $topic) {
     helpAssert(!isset($ids[$topic['id']]), 'Unique topic ID');
@@ -67,7 +67,7 @@ $end = strpos($helpSource, '<?php elseif ($page === \'about\'): ?>', $start);
 $template = substr($helpSource,$start,$end-$start);
 helpAssert(!str_contains($template,'page=pendents') && !str_contains($template,'page=reminders'), 'No obsolete task links');
 helpAssert(str_contains($helpSource,'if (isset($managedHelpTexts[$textKey]))'), 'Legacy seed cannot overwrite reviewed keys');
-foreach (['dashboard','profile','profile_links','documents','jobs','companies','contacts','applications','calendar','reports','job_room_helper','job_platform_search','application_dossier','sharing','privacy','translations','audit','admin_users','admin_job_platforms','workflow_review','help','about','login','register','forgot_password','reset_password','two_factor'] as $page) {
+foreach (['dashboard','profile','profile_links','documents','jobs','companies','contacts','applications','calendar','reports','job_room_helper','job_platform_search','application_dossier','sharing','privacy','translations','audit','admin_users','admin_job_platforms','admin_ai','workflow_review','help','about','login','register','forgot_password','reset_password','two_factor'] as $page) {
     helpAssert(isset($pages[$page]), 'Help covers mask '.$page);
 }
 echo $helpChecks." help content checks passed\n";

@@ -1,6 +1,14 @@
 # Programmdokumentation
 
-Stand: 2026-09-08. Version 2.3.1 ist produktiv deployed und verifiziert.
+Stand: 2026-09-08. Version 2.3.2 ist lokal geprüft; produktiv ist derzeit 2.3.1.
+
+## Admin-KI-Konsole 2.3.2
+
+Unter Konto steht für Admins im eigenen Konto eine geschützte KI-Konsole bereit. Sie ist auf
+JeMa-Jobs-Daten, Workflows sowie belegte öffentliche Adress- und Kontaktrecherchen begrenzt.
+Massenoperationen werden als überprüfbarer Dry-Run-Vorschlag ausgegeben; Datenbankänderungen,
+E-Mails und externe Aktionen werden nicht automatisch ausgeführt. Ausgabe und Eingabe nutzen
+je ein breit angelegtes, mehrzeiliges und vertikal scrollbares Feld.
 
 ## Security Hardening 2.3.0
 

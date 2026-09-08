@@ -1,6 +1,12 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-08. Version 2.3.1 ist dokumentiert, deployed und produktiv verifiziert.
+Stand: 2026-09-08. Version 2.3.2 ist dokumentiert und lokal geprüft; produktiv ist derzeit 2.3.1.
+
+## Prüfstand 2.3.2
+
+- Nur Jobs mit Status `rejected` sowie Bewerbungen, die einem solchen abgesagten Job zugeordnet sind, verwenden die hellere Inhaltsfarbe; übrige Karten und Tabellen bleiben im Standardkontrast.
+- Die Admin-KI-Konsole ist auf das eigene Admin-Konto beschränkt, nutzt `store=false`, Websuche nur für öffentliche Plattformrecherchen und liefert ausschließlich prüfbare Vorschläge ohne automatische Mutationen.
+- Ausgabe-/Eingabefelder sind auf Bildschirmbreite und vertikales Scrollen ausgelegt; PHP- und UI-Tests folgen vor dem Deployment.
 
 ## Prüfstand 2.3.1
 

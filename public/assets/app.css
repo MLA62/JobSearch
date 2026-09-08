@@ -814,10 +814,29 @@ tbody tr:hover td { background: #fff7ed; }
 .application-card,
 .contact-list article,
 .log-timeline article,
-.kanban article { color: var(--content-text); }
+.kanban article { color: var(--text); }
 .table-wrap th,
 .job-card h3,
-.application-card h3 { color: var(--content-heading); }
+.application-card h3 { color: var(--text); }
+.table-wrap tr.is-rejected td,
+.table-wrap tr.is-rejected td p,
+.table-wrap tr.is-rejected td li,
+.job-card.is-rejected,
+.job-card.is-rejected h3,
+.job-card.is-rejected p,
+.job-card.is-rejected li,
+.application-card.is-rejected,
+.application-card.is-rejected h3,
+.application-card.is-rejected p,
+.application-card.is-rejected li { color: var(--content-text); }
+.job-card.is-rejected h3,
+.application-card.is-rejected h3 { color: var(--content-heading); }
+.admin-ai-console { width: 100%; }
+.admin-ai-intro { display: grid; gap: 4px; }
+.admin-ai-output,
+.admin-ai-input { display: block; width: 100%; max-width: none; resize: vertical; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; }
+.admin-ai-output { min-height: 80vh; height: 80vh; max-height: 80vh; background: var(--surface-subtle); }
+.admin-ai-input { min-height: 10vh; height: 10vh; max-height: 24vh; }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }

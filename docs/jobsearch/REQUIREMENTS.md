@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 08.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.1.
+Stand: 08.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.2.
+
+Ergänzung 2.3.2: Nur Karten und Tabellenzeilen, die abgesagten Jobs zugeordnet sind,
+erhalten die hellere Inhaltsfarbe. Alle anderen Einträge bleiben in der bisherigen
+Standarddarstellung. Admins erhalten unter Konto eine eigene, plattformgebundene KI-Konsole mit
+80%-Ausgabefeld und 10%-Eingabefeld; öffentliche Adress-/Kontaktrecherche ist erlaubt, Massenoperationen
+werden zunächst als Dry-Run vorgeschlagen und nie automatisch ausgeführt.
 
 Ergänzung 2.3.0: Passwort-Rücksetzlinks werden ausschließlich über die zentrale, serverseitige
 Betreiber-Mailkonfiguration versendet und niemals im anfordernden Browser angezeigt. Anmeldung,
