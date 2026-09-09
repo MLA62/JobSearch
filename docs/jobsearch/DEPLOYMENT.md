@@ -1,6 +1,11 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.4 ist vorbereitet; Produktiv-Approval und Hashprüfung folgen.
+Stand: 2026-09-09. Release 2.3.4 ist produktiv verifiziert.
+Quell-Commit: `19a2e414be5d4aa504943148c9a05eb528577c53`.
+Produktiver `index.php`-SHA-256 (2.3.4): `5ba5f649dbea8ca203d992bf8ff7dc9261597f1e9ed66cf0c7cca0f1ed9007c5`, 1'153'775 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.3.4): `4dbefea60d2976453cd05de869d69952aa25b83ffd07b0b647e1596943d4204d`, 51'068 Bytes, Modus 0644.
+Weitere produktive Dateien entsprechen den geprüften lokalen Bytes: `.htaccess` `e23b763acf3ca402a5e48f1ce566a516480f13f72569e8f7fdcf6888048f62e0`, `layout.css` `fc8e78d3fce0e8fe1ef557c4a4b60aee50ebd435a5901b5b21bca4530f9b5d20`, `layout.js` `2a153bfea6d9b63a522ccbdc9172cd7d39e9bb0cbce8224dc2356c02842975f1`.
+TOTP-Approval: `f60329e108af2ead3d48f52b5d3f8406` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.3.4 sowie HSTS, CSP, nosniff, DENY und no-referrer; keine sichtbaren PHP-Fatal-, Parse- oder Uncaught-Fehler.
 
 ## Vorheriges produktives Release 2.3.3
 

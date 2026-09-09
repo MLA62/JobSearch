@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.4 ist dokumentiert und lokal geprüft; Produktivprüfung folgt nach TOTP-Freigabe.
+Stand: 2026-09-09. Version 2.3.4 ist dokumentiert, lokal geprüft und produktiv per Hash und HTTPS verifiziert.
 
 ## Prüfstand 2.3.4
 

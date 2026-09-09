@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.4 ist lokal geprüft; Deployment folgt nach TOTP-Freigabe.
+Stand: 2026-09-09. Version 2.3.4 ist lokal geprüft und produktiv per Hash und HTTPS verifiziert (Commit `19a2e41`).
 
 ## Admin-KI-Konsole 2.3.4
 

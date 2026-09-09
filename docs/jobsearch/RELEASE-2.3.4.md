@@ -22,4 +22,7 @@ Ergebnisse.
 
 - PHP-Lint und alle vorhandenen PHP-Regressionstests.
 - Markdown-Renderer mit HTML-Escaping und Status-Lookup im Vertragstest.
-- cPanel-Upload, TOTP-Freigabe, Remote-Hashvergleich und HTTPS-Check stehen nach der Freigabe aus.
+- cPanel-Upload mit Approval `f60329e108af2ead3d48f52b5d3f8406` ausgeführt.
+- Alle fünf Remote-Dateien stimmen bytegenau mit den lokalen Release-Dateien überein.
+- Öffentliche Seite: HTTP 200, Version 2.3.4, keine sichtbaren PHP-Fatal-/Parse-/Uncaught-Fehler.
+- HSTS, CSP, `nosniff`, `DENY` und `no-referrer` bestätigt.
