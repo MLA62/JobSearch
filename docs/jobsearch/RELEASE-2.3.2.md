@@ -1,6 +1,6 @@
 # Version 2.3.2 – Admin-KI und statusbezogene Darstellung
 
-Stand: 08.09.2026. Status: lokal geprüft; produktives Deployment wartet auf externe TOTP-Freigabe.
+Stand: 09.09.2026. Status: produktiv deployed und per Hash/HTTPS verifiziert. Commit: `a391e99b47120082955318411ea055866c2da518`.
 
 ## Änderungen
 
@@ -9,6 +9,9 @@ Stand: 08.09.2026. Status: lokal geprüft; produktives Deployment wartet auf ext
 - Plattformgebundene KI-Anweisungen unterstützen prüfbare Dry-Run-Pläne für Massenoperationen sowie öffentliche Adress- und Kontaktrecherche. Es gibt keine automatischen Datenbankänderungen, E-Mails oder externen Aktionen.
 - Das Ausgabe-Feld nutzt 80% der Bildschirmhöhe, ist mehrzeilig, umbrechend und vertikal scrollbar; das Eingabefeld nutzt 10%.
 - Hilfe, Versionierung und Cache-Busting wurden auf 2.3.2 aktualisiert.
+
+- Deployment nach `public_html/jobs.jema.business` mit Approval-ID `520a958fd5ac813d3d2adcb723433f3b`; Backup der fünf überschriebenen Dateien wurde durch cPanel erstellt.
+- Live geprüft: HTTP 200, Version 2.3.2, HSTS, CSP, `nosniff`, `DENY`, `no-referrer`, Admin-KI- und `is-rejected`-CSS.
 
 ## Sicherheit
 

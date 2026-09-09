@@ -1,12 +1,14 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-08. Version 2.3.2 ist dokumentiert und lokal geprüft; produktiv ist derzeit 2.3.1.
+Stand: 2026-09-09. Version 2.3.2 ist dokumentiert, lokal geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.3.2
 
 - Nur Jobs mit Status `rejected` sowie Bewerbungen, die einem solchen abgesagten Job zugeordnet sind, verwenden die hellere Inhaltsfarbe; übrige Karten und Tabellen bleiben im Standardkontrast.
 - Die Admin-KI-Konsole ist auf das eigene Admin-Konto beschränkt, nutzt `store=false`, Websuche nur für öffentliche Plattformrecherchen und liefert ausschließlich prüfbare Vorschläge ohne automatische Mutationen.
-- Ausgabe-/Eingabefelder sind auf Bildschirmbreite und vertikales Scrollen ausgelegt; PHP- und UI-Tests folgen vor dem Deployment.
+- Ausgabe-/Eingabefelder sind auf Bildschirmbreite und vertikales Scrollen ausgelegt; PHP- und UI-Tests sowie die Live-Header-Prüfung sind bestanden.
+
+- Produktiver Commit `a391e99b47120082955318411ea055866c2da518`; `index.php`-Hash `6c3aea1c40955eb751e5145db3b820ed2471bd2177c165a8d263d2a16b7c8499`, `app.css`-Hash `81f943fcfda5f257014a1b51c8fd4aea67d20c7ce55f57f6ecb1bc3caba13834`.
 
 ## Prüfstand 2.3.1
 

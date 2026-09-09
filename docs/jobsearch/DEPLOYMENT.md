@@ -1,10 +1,10 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-08. Release 2.3.2 ist lokal vorbereitet; der produktive Stand ist 2.3.1.
-Quell-Commit: folgt nach lokalem Test und Deployment.
-Produktiver `index.php`-SHA-256 (2.3.1): `683fe14737453319db535d210a128abb4e72d0775bd1e247cff0a8facf16abc`, 1'091'841 Bytes, Modus 0644.
-Produktiver `app.css`-SHA-256 (2.3.1): `78efab6f67a36f00a5d71f545fa09e6cae408bbbe74766b48a01b7082d3179f5`, 48'466 Bytes, Modus 0644.
-Öffentliche Seite liefert HTTP 200, Version 2.3.1 sowie HSTS, CSP, nosniff, DENY und no-referrer; 2.3.2 folgt nach TOTP-Freigabe.
+Stand: 2026-09-09. Release 2.3.2 ist produktiv verifiziert.
+Quell-Commit: `a391e99b47120082955318411ea055866c2da518`.
+Produktiver `index.php`-SHA-256 (2.3.2): `6c3aea1c40955eb751e5145db3b820ed2471bd2177c165a8d263d2a16b7c8499`, 1'109'773 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.3.2): `81f943fcfda5f257014a1b51c8fd4aea67d20c7ce55f57f6ecb1bc3caba13834`, 49'345 Bytes, Modus 0644.
+TOTP-Approval: `520a958fd5ac813d3d2adcb723433f3b` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.3.2 sowie HSTS, CSP, nosniff, DENY und no-referrer.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen
@@ -39,7 +39,7 @@ Diese Werte sind historische Vergleichswerte; vor einer neuen Proposal-Erstellun
 8. Oeffentlichen HTTP-Check sowie angemeldete betroffene Seiten pruefen. Fuenf Sprachen, Desktop und schmales Fenster fuer Hilfereleases.
 9. Releaseprotokoll mit Commit, Ziel, Hash, Zeiten, Pruefumfang und offenen Punkten aktualisieren.
 
-Ohne angemeldete Sitzung bleibt die authentisierte Livepruefung ausstehend, auch wenn der Dateiaustausch erfolgreich war.
+Die Prüfung erfolgte öffentlich; eine authentisierte Prüfung bleibt weiterhin sitzungsabhängig.
 
 ## Datenwirkung von 2.1.0
 

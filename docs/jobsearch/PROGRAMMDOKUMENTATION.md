@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-08. Version 2.3.2 ist lokal geprüft; produktiv ist derzeit 2.3.1.
+Stand: 2026-09-09. Version 2.3.2 ist lokal geprüft und produktiv verifiziert (Commit `a391e99`).
 
 ## Admin-KI-Konsole 2.3.2
 
@@ -12,8 +12,9 @@ je ein breit angelegtes, mehrzeiliges und vertikal scrollbares Feld.
 
 ## Security Hardening 2.3.0
 
-Tabellen und Karten verwenden für ihre Inhaltsbereiche eine hellere, weiterhin kontrastreiche
-Textfarbe; Überschriften und Interaktionsfarben bleiben davon getrennt.
+Nur Jobs mit Status `rejected` und die ihnen zugeordneten Bewerbungen verwenden in Tabellen und
+Karten eine hellere, weiterhin kontrastreiche Textfarbe; alle übrigen Einträge sowie Überschriften
+und Interaktionsfarben bleiben im Standardkontrast.
 
 Der Passwort-Reset besitzt keinen Browser-Fallback mehr. Tokens entstehen nur bei verfügbarem
 Betreiber-Mailkanal; unabhängig von Adresse und Versandresultat sieht der Anfordernde dieselbe

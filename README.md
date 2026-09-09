@@ -1,7 +1,7 @@
 # JeMa Jobs
 
 Stand: 08.09.2026. Version 2.3.2 hellt ausschließlich Einträge zu abgesagten Jobs auf und ergänzt den geschützten Admin-KI-Bereich.
-Release-Dokumentation: [Release 2.3.2](docs/jobsearch/RELEASE-2.3.2.md). Das Deployment wird nach externer TOTP-Freigabe verifiziert.
+Release-Dokumentation: [Release 2.3.2](docs/jobsearch/RELEASE-2.3.2.md). Das Deployment ist nach externer TOTP-Freigabe per Hash und HTTPS verifiziert.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
