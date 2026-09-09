@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 09.09.2026. Version 2.4.0 macht die Admin-KI zu einem mehrstufigen Operationsagenten: Sie führt Aufträge aus, verarbeitet konkrete Folgefehler selbst und verifiziert Änderungen gegen den neu geladenen Datenbestand.
+Stand: 09.09.2026. Version 2.4.0 ist produktiv. Die Admin-KI arbeitet als mehrstufiger Operationsagent; der Schnellimport zeigt Verarbeitung, Fortschritt, Verlauf und Abbruch in einem modalen Dialog.
 Release-Dokumentation: [Release 2.4.0](docs/jobsearch/RELEASE-2.4.0.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

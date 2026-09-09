@@ -35,4 +35,9 @@ Datum: 09.09.2026
 - PHP-Syntax, vollständige PHP-Suite, Dokumentations-/Hilfetests und Chromium-Browsertests.
 - Regressionstest für den gemeldeten generativen Jobprofil-Auftrag.
 - Chromium-Regressionsprüfung für den zuvor reaktionslosen Schnellimport-Button und dessen Verlauf.
-- Hash- und HTTP-Abnahme folgen nach externer TOTP-Freigabe.
+- 34 PHP-Testdateien sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- TOTP-Deployment `a1848c8c51dc460a8ae19a61e1933580` wurde ausgeführt; alle fünf
+  Produktivdateien sind bytegleich mit dem getesteten Stand.
+- Die öffentliche Abnahme bestätigt HTTP 200, Version 2.4.0 und die vorgesehenen Sicherheitsheader.
+- Das Release verändert kein Datenbankschema; offene Schnellimport-Läufe liegen nur befristet in der
+  jeweiligen Benutzersitzung.

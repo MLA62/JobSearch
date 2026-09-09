@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.4.0 ist dokumentiert, vollständig geprüft und für das Deployment vorbereitet.
+Stand: 2026-09-09. Version 2.4.0 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.4.0
 
@@ -14,7 +14,11 @@ Stand: 2026-09-09. Version 2.4.0 ist dokumentiert, vollständig geprüft und fü
   bestätigt Quellenermittlung, Laufzeit, Zähler, Verlauf je Anzeige, Abbrechen und Erfolgsnavigation.
 - Alle 34 PHP-Testdateien, 3'807 Hilfeprüfungen, 1'254 Hilfe-Seeds, 69 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
-- Produktivhash, TOTP-Freigabe und öffentliche HTTP-Abnahme werden nach dem Deployment ergänzt.
+- Nach TOTP-Freigabe `a1848c8c51dc460a8ae19a61e1933580` stimmen alle fünf Produktivdateien
+  bytegenau mit dem geprüften Release überein. `index.php` hat SHA-256
+  `8cfd6d5ecaecb1a0b2f64c3c448fef3df4100e49b0bfd0e41822c596f235a2ce` und 1'197'397 Bytes.
+- Die öffentliche Seite liefert HTTP 200, Version 2.4.0 sowie HSTS, CSP, `nosniff`, `DENY` und
+  `no-referrer`; nach dem Deployment wurde kein neuer Serverfehler protokolliert.
 
 ## Prüfstand 2.3.7
 
