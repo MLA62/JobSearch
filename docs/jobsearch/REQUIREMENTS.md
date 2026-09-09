@@ -1,6 +1,8 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.3.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.4.
+
+Ergänzung 2.3.4: Ein direkter Admin-Auftrag innerhalb der Plattform wird vollständig ausgeführt, auch als Recherche, Einzel-, Mehrfach- oder Massenoperation. Eine Statusfrage wie „Hast Du die Firma erfasst?“ prüft den eigenen Datenbestand und meldet konkret gefunden/nicht gefunden. Die KI-Ausgabe ist Markdown-fähig; `**Text**` wird als Fettdruck dargestellt. Eingabe und Ausgabe bleiben ohne Seitenscroll gleichzeitig sichtbar.
 
 Ergänzung 2.3.3: Die Admin-KI führt ausdrücklich beauftragte Einzel- und Mehrfachoperationen
 transaktional in allen freigegebenen Nutzer-Datentabellen aus, darunter Profil-/Suchdaten, Firmen,

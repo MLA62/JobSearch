@@ -1,8 +1,12 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.3 ist dokumentiert, lokal geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.4 ist dokumentiert und lokal geprüft; Produktivprüfung folgt nach TOTP-Freigabe.
 
-## Prüfstand 2.3.3
+## Prüfstand 2.3.4
+
+- Direkte Admin-Aufträge werden nicht als unverbindlicher Vorschlag zurückgestuft; Statusfragen nutzen einen Datenbank-Lookup.
+- Die Ausgabe rendert Markdown sicher, inklusive `**Fettdruck**`, ohne HTML-Ausführung.
+- Die Admin-KI-Seite hält Eingabe und Ausgabe gleichzeitig sichtbar; nur das Ausgabefeld scrollt intern.
 
 - Die Admin-KI erzeugt ein striktes JSON-Operationsschema und kann ausdrücklich beauftragte Einzel-
   und Mehrfachoperationen in allen freigegebenen Nutzer-Datentabellen transaktional ausführen.

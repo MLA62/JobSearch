@@ -3,7 +3,9 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
-Ergänzung 2.3.3: Der KI-Vertragstest prüft das strukturierte Operationsschema, die Allowlist aller
+Ergänzung 2.3.4: Zusätzlich prüft der KI-Vertragstest direkte Ausführung ohne Vorschlagsmodus,
+Statusfragen mit `record_lookup`, Markdown-Ausgabe mit sicherem **Fettdruck** und die bildschirmfeste
+Admin-Konsole ohne Dokument-Scroll. Der KI-Vertragstest prüft weiterhin das strukturierte Operationsschema, die Allowlist aller
 freigegebenen Nutzer-Datentabellen, transaktionale Mehrfachausführung, Sitzungs-Gedächtnis und
 «Gedächtnis löschen». Responsive Browser-Tests prüfen weiterhin die statusbezogene
 Tabellen-/Kartendarstellung und die Admin-KI-Konsole mit 80%-Ausgabe- und 10%-Eingabefeld.

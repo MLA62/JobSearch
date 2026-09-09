@@ -1,8 +1,8 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.3 ist lokal geprüft und produktiv verifiziert (Commit `dbde138`).
+Stand: 2026-09-09. Version 2.3.4 ist lokal geprüft; Deployment folgt nach TOTP-Freigabe.
 
-## Admin-KI-Konsole 2.3.3
+## Admin-KI-Konsole 2.3.4
 
 Unter Konto steht für Admins im eigenen Konto eine geschützte KI-Konsole bereit. Sie ist auf
 JeMa-Jobs-Daten, Workflows sowie belegte öffentliche Adress- und Kontaktrecherchen begrenzt.

@@ -1,6 +1,9 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.3 ist produktiv verifiziert.
+Stand: 2026-09-09. Release 2.3.4 ist vorbereitet; Produktiv-Approval und Hashprüfung folgen.
+
+## Vorheriges produktives Release 2.3.3
+
 Quell-Commit: `dbde138c00e9026ddb33a25970c8e051db790103`.
 Produktiver `index.php`-SHA-256 (2.3.3): `dbd9664839b775c8a940f184fda6e345e04aba3bc8311f690bb30ee9bb9c6ac1`, 1'144'604 Bytes, Modus 0644.
 Produktiver `app.css`-SHA-256 (2.3.3): `8b1927163844191a9c499a504a2eb6c4aed4a754217369cbb0a238a701fe43c7`, 49'970 Bytes, Modus 0644.

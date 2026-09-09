@@ -1,5 +1,5 @@
 {
-  "version": "2.3.3",
+  "version": "2.3.4",
   "reviewed": "2026-09-09",
   "locales": [
     "de-CH",
@@ -1419,11 +1419,11 @@
       "text": {
         "de-CH": {
           "title": "KI für Plattformoperationen",
-          "summary": "Admins können die KI für geprüfte Analysen, öffentliche Recherchen und ausdrücklich beauftragte Einzel- oder Mehrfachoperationen in den Plattformtabellen nutzen.",
+          "summary": "Admins können die KI für Daten, Abläufe und Recherchen der Plattform nutzen; direkte Aufträge werden ausgeführt und Statusfragen prüfen den Datenbestand.",
           "steps": [
             "Öffne unter Konto den Bereich JeMa Jobs KI; nur ein Admin im eigenen Konto erhält Zugriff.",
-            "Formuliere eine konkrete Aufgabe mit Firmennamen, URLs oder Datensatzbezug. Die Ausgabe erscheint im grossen scrollbaren Feld.",
-            "Bei ausdrücklich beauftragten Erfassungen, Ergänzungen oder Mehrfachoperationen führt die KI die geprüften Änderungen transaktional in allen dafür freigegebenen Nutzer-Datentabellen der Plattform aus. Sicherheits-, Geheimnis- und Audit-Tabellen sowie das Versenden von E-Mails bleiben gesperrt.",
+            "Formuliere eine konkrete Aufgabe mit Firmennamen, URLs oder Datensatzbezug. Jeder direkte Admin-Auftrag wird ausgeführt, auch als Einzel-, Mehrfach- oder Rechercheauftrag.",
+            "Fragen wie «Hast Du die Firma erfasst?» werden als konkrete Datenbankprüfung beantwortet. Die Ausgabe unterstützt Markdown, einschliesslich **Fettdruck**, und nur das Ausgabefeld scrollt intern; Eingabe und Ausgabe bleiben gleichzeitig sichtbar.",
             "Mit Gedächtnis löschen wird der Gesprächskontext für die nächste Aufgabe entfernt."
           ],
           "tips": [
@@ -1432,11 +1432,11 @@
         },
         "fr-CH": {
           "title": "IA pour les opérations de la plateforme",
-          "summary": "Les admins peuvent utiliser l’IA pour des analyses contrôlées, des recherches publiques et des opérations individuelles ou multiples explicitement demandées dans les tables de la plateforme.",
+          "summary": "Les admins peuvent utiliser l’IA pour les données, processus et recherches de la plateforme; les demandes directes sont exécutées et les questions vérifient la base.",
           "steps": [
             "Ouvre JeMa Jobs IA sous Compte; seul un admin dans son propre compte y a accès.",
-            "Formule une tâche précise avec noms d’entreprises, URL ou référence d’enregistrement. La sortie apparaît dans la grande zone défilante.",
-            "Pour les saisies, compléments ou opérations multiples explicitement demandés, l’IA exécute les modifications vérifiées de manière transactionnelle dans toutes les tables de données utilisateur autorisées. Les tables de sécurité, secrets et audit ainsi que l’envoi d’e-mails restent bloqués.",
+            "Formule une tâche précise avec noms d’entreprises, URL ou référence d’enregistrement. Toute demande directe de l’administrateur est exécutée, individuellement, en groupe ou comme recherche.",
+            "Les questions comme «As-tu enregistré l’entreprise?» sont vérifiées directement dans la base. La sortie prend en charge Markdown, notamment **le gras**, et seul le champ de sortie défile; l’entrée et la sortie restent visibles.",
             "Effacer la mémoire supprime le contexte de la conversation pour la prochaine tâche."
           ],
           "tips": [
@@ -1445,11 +1445,11 @@
         },
         "en-GB": {
           "title": "AI for platform operations",
-          "summary": "Admins can use AI for reviewed analysis, public research and explicitly requested single or multiple operations across platform tables.",
+          "summary": "Admins can use AI for this platform’s data, workflows and research; direct commands execute and questions check the database.",
           "steps": [
             "Open JeMa Jobs AI under Account; only an admin in their own account can access it.",
-            "Describe a concrete task with company names, URLs or record references. The output appears in the large scrollable field.",
-            "For explicitly requested capture, completion or multiple operations, AI executes validated changes transactionally in all permitted user-data tables. Security, secret and audit tables, as well as sending emails, remain blocked.",
+            "Describe a concrete task with company names, URLs or record references. Every direct administrator command is executed, whether single, multiple or research-oriented.",
+            "Questions such as ‘Did you capture the company?’ are checked directly against the database. The output supports Markdown, including **bold**, and only the output field scrolls internally so input and output remain visible.",
             "Clear memory removes the conversation context before the next task."
           ],
           "tips": [
@@ -1458,11 +1458,11 @@
         },
         "pt-BR": {
           "title": "IA para operações da plataforma",
-          "summary": "Administradores podem usar a IA para análises revisáveis, pesquisas públicas e operações individuais ou múltiplas explicitamente solicitadas nas tabelas da plataforma.",
+          "summary": "Administradores podem usar a IA para dados, processos e pesquisas da plataforma; instruções diretas são executadas e perguntas consultam a base.",
           "steps": [
             "Abra IA do JeMa Jobs em Conta; somente um administrador na própria conta tem acesso.",
-            "Descreva uma tarefa concreta com nomes de empresas, URLs ou referências de registros. A saída aparece no campo grande com rolagem.",
-            "Para registros, complementos ou operações múltiplas solicitados explicitamente, a IA executa as alterações validadas de forma transacional em todas as tabelas de dados do usuário autorizadas. Tabelas de segurança, segredos e auditoria, além do envio de e-mails, permanecem bloqueadas.",
+            "Descreva uma tarefa concreta com nomes de empresas, URLs ou referências de registros. Toda instrução direta do administrador é executada, individualmente, em lote ou como pesquisa.",
+            "Perguntas como ‘A empresa foi registrada?’ são verificadas diretamente na base. A saída aceita Markdown, inclusive **negrito**, e somente o campo de saída rola internamente; entrada e saída permanecem visíveis.",
             "Limpar memória remove o contexto da conversa antes da próxima tarefa."
           ],
           "tips": [
@@ -1471,11 +1471,11 @@
         },
         "es-MX": {
           "title": "IA para operaciones de la plataforma",
-          "summary": "Los administradores pueden usar la IA para análisis revisables, investigaciones públicas y operaciones individuales o múltiples solicitadas explícitamente en las tablas de la plataforma.",
+          "summary": "Los administradores pueden usar la IA para datos, procesos e investigaciones de la plataforma; las órdenes directas se ejecutan y las preguntas consultan la base.",
           "steps": [
             "Abre IA de JeMa Jobs en Cuenta; solo un administrador en su propia cuenta tiene acceso.",
-            "Describe una tarea concreta con nombres de empresas, URL o referencias de registros. La salida aparece en el campo grande con desplazamiento.",
-            "Para registrar, completar u operar en varias filas de forma explícita, la IA ejecuta los cambios validados en una transacción en todas las tablas de datos del usuario autorizadas. Las tablas de seguridad, secretos y auditoría, así como el envío de correos, permanecen bloqueados.",
+            "Describe una tarea concreta con nombres de empresas, URL o referencias de registros. Toda orden directa del administrador se ejecuta, individualmente, en lote o como investigación.",
+            "Las preguntas como ‘¿Registraste la empresa?’ se comprueban directamente en la base. La salida admite Markdown, incluido **negrita**, y solo el campo de salida se desplaza internamente; la entrada y la salida siguen visibles.",
             "Borrar memoria elimina el contexto de la conversación antes de la siguiente tarea."
           ],
           "tips": [

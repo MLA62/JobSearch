@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 09.09.2026. Version 2.3.3 ergänzt die geschützte Admin-KI um transaktionale, ausdrücklich beauftragte Mehrfachoperationen in den freigegebenen Nutzer-Datentabellen.
-Release-Dokumentation: [Release 2.3.3](docs/jobsearch/RELEASE-2.3.3.md). Das Deployment ist nach externer TOTP-Freigabe per Hash und HTTPS verifiziert.
+Stand: 09.09.2026. Version 2.3.4 führt direkte Admin-Aufträge verbindlich aus, beantwortet Statusfragen per Datenbank-Lookup und rendert die KI-Ausgabe Markdown-fähig.
+Release-Dokumentation: [Release 2.3.4](docs/jobsearch/RELEASE-2.3.4.md). Das Deployment folgt nach externer TOTP-Freigabe per Hash- und HTTPS-Prüfung.
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

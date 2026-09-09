@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.3.3' => "\$codeVersion = '2.3.3'",
+    'version 2.3.4' => "\$codeVersion = '2.3.4'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
@@ -24,12 +24,16 @@ $checks = [
     'native action field' => "actionInput.dataset.aiNativeAction = '1'",
     'native AI text revision' => "action === 'start_application' || action === 'revise_application_texts_ai'",
     'admin AI action' => "if (\$action === 'admin_ai_request')",
-    'admin AI scope' => 'restricted JeMa Jobs administrator operations executor',
+    'admin AI scope' => 'JeMa Jobs administrator operations executor',
     'admin AI web search' => "'tools' => [['type' => 'web_search']]",
     'admin AI structured schema' => "name' => 'jema_admin_operations'",
     'admin AI execution' => 'function adminAiApplyOperations',
     'admin AI all-table execution' => 'function adminAiTableDefinitions',
     'admin AI table upsert' => "'table_upsert'",
+    'admin AI status lookup' => 'function adminAiRecordLookup',
+    'admin AI status question guard' => 'function adminAiStatusQuestion',
+    'admin AI direct execution' => 'Ein direkter Admin-Auftrag ist verbindlich',
+    'admin AI markdown renderer' => 'window.renderAdminAiMarkdown',
     'admin AI memory' => "\$_SESSION['admin_ai_context']",
     'admin AI clear memory' => "admin_ai_clear_memory",
     'admin AI JSON fetch' => "'executed'=>\$execution['executed']",

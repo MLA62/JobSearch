@@ -1,8 +1,10 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.3.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.4.
 
 ## Admin-KI und Plattformdaten
+
+Ergänzung 2.3.4: Jeder direkte Admin-Auftrag innerhalb der JeMa-Jobs-Plattform wird vollständig ausgeführt, auch als Einzel-, Mehrfach- oder Rechercheauftrag. Die Frage, ob ein Datensatz bereits erfasst wurde, wird als konkreter Datenbank-Lookup beantwortet. Die Ausgabe unterstützt Markdown, insbesondere **Fettdruck**, und wird sicher im Ausgabefeld gerendert.
 
 - Eine ausdrücklich beauftragte Recherche mit «erfassen», «speichern», «importieren», «aktualisieren»
   oder einer Mehrfachoperation erzeugt strukturierte Tabellenoperationen und führt sie vollständig in
