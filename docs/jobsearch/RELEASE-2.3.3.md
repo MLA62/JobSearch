@@ -25,4 +25,4 @@ Recherchetext lieferte, aber den ausdrücklich verlangten Datensatz nicht erfass
 - Kernverträge für KI-Fortschritt, strukturiertes Operationsschema, Bewerbungstexte und Security
   bestanden.
 - Hilfe-Generator: 25 Themen in fünf Sprachen; 3'785 Inhaltsprüfungen bestanden.
-- Produktivstatus und Hash werden nach der externen TOTP-Freigabe in `DEPLOYMENT.md` ergänzt.
+- Produktivstatus, Hashes, HTTPS-Prüfung und Approval-ID sind in `DEPLOYMENT.md` dokumentiert.

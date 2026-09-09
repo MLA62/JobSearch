@@ -1,8 +1,11 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.3 ist lokal geprüft und für die externe TOTP-Freigabe vorbereitet.
-Quell-Commit: wird nach dem Release-Commit eingetragen.
-Produktive Hashes, Approval-ID und Live-HTTP-Prüfung werden nach der freigegebenen Ausführung eingetragen.
+Stand: 2026-09-09. Release 2.3.3 ist produktiv verifiziert.
+Quell-Commit: `dbde138c00e9026ddb33a25970c8e051db790103`.
+Produktiver `index.php`-SHA-256 (2.3.3): `dbd9664839b775c8a940f184fda6e345e04aba3bc8311f690bb30ee9bb9c6ac1`, 1'144'604 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.3.3): `8b1927163844191a9c499a504a2eb6c4aed4a754217369cbb0a238a701fe43c7`, 49'970 Bytes, Modus 0644.
+Weitere produktive Dateien entsprechen den geprüften lokalen Bytes: `.htaccess` `e23b763acf3ca402a5e48f1ce566a516480f13f72569e8f7fdcf6888048f62e0`, `layout.css` `fc8e78d3fce0e8fe1ef557c4a4b60aee50ebd435a5901b5b21bca4530f9b5d20`, `layout.js` `2a153bfea6d9b63a522ccbdc9172cd7d39e9bb0cbce8224dc2356c02842975f1`.
+TOTP-Approval: `28492b06ae4402bf9dba9846b33791dc` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.3.3 sowie HSTS, CSP, nosniff, DENY und no-referrer.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen

@@ -1,7 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.3 ist dokumentiert und lokal geprüft; die Produktivverifikation folgt
-dem externen TOTP-Schritt.
+Stand: 2026-09-09. Version 2.3.3 ist dokumentiert, lokal geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.3.3
 
@@ -11,6 +10,9 @@ dem externen TOTP-Schritt.
   gelöschter Datensätze sind im Anwendungscode und Vertragstest verankert.
 - Sitzungskontext bleibt bis «Gedächtnis löschen» erhalten; die Ausgabe ist kompakt und chronologisch.
 - PHP-Lint, Kernregressionen, Hilfe-Generator und 3'785 Hilfe-Inhaltsprüfungen bestanden.
+- Nach TOTP-Freigabe `28492b06ae4402bf9dba9846b33791dc` sind lokale und produktive öffentliche
+  Dateien bytegleich; `index.php` hat SHA-256 `dbd9664839b775c8a940f184fda6e345e04aba3bc8311f690bb30ee9bb9c6ac1`.
+- HTTPS liefert HTTP 200, Version 2.3.3 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 
 ## Prüfstand 2.3.2

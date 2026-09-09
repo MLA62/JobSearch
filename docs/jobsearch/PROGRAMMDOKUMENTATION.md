@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.3 ist lokal geprüft; das Deployment wird über den dokumentierten TOTP-Ablauf verifiziert.
+Stand: 2026-09-09. Version 2.3.3 ist lokal geprüft und produktiv verifiziert (Commit `dbde138`).
 
 ## Admin-KI-Konsole 2.3.3
 
