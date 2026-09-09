@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.0.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.1.
+
+Ergänzung 2.4.1: Die bei einer Firma ausgewiesene Bewerbungszahl muss genau den aktiven,
+nicht gelöschten Bewerbungen zu aktiven Jobs dieser Firma entsprechen. Die Rolle einer Firma als
+Vermittler erzeugt keine Bewerbung bei dieser Firma. Der Firmenlink und seine Zielliste verwenden
+dieselbe Definition.
 
 Ergänzung 2.4.0: Die Admin-KI arbeitet nicht als einmaliger Textgenerator, sondern als begrenzter,
 mehrstufiger Operationsagent. Nach jedem Ausführungsfehler erhält sie die konkrete Ursache, korrigiert

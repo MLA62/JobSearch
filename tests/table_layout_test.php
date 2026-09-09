@@ -19,5 +19,9 @@ check(str_contains($source, 'class="job-room-details"') && str_contains($source,
 check(str_contains($css, '.job-room-details[hidden] { display: none; }'), 'Hidden Job-Room details do not occupy space');
 check(str_contains($source, "sfHeader('applications','latest_workflow_at'"), 'Workflow date retains independent sort and filter');
 check(str_contains($source, "sfHeader('jobs','created_at'"), 'Job date retains independent sort and filter');
+check(str_contains($source, 'JOIN jobs j2 ON j2.id=a.job_id AND j2.owner_user_id=c.owner_user_id AND j2.deleted_at IS NULL WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND j2.company_id=c.id) application_count'), 'Company application count includes only owned active direct applications');
+check(!str_contains($source, '(j2.company_id=c.id OR a.intermediary_company_id=c.id)'), 'Intermediary relation is not counted as a company application');
+check(str_contains($source, 'JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.user_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.owner_user_id=a.user_id AND c.deleted_at IS NULL'), 'Application lists include only owned active jobs and companies');
+check(str_contains($source, "if(\$appCompanyFilter>0){ \$appSql.=' AND j.company_id=?';"), 'Company application link filters the same direct relation as its count');
 check(str_contains($source, "if ($" . "action === 'apply_workflow_migration')"), 'Migration requires explicit reviewed action');
 echo "All table layout checks passed.\n";

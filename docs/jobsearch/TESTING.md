@@ -3,6 +3,10 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.4.1: `table_layout_test.php` stellt sicher, dass Firmen nur aktive direkte Bewerbungen
+zu aktiven eigenen Jobs zählen, Vermittlerbeziehungen nicht mitgezählt werden und Firmenlink sowie
+Bewerbungsfilter dieselbe Relation verwenden.
+
 Ergänzung 2.4.0: `admin_ai_agent_loop_test.php` reproduziert den gemeldeten Auftrag zur Erstellung
 eines generativen Jobprofils mit Profil- und CV-Bezug. Geprüft werden Schreibabsicht, vier begrenzte
 Agentenrunden, konkrete Ausführungsrückmeldung, aktualisierter Plattformkontext, zwingende Nachprüfung

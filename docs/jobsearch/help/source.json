@@ -1,5 +1,5 @@
 {
-  "version": "2.4.0",
+  "version": "2.4.1",
   "reviewed": "2026-09-09",
   "locales": [
     "de-CH",
@@ -528,7 +528,7 @@
             "Öffne zugehörige Stellen, Bewerbungen oder Kontakte über die jeweiligen Links."
           ],
           "tips": [
-            "Eine Firmenverknüpfung ist keine Bewerbung. Strasse, PLZ/Ort und Telefon stehen getrennt in der Übersicht."
+            "Die Bewerbungszahl einer Firma zählt nur aktive Bewerbungen zu aktiven Jobs dieser Firma. Eine Vermittler-Verknüpfung ist keine Bewerbung bei dieser Firma."
           ]
         },
         "fr-CH": {
@@ -540,7 +540,7 @@
             "Ouvre les offres, candidatures ou contacts associés via leurs liens."
           ],
           "tips": [
-            "Un lien vers une entreprise n’est pas une candidature. Rue, NPA/localité et téléphone sont affichés séparément."
+            "Le nombre de candidatures d’une entreprise compte uniquement les candidatures actives liées à ses offres actives. Un lien d’intermédiaire n’est pas une candidature auprès de cette entreprise."
           ]
         },
         "en-GB": {
@@ -552,7 +552,7 @@
             "Open related jobs, applications or contacts through their links."
           ],
           "tips": [
-            "A company relationship is not an application. Street, postcode/town and telephone appear separately."
+            "A company’s application count includes only active applications for that company’s active jobs. A recruiter relationship is not an application to that company."
           ]
         },
         "pt-BR": {
@@ -564,7 +564,7 @@
             "Abra vagas, candidaturas ou contatos associados pelos respectivos links."
           ],
           "tips": [
-            "Um vínculo com uma empresa não é uma candidatura. Rua, CEP/cidade e telefone aparecem separados."
+            "A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa."
           ]
         },
         "es-MX": {
@@ -576,7 +576,7 @@
             "Abre vacantes, solicitudes o contactos asociados mediante sus enlaces."
           ],
           "tips": [
-            "Un vínculo con una empresa no es una solicitud. Calle, código postal/localidad y teléfono aparecen separados."
+            "El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa."
           ]
         }
       }

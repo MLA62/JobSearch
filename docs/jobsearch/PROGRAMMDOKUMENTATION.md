@@ -1,6 +1,13 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.4.0 ist implementiert, getestet und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.4.1 ist implementiert und für das Deployment vorbereitet.
+
+## Eindeutige Firmen-Bewerbungszahl 2.4.1
+
+Die korrelierte Firmenabfrage zählt nur `applications.deleted_at IS NULL` über einen ebenfalls aktiven
+Job mit `jobs.company_id = companies.id`. `applications.intermediary_company_id` ist ausdrücklich
+keine Bewerbung bei der Vermittlerfirma. Die Firmenfilterung der Bewerbungsseite verwendet exakt
+dieselbe direkte Arbeitgeberbeziehung und blendet Bewerbungen zu gelöschten Jobs oder Firmen aus.
 
 ## Mehrstufiger Admin-KI-Agent 2.4.0
 

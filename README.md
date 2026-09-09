@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 09.09.2026. Version 2.4.0 ist produktiv. Die Admin-KI arbeitet als mehrstufiger Operationsagent; der Schnellimport zeigt Verarbeitung, Fortschritt, Verlauf und Abbruch in einem modalen Dialog.
-Release-Dokumentation: [Release 2.4.0](docs/jobsearch/RELEASE-2.4.0.md).
+Stand: 09.09.2026. Version 2.4.1 korrigiert die Firmen-Bewerbungszahl: Sie zählt nur aktive Bewerbungen zu aktiven Jobs der betreffenden Firma.
+Release-Dokumentation: [Release 2.4.1](docs/jobsearch/RELEASE-2.4.1.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

@@ -3237,11 +3237,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.companies.tips.0' =>
   array (
-    'de-CH' => 'Eine Firmenverknüpfung ist keine Bewerbung. Strasse, PLZ/Ort und Telefon stehen getrennt in der Übersicht.',
-    'fr-CH' => 'Un lien vers une entreprise n’est pas une candidature. Rue, NPA/localité et téléphone sont affichés séparément.',
-    'en-GB' => 'A company relationship is not an application. Street, postcode/town and telephone appear separately.',
-    'pt-BR' => 'Um vínculo com uma empresa não é uma candidatura. Rua, CEP/cidade e telefone aparecem separados.',
-    'es-MX' => 'Un vínculo con una empresa no es una solicitud. Calle, código postal/localidad y teléfono aparecen separados.',
+    'de-CH' => 'Die Bewerbungszahl einer Firma zählt nur aktive Bewerbungen zu aktiven Jobs dieser Firma. Eine Vermittler-Verknüpfung ist keine Bewerbung bei dieser Firma.',
+    'fr-CH' => 'Le nombre de candidatures d’une entreprise compte uniquement les candidatures actives liées à ses offres actives. Un lien d’intermédiaire n’est pas une candidature auprès de cette entreprise.',
+    'en-GB' => 'A company’s application count includes only active applications for that company’s active jobs. A recruiter relationship is not an application to that company.',
+    'pt-BR' => 'A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa.',
+    'es-MX' => 'El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa.',
   ),
   'help.v2.companies.title' =>
   array (
@@ -10609,7 +10609,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.0','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.1','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14420,7 +14420,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.0';
+$codeVersion = '2.4.1';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15714,7 +15714,7 @@ startUiTranslationBuffer($appLocale);
         $companySfFields = ['name'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'address'=>['label'=>tr('companies.address_phone'),'expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.postal_code, c.city, c.phone)'], 'role'=>['label'=>tr('companies.role_intermediary'),'expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")', 'choices'=>['Direkt'=>tr('companies.direct_company'),'Vermittler'=>tr('companies.intermediary')]], 'links'=>['label'=>tr('companies.links'),'expr'=>'CAST(c.updated_at AS CHAR)']];
         $companySf = sfState('companies', $companySfFields, ['sort'=>'name','dir'=>'asc']);
         $companyPreserve = ['page'=>'companies', 'edit'=>$_GET['edit'] ?? ''];
-        $companySql='SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND (j2.company_id=c.id OR a.intermediary_company_id=c.id)) application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL'; $companyTypes='i'; $companyVals=[userId()];
+        $companySql='SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id AND j2.owner_user_id=c.owner_user_id AND j2.deleted_at IS NULL WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND j2.company_id=c.id) application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL'; $companyTypes='i'; $companyVals=[userId()];
         $companySql .= sfApplySql($companySf, $companySfFields, $companyTypes, $companyVals);
         $companySql .= sfOrderSql($companySf, $companySfFields, 'name');
         $companyRows = dbAll($db, $companySql, $companyTypes, $companyVals);
@@ -15963,8 +15963,8 @@ startUiTranslationBuffer($appLocale);
         $appSfFields['applied_at'] = ['label'=>tr('applications.sent_at'),'expr'=>'a.applied_at','filter_expr'=>"CONCAT(DATE_FORMAT(a.applied_at, '%d.%m.%Y %H:%i'), ' ', a.applied_at)"];
         $appSf = sfState('applications', $appSfFields, ['sort'=>'title','dir'=>'asc']);
         $appPreserve = ['page'=>'applications', 'view'=>$appView, 'company_id'=>$appCompanyFilter ?: '', 'job_id'=>$appJobFilter ?: '', 'todo'=>$todoOnly ? '1' : '', 'edit'=>$_GET['edit'] ?? ''];
-        $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, '.$latestWorkflowAtSql.' latest_workflow_at, a.updated_at, j.title, j.company_id, c.name company_name, j.status job_status, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
-        if($appCompanyFilter>0){ $appSql.=' AND (j.company_id=? OR a.intermediary_company_id=?)'; $appTypes.='ii'; array_push($appVals,$appCompanyFilter,$appCompanyFilter); }
+        $appSql='SELECT a.id, a.job_id, a.intermediary_company_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, '.$latestWorkflowAtSql.' latest_workflow_at, a.updated_at, j.title, j.company_id, c.name company_name, j.status job_status, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.user_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.owner_user_id=a.user_id AND c.deleted_at IS NULL LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.user_id=? AND a.deleted_at IS NULL'; $appTypes='i'; $appVals=[userId()];
+        if($appCompanyFilter>0){ $appSql.=' AND j.company_id=?'; $appTypes.='i'; $appVals[]=$appCompanyFilter; }
         if($appJobFilter>0){ $appSql.=' AND a.job_id=?'; $appTypes.='i'; $appVals[]=$appJobFilter; }
         if($todoOnly){ $appSql.=" AND EXISTS (SELECT 1 FROM calendar_events ce WHERE ce.owner_user_id=a.user_id AND ce.application_id=a.id AND ce.status='planned' AND (ce.source_type IS NULL OR ce.source_type='workflow_appointment'))"; }
         $appSql .= sfApplySql($appSf, $appSfFields, $appTypes, $appVals);

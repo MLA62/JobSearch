@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.4.0 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.4.1 ist dokumentiert und für das Deployment vorbereitet.
+
+## Prüfstand 2.4.1
+
+- Firmen zählen nur aktive Bewerbungen zu aktiven eigenen Jobs; eine Vermittlerrolle zählt nicht als
+  Bewerbung bei der Vermittlerfirma.
+- Firmenzahl und verlinkte Bewerbungsansicht verwenden dieselbe direkte Arbeitgeberrelation.
+- Bewerbungslisten blenden Datensätze zu gelöschten Jobs oder Firmen aus.
+- Alle 34 PHP-Testdateien, 3'807 Hilfeprüfungen, 1'254 Hilfe-Seeds, 70 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Produktivhash, TOTP-Freigabe und öffentliche HTTP-Abnahme werden nach dem Deployment ergänzt.
 
 ## Prüfstand 2.4.0
 

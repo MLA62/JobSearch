@@ -1,6 +1,10 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.4.0.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.4.1.
+
+Ergänzung 2.4.1: Firmen zeigen Bewerbungen nur dann an, wenn ein aktiver Bewerbungsdatensatz zu
+einem aktiven Job genau dieser Firma besteht. Vermittlerbeziehungen werden im Firmenpfad dargestellt,
+aber nicht als Bewerbung der Vermittlerfirma gezählt.
 
 Ergänzung 2.4.0: Ein Admin-Auftrag durchläuft bis zu vier selbstständige Planungs-, Ausführungs- und
 Prüfrunden. Die App normalisiert und führt den Plan aus, gibt konkrete Datenbankfehler an die KI zurück,
