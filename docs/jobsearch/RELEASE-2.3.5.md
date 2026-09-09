@@ -1,6 +1,6 @@
 # Version 2.3.5 – Zuverlässige Admin-KI-Interaktion
 
-Stand: 09.09.2026. Das Deployment benötigt die externe TOTP-Freigabe.
+Stand: 09.09.2026. Das Deployment ist produktiv ausgeführt und verifiziert.
 
 ## Änderungen
 
@@ -19,5 +19,6 @@ Stand: 09.09.2026. Das Deployment benötigt die externe TOTP-Freigabe.
 - Hilfe- und Referenzgenerator im Prüfmodus
 - Chromium: konkrete HTTP-422-Antwort, Erfolg, Eingabeerhalt, Markdown, Modal und fehlender
   Dokument-Scroll bei 390×800, 1366×768 und 2048×1080
-- Nach Deployment: Dateihashes, HTTPS-/Security-Header, Datenbankmigration und angemeldeter
-  Admin-KI-Ablauf getrennt verifizieren
+- Produktive Dateihashes stimmen mit dem geprüften Release überein; HTTPS, Version und
+  Security-Header sind bestätigt.
+- Die `admin_ai_memory`-Startmigration läuft ohne protokollierten Fehler.

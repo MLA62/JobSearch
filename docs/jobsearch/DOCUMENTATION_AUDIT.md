@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.5 ist dokumentiert und lokal geprüft; die produktive TOTP-Freigabe steht noch aus.
+Stand: 2026-09-09. Version 2.3.5 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.3.5
 
@@ -9,8 +9,11 @@ Stand: 2026-09-09. Version 2.3.5 ist dokumentiert und lokal geprüft; die produk
   «Gedächtnis löschen» entfernt; die Eingabe besitzt zusätzlich einen Browser-Entwurf.
 - Der einleitende Erklärungstext ist entfernt.
 - Chromium prüft den echten produktiven Clientcode für Fehler- und Erfolgspfad sowie drei
-  Bildschirmgrössen ohne Dokument-Scroll. PHP-/Hilfe-/Dokumentationsprüfungen sind vor Deployment
-  vollständig auszuführen.
+  Bildschirmgrössen ohne Dokument-Scroll. PHP-, Hilfe- und Dokumentationsprüfungen sind vollständig
+  erfolgreich.
+- Die fünf Produktivdateien stimmen bytegenau mit dem geprüften Release überein. Die öffentliche
+  Seite liefert HTTP 200, Version 2.3.5 und die vorgesehenen Security-Header. Die neue
+  `admin_ai_memory`-Startmigration erzeugte keinen Serverfehler.
 
 ## Prüfstand 2.3.4
 
