@@ -1,7 +1,12 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-07. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
+
+Ergänzung 2.3.3: Der KI-Vertragstest prüft das strukturierte Operationsschema, die Allowlist aller
+freigegebenen Nutzer-Datentabellen, transaktionale Mehrfachausführung, Sitzungs-Gedächtnis und
+«Gedächtnis löschen». Responsive Browser-Tests prüfen weiterhin die statusbezogene
+Tabellen-/Kartendarstellung und die Admin-KI-Konsole mit 80%-Ausgabe- und 10%-Eingabefeld.
 
 Ergänzung 2.3.2: Responsive Browser-Tests prüfen die statusbezogene Tabellen-/Kartendarstellung und
 die Admin-KI-Konsole mit 80%-Ausgabe- und 10%-Eingabefeld.

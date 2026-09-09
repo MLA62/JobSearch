@@ -1,14 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.2 ist lokal geprüft und produktiv verifiziert (Commit `a391e99`).
+Stand: 2026-09-09. Version 2.3.3 ist lokal geprüft; das Deployment wird über den dokumentierten TOTP-Ablauf verifiziert.
 
-## Admin-KI-Konsole 2.3.2
+## Admin-KI-Konsole 2.3.3
 
 Unter Konto steht für Admins im eigenen Konto eine geschützte KI-Konsole bereit. Sie ist auf
 JeMa-Jobs-Daten, Workflows sowie belegte öffentliche Adress- und Kontaktrecherchen begrenzt.
-Massenoperationen werden als überprüfbarer Dry-Run-Vorschlag ausgegeben; Datenbankänderungen,
-E-Mails und externe Aktionen werden nicht automatisch ausgeführt. Ausgabe und Eingabe nutzen
-je ein breit angelegtes, mehrzeiliges und vertikal scrollbares Feld.
+Eine ausdrücklich beauftragte Einzel- oder Mehrfachoperation wird als strukturierter Plan erzeugt,
+gegen eine Allowlist der Nutzer-Datentabellen und Spalten geprüft und in einer Datenbanktransaktion
+ausgeführt. Bestehende Datensätze werden anhand stabiler Felder ergänzt; gelöschte Datensätze
+werden nicht reaktiviert. Sicherheits-, Geheimnis- und Audit-Tabellen, Löschungen, Identitätswechsel
+und das Versenden externer E-Mails bleiben gesperrt. Ausgabe und Eingabe nutzen je ein breit
+angelegtes, mehrzeiliges und vertikal scrollbares Feld; die Sitzung merkt sich bis zum Befehl
+`Gedächtnis löschen` die letzten Aufgaben und Ausführungsergebnisse.
 
 ## Security Hardening 2.3.0
 

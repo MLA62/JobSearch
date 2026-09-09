@@ -1,6 +1,17 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 08.09.2026. Aktuelles Verhalten für Release 2.3.2.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.3.
+
+## Admin-KI und Plattformdaten
+
+- Eine ausdrücklich beauftragte Recherche mit «erfassen», «speichern», «importieren», «aktualisieren»
+  oder einer Mehrfachoperation erzeugt strukturierte Tabellenoperationen und führt sie vollständig in
+  einer Transaktion aus.
+- Das gilt für die freigegebenen Nutzer-Datentabellen der Plattform, nicht nur für Firmen und Kontakte.
+  Bestehende Zeilen werden über Abgleichfelder ergänzt; Soft-Deleted-Zeilen bleiben gelöscht.
+- Authentisierung, Geheimnisse, Audit, Löschungen und der Versand externer E-Mails sind keine erlaubten
+  KI-Schreibziele. Das Ergebnis nennt kompakt die betroffenen Tabellen und IDs.
+- Der Kontext der letzten Aufgaben bleibt in der Admin-Sitzung und wird nur über «Gedächtnis löschen» entfernt.
 
 ## Manueller Schnellimport
 

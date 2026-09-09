@@ -26,6 +26,6 @@ securityCheck(str_contains($source, '$detectedMime') && str_contains($source, 'i
 securityCheck(str_contains($source, "header('Content-Security-Policy: sandbox')") && str_contains($source, "downloadDisposition((string)\$document['original_filename'])"), 'User documents are downloaded with sandbox and safe disposition');
 securityCheck(!str_contains($source, 'function interpolateSql('), 'The SQL interpolation fallback is removed');
 securityCheck(str_contains($schema, 'CREATE TABLE IF NOT EXISTS auth_rate_limits') && str_contains($schema, 'session_version'), 'Security schema migration is reproducible');
-securityCheck(str_contains($source, "\$codeVersion = '2.3.2'"), 'Application version is 2.3.2');
+securityCheck(str_contains($source, "\$codeVersion = '2.3.3'"), 'Application version is 2.3.3');
 
 echo "Security hardening contract passed.\n";

@@ -831,12 +831,15 @@ tbody tr:hover td { background: #fff7ed; }
 .application-card.is-rejected li { color: var(--content-text); }
 .job-card.is-rejected h3,
 .application-card.is-rejected h3 { color: var(--content-heading); }
-.admin-ai-console { width: 100%; }
-.admin-ai-intro { display: grid; gap: 4px; }
+.admin-ai-page { width: 100%; height: calc(100vh - 10rem); min-height: 32rem; max-height: calc(100vh - 10rem); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; overflow: hidden; }
+.admin-ai-console { width: 100%; min-height: 0; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 8px; overflow: hidden; }
+.admin-ai-intro { display: grid; gap: 4px; min-height: 0; }
+.admin-ai-output-wrap { display: flex; flex-direction: column; min-height: 0; }
 .admin-ai-output,
-.admin-ai-input { display: block; width: 100%; max-width: none; resize: vertical; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; }
-.admin-ai-output { min-height: 80vh; height: 80vh; max-height: 80vh; background: var(--surface-subtle); }
-.admin-ai-input { min-height: 10vh; height: 10vh; max-height: 24vh; }
+.admin-ai-input { display: block; width: 100%; max-width: none; resize: none; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; box-sizing: border-box; }
+.admin-ai-output { flex: 1 1 auto; min-height: 0; height: auto; max-height: none; background: var(--surface-subtle); resize: none; }
+.admin-ai-input { min-height: 10vh; height: 10vh; max-height: 10vh; }
+@media (max-height: 760px) { .admin-ai-page { height: calc(100vh - 7rem); max-height: calc(100vh - 7rem); min-height: 26rem; } .admin-ai-intro p { margin: 0; } }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }

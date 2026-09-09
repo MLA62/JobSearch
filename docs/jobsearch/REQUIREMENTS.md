@@ -1,12 +1,18 @@
 # Anforderungen
 
-Stand: 08.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.2.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.3.
+
+Ergänzung 2.3.3: Die Admin-KI führt ausdrücklich beauftragte Einzel- und Mehrfachoperationen
+transaktional in allen freigegebenen Nutzer-Datentabellen aus, darunter Profil-/Suchdaten, Firmen,
+Kontakte, Jobs, Bewerbungen, Dokumentmetadaten, Kalender, Logs, Tags und Berichte. Bestehende
+Datensätze werden über geprüfte Abgleichfelder ergänzt; gelöschte Datensätze werden nicht reaktiviert.
+Tabellen für Authentisierung, Geheimnisse und Audit sowie Löschungen und das Versenden von E-Mails
+bleiben gesperrt. Kontext und Ausführungsprotokoll bleiben bis «Gedächtnis löschen» in der Admin-Sitzung.
 
 Ergänzung 2.3.2: Nur Karten und Tabellenzeilen, die abgesagten Jobs zugeordnet sind,
 erhalten die hellere Inhaltsfarbe. Alle anderen Einträge bleiben in der bisherigen
 Standarddarstellung. Admins erhalten unter Konto eine eigene, plattformgebundene KI-Konsole mit
-80%-Ausgabefeld und 10%-Eingabefeld; öffentliche Adress-/Kontaktrecherche ist erlaubt, Massenoperationen
-werden zunächst als Dry-Run vorgeschlagen und nie automatisch ausgeführt.
+80%-Ausgabefeld und 10%-Eingabefeld; öffentliche Adress-/Kontaktrecherche ist erlaubt.
 
 Ergänzung 2.3.0: Passwort-Rücksetzlinks werden ausschließlich über die zentrale, serverseitige
 Betreiber-Mailkonfiguration versendet und niemals im anfordernden Browser angezeigt. Anmeldung,

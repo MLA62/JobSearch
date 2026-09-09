@@ -1,5 +1,5 @@
 {
-  "version": "2.3.2",
+  "version": "2.3.3",
   "reviewed": "2026-09-09",
   "locales": [
     "de-CH",
@@ -1419,11 +1419,12 @@
       "text": {
         "de-CH": {
           "title": "KI für Plattformoperationen",
-          "summary": "Admins können die KI für geprüfte Analysen, Massenoperationsvorschläge sowie öffentliche Adress- und Kontaktrecherchen nutzen.",
+          "summary": "Admins können die KI für geprüfte Analysen, öffentliche Recherchen und ausdrücklich beauftragte Einzel- oder Mehrfachoperationen in den Plattformtabellen nutzen.",
           "steps": [
             "Öffne unter Konto den Bereich JeMa Jobs KI; nur ein Admin im eigenen Konto erhält Zugriff.",
             "Formuliere eine konkrete Aufgabe mit Firmennamen, URLs oder Datensatzbezug. Die Ausgabe erscheint im grossen scrollbaren Feld.",
-            "Prüfe Quellen, Dubletten, Umfang und Rückweg. Datenbankänderungen, E-Mails und externe Aktionen werden nicht automatisch ausgeführt."
+            "Bei ausdrücklich beauftragten Erfassungen, Ergänzungen oder Mehrfachoperationen führt die KI die geprüften Änderungen transaktional in allen dafür freigegebenen Nutzer-Datentabellen der Plattform aus. Sicherheits-, Geheimnis- und Audit-Tabellen sowie das Versenden von E-Mails bleiben gesperrt.",
+            "Mit Gedächtnis löschen wird der Gesprächskontext für die nächste Aufgabe entfernt."
           ],
           "tips": [
             "Adress- und Kontaktsuchen dürfen nur der Ergänzung von Plattformdaten dienen. Geheimnisse, Passwörter und TOTP-Codes gehören nie in die Anweisung."
@@ -1431,11 +1432,12 @@
         },
         "fr-CH": {
           "title": "IA pour les opérations de la plateforme",
-          "summary": "Les admins peuvent utiliser l’IA pour des analyses contrôlées, des propositions d’opérations en masse et des recherches publiques d’adresses et de contacts.",
+          "summary": "Les admins peuvent utiliser l’IA pour des analyses contrôlées, des recherches publiques et des opérations individuelles ou multiples explicitement demandées dans les tables de la plateforme.",
           "steps": [
             "Ouvre JeMa Jobs IA sous Compte; seul un admin dans son propre compte y a accès.",
             "Formule une tâche précise avec noms d’entreprises, URL ou référence d’enregistrement. La sortie apparaît dans la grande zone défilante.",
-            "Vérifie les sources, doublons, périmètre et retour arrière. Les modifications, e-mails et actions externes ne sont jamais exécutés automatiquement."
+            "Pour les saisies, compléments ou opérations multiples explicitement demandés, l’IA exécute les modifications vérifiées de manière transactionnelle dans toutes les tables de données utilisateur autorisées. Les tables de sécurité, secrets et audit ainsi que l’envoi d’e-mails restent bloqués.",
+            "Effacer la mémoire supprime le contexte de la conversation pour la prochaine tâche."
           ],
           "tips": [
             "Les recherches d’adresses et de contacts servent uniquement à compléter les données de la plateforme. Ne saisis jamais de secrets, mots de passe ou codes TOTP."
@@ -1443,11 +1445,12 @@
         },
         "en-GB": {
           "title": "AI for platform operations",
-          "summary": "Admins can use AI for reviewed analysis, bulk-operation proposals and public address and contact research.",
+          "summary": "Admins can use AI for reviewed analysis, public research and explicitly requested single or multiple operations across platform tables.",
           "steps": [
             "Open JeMa Jobs AI under Account; only an admin in their own account can access it.",
             "Describe a concrete task with company names, URLs or record references. The output appears in the large scrollable field.",
-            "Review sources, duplicates, scope and rollback. Database changes, emails and external actions are never executed automatically."
+            "For explicitly requested capture, completion or multiple operations, AI executes validated changes transactionally in all permitted user-data tables. Security, secret and audit tables, as well as sending emails, remain blocked.",
+            "Clear memory removes the conversation context before the next task."
           ],
           "tips": [
             "Address and contact research must only complete platform data. Never enter secrets, passwords or TOTP codes."
@@ -1455,11 +1458,12 @@
         },
         "pt-BR": {
           "title": "IA para operações da plataforma",
-          "summary": "Administradores podem usar a IA para análises revisáveis, propostas de operações em massa e pesquisas públicas de endereços e contatos.",
+          "summary": "Administradores podem usar a IA para análises revisáveis, pesquisas públicas e operações individuais ou múltiplas explicitamente solicitadas nas tabelas da plataforma.",
           "steps": [
             "Abra IA do JeMa Jobs em Conta; somente um administrador na própria conta tem acesso.",
             "Descreva uma tarefa concreta com nomes de empresas, URLs ou referências de registros. A saída aparece no campo grande com rolagem.",
-            "Revise fontes, duplicidades, escopo e reversão. Alterações no banco, e-mails e ações externas nunca são executados automaticamente."
+            "Para registros, complementos ou operações múltiplas solicitados explicitamente, a IA executa as alterações validadas de forma transacional em todas as tabelas de dados do usuário autorizadas. Tabelas de segurança, segredos e auditoria, além do envio de e-mails, permanecem bloqueadas.",
+            "Limpar memória remove o contexto da conversa antes da próxima tarefa."
           ],
           "tips": [
             "Pesquisas de endereço e contato devem apenas completar dados da plataforma. Nunca insira segredos, senhas ou códigos TOTP."
@@ -1467,11 +1471,12 @@
         },
         "es-MX": {
           "title": "IA para operaciones de la plataforma",
-          "summary": "Los administradores pueden usar la IA para análisis revisables, propuestas de operaciones masivas e investigaciones públicas de direcciones y contactos.",
+          "summary": "Los administradores pueden usar la IA para análisis revisables, investigaciones públicas y operaciones individuales o múltiples solicitadas explícitamente en las tablas de la plataforma.",
           "steps": [
             "Abre IA de JeMa Jobs en Cuenta; solo un administrador en su propia cuenta tiene acceso.",
             "Describe una tarea concreta con nombres de empresas, URL o referencias de registros. La salida aparece en el campo grande con desplazamiento.",
-            "Revisa fuentes, duplicados, alcance y reversión. Los cambios de base, correos y acciones externas nunca se ejecutan automáticamente."
+            "Para registrar, completar u operar en varias filas de forma explícita, la IA ejecuta los cambios validados en una transacción en todas las tablas de datos del usuario autorizadas. Las tablas de seguridad, secretos y auditoría, así como el envío de correos, permanecen bloqueados.",
+            "Borrar memoria elimina el contexto de la conversación antes de la siguiente tarea."
           ],
           "tips": [
             "Las búsquedas de direcciones y contactos solo deben completar datos de la plataforma. Nunca introduzcas secretos, contraseñas o códigos TOTP."

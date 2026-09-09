@@ -1,10 +1,8 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.2 ist produktiv verifiziert.
-Quell-Commit: `a391e99b47120082955318411ea055866c2da518`.
-Produktiver `index.php`-SHA-256 (2.3.2): `6c3aea1c40955eb751e5145db3b820ed2471bd2177c165a8d263d2a16b7c8499`, 1'109'773 Bytes, Modus 0644.
-Produktiver `app.css`-SHA-256 (2.3.2): `81f943fcfda5f257014a1b51c8fd4aea67d20c7ce55f57f6ecb1bc3caba13834`, 49'345 Bytes, Modus 0644.
-TOTP-Approval: `520a958fd5ac813d3d2adcb723433f3b` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.3.2 sowie HSTS, CSP, nosniff, DENY und no-referrer.
+Stand: 2026-09-09. Release 2.3.3 ist lokal geprüft und für die externe TOTP-Freigabe vorbereitet.
+Quell-Commit: wird nach dem Release-Commit eingetragen.
+Produktive Hashes, Approval-ID und Live-HTTP-Prüfung werden nach der freigegebenen Ausführung eingetragen.
 Neuinstallation und Wiederherstellung: [REBUILD.md](REBUILD.md).
 
 ## Freigabegrenzen
@@ -48,6 +46,16 @@ Beim ersten Request werden die neuen Beschriftungen für KI-Instruktion, Aktion 
 es gibt keine Schemaänderung. Erst beim Öffnen einer Bewerbung mit mindestens einem leeren
 Textfeld werden fehlende Entwürfe ergänzt. Vorhandene Betreff-, E-Mail- und Motivationsfelder
 bleiben dabei unverändert. Eine KI-Überarbeitung erfolgt nur nach ausdrücklicher Benutzeraktion.
+
+## Datenwirkung von 2.3.3
+
+Die Admin-KI kann nach ausdrücklicher Anweisung in einer einzelnen Datenbanktransaktion mehrere
+Datensätze in den allow-gelisteten Nutzer-Datentabellen erfassen oder leere Felder ergänzen. Die
+Operationen werden vor der Ausführung auf Tabelle, Spalte, Benutzerbesitz, Referenzen und
+Soft-Delete-Status geprüft. Es werden keine gelöschten Datensätze reaktiviert, keine Sicherheits-,
+Geheimnis- oder Audit-Tabellen beschrieben und keine E-Mails versendet. Quellen werden, soweit das
+Zielobjekt ein Notizfeld besitzt, als Nachweis ergänzt. Der Sitzungs-Kontext ist nur im Admin-
+Benutzerkonto gespeichert und kann mit «Gedächtnis löschen» entfernt werden.
 
 ## Historische Datenwirkung von 1.18.1
 

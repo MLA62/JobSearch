@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.2 ist dokumentiert, lokal geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.3 ist dokumentiert und lokal geprüft; die Produktivverifikation folgt
+dem externen TOTP-Schritt.
+
+## Prüfstand 2.3.3
+
+- Die Admin-KI erzeugt ein striktes JSON-Operationsschema und kann ausdrücklich beauftragte Einzel-
+  und Mehrfachoperationen in allen freigegebenen Nutzer-Datentabellen transaktional ausführen.
+- Allowlist, gebundene Werte, Referenzauflösung, Ergänzung nichtleerer Datensätze und Nichtreaktivierung
+  gelöschter Datensätze sind im Anwendungscode und Vertragstest verankert.
+- Sitzungskontext bleibt bis «Gedächtnis löschen» erhalten; die Ausgabe ist kompakt und chronologisch.
+- PHP-Lint, Kernregressionen, Hilfe-Generator und 3'785 Hilfe-Inhaltsprüfungen bestanden.
+
 
 ## Prüfstand 2.3.2
 
