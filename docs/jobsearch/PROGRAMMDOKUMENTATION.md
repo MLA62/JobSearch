@@ -1,8 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.4 ist lokal geprüft und produktiv per Hash und HTTPS verifiziert (Commit `19a2e41`).
+Stand: 2026-09-09. Version 2.3.5 ist implementiert und lokal geprüft; das produktive Deployment benötigt die externe TOTP-Freigabe.
 
-## Admin-KI-Konsole 2.3.4
+## Admin-KI-Konsole 2.3.5
+
+Der Browser verarbeitet auch HTTP-422-Antworten als strukturiertes JSON und zeigt die konkrete
+Fehlerursache im Ausgabefeld. Er lädt die Seite bei einem Admin-KI-Fehler nicht mehr neu. Die
+laufende Eingabe bleibt serverseitig und zusätzlich als Browser-Entwurf erhalten.
+
+`admin_ai_memory` speichert pro Benutzer die Kontexte, das vollständige chronologische
+Ausgabeprotokoll, die letzte Anweisung und das Modell. Erfolg wie Fehlschlag wird
+gespeichert; nur «Gedächtnis löschen» entfernt diesen Zustand. Die Tabelle wird idempotent beim
+Start angelegt und ist zusätzlich als SQL-Migration dokumentiert. Der einleitende Erklärungstext
+ist entfernt; Ausgabe und Eingabe nutzen dadurch den verfügbaren Bildschirm direkt.
+
+## Admin-KI-Konsole 2.3.4 (historisch)
 
 Unter Konto steht für Admins im eigenen Konto eine geschützte KI-Konsole bereit. Sie ist auf
 JeMa-Jobs-Daten, Workflows sowie belegte öffentliche Adress- und Kontaktrecherchen begrenzt.
@@ -11,7 +23,7 @@ gegen eine Allowlist der Nutzer-Datentabellen und Spalten geprüft und in einer 
 ausgeführt. Bestehende Datensätze werden anhand stabiler Felder ergänzt; gelöschte Datensätze
 werden nicht reaktiviert. Sicherheits-, Geheimnis- und Audit-Tabellen, Löschungen, Identitätswechsel
 und das Versenden externer E-Mails bleiben gesperrt. Ausgabe und Eingabe nutzen je ein breit
-angelegtes, mehrzeiliges und vertikal scrollbares Feld; die Sitzung merkt sich bis zum Befehl
+angelegtes, mehrzeiliges und vertikal scrollbares Feld; die damalige Sitzung merkt sich bis zum Befehl
 `Gedächtnis löschen` die letzten Aufgaben und Ausführungsergebnisse.
 
 ## Security Hardening 2.3.0

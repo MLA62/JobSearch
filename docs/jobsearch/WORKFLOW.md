@@ -1,8 +1,13 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.4.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.5.
 
 ## Admin-KI und Plattformdaten
+
+Ergänzung 2.3.5: Die Anweisung wird vor dem API-Aufruf gespeichert. Erfolg und Fehler ergänzen den
+benutzergebundenen Datenbankkontext chronologisch; ein HTTP-Fehler wird als strukturierte Antwort
+im bestehenden Ausgabefeld verarbeitet und lädt die Seite nicht neu. Der Kontext endet erst durch
+«Gedächtnis löschen». Der bisherige Erklärungstext oberhalb der Ausgabe ist entfernt.
 
 Ergänzung 2.3.4: Jeder direkte Admin-Auftrag innerhalb der JeMa-Jobs-Plattform wird vollständig ausgeführt, auch als Einzel-, Mehrfach- oder Rechercheauftrag. Die Frage, ob ein Datensatz bereits erfasst wurde, wird als konkreter Datenbank-Lookup beantwortet. Die Ausgabe unterstützt Markdown, insbesondere **Fettdruck**, und wird sicher im Ausgabefeld gerendert.
 
@@ -13,7 +18,7 @@ Ergänzung 2.3.4: Jeder direkte Admin-Auftrag innerhalb der JeMa-Jobs-Plattform 
   Bestehende Zeilen werden über Abgleichfelder ergänzt; Soft-Deleted-Zeilen bleiben gelöscht.
 - Authentisierung, Geheimnisse, Audit, Löschungen und der Versand externer E-Mails sind keine erlaubten
   KI-Schreibziele. Das Ergebnis nennt kompakt die betroffenen Tabellen und IDs.
-- Der Kontext der letzten Aufgaben bleibt in der Admin-Sitzung und wird nur über «Gedächtnis löschen» entfernt.
+- Der Kontext der letzten Aufgaben bleibt benutzergebunden in der Datenbank und wird nur über «Gedächtnis löschen» entfernt.
 
 ## Manueller Schnellimport
 

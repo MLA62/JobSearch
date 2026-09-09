@@ -51,6 +51,8 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 
 ## POST-Aktionen
 
+- `admin_ai_clear_memory`
+- `admin_ai_request`
 - `admin_create_user`
 - `admin_delete_user`
 - `admin_reset_user_2fa`
@@ -142,7 +144,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 
 Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergaenzt werden. Werte sind bewusst nicht enthalten.
 
-`action`, `address`, `ai_text_instruction`, `answer_text`, `application_id`, `application_url`, `applied_at`, `available_from`, `base_entity`, `base_url`, `channel`, `city`, `company_id`, `company_ids[]`, `company_notes`, `company_phone`, `company_region_key`, `confirm_duplicate`, `contact_company_id`, `contact_email`, `contact_id`, `contact_notes`, `contract_term`, `cover_letter_text`, `csrf`, `cutoff_date`, `date`, `department`, `description`, `desired_benefits`, `desired_level`, `desired_locations`, `desired_roles`, `direction`, `display_type`, `document_description`, `document_id`, `document_language`, `document_return`, `document_scope`, `document_title`, `document_type_id`, `download_policy`, `email`, `email_body`, `email_subject`, `employment_types[]`, `ends_at`, `engagement_type`, `event_id`, `event_location`, `event_notes`, `event_request_id`, `event_status`, `event_title`, `event_type`, `excluded_industries`, `expires_at`, `facebook_url`, `first_name`, `fixed_term_end`, `fixed_term_start`, `from_email`, `from_name`, `google_calendar_id`, `id`, `imap_encryption`, `imap_host`, `imap_port`, `imap_sent_folder`, `import_payload`, `intermediary_company_id`, `is_active`, `is_admin`, `is_intermediary`, `job_id`, `job_ids[]`, `job_notes`, `job_room_interview`, `job_room_registration`, `job_room_result`, `job_url`, `language_codes[]`, `language_levels[]`, `last_name`, `link_id`, `link_name`, `link_url`, `linkedin_url`, `location_text`, `log_body`, `log_channel`, `log_id`, `log_status`, `mail_application_id`, `mail_application_status`, `mail_body`, `mail_channel`, `mail_company_id`, `mail_contact_id`, `mail_direction`, `mail_footer`, `mail_occurred_at`, `mail_subject`, `mobile`, `month`, `name`, `new_company_name`, `new_password`, `new_password_confirm`, `notes`, `occurred_at`, `online_notes`, `other_profile_url`, `outcome`, `page`, `password`, `password_confirm`, `permission`, `phone`, `platform_id`, `platform_ids[]`, `platform_name`, `platform_notes`, `portal_account`, `position`, `postal_code`, `preference_notes`, `preferred_language`, `preview_hash`, `primary_contact_id`, `purpose`, `question_id`, `question_text`, `recipient_email`, `reference_number`, `region_key`, `remote_preference`, `remove_language_indexes[]`, `replace_document_id`, `report_columns[]`, `report_description`, `report_dir`, `report_id`, `report_name`, `report_q`, `report_sort`, `report_status`, `return_to`, `salary_min`, `salary_period`, `save_sent_copy`, `search_location`, `search_query`, `search_url_template`, `set_primary`, `sf_clear_filter`, `sf_context`, `sf_field`, `sf_filter`, `sf_filter_multi[]`, `sf_reset`, `sf_sort`, `share_id`, `share_target`, `smtp_encryption`, `smtp_host`, `smtp_password`, `smtp_port`, `smtp_username`, `sort_order`, `source_url`, `starts_at`, `status`, `status_comment`, `subject`, `target_language`, `timezone`, `title`, `token`, `total_count`, `totp_code`, `translation_body`, `translation_target`, `translation_title`, `travel_percentage`, `user_document_id`, `user_document_ids[]`, `user_id`, `valid_from`, `valid_until`, `view`, `viewport`, `watermark_enabled`, `website`, `willing_to_relocate`, `workload_max`, `workload_min`, `workplace_type`, `x_url`
+`action`, `address`, `admin_ai_instruction`, `ai_text_instruction`, `answer_text`, `application_id`, `application_url`, `applied_at`, `available_from`, `base_entity`, `base_url`, `channel`, `city`, `company_id`, `company_ids[]`, `company_notes`, `company_phone`, `company_region_key`, `confirm_duplicate`, `contact_company_id`, `contact_email`, `contact_id`, `contact_notes`, `contract_term`, `cover_letter_text`, `csrf`, `cutoff_date`, `date`, `department`, `description`, `desired_benefits`, `desired_level`, `desired_locations`, `desired_roles`, `direction`, `display_type`, `document_description`, `document_id`, `document_language`, `document_return`, `document_scope`, `document_title`, `document_type_id`, `download_policy`, `email`, `email_body`, `email_subject`, `employment_types[]`, `ends_at`, `engagement_type`, `event_id`, `event_location`, `event_notes`, `event_request_id`, `event_status`, `event_title`, `event_type`, `excluded_industries`, `expires_at`, `facebook_url`, `first_name`, `fixed_term_end`, `fixed_term_start`, `from_email`, `from_name`, `google_calendar_id`, `id`, `imap_encryption`, `imap_host`, `imap_port`, `imap_sent_folder`, `import_payload`, `intermediary_company_id`, `is_active`, `is_admin`, `is_intermediary`, `job_id`, `job_ids[]`, `job_notes`, `job_room_interview`, `job_room_registration`, `job_room_result`, `job_url`, `language_codes[]`, `language_levels[]`, `last_name`, `link_id`, `link_name`, `link_url`, `linkedin_url`, `location_text`, `log_body`, `log_channel`, `log_id`, `log_status`, `mail_application_id`, `mail_application_status`, `mail_body`, `mail_channel`, `mail_company_id`, `mail_contact_id`, `mail_direction`, `mail_footer`, `mail_occurred_at`, `mail_subject`, `mobile`, `month`, `name`, `new_company_name`, `new_password`, `new_password_confirm`, `notes`, `occurred_at`, `online_notes`, `other_profile_url`, `outcome`, `page`, `password`, `password_confirm`, `permission`, `phone`, `platform_id`, `platform_ids[]`, `platform_name`, `platform_notes`, `portal_account`, `position`, `postal_code`, `preference_notes`, `preferred_language`, `preview_hash`, `primary_contact_id`, `purpose`, `question_id`, `question_text`, `recipient_email`, `reference_number`, `region_key`, `remote_preference`, `remove_language_indexes[]`, `replace_document_id`, `report_columns[]`, `report_description`, `report_dir`, `report_id`, `report_name`, `report_q`, `report_sort`, `report_status`, `return_to`, `salary_min`, `salary_period`, `save_sent_copy`, `search_location`, `search_query`, `search_url_template`, `set_primary`, `sf_clear_filter`, `sf_context`, `sf_field`, `sf_filter`, `sf_filter_multi[]`, `sf_reset`, `sf_sort`, `share_id`, `share_target`, `smtp_encryption`, `smtp_host`, `smtp_password`, `smtp_port`, `smtp_username`, `sort_order`, `source_url`, `starts_at`, `status`, `status_comment`, `subject`, `target_language`, `timezone`, `title`, `token`, `total_count`, `totp_code`, `translation_body`, `translation_target`, `translation_title`, `travel_percentage`, `user_document_id`, `user_document_ids[]`, `user_id`, `valid_from`, `valid_until`, `view`, `viewport`, `watermark_enabled`, `website`, `willing_to_relocate`, `workload_max`, `workload_min`, `workplace_type`, `x_url`
 
 ## Funktionssignaturen
 
@@ -209,6 +211,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function realUserId(): int`
 - `function sessionPresenceHash(): string`
 - `function requestHash(string $value): ?string`
+- `function authRateBuckets(string $scope, string $identity): array`
+- `function authRateAllowed(mysqli $db, string $scope, string $identity, int $windowSeconds): bool`
+- `function recordAuthAttempt(mysqli $db, string $scope, string $identity, int $limit, int $windowSeconds, int $lockSeconds): void`
+- `function clearAuthAttempts(mysqli $db, string $scope, string $identity): void`
 - `function touchUserPresence(mysqli $db, int $userId): void`
 - `function endUserPresenceSession(mysqli $db, int $userId): void`
 - `function isSupportImpersonation(): bool`
@@ -219,6 +225,25 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function outboundEmailEnabled(array $config): bool`
 - `function secretKey(array $config): string`
 - `function openAiConnectionCheck(array $config, int $userId): array`
+- `function adminAiPlatformContext(mysqli $db): array`
+- `function applyAdminAiMemoryMigration235(mysqli $db): void`
+- `function adminAiLoadState(mysqli $db, int $userId): array`
+- `function adminAiSaveState(mysqli $db, int $userId, array $state): void`
+- `function adminAiClearState(mysqli $db, int $userId): void`
+- `function adminAiAdminSchema(): array`
+- `function adminAiRequest(array $config, int $adminUserId, string $instruction, array $platformContext, array $memory = []): array`
+- `function adminAiSources(array $sources): array`
+- `function adminAiResearchNote(array $operation, array $sources): string`
+- `function adminAiUpsertCompany(mysqli $db, int $uid, array $operation, array $globalSources): array`
+- `function adminAiUpsertContact(mysqli $db, int $uid, int $companyId, array $operation, array $globalSources): array`
+- `function adminAiTableDefinitions(): array`
+- `function adminAiResolveReference(mysqli $db, int $uid, string $table, string $field, string $value): string`
+- `function adminAiTableUpsert(mysqli $db, int $uid, array $operation, array $globalSources): array`
+- `function adminAiRecordLookup(mysqli $db, int $uid, array $operation): array`
+- `function adminAiApplyOperations(mysqli $db, int $uid, array $operations, array $globalSources): array`
+- `function adminAiLogEntry(string $instruction, array $result, array $execution): string`
+- `function adminAiStatusQuestion(string $instruction): bool`
+- `function adminAiWriteIntent(string $instruction): bool`
 - `function openAiModelLabel(array $config): string`
 - `function encryptSecret(array $config, string $plain): ?string`
 - `function decryptSecret(array $config, ?string $stored): string`
@@ -232,6 +257,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function linkifyEscapedText(string $escapedText): string`
 - `function htmlMailBody(string $textBody, ?string $footer = null): string`
 - `function buildMailMessage(array $config, string $to, string $subject, string $textBody, array $attachments = []): string`
+- `function publicMailEndpoint(string $host, int $port, array $allowedPorts): array`
 - `function sendSmtpMail(array $config, string $to, string $subject, string $textBody, array $attachments = []): string`
 - `function imapQuote(string $value): string`
 - `function imapReadTaggedResponse($stream, string $tag): array`
@@ -252,6 +278,9 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function verifyTotpCode(string $secret, string $code): bool`
 - `function totpUri(array $config, array $user, string $secret): string`
 - `function activeTotpMethod(mysqli $db, int $userId): ?array`
+- `function totpSecretValue(array $config, string $stored): string`
+- `function migratePlainTotpSecrets(mysqli $db, array $config): void`
+- `function applySecurityDataMigration230(mysqli $db, array $config): void`
 - `function shareToken(): string`
 - `function shareTokenHash(string $token): string`
 - `function deviceHash(): string`
@@ -354,11 +383,11 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function storageRoot(): string`
 - `function ensureDocumentStorage(int $userId): string`
 - `function uploadDocumentFile(array $file, int $userId): array`
+- `function downloadDisposition(string $filename, string $mode = 'attachment'): string`
 - `function dbOne(mysqli $db, string $sql, string $types = '', array $values = []): ?array`
 - `function dbAll(mysqli $db, string $sql, string $types = '', array $values = []): array`
 - `function statementRows(mysqli_stmt $stmt, ?int $limit = null): array`
 - `function queryRowsWithoutMysqlnd(mysqli $db, string $sql, string $types = '', array $values = [], ?int $limit = null): array`
-- `function interpolateSql(mysqli $db, string $sql, string $types, array $values): string`
 - `function applicationDocumentAttachmentState(mysqli $db, int $userId, int $applicationId): array`
 - `function applicationDocumentFiles(mysqli $db, int $userId, int $applicationId): array`
 - `function zipSafeName(string $filename, array &$used): string`
@@ -384,6 +413,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function matchJob(array $job): array`
 - `function repairMojibake(string $value): string`
 - `function plainText(string $value): string`
+- `function adminAiOutputText(string $value, int $limit = 1600): string`
 - `function readableText(string $value): string`
 - `function publicHttpUrl(string $url): bool`
 - `function extractImportUrls(string $payload): array`

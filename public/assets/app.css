@@ -837,8 +837,7 @@ tbody tr:hover td { background: #fff7ed; }
 .admin-ai-screen .container > .context-help-bar { position: absolute; top: 12px; right: 0; z-index: 2; }
 .admin-ai-screen footer { display: none; }
 .admin-ai-page { width: 100%; height: 100%; min-height: 0; max-height: none; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; overflow: hidden; }
-.admin-ai-console { width: 100%; min-height: 0; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 8px; overflow: hidden; }
-.admin-ai-intro { display: grid; gap: 4px; min-height: 0; }
+.admin-ai-console { width: 100%; min-height: 0; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; overflow: hidden; }
 .admin-ai-output-wrap { display: flex; flex-direction: column; min-height: 0; }
 .admin-ai-output,
 .admin-ai-input { display: block; width: 100%; max-width: none; resize: none; overflow-y: auto; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; box-sizing: border-box; }
@@ -857,7 +856,7 @@ tbody tr:hover td { background: #fff7ed; }
 .admin-ai-output a { text-decoration: underline; }
 .admin-ai-empty { color: var(--muted); font-weight: 600; }
 .admin-ai-input { min-height: 10vh; height: 10vh; max-height: 10vh; }
-@media (max-height: 760px) { .admin-ai-intro p { margin: 0; } .admin-ai-screen .container { padding-block: 6px; } }
+@media (max-height: 760px) { .admin-ai-screen .container { padding-block: 6px; } }
 .compact-table table { font-size: .86rem; }
 .compact-table th, .compact-table td { padding: 7px 10px; }
 .table-wrap td:not(:first-child) { font-size: .86rem; line-height: 1.28; }

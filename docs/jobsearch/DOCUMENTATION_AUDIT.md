@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.4 ist dokumentiert, lokal geprüft und produktiv per Hash und HTTPS verifiziert.
+Stand: 2026-09-09. Version 2.3.5 ist dokumentiert und lokal geprüft; die produktive TOTP-Freigabe steht noch aus.
+
+## Prüfstand 2.3.5
+
+- Eingabe und konkrete Fehlerantwort bleiben ohne Seiten-Reload sichtbar.
+- Kontext und Protokoll werden benutzergebunden in `admin_ai_memory` gespeichert und erst mit
+  «Gedächtnis löschen» entfernt; die Eingabe besitzt zusätzlich einen Browser-Entwurf.
+- Der einleitende Erklärungstext ist entfernt.
+- Chromium prüft den echten produktiven Clientcode für Fehler- und Erfolgspfad sowie drei
+  Bildschirmgrössen ohne Dokument-Scroll. PHP-/Hilfe-/Dokumentationsprüfungen sind vor Deployment
+  vollständig auszuführen.
 
 ## Prüfstand 2.3.4
 

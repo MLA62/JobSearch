@@ -1317,9 +1317,62 @@ ALTER TABLE applications
     ADD UNIQUE KEY uq_application_user_job (user_id, job_id, active_unique);
 ```
 
+## 16_security_hardening.sql
+
+```sql
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS session_version INT UNSIGNED NOT NULL DEFAULT 0 AFTER locked_until;
+
+CREATE TABLE IF NOT EXISTS auth_rate_limits (
+    bucket_key CHAR(64) PRIMARY KEY,
+    scope VARCHAR(32) NOT NULL,
+    failures SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    window_started_at DATETIME NOT NULL,
+    locked_until DATETIME NULL,
+    last_attempt_at DATETIME NOT NULL,
+    KEY idx_auth_rate_limits_cleanup (last_attempt_at),
+    KEY idx_auth_rate_limits_locked (locked_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+UPDATE auth_tokens
+   SET consumed_at=NOW()
+ WHERE token_type='password_reset'
+   AND consumed_at IS NULL;
+
+DELETE FROM auth_rate_limits WHERE last_attempt_at < DATE_SUB(NOW(), INTERVAL 7 DAY);
+```
+
+## 17_admin_ai_memory.sql
+
+```sql
+CREATE TABLE IF NOT EXISTS admin_ai_memory (
+    user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    context_json LONGTEXT NOT NULL,
+    output_log_json LONGTEXT NOT NULL,
+    last_instruction TEXT NULL,
+    model VARCHAR(120) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_admin_ai_memory_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
 ## Zusaetzliche Runtime-DDL
 
 Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PHP-Notation und gegebenenfalls Interpolation sind vor einer manuellen Ausfuehrung auf SQL aufzuloesen.
+
+```php
+"CREATE TABLE IF NOT EXISTS auth_rate_limits (
+        bucket_key CHAR(64) PRIMARY KEY,
+        scope VARCHAR(32) NOT NULL,
+        failures SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+        window_started_at DATETIME NOT NULL,
+        locked_until DATETIME NULL,
+        last_attempt_at DATETIME NOT NULL,
+        KEY idx_auth_rate_limits_cleanup (last_attempt_at),
+        KEY idx_auth_rate_limits_locked (locked_until)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+```
 
 ```php
 'ALTER TABLE record_translations MODIFY target_language CHAR(5) NOT NULL'
@@ -1556,6 +1609,10 @@ Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PH
 ```
 
 ```php
+'CREATE TABLE IF NOT EXISTS admin_ai_memory ('
+```
+
+```php
 "ALTER TABLE applications ALTER COLUMN job_room_registration SET DEFAULT 'not_recorded'"
 ```
 
@@ -1635,6 +1692,10 @@ ensureColumn($db, 'jobs', 'notes', '`notes` LONGTEXT NULL', 'description');
 
 ```php
 ensureColumn($db, 'users', 'linkedin_url', '`linkedin_url` VARCHAR(500) NULL', 'mobile');
+```
+
+```php
+ensureColumn($db, 'users', 'session_version', '`session_version` INT UNSIGNED NOT NULL DEFAULT 0', 'locked_until');
 ```
 
 ```php

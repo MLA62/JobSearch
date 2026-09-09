@@ -1,6 +1,11 @@
 # Deployment und Betrieb
 
 Stand: 2026-09-09. Release 2.3.4 ist produktiv verifiziert.
+
+Release 2.3.5 ist lokal vorbereitet. Geplant sind `index.php`, `.htaccess`, `app.css`,
+`layout.css` und `layout.js`; die Ausführung wartet auf die externe TOTP-Freigabe. Der erste
+Seitenaufruf legt `admin_ai_memory` idempotent an. Produktive Hashes und angemeldete Abnahme
+werden erst nach ausgeführtem Deployment ergänzt.
 Quell-Commit: `19a2e414be5d4aa504943148c9a05eb528577c53`.
 Produktiver `index.php`-SHA-256 (2.3.4): `5ba5f649dbea8ca203d992bf8ff7dc9261597f1e9ed66cf0c7cca0f1ed9007c5`, 1'153'775 Bytes, Modus 0644.
 Produktiver `app.css`-SHA-256 (2.3.4): `4dbefea60d2976453cd05de869d69952aa25b83ffd07b0b647e1596943d4204d`, 51'068 Bytes, Modus 0644.

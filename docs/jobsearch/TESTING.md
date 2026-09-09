@@ -3,6 +3,13 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.3.5: `admin_ai_console_test.cjs` führt das echte produktive Browser-Skript in Chromium
+aus. Der Test simuliert eine konkrete HTTP-422-Fehlermeldung und danach eine erfolgreiche Antwort;
+er prüft Eingabeerhalt, sichtbares Fehlerdetail, Markdown, Dialog-Lebenszyklus sowie fehlenden
+Seitenscroll bei 390×800, 1366×768 und 2048×1080. Der PHP-Vertragstest prüft zusätzlich die
+Datenbankmigration, das Speichern vor dem API-Aufruf, Fehlerkontext und das Entfernen des
+Einleitungstexts. Ein echter OpenAI-/Produktionsdaten-Aufruf bleibt eine getrennte angemeldete Abnahme.
+
 Ergänzung 2.3.4: Zusätzlich prüft der KI-Vertragstest direkte Ausführung ohne Vorschlagsmodus,
 Statusfragen mit `record_lookup`, Markdown-Ausgabe mit sicherem **Fettdruck** und die bildschirmfeste
 Admin-Konsole ohne Dokument-Scroll. Der KI-Vertragstest prüft weiterhin das strukturierte Operationsschema, die Allowlist aller

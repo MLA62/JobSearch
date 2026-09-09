@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.3.4' => "\$codeVersion = '2.3.4'",
+    'version 2.3.5' => "\$codeVersion = '2.3.5'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
@@ -35,7 +35,17 @@ $checks = [
     'admin AI direct execution' => 'Ein direkter Admin-Auftrag ist verbindlich',
     'admin AI markdown renderer' => 'window.renderAdminAiMarkdown',
     'admin AI memory' => "\$_SESSION['admin_ai_context']",
+    'admin AI durable memory table' => 'CREATE TABLE IF NOT EXISTS admin_ai_memory',
+    'admin AI durable memory load' => 'function adminAiLoadState',
+    'admin AI durable memory save' => 'function adminAiSaveState',
+    'admin AI complete memory is sent' => "'previous_context' => \$memory",
+    'admin AI instruction saved before request' => "\$state['instruction'] = \$instruction;",
+    'admin AI failure retained in context' => "'summary'=>'Fehlgeschlagen: '",
+    'admin AI JSON errors parsed before status handling' => "let result = null;",
+    'admin AI errors do not reload page' => "if (action === 'admin_ai_request' && error?.name !== 'AbortError')",
+    'admin AI browser draft retained' => "jema-admin-ai-draft",
     'admin AI clear memory' => "admin_ai_clear_memory",
+    'admin AI clear works with empty input' => 'value="admin_ai_clear_memory" formnovalidate',
     'admin AI JSON fetch' => "'executed'=>\$execution['executed']",
     'rich editor values synchronized first' => "source.dispatchEvent(new Event('jema:richtext-sync'))",
     'autosave paused for AI submission' => "form.dispatchEvent(new Event('jema:manual-submit'))",
@@ -46,6 +56,7 @@ $checks = [
 foreach ($checks as $label => $needle) {
     if (!str_contains($php, $needle)) throw new RuntimeException('Missing ' . $label);
 }
+if (str_contains($php, 'class="admin-ai-intro"')) throw new RuntimeException('Obsolete admin AI intro is still rendered');
 
 foreach (['ai.work_title', 'ai.work_hint', 'ai.abort', 'footer.ai_notice'] as $key) {
     if (!isset($help['ui'][$key])) throw new RuntimeException('Missing UI key ' . $key);

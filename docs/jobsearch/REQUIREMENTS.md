@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.4.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.5.
+
+Ergänzung 2.3.5: Die Admin-KI darf eine eingegebene Anweisung weder bei Erfolg noch bei einem
+fachlichen oder technischen Fehler verlieren. Strukturierte Fehlerantworten werden im Ausgabefeld
+mit ihrer konkreten Ursache angezeigt und lösen keinen Seiten-Reload aus. Eingabe, chronologisches
+Ausführungsprotokoll und die letzten Kontexte werden benutzergebunden in der Datenbank gespeichert
+und bleiben über PHP-/Browser-Sitzungen hinweg erhalten, bis der Admin «Gedächtnis löschen» wählt.
+Ein Browser-Entwurf schützt die laufende Eingabe zusätzlich. Der einleitende Erklärungstext entfällt.
 
 Ergänzung 2.3.4: Ein direkter Admin-Auftrag innerhalb der Plattform wird vollständig ausgeführt, auch als Recherche, Einzel-, Mehrfach- oder Massenoperation. Eine Statusfrage wie „Hast Du die Firma erfasst?“ prüft den eigenen Datenbestand und meldet konkret gefunden/nicht gefunden. Die KI-Ausgabe ist Markdown-fähig; `**Text**` wird als Fettdruck dargestellt. Eingabe und Ausgabe bleiben ohne Seitenscroll gleichzeitig sichtbar.
 
