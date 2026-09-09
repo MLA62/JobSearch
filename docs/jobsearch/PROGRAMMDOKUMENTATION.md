@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.5 ist implementiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.6 ist implementiert und lokal geprüft; das produktive Deployment benötigt die externe TOTP-Freigabe.
+
+## Admin-KI-Konsole 2.3.6
+
+Der Browser hat `form.action` als Request-Ziel verwendet. In der realen Maske konnte das enthaltene
+Bedienelement `name="action"` diese DOM-Eigenschaft überlagern; der Fetch lief dadurch auf eine
+nicht vorhandene Adresse und erhielt HTTP 404. Die Zieladresse wird jetzt ausschließlich aus dem
+HTML-Attribut und andernfalls aus `window.location.href` gebildet. Der Chromium-Test nutzt exakt die
+Produktionsstruktur und verweigert alle anderen Zielpfade. Nicht strukturierte HTTP-Antworten nennen
+zusätzlich den tatsächlich erreichten Endpunkt und bestätigen den Erhalt der Eingabe.
 
 ## Admin-KI-Konsole 2.3.5
 

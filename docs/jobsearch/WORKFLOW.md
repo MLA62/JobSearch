@@ -1,8 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.5.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.6.
 
 ## Admin-KI und Plattformdaten
+
+Ergänzung 2.3.6: Der asynchrone Formularaufruf verwendet die deklarierte Formularzieladresse oder
+die vollständige aktuelle Seitenadresse. Ein Button namens `action` kann das Request-Ziel nicht mehr
+überschreiben; der Auftrag gelangt dadurch zuverlässig zum geschützten Admin-KI-Handler.
 
 Ergänzung 2.3.5: Die Anweisung wird vor dem API-Aufruf gespeichert. Erfolg und Fehler ergänzen den
 benutzergebundenen Datenbankkontext chronologisch; ein HTTP-Fehler wird als strukturierte Antwort

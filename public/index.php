@@ -2925,11 +2925,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.admin_ai.steps.3' =>
   array (
-    'de-CH' => 'Eingabe, Ergebnis und Fehlerdetails bleiben erhalten. Der Gesprächskontext wird benutzergebunden gespeichert und erst mit Gedächtnis löschen entfernt.',
-    'fr-CH' => 'La saisie, le résultat et les détails d’erreur sont conservés. Le contexte est stocké par utilisateur et supprimé uniquement avec Effacer la mémoire.',
-    'en-GB' => 'Input, result and specific error details are retained. Context is stored per user and removed only by Clear memory.',
-    'pt-BR' => 'A entrada, o resultado e os detalhes do erro permanecem disponíveis. O contexto é armazenado por usuário e removido apenas por Limpar memória.',
-    'es-MX' => 'La entrada, el resultado y los detalles del error se conservan. El contexto se guarda por usuario y solo se elimina con Borrar memoria.',
+    'de-CH' => 'Eingabe, Ergebnis und Fehlerdetails bleiben erhalten. Der Auftrag wird auf derselben geschützten Seite verarbeitet; der Gesprächskontext wird benutzergebunden gespeichert und erst mit Gedächtnis löschen entfernt.',
+    'fr-CH' => 'La saisie, le résultat et les détails d’erreur sont conservés. La demande est traitée sur la même page protégée; le contexte est stocké par utilisateur et supprimé uniquement avec Effacer la mémoire.',
+    'en-GB' => 'Input, result and specific error details are retained. The request is processed on the same protected page; context is stored per user and removed only by Clear memory.',
+    'pt-BR' => 'A entrada, o resultado e os detalhes do erro permanecem disponíveis. A solicitação é processada na mesma página protegida; o contexto é armazenado por usuário e removido apenas por Limpar memória.',
+    'es-MX' => 'La entrada, el resultado y los detalles del error se conservan. La solicitud se procesa en la misma página protegida; el contexto se guarda por usuario y solo se elimina con Borrar memoria.',
   ),
   'help.v2.admin_ai.summary' =>
   array (
@@ -10271,7 +10271,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.3.5','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.3.6','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14011,7 +14011,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.3.5';
+$codeVersion = '2.3.6';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -16138,7 +16138,9 @@ startUiTranslationBuffer($appLocale);
             const data = new FormData(form);
             data.set('action', action);
             data.set('_ai_fetch', '1');
-            const response = await fetch(form.action || window.location.href, {
+            const declaredAction = form.getAttribute('action');
+            const requestUrl = declaredAction ? new URL(declaredAction, document.baseURI).href : window.location.href;
+            const response = await fetch(requestUrl, {
                 method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal
             });
             let redirectTarget = response.url || window.location.href;
@@ -16151,9 +16153,10 @@ startUiTranslationBuffer($appLocale);
                 const output = document.querySelector('[data-admin-ai-output]');
                 const instructionInput = form.querySelector('[name="admin_ai_instruction"]');
                 if (instructionInput && typeof result?.instruction === 'string') instructionInput.value = result.instruction;
+                const responsePath = (() => { try { const url = new URL(response.url || requestUrl, window.location.href); return url.pathname + url.search; } catch { return requestUrl; } })();
                 const responseText = typeof result?.output === 'string' && result.output !== ''
                     ? result.output
-                    : '[FEHLER] ' + (typeof result?.error === 'string' && result.error !== '' ? result.error : (response.redirected ? 'Die Anmeldung ist abgelaufen. Die Eingabe bleibt erhalten; bitte melde dich erneut an.' : 'Die Serverantwort war kein gültiges KI-Ergebnis (HTTP ' + response.status + ').'));
+                    : '[FEHLER] ' + (typeof result?.error === 'string' && result.error !== '' ? result.error : (response.redirected ? 'Die Anmeldung ist abgelaufen. Die Eingabe bleibt erhalten; bitte melde dich erneut an.' : 'Der Server-Endpunkt ' + responsePath + ' lieferte HTTP ' + response.status + ' statt einer KI-Antwort. Die Eingabe bleibt gespeichert.'));
                 if (output) { output.dataset.raw = responseText; renderAdminAiMarkdown(output, responseText); output.scrollTop = output.scrollHeight; }
                 if (instructionInput) sessionStorage.setItem('jema-admin-ai-draft', instructionInput.value);
                 if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');

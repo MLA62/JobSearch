@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.5.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.6.
+
+Ergänzung 2.3.6: Der Admin-KI-Aufruf muss die Formularzieladresse über das HTML-Attribut
+ermitteln und darf sie nicht aus einer durch `name="action"` überschatteten DOM-Eigenschaft lesen.
+Ohne explizites `action`-Attribut wird an die vollständige aktuelle Seitenadresse einschließlich
+`?page=admin_ai` gesendet. Ein Browser-Vertragstest muss exakt diese Produktionsstruktur ohne
+künstlich gesetzte Zieladresse ausführen und jeden abweichenden Request-Pfad mit HTTP 404 ablehnen.
 
 Ergänzung 2.3.5: Die Admin-KI darf eine eingegebene Anweisung weder bei Erfolg noch bei einem
 fachlichen oder technischen Fehler verlieren. Strukturierte Fehlerantworten werden im Ausgabefeld

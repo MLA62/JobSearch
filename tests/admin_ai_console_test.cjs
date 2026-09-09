@@ -16,7 +16,7 @@ const html = `<!doctype html><html><head><meta name="viewport" content="width=de
 <header class="topbar"><div class="topbar-inner"><a class="brand">JeMa Jobs</a></div></header>
 <main class="container"><div class="admin-ai-page"><div class="page-head"><div><p class="eyebrow">KONTO</p><h1>KI für Plattformoperationen</h1></div><span>GPT-5.6 Luna<br>0 Kontexte gespeichert</span></div><section class="panel admin-ai-console">
   <div class="admin-ai-output-wrap"><span>Ausgabe</span><div class="admin-ai-output" data-admin-ai-output data-empty-placeholder="Noch keine Ausgabe"></div></div>
-  <form method="post" action="https://jema.test/admin-ai" class="stack admin-ai-form" data-admin-ai-form>
+  <form method="post" class="stack admin-ai-form" data-admin-ai-form>
     <input type="hidden" name="csrf" value="test">
     <label>Anweisung<textarea class="admin-ai-input" name="admin_ai_instruction" required></textarea></label>
     <div class="actions"><button class="primary" name="action" value="admin_ai_request">KI ausführen</button><button name="action" value="admin_ai_clear_memory" formnovalidate>Gedächtnis löschen</button></div>
@@ -30,18 +30,24 @@ const html = `<!doctype html><html><head><meta name="viewport" content="width=de
   try {
     const page = await browser.newPage();
     let requestCount = 0;
+    const requestUrls = [];
     await page.route('https://jema.test/**', async route => {
       if (route.request().isNavigationRequest()) {
         await route.fulfill({ status: 200, body: html, contentType: 'text/html' });
         return;
       }
       requestCount += 1;
+      requestUrls.push(route.request().url());
+      if (route.request().url() !== 'https://jema.test/?page=admin_ai') {
+        await route.fulfill({ status: 404, body: 'Not found', contentType: 'text/plain' });
+        return;
+      }
       const response = requestCount === 1
         ? { status: 422, body: JSON.stringify({ ok: false, error: 'OpenAI HTTP 400: test detail', output: '[FEHLER] OpenAI HTTP 400: test detail', instruction: 'Firma Cleeven erfassen', context_count: 1 }) }
         : { status: 200, body: JSON.stringify({ ok: true, output: '[DB] **Erfasst**: Firma Cleeven', instruction: 'Firma Cleeven erfassen', context_count: 2 }) };
       await route.fulfill({ ...response, contentType: 'application/json' });
     });
-    await page.goto('https://jema.test/admin-ai');
+    await page.goto('https://jema.test/?page=admin_ai');
     await page.addScriptTag({ content: productionScript });
 
     const input = page.locator('[name="admin_ai_instruction"]');
@@ -59,6 +65,7 @@ const html = `<!doctype html><html><head><meta name="viewport" content="width=de
     assert.equal(await input.inputValue(), 'Firma Cleeven erfassen', 'instruction survives success');
     assert.equal(await output.locator('strong').textContent(), 'Erfasst', 'Markdown output rendered');
     assert.equal(requestCount, 2, 'both request paths executed');
+    assert.deepEqual(requestUrls, ['https://jema.test/?page=admin_ai', 'https://jema.test/?page=admin_ai'], 'unnamed form action posts to the current production page despite action-named buttons');
     for (const viewport of [{ width: 390, height: 800 }, { width: 1366, height: 768 }, { width: 2048, height: 1080 }]) {
       await page.setViewportSize(viewport);
       const layout = await page.evaluate(() => {

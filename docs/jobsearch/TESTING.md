@@ -3,6 +3,11 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.3.6: `admin_ai_console_test.cjs` verwendet nun wie die produktive Maske kein
+`action`-Attribut am Formular und enthält weiterhin Buttons mit `name="action"`. Der Mock akzeptiert
+nur `/?page=admin_ai`; jede versehentlich aus einem Button erzeugte Zieladresse liefert HTTP 404.
+Damit bildet der Test den zuvor übersehenen Browserfehler reproduzierbar ab.
+
 Ergänzung 2.3.5: `admin_ai_console_test.cjs` führt das echte produktive Browser-Skript in Chromium
 aus. Der Test simuliert eine konkrete HTTP-422-Fehlermeldung und danach eine erfolgreiche Antwort;
 er prüft Eingabeerhalt, sichtbares Fehlerdetail, Markdown, Dialog-Lebenszyklus sowie fehlenden

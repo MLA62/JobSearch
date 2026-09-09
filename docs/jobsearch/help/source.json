@@ -1,5 +1,5 @@
 {
-  "version": "2.3.5",
+  "version": "2.3.6",
   "reviewed": "2026-09-09",
   "locales": [
     "de-CH",
@@ -1424,7 +1424,7 @@
             "Öffne unter Konto den Bereich JeMa Jobs KI; nur ein Admin im eigenen Konto erhält Zugriff.",
             "Formuliere eine konkrete Aufgabe mit Firmennamen, URLs oder Datensatzbezug. Jeder direkte Admin-Auftrag wird ausgeführt, auch als Einzel-, Mehrfach- oder Rechercheauftrag.",
             "Fragen wie «Hast Du die Firma erfasst?» werden als konkrete Datenbankprüfung beantwortet. Die Ausgabe unterstützt Markdown, einschliesslich **Fettdruck**, und nur das Ausgabefeld scrollt intern; Eingabe und Ausgabe bleiben gleichzeitig sichtbar.",
-          "Eingabe, Ergebnis und Fehlerdetails bleiben erhalten. Der Gesprächskontext wird benutzergebunden gespeichert und erst mit Gedächtnis löschen entfernt."
+          "Eingabe, Ergebnis und Fehlerdetails bleiben erhalten. Der Auftrag wird auf derselben geschützten Seite verarbeitet; der Gesprächskontext wird benutzergebunden gespeichert und erst mit Gedächtnis löschen entfernt."
           ],
           "tips": [
             "Adress- und Kontaktsuchen dürfen nur der Ergänzung von Plattformdaten dienen. Geheimnisse, Passwörter und TOTP-Codes gehören nie in die Anweisung."
@@ -1437,7 +1437,7 @@
             "Ouvre JeMa Jobs IA sous Compte; seul un admin dans son propre compte y a accès.",
             "Formule une tâche précise avec noms d’entreprises, URL ou référence d’enregistrement. Toute demande directe de l’administrateur est exécutée, individuellement, en groupe ou comme recherche.",
             "Les questions comme «As-tu enregistré l’entreprise?» sont vérifiées directement dans la base. La sortie prend en charge Markdown, notamment **le gras**, et seul le champ de sortie défile; l’entrée et la sortie restent visibles.",
-          "La saisie, le résultat et les détails d’erreur sont conservés. Le contexte est stocké par utilisateur et supprimé uniquement avec Effacer la mémoire."
+          "La saisie, le résultat et les détails d’erreur sont conservés. La demande est traitée sur la même page protégée; le contexte est stocké par utilisateur et supprimé uniquement avec Effacer la mémoire."
           ],
           "tips": [
             "Les recherches d’adresses et de contacts servent uniquement à compléter les données de la plateforme. Ne saisis jamais de secrets, mots de passe ou codes TOTP."
@@ -1450,7 +1450,7 @@
             "Open JeMa Jobs AI under Account; only an admin in their own account can access it.",
             "Describe a concrete task with company names, URLs or record references. Every direct administrator command is executed, whether single, multiple or research-oriented.",
             "Questions such as ‘Did you capture the company?’ are checked directly against the database. The output supports Markdown, including **bold**, and only the output field scrolls internally so input and output remain visible.",
-          "Input, result and specific error details are retained. Context is stored per user and removed only by Clear memory."
+          "Input, result and specific error details are retained. The request is processed on the same protected page; context is stored per user and removed only by Clear memory."
           ],
           "tips": [
             "Address and contact research must only complete platform data. Never enter secrets, passwords or TOTP codes."
@@ -1463,7 +1463,7 @@
             "Abra IA do JeMa Jobs em Conta; somente um administrador na própria conta tem acesso.",
             "Descreva uma tarefa concreta com nomes de empresas, URLs ou referências de registros. Toda instrução direta do administrador é executada, individualmente, em lote ou como pesquisa.",
             "Perguntas como ‘A empresa foi registrada?’ são verificadas diretamente na base. A saída aceita Markdown, inclusive **negrito**, e somente o campo de saída rola internamente; entrada e saída permanecem visíveis.",
-          "A entrada, o resultado e os detalhes do erro permanecem disponíveis. O contexto é armazenado por usuário e removido apenas por Limpar memória."
+          "A entrada, o resultado e os detalhes do erro permanecem disponíveis. A solicitação é processada na mesma página protegida; o contexto é armazenado por usuário e removido apenas por Limpar memória."
           ],
           "tips": [
             "Pesquisas de endereço e contato devem apenas completar dados da plataforma. Nunca insira segredos, senhas ou códigos TOTP."
@@ -1476,7 +1476,7 @@
             "Abre IA de JeMa Jobs en Cuenta; solo un administrador en su propia cuenta tiene acceso.",
             "Describe una tarea concreta con nombres de empresas, URL o referencias de registros. Toda orden directa del administrador se ejecuta, individualmente, en lote o como investigación.",
             "Las preguntas como ‘¿Registraste la empresa?’ se comprueban directamente en la base. La salida admite Markdown, incluido **negrita**, y solo el campo de salida se desplaza internamente; la entrada y la salida siguen visibles.",
-          "La entrada, el resultado y los detalles del error se conservan. El contexto se guarda por usuario y solo se elimina con Borrar memoria."
+          "La entrada, el resultado y los detalles del error se conservan. La solicitud se procesa en la misma página protegida; el contexto se guarda por usuario y solo se elimina con Borrar memoria."
           ],
           "tips": [
             "Las búsquedas de direcciones y contactos solo deben completar datos de la plataforma. Nunca introduzcas secretos, contraseñas o códigos TOTP."

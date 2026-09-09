@@ -1,6 +1,15 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.5 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.6 ist dokumentiert und lokal geprüft; die produktive TOTP-Freigabe steht noch aus.
+
+## Prüfstand 2.3.6
+
+- Der reale Formularaufbau ohne `action`-Attribut wird mit seinen `action`-benannten Buttons in
+  Chromium ausgeführt.
+- Ausschließlich die aktuelle Admin-KI-Seitenadresse wird vom Testserver akzeptiert; dadurch ist der
+  zuvor übersehene HTTP-404-Pfad reproduzierbar ausgeschlossen.
+- Eingabeerhalt, konkrete Fehler, Erfolg, Markdown, Modal und drei Bildschirmgrössen bleiben Teil
+  desselben Browsertests.
 
 ## Prüfstand 2.3.5
 

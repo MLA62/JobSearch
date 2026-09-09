@@ -1,6 +1,6 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.5 ist produktiv verifiziert.
+Stand: 2026-09-09. Release 2.3.5 ist produktiv verifiziert. Release 2.3.6 ist lokal vorbereitet und wartet auf die externe TOTP-Freigabe.
 
 Quell-Commit: `1c1a0ae1414ab74bc280b9d3dae52dff40d2f34d`.
 Produktiver `index.php`-SHA-256 (2.3.5): `20a7271c7de9425e684b16268689656137e6949fc9d5edc06b315d60a0a62549`, 1'160'201 Bytes, Modus 0644.
