@@ -13,6 +13,7 @@ uploads/
 logs/
 cache/
 tmp/
+deploy/*.zip
 
 # Python/local artifacts from the existing workspace
 __pycache__/

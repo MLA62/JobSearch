@@ -29,3 +29,11 @@ Datum: 09.09.2026
 - Neuer ausführbarer Regressionstest für den konkret beobachteten Cleeven-Fall.
 - Feldvertrag aller 20 freigegebenen Tabellen und alle unterstützten Fremdschlüsselarten geprüft.
 - Bestehende PHP-, Dokumentations-, Hilfe- und Chromium-Tests bleiben Bestandteil der Freigabe.
+
+## Deployment
+
+- Produktiv ausgerollt am 09.09.2026 über die externe TOTP-Freigabe.
+- Alle fünf übertragenen Dateien wurden nach dem Upload bytegenau mit dem geprüften lokalen Release
+  verglichen.
+- `https://jobs.jema.business/` liefert HTTP 200, Version 2.3.7 und die vorgesehenen
+  Security-Header.

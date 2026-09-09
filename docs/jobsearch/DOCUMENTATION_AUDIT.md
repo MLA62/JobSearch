@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.7 ist dokumentiert, lokal vollständig geprüft und für die produktive Freigabe vorbereitet.
+Stand: 2026-09-09. Version 2.3.7 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.3.7
 
@@ -11,8 +11,11 @@ Stand: 2026-09-09. Version 2.3.7 ist dokumentiert, lokal vollständig geprüft u
 - Die vollständige Suite mit 33 PHP-Testdateien ist erfolgreich; Hilfe-Generator (25 Themen in
   fünf Sprachen), Referenzgenerator, 3'796 Hilfeprüfungen, 68 Markdown-Dateien/61 Links sowie der
   echte Chromium-Test für die Admin-KI-Konsole sind erfolgreich.
-- Produktivdateien, HTTPS-Version und Security-Header werden nach der TOTP-Ausführung getrennt
-  bytegenau geprüft und anschließend in diesem Audit dokumentiert.
+- Nach TOTP-Freigabe `7f855985bdf44aca69021367617fe94e` stimmen alle fünf Produktivdateien
+  bytegenau mit dem geprüften Release überein. `index.php` hat SHA-256
+  `24fb8fa3a4886108e31f83dbafb61bc111d8c8502d60dd8223826ac04490049d` und 1'172'894 Bytes.
+  Die öffentliche Seite liefert HTTP 200, Version 2.3.7 sowie HSTS, CSP, `nosniff`, `DENY` und
+  `no-referrer`.
 
 ## Prüfstand 2.3.6
 
