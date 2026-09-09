@@ -1,6 +1,18 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.7.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.4.0.
+
+Ergänzung 2.4.0: Ein Admin-Auftrag durchläuft bis zu vier selbstständige Planungs-, Ausführungs- und
+Prüfrunden. Die App normalisiert und führt den Plan aus, gibt konkrete Datenbankfehler an die KI zurück,
+lädt Tabelleninventar und – bei entsprechendem Auftrag – Profil und aktuellen CV neu und lässt die KI
+Abhängigkeiten selbst korrigieren. Nach dem ersten erfolgreichen Schreibvorgang ist zwingend eine weitere
+Prüfrunde erforderlich. Erst ein bestätigter Abschluss mit mindestens einem ausgeführten Schreibvorgang
+beendet einen Änderungsauftrag.
+
+«Vorschlag erstellen» im Schnellimport startet zuerst die Quellenermittlung und verarbeitet danach
+jede gefundene Anzeige in einem eigenen, serverseitig gespeicherten Stapelschritt. Der modale Dialog
+zeigt den aktuellen Zähler und ergänzt den Verlauf nach jedem Import, jeder Aktualisierung oder jedem
+konkreten Fehler. Abbrechen stoppt die folgenden Stapelschritte.
 
 ## Admin-KI und Plattformdaten
 

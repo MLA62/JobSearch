@@ -1,6 +1,20 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.7 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.4.0 ist dokumentiert, vollständig geprüft und für das Deployment vorbereitet.
+
+## Prüfstand 2.4.0
+
+- Der gemeldete generative Jobprofil-Auftrag wird als Schreibauftrag erkannt und durch den neuen
+  mehrstufigen Agentenlauf verarbeitet. Konkrete Datenbankfehler führen zu einer selbstständigen
+  Korrekturrunde statt zum vorzeitigen Abbruch.
+- Profil, aktive Präferenzen, Sprachkenntnisse, aktueller CV und benutzerisolierte Tabelleninventare
+  stehen als aktualisierter Kontext bereit. Nach dem ersten Schreibvorgang folgt zwingend eine
+  Verifikationsrunde.
+- «Vorschlag erstellen» im Schnellimport öffnet einen echten modalen Fortschrittsdialog; Chromium
+  bestätigt Quellenermittlung, Laufzeit, Zähler, Verlauf je Anzeige, Abbrechen und Erfolgsnavigation.
+- Alle 34 PHP-Testdateien, 3'807 Hilfeprüfungen, 1'254 Hilfe-Seeds, 69 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Produktivhash, TOTP-Freigabe und öffentliche HTTP-Abnahme werden nach dem Deployment ergänzt.
 
 ## Prüfstand 2.3.7
 

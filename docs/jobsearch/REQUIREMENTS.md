@@ -1,6 +1,18 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.7.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.0.
+
+Ergänzung 2.4.0: Die Admin-KI arbeitet nicht als einmaliger Textgenerator, sondern als begrenzter,
+mehrstufiger Operationsagent. Nach jedem Ausführungsfehler erhält sie die konkrete Ursache, korrigiert
+den Operationsplan selbst und setzt denselben Auftrag fort. Schreibende Aufträge werden erst nach einer
+zusätzlichen Prüfung des neu geladenen Datenbestands als abgeschlossen gemeldet. Bezieht sich ein Auftrag
+auf Profil oder Lebenslauf, müssen das aktuelle Profil, Suchpräferenzen, Sprachkenntnisse und der aktuelle
+CV in die Bearbeitung einfliessen. Unvollständige Hilfsabfragen dürfen gültige Schreiboperationen nicht
+mehr abbrechen.
+
+Beim Schnellimport muss «Vorschlag erstellen» unmittelbar einen modalen Arbeitsdialog öffnen. Dieser
+zeigt Quellenaufbereitung, verstrichene Zeit, den aktuellen Zähler und einen chronologischen Verlauf
+pro Anzeige. Abbrechen beendet den Browserlauf und verhindert weitere Anzeigen im Stapel.
 
 Ergänzung 2.3.7: Vor jeder Admin-KI-Operation müssen Tabellenname, Feldnamen und Referenzfelder
 gegen die reale, serverseitige Allowlist normalisiert werden. Das vollständige beschreibbare Schema

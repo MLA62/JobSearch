@@ -1,5 +1,5 @@
 {
-  "version": "2.3.7",
+  "version": "2.4.0",
   "reviewed": "2026-09-09",
   "locales": [
     "de-CH",
@@ -332,7 +332,7 @@
           "title": "Stellen suchen",
       "summary": "Schnellimport übernimmt eine oder mehrere bekannte Anzeigen. Die profilbasierte Suche übernimmt deine Profilwerte; eigene Anpassungen bleiben gespeichert, bis du die Standardwerte erneut lädst.",
           "steps": [
-        "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile.",
+        "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.",
         "Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.",
         "Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Das Statusfenster meldet Fortschritt, Abschluss oder eine erreichte Suchgrenze.",
         "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
@@ -352,7 +352,7 @@
           "title": "Rechercher des offres",
       "summary": "L’import rapide reprend une ou plusieurs annonces connues. La recherche basée sur le profil conserve tes adaptations jusqu’au rechargement des valeurs par défaut.",
           "steps": [
-        "Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne.",
+        "Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.",
         "Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.",
         "Adapte les critères basés sur le profil et lance la recherche.",
         "Reprends une offre du tableau seulement après vérification."
@@ -372,7 +372,7 @@
           "title": "Search for jobs",
       "summary": "Quick import handles one or more known advertisements. Profile-based search keeps your changes until you load the defaults again.",
           "steps": [
-        "Paste one or more verified advertisement URLs into quick import, one per line.",
+        "Paste one or more verified advertisement URLs into quick import, one per line. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.",
         "Profile defaults deliberately replace all saved criteria with the current profile values.",
         "Adjust the profile-based criteria and start the job search.",
         "Take over a job from the result table only after reviewing it."
@@ -392,7 +392,7 @@
           "title": "Pesquisar vagas",
       "summary": "A importação rápida aceita uma ou mais vagas conhecidas. A busca baseada no perfil mantém suas alterações até recarregar os padrões.",
           "steps": [
-        "Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha.",
+        "Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.",
         "Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.",
         "Ajuste os critérios baseados no perfil e inicie a busca.",
         "Importe uma vaga da tabela somente após revisá-la."
@@ -412,7 +412,7 @@
           "title": "Buscar vacantes",
       "summary": "La importación rápida acepta una o varias vacantes conocidas. La búsqueda basada en el perfil conserva tus cambios hasta que cargas los valores predeterminados.",
           "steps": [
-        "Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea.",
+        "Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.",
         "Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.",
         "Ajusta los criterios basados en el perfil e inicia la búsqueda.",
         "Importa una vacante de la tabla solo después de revisarla."
@@ -1419,13 +1419,14 @@
       "text": {
         "de-CH": {
           "title": "KI für Plattformoperationen",
-          "summary": "Admins können die KI für Daten, Abläufe und Recherchen der Plattform nutzen; direkte Aufträge werden ausgeführt und Statusfragen prüfen den Datenbestand.",
+      "summary": "Admins können die KI als mehrstufigen Agenten für Daten, Abläufe und Recherchen der Plattform nutzen; Aufträge werden ausgeführt und anschliessend gegen den aktualisierten Datenbestand geprüft.",
           "steps": [
             "Öffne unter Konto den Bereich JeMa Jobs KI; nur ein Admin im eigenen Konto erhält Zugriff.",
             "Formuliere eine konkrete Aufgabe mit Firmennamen, URLs oder Datensatzbezug. Jeder direkte Admin-Auftrag wird ausgeführt, auch als Einzel-, Mehrfach- oder Rechercheauftrag.",
             "Fragen wie «Hast Du die Firma erfasst?» werden als konkrete Datenbankprüfung beantwortet. Die Ausgabe unterstützt Markdown, einschliesslich **Fettdruck**, und nur das Ausgabefeld scrollt intern; Eingabe und Ausgabe bleiben gleichzeitig sichtbar.",
           "Eingabe, Ergebnis und Fehlerdetails bleiben erhalten. Der Auftrag wird auf derselben geschützten Seite verarbeitet; der Gesprächskontext wird benutzergebunden gespeichert und erst mit Gedächtnis löschen entfernt.",
-            "Vor der Ausführung normalisiert die App Tabellen-, Feld- und Referenznamen gegen die reale Datenstruktur. Firmen-UID und Handelsregisterangaben werden als Identitätsdaten übernommen und nicht als erfundene Datenbankspalten behandelt."
+        "Vor der Ausführung normalisiert die App Tabellen-, Feld- und Referenznamen gegen die reale Datenstruktur. Firmen-UID und Handelsregisterangaben werden als Identitätsdaten übernommen und nicht als erfundene Datenbankspalten behandelt.",
+        "Die KI löst Folgeprobleme in bis zu vier selbstständigen Runden: Sie erhält konkrete Ausführungsfehler zurück, korrigiert Abhängigkeiten und verifiziert schreibende Aufträge mit dem neu geladenen Datenstand. Profil und aktueller Lebenslauf werden einbezogen, wenn der Auftrag darauf Bezug nimmt."
           ],
           "tips": [
             "Adress- und Kontaktsuchen dürfen nur der Ergänzung von Plattformdaten dienen. Geheimnisse, Passwörter und TOTP-Codes gehören nie in die Anweisung."
@@ -1433,13 +1434,14 @@
         },
         "fr-CH": {
           "title": "IA pour les opérations de la plateforme",
-          "summary": "Les admins peuvent utiliser l’IA pour les données, processus et recherches de la plateforme; les demandes directes sont exécutées et les questions vérifient la base.",
+      "summary": "Les admins peuvent utiliser l’IA comme agent en plusieurs étapes pour les données, processus et recherches; les demandes sont exécutées puis vérifiées dans l’état actualisé.",
           "steps": [
             "Ouvre JeMa Jobs IA sous Compte; seul un admin dans son propre compte y a accès.",
             "Formule une tâche précise avec noms d’entreprises, URL ou référence d’enregistrement. Toute demande directe de l’administrateur est exécutée, individuellement, en groupe ou comme recherche.",
             "Les questions comme «As-tu enregistré l’entreprise?» sont vérifiées directement dans la base. La sortie prend en charge Markdown, notamment **le gras**, et seul le champ de sortie défile; l’entrée et la sortie restent visibles.",
           "La saisie, le résultat et les détails d’erreur sont conservés. La demande est traitée sur la même page protégée; le contexte est stocké par utilisateur et supprimé uniquement avec Effacer la mémoire.",
-            "Avant l’exécution, l’application normalise tables, champs et références selon la structure réelle. L’IDE et le registre d’une entreprise sont conservés comme données d’identité et non traités comme des colonnes inventées."
+        "Avant l’exécution, l’application normalise tables, champs et références selon la structure réelle. L’IDE et le registre d’une entreprise sont conservés comme données d’identité et non traités comme des colonnes inventées.",
+        "L’IA résout les problèmes de suivi en quatre tours autonomes au maximum: elle reçoit les erreurs d’exécution précises, corrige les dépendances et vérifie les écritures dans l’état rechargé. Le profil et le CV actuel sont utilisés lorsque la demande les mentionne."
           ],
           "tips": [
             "Les recherches d’adresses et de contacts servent uniquement à compléter les données de la plateforme. Ne saisis jamais de secrets, mots de passe ou codes TOTP."
@@ -1447,13 +1449,14 @@
         },
         "en-GB": {
           "title": "AI for platform operations",
-          "summary": "Admins can use AI for this platform’s data, workflows and research; direct commands execute and questions check the database.",
+      "summary": "Admins can use AI as a multi-step agent for platform data, workflows and research; commands execute and are then verified against refreshed data.",
           "steps": [
             "Open JeMa Jobs AI under Account; only an admin in their own account can access it.",
             "Describe a concrete task with company names, URLs or record references. Every direct administrator command is executed, whether single, multiple or research-oriented.",
             "Questions such as ‘Did you capture the company?’ are checked directly against the database. The output supports Markdown, including **bold**, and only the output field scrolls internally so input and output remain visible.",
           "Input, result and specific error details are retained. The request is processed on the same protected page; context is stored per user and removed only by Clear memory.",
-            "Before execution, the app normalizes table, field and reference names against the real data structure. Company UID and register details are retained as identity data rather than treated as invented columns."
+        "Before execution, the app normalizes table, field and reference names against the real data structure. Company UID and register details are retained as identity data rather than treated as invented columns.",
+        "The AI resolves follow-up problems in up to four autonomous rounds: it receives exact execution errors, repairs dependencies and verifies writes against refreshed data. The profile and current CV are used when the instruction refers to them."
           ],
           "tips": [
             "Address and contact research must only complete platform data. Never enter secrets, passwords or TOTP codes."
@@ -1461,13 +1464,14 @@
         },
         "pt-BR": {
           "title": "IA para operações da plataforma",
-          "summary": "Administradores podem usar a IA para dados, processos e pesquisas da plataforma; instruções diretas são executadas e perguntas consultam a base.",
+      "summary": "Administradores podem usar a IA como agente de várias etapas para dados, processos e pesquisas; comandos são executados e verificados nos dados atualizados.",
           "steps": [
             "Abra IA do JeMa Jobs em Conta; somente um administrador na própria conta tem acesso.",
             "Descreva uma tarefa concreta com nomes de empresas, URLs ou referências de registros. Toda instrução direta do administrador é executada, individualmente, em lote ou como pesquisa.",
             "Perguntas como ‘A empresa foi registrada?’ são verificadas diretamente na base. A saída aceita Markdown, inclusive **negrito**, e somente o campo de saída rola internamente; entrada e saída permanecem visíveis.",
           "A entrada, o resultado e os detalhes do erro permanecem disponíveis. A solicitação é processada na mesma página protegida; o contexto é armazenado por usuário e removido apenas por Limpar memória.",
-            "Antes da execução, o aplicativo normaliza tabelas, campos e referências conforme a estrutura real. UID e registro da empresa são guardados como dados de identidade, não como colunas inventadas."
+        "Antes da execução, o aplicativo normaliza tabelas, campos e referências conforme a estrutura real. UID e registro da empresa são guardados como dados de identidade, não como colunas inventadas.",
+        "A IA resolve problemas subsequentes em até quatro rodadas autônomas: recebe erros exatos de execução, corrige dependências e verifica gravações nos dados recarregados. O perfil e o CV atual são usados quando a instrução se refere a eles."
           ],
           "tips": [
             "Pesquisas de endereço e contato devem apenas completar dados da plataforma. Nunca insira segredos, senhas ou códigos TOTP."
@@ -1475,13 +1479,14 @@
         },
         "es-MX": {
           "title": "IA para operaciones de la plataforma",
-          "summary": "Los administradores pueden usar la IA para datos, procesos e investigaciones de la plataforma; las órdenes directas se ejecutan y las preguntas consultan la base.",
+      "summary": "Los administradores pueden usar la IA como agente de varios pasos para datos, procesos e investigaciones; las órdenes se ejecutan y verifican con datos actualizados.",
           "steps": [
             "Abre IA de JeMa Jobs en Cuenta; solo un administrador en su propia cuenta tiene acceso.",
             "Describe una tarea concreta con nombres de empresas, URL o referencias de registros. Toda orden directa del administrador se ejecuta, individualmente, en lote o como investigación.",
             "Las preguntas como ‘¿Registraste la empresa?’ se comprueban directamente en la base. La salida admite Markdown, incluido **negrita**, y solo el campo de salida se desplaza internamente; la entrada y la salida siguen visibles.",
           "La entrada, el resultado y los detalles del error se conservan. La solicitud se procesa en la misma página protegida; el contexto se guarda por usuario y solo se elimina con Borrar memoria.",
-            "Antes de ejecutar, la aplicación normaliza tablas, campos y referencias según la estructura real. El UID y el registro de la empresa se conservan como datos de identidad y no como columnas inventadas."
+        "Antes de ejecutar, la aplicación normaliza tablas, campos y referencias según la estructura real. El UID y el registro de la empresa se conservan como datos de identidad y no como columnas inventadas.",
+        "La IA resuelve problemas posteriores en hasta cuatro rondas autónomas: recibe errores exactos de ejecución, corrige dependencias y verifica las escrituras con los datos recargados. El perfil y el CV actual se usan cuando la instrucción se refiere a ellos."
           ],
           "tips": [
             "Las búsquedas de direcciones y contactos solo deben completar datos de la plataforma. Nunca introduzcas secretos, contraseñas o códigos TOTP."

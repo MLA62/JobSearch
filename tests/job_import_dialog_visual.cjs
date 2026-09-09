@@ -56,5 +56,23 @@ const html = execFileSync('php',['-n',path.join(__dirname,'job_import_dialog_fix
    }
    assert.deepEqual(errors,[]);await page.close();console.log('PASS import dialog '+scenario);
   }
+  {
+   const page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   let releasePrepare,releaseSecond,processed=0;
+   await page.route('http://jema.test/**',async route=>{
+    const req=route.request();if(req.method()==='GET')return route.fulfill({contentType:'text/html',body:html});
+    const body=req.postData()||'';
+    if(body.includes('prepare_quick_import')){await new Promise(resolve=>releasePrepare=resolve);return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,done:false,token:'quick-token',total:2})});}
+    if(body.includes('process_quick_import')){processed++;if(processed===1)return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,done:false,processed:1,total:2,created:1,updated:0,failed:0,item_status:'created',host:'example.test',item_error:''})});await new Promise(resolve=>releaseSecond=resolve);return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,done:true,processed:2,total:2,created:1,updated:1,failed:0,item_status:'updated',host:'example.test',item_error:'',redirect:'/?page=jobs&edit=42#new'})});}
+    throw new Error('Unexpected quick-import request: '+body);
+   });
+   await page.goto('http://jema.test/');await page.locator('button[value="preview_import"]').click();await page.waitForFunction(()=>document.querySelector('dialog').open);
+   assert.match(await page.locator('[data-import-status]').innerText(),/Quellen/);assert.equal(await page.locator('[data-import-history-heading]').innerText(),'Verlauf');
+   while(!releasePrepare)await new Promise(r=>setTimeout(r,10));releasePrepare();
+   await page.waitForFunction(()=>document.querySelectorAll('[data-import-history] li').length===1);
+   assert.match(await page.locator('[data-import-history]').innerText(),/Importiert: example\.test/);assert.match(await page.locator('[data-import-status]').innerText(),/2\/2/);
+   assert.equal(await page.locator('[data-import-cancel]').isEnabled(),true);while(!releaseSecond)await new Promise(r=>setTimeout(r,10));releaseSecond();
+   await page.waitForURL('**/?page=jobs&edit=42#new');assert.deepEqual(errors,[]);await page.close();console.log('PASS quick import progress history');
+  }
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -40,6 +40,19 @@ normalizationAssert($job['table'] === 'jobs', 'Singular table alias was not norm
 normalizationAssert($job['match_field'] === 'source_url', 'Match-field alias was not normalized');
 normalizationAssert(($jobFields['company_id'] ?? '') === 'Cleeven HE IT' && ($jobFields['title'] ?? '') === 'Consultant' && ($jobFields['location_text'] ?? '') === 'Basel', 'Job aliases were not normalized');
 
+$jobLookup = adminAiNormalizeOperation([
+    'type'=>'record_lookup','execute'=>true,'table'=>'job','match_field'=>'','match_value'=>'',
+    'fields'=>[['name'=>'job_title','value'=>'Generatives Jobprofil Cleeven']],
+]);
+normalizationAssert($jobLookup['table'] === 'jobs', 'Lookup table alias was not normalized');
+normalizationAssert($jobLookup['match_field'] === 'title' && $jobLookup['match_value'] === 'Generatives Jobprofil Cleeven', 'Lookup match data was not inferred from fields');
+
+$companyLookup = adminAiNormalizeOperation([
+    'type'=>'record_lookup','execute'=>true,'table'=>'company','match_field'=>'','match_value'=>'',
+    'fields'=>[['name'=>'uid','value'=>'CHE-123.456.789']],
+]);
+normalizationAssert($companyLookup['match_field'] === 'uid' && $companyLookup['match_value'] === 'CHE-123.456.789', 'Company identity lookup was not inferred');
+
 $definitions = adminAiTableDefinitions();
 normalizationAssert(count($definitions) >= 20, 'The test does not cover the complete writable table set');
 foreach ($definitions as $table => $definition) {

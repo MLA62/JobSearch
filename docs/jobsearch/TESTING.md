@@ -3,6 +3,17 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.4.0: `admin_ai_agent_loop_test.php` reproduziert den gemeldeten Auftrag zur Erstellung
+eines generativen Jobprofils mit Profil- und CV-Bezug. Geprüft werden Schreibabsicht, vier begrenzte
+Agentenrunden, konkrete Ausführungsrückmeldung, aktualisierter Plattformkontext, zwingende Nachprüfung
+nach Schreibvorgängen und die Verwendung des Agentenlaufs im produktiven Handler.
+`admin_ai_operation_normalization_test.php` prüft zusätzlich die automatische Ableitung vollständiger
+Abgleichdaten für Job- und Firmenabfragen.
+
+Der Import-Dialogtest prüft in allen fünf Sprachen die drei Schnellimport-Endpunkte und den sichtbaren
+Verlauf. Chromium hält die Quellenermittlung und den zweiten Anzeigenabruf kontrolliert an und belegt,
+dass Dialog, Zeit, Zähler, Verlauf und anschliessende Navigation tatsächlich funktionieren.
+
 Ergänzung 2.3.7: `admin_ai_operation_normalization_test.php` reproduziert den produktiv beobachteten
 Cleeven-Operationsplan mit `table_upsert`, `companies` und dem logischen Feld `uid`. Der Test verlangt
 die Umleitung an den Firmenschreiber, den Erhalt von UID/Handelsregister und die Normalisierung der

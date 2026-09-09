@@ -65,6 +65,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `autosave_application`
 - `bulk_delete_companies`
 - `bulk_delete_jobs`
+- `cancel_quick_import`
 - `commit_job_import`
 - `complete_application_action`
 - `connect_google_calendar`
@@ -95,6 +96,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `prepare_ai_job_import`
 - `prepare_job_import`
 - `prepare_platform_import`
+- `prepare_quick_import`
 - `prepare_translation`
 - `preview_import`
 - `register`
@@ -225,13 +227,14 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function outboundEmailEnabled(array $config): bool`
 - `function secretKey(array $config): string`
 - `function openAiConnectionCheck(array $config, int $userId): array`
-- `function adminAiPlatformContext(mysqli $db): array`
+- `function adminAiContextRows(mysqli $db, string $sql, string $types = '', array $params = [], int $textLimit = 1200): array`
+- `function adminAiPlatformContext(mysqli $db, int $userId, string $instruction): array`
 - `function applyAdminAiMemoryMigration235(mysqli $db): void`
 - `function adminAiLoadState(mysqli $db, int $userId): array`
 - `function adminAiSaveState(mysqli $db, int $userId, array $state): void`
 - `function adminAiClearState(mysqli $db, int $userId): void`
 - `function adminAiAdminSchema(): array`
-- `function adminAiRequest(array $config, int $adminUserId, string $instruction, array $platformContext, array $memory = []): array`
+- `function adminAiRequest(array $config, int $adminUserId, string $instruction, array $platformContext, array $memory = [], string $executionFeedback = ''): array`
 - `function adminAiSources(array $sources): array`
 - `function adminAiResearchNote(array $operation, array $sources): string`
 - `function adminAiUpsertCompany(mysqli $db, int $uid, array $operation, array $globalSources): array`
@@ -246,6 +249,9 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function adminAiLogEntry(string $instruction, array $result, array $execution): string`
 - `function adminAiStatusQuestion(string $instruction): bool`
 - `function adminAiWriteIntent(string $instruction): bool`
+- `function adminAiExecutionErrors(array $execution): array`
+- `function adminAiMergeExecution(array $aggregate, array $execution): array`
+- `function adminAiRunTask(array $config, mysqli $db, int $userId, string $instruction, array $memory = []): array`
 - `function openAiModelLabel(array $config): string`
 - `function encryptSecret(array $config, string $plain): ?string`
 - `function decryptSecret(array $config, ?string $stored): string`

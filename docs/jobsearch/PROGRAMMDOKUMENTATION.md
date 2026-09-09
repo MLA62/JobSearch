@@ -1,6 +1,23 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.7 ist implementiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.4.0 ist implementiert und für das Deployment vorbereitet.
+
+## Mehrstufiger Admin-KI-Agent 2.4.0
+
+`adminAiRunTask()` kapselt den vollständigen Admin-Auftrag in höchstens vier Runden. Jede Runde erhält
+den ursprünglichen Auftrag, den dauerhaften Gesprächskontext, den frisch aus der Datenbank gelesenen
+Benutzerbestand und das konkrete Ergebnis beziehungsweise den Fehler der vorherigen Runde. Schreibende
+Aufträge benötigen mindestens eine ausgeführte Schreiboperation und danach eine weitere Verifikationsrunde.
+
+`adminAiPlatformContext()` stellt benutzerisoliert Firmen, Kontakte, Jobs, Bewerbungen und Dokumentmetadaten
+bereit. Bei Profil-/CV-Bezug kommen Benutzerstamm, aktive Präferenzen, Sprachkenntnisse und der Text des
+aktuellen Lebenslaufs hinzu. `record_lookup`-Abgleichwerte werden, wenn möglich, aus erlaubten Feldern
+abgeleitet; fehlerhafte Hilfsabfragen werden als Rückmeldung an die nächste Agentenrunde gegeben.
+
+Der Schnellimport verwendet für JavaScript-Clients einen dreiteiligen JSON-Lebenszyklus:
+`prepare_quick_import` ermittelt und tokenisiert die Quellen, `process_quick_import` verarbeitet genau
+eine Anzeige und liefert Zähler sowie Verlaufseintrag, `cancel_quick_import` verwirft den noch offenen
+Stapel. Der bisherige direkte `preview_import`-POST bleibt als Fallback ohne JavaScript erhalten.
 
 ## Admin-KI-Datenvertrag 2.3.7
 
