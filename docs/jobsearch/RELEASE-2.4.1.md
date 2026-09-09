@@ -13,4 +13,7 @@ Datum: 09.09.2026
 
 - Der Vertragstest prüft Zählabfrage, Vermittlerausschluss, Aktivfilter und Zielfilter gemeinsam.
 - 34 PHP-Testdateien, Hilfe-/Dokumentationsprüfungen und alle sieben Chromium-Testdateien sind erfolgreich.
-- Produktivhash, TOTP-Freigabe und HTTP-Abnahme werden nach dem Deployment ergänzt.
+- TOTP-Deployment `c932bad9a92095ff16f94d5b5a76840e` wurde ausgeführt; alle fünf
+  Produktivdateien sind bytegleich mit dem getesteten Stand.
+- Die öffentliche Abnahme bestätigt HTTP 200, Version 2.4.1 und die vorgesehenen Sicherheitsheader.
+- Das Release verändert weder Daten noch Datenbankschema.

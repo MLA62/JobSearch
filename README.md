@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 09.09.2026. Version 2.4.1 korrigiert die Firmen-Bewerbungszahl: Sie zählt nur aktive Bewerbungen zu aktiven Jobs der betreffenden Firma.
+Stand: 09.09.2026. Version 2.4.1 ist produktiv. Die Firmen-Bewerbungszahl zählt nur aktive Bewerbungen zu aktiven Jobs der betreffenden Firma.
 Release-Dokumentation: [Release 2.4.1](docs/jobsearch/RELEASE-2.4.1.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

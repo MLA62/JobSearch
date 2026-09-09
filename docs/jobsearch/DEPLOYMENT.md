@@ -1,6 +1,17 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.4.0 ist produktiv verifiziert.
+Stand: 2026-09-09. Release 2.4.1 ist produktiv verifiziert.
+
+Quell-Commit: `7711d63933a97e007a3c3e88f0c12927218df880`.
+Produktiver `index.php`-SHA-256 (2.4.1): `231386df59571d838ebb5245b679699c03c6577f0051b86280fc2366a1c78134`, 1'197'806 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.4.1): `95cac6915638ec4c63259fb343cd82862320481b68bf664570d081855484acf7`, 50'965 Bytes, Modus 0644.
+Weitere produktive Dateien entsprechen den geprüften lokalen Bytes: `.htaccess` `e23b763acf3ca402a5e48f1ce566a516480f13f72569e8f7fdcf6888048f62e0`, `layout.css` `fc8e78d3fce0e8fe1ef557c4a4b60aee50ebd435a5901b5b21bca4530f9b5d20`, `layout.js` `2a153bfea6d9b63a522ccbdc9172cd7d39e9bb0cbce8224dc2356c02842975f1`.
+TOTP-Approval: `c932bad9a92095ff16f94d5b5a76840e` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.4.1 sowie HSTS, CSP, nosniff, DENY und no-referrer. Das produktive Fehlerprotokoll erhielt zwischen Deployment und öffentlicher Abnahme keinen neuen Eintrag.
+
+Die öffentliche Abnahme prüft Bereitstellung und Sicherheitsheader; die angemeldete Anzeige des konkreten
+Cleeven-Datensatzes bleibt als getrennte, benutzersitzungsgebundene Fachabnahme ausgewiesen.
+
+## Vorheriges produktives Release 2.4.0
 
 Quell-Commit: `f22a357d9d51b7416ebb8832df88c7d2c8a7eeb0`.
 Produktiver `index.php`-SHA-256 (2.4.0): `8cfd6d5ecaecb1a0b2f64c3c448fef3df4100e49b0bfd0e41822c596f235a2ce`, 1'197'397 Bytes, Modus 0644.
@@ -90,6 +101,11 @@ Das Release enthält keine neue Datenbankschema-Migration. Schnellimport-Läufe 
 benutzergebunden in der PHP-Sitzung gehalten und nach Abschluss, Abbruch oder Ablauf entfernt. Die
 mehrstufige Admin-KI verwendet die bereits vorhandenen Tabellen und den vorhandenen `admin_ai_memory`-
 Kontext; Schreiboperationen bleiben transaktional, allowlist-gesteuert und benutzerisoliert.
+
+## Datenwirkung von 2.4.1
+
+Das Release verändert keine Daten und kein Datenbankschema. Es korrigiert ausschliesslich die lesenden
+Abfragen für Firmen-Bewerbungszahlen und die zugehörige Bewerbungsansicht.
 
 ## Datenwirkung von 2.1.0
 

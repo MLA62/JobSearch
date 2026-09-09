@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.4.1 ist dokumentiert und für das Deployment vorbereitet.
+Stand: 2026-09-09. Version 2.4.1 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.4.1
 
@@ -10,7 +10,11 @@ Stand: 2026-09-09. Version 2.4.1 ist dokumentiert und für das Deployment vorber
 - Bewerbungslisten blenden Datensätze zu gelöschten Jobs oder Firmen aus.
 - Alle 34 PHP-Testdateien, 3'807 Hilfeprüfungen, 1'254 Hilfe-Seeds, 70 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
-- Produktivhash, TOTP-Freigabe und öffentliche HTTP-Abnahme werden nach dem Deployment ergänzt.
+- Nach TOTP-Freigabe `c932bad9a92095ff16f94d5b5a76840e` stimmen alle fünf Produktivdateien
+  bytegenau mit dem geprüften Release überein. `index.php` hat SHA-256
+  `231386df59571d838ebb5245b679699c03c6577f0051b86280fc2366a1c78134` und 1'197'806 Bytes.
+- Die öffentliche Seite liefert HTTP 200, Version 2.4.1 sowie HSTS, CSP, `nosniff`, `DENY` und
+  `no-referrer`; nach dem Deployment wurde kein neuer Serverfehler protokolliert.
 
 ## Prüfstand 2.4.0
 
