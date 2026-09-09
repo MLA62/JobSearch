@@ -237,6 +237,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function adminAiUpsertCompany(mysqli $db, int $uid, array $operation, array $globalSources): array`
 - `function adminAiUpsertContact(mysqli $db, int $uid, int $companyId, array $operation, array $globalSources): array`
 - `function adminAiTableDefinitions(): array`
+- `function adminAiReferenceFields(): array`
+- `function adminAiNormalizeOperation(array $operation): array`
 - `function adminAiResolveReference(mysqli $db, int $uid, string $table, string $field, string $value): string`
 - `function adminAiTableUpsert(mysqli $db, int $uid, array $operation, array $globalSources): array`
 - `function adminAiRecordLookup(mysqli $db, int $uid, array $operation): array`

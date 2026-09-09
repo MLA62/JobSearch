@@ -1,8 +1,16 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.6.
+Stand: 09.09.2026. Aktuelles Verhalten für Release 2.3.7.
 
 ## Admin-KI und Plattformdaten
+
+Ergänzung 2.3.7: Der Server übergibt der KI die exakten beschreibbaren Felder, Pflichtfelder und
+Abgleichfelder aller freigegebenen Tabellen. Vor der Transaktion werden Singular-/Aliasnamen,
+Feldaliasse und Fremdschlüssel normalisiert. Firmenoperationen laufen stets über den spezialisierten
+Firmenschreiber; UID, Handelsregister und Aliasse bleiben dadurch für Dublettenprüfung und spätere
+Statusabfragen erhalten. Teilupdates benötigen nur bei einer tatsächlichen Neuanlage sämtliche
+Pflichtfelder. Bei Mehrfachoperationen werden Firmen und Stammdaten vor abhängigen Jobs, Kontakten,
+Bewerbungen, Dokumenten, Logs und Ausgangsdaten verarbeitet.
 
 Ergänzung 2.3.6: Der asynchrone Formularaufruf verwendet die deklarierte Formularzieladresse oder
 die vollständige aktuelle Seitenadresse. Ein Button namens `action` kann das Request-Ziel nicht mehr

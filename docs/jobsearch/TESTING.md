@@ -3,6 +3,14 @@
 Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.3.7: `admin_ai_operation_normalization_test.php` reproduziert den produktiv beobachteten
+Cleeven-Operationsplan mit `table_upsert`, `companies` und dem logischen Feld `uid`. Der Test verlangt
+die Umleitung an den Firmenschreiber, den Erhalt von UID/Handelsregister und die Normalisierung der
+Adresse. Zusätzlich durchläuft er die vollständige Feld-Allowlist aller 20 freigegebenen Tabellen,
+prüft Tabellen-/Feldaliasse, unbekannte recherchierte Zusatzangaben und sämtliche unterstützten
+Fremdschlüsselarten. Die bestehende Browserprüfung bleibt für Transport, Dialog, Eingabeerhalt und
+Fehlerdarstellung zuständig.
+
 Ergänzung 2.3.6: `admin_ai_console_test.cjs` verwendet nun wie die produktive Maske kein
 `action`-Attribut am Formular und enthält weiterhin Buttons mit `name="action"`. Der Mock akzeptiert
 nur `/?page=admin_ai`; jede versehentlich aus einem Button erzeugte Zieladresse liefert HTTP 404.

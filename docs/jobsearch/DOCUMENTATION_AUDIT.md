@@ -1,6 +1,18 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.6 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.7 ist dokumentiert, lokal vollständig geprüft und für die produktive Freigabe vorbereitet.
+
+## Prüfstand 2.3.7
+
+- Der produktiv beobachtete Cleeven-Plan mit `table_upsert`, Firma und `uid` ist als ausführbarer
+  Regressionstest hinterlegt und wird an den spezialisierten Firmenschreiber normalisiert.
+- Derselbe Test prüft die Feld-Allowlist aller 20 freigegebenen Tabellen, Tabellen-/Feldaliasse,
+  Zusatzangaben in Notizen sowie alle unterstützten Fremdschlüsselarten.
+- Die vollständige Suite mit 33 PHP-Testdateien ist erfolgreich; Hilfe-Generator (25 Themen in
+  fünf Sprachen), Referenzgenerator, 3'796 Hilfeprüfungen, 68 Markdown-Dateien/61 Links sowie der
+  echte Chromium-Test für die Admin-KI-Konsole sind erfolgreich.
+- Produktivdateien, HTTPS-Version und Security-Header werden nach der TOTP-Ausführung getrennt
+  bytegenau geprüft und anschließend in diesem Audit dokumentiert.
 
 ## Prüfstand 2.3.6
 

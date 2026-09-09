@@ -1,6 +1,16 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.6.
+Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.3.7.
+
+Ergänzung 2.3.7: Vor jeder Admin-KI-Operation müssen Tabellenname, Feldnamen und Referenzfelder
+gegen die reale, serverseitige Allowlist normalisiert werden. Das vollständige beschreibbare Schema
+wird der KI als Kontext übergeben. Recherchierte Firmenangaben wie UID, Handelsregisternummer und
+Aliasse sind Identitätsmetadaten und dürfen nie als vermeintliche SQL-Spalten abgewiesen werden.
+Dasselbe Normalisierungs- und Referenzverfahren gilt für alle freigegebenen Tabellen. Unbekannte
+Zusatzangaben werden, sofern vorhanden, nachvollziehbar in Notizen erhalten; sie dürfen die übrige
+Operation nicht abbrechen. Pflichtfelder sind bei Neuanlagen, nicht bei Teilergänzungen bestehender
+Datensätze zu verlangen. Abhängige Mehrfachoperationen müssen in referenziell sinnvoller Reihenfolge
+ausgeführt werden.
 
 Ergänzung 2.3.6: Der Admin-KI-Aufruf muss die Formularzieladresse über das HTML-Attribut
 ermitteln und darf sie nicht aus einer durch `name="action"` überschatteten DOM-Eigenschaft lesen.

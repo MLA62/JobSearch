@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.3.6' => "\$codeVersion = '2.3.6'",
+    'version 2.3.7' => "\$codeVersion = '2.3.7'",
     'AI modal' => 'id="ai-work-dialog"',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
@@ -29,6 +29,8 @@ $checks = [
     'admin AI structured schema' => "name' => 'jema_admin_operations'",
     'admin AI execution' => 'function adminAiApplyOperations',
     'admin AI all-table execution' => 'function adminAiTableDefinitions',
+    'admin AI operation normalization' => 'function adminAiNormalizeOperation',
+    'admin AI writable schema context' => "'writable_schema' => \$writableSchema",
     'admin AI table upsert' => "'table_upsert'",
     'admin AI status lookup' => 'function adminAiRecordLookup',
     'admin AI status question guard' => 'function adminAiStatusQuestion',

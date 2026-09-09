@@ -1,6 +1,22 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.6 ist implementiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-09. Version 2.3.7 ist implementiert und für die produktive Freigabe vorbereitet.
+
+## Admin-KI-Datenvertrag 2.3.7
+
+`adminAiPlatformContext()` liefert der KI nicht mehr nur Bestandszahlen, sondern auch die exakten
+beschreibbaren, erforderlichen und zum Abgleich geeigneten Felder jeder freigegebenen Tabelle.
+`adminAiNormalizeOperation()` bildet Tabellen- und Feldaliasse auf dieses Schema ab, bevor dynamisches
+SQL entsteht. Nicht zuordenbare Zusatzangaben werden in einem vorhandenen Notizfeld erhalten und
+gesondert markiert; der Spaltenname selbst gelangt niemals in SQL.
+
+Ein generisches Firmen-`table_upsert` wird serverseitig in `company_upsert` umgewandelt. Damit werden
+Name, Anschrift, Web-/Kontaktdaten und weitere Firmenfelder regulär geschrieben, während UID,
+Handelsregister und Aliasse als recherchierte Identitätsinformationen in den Notizen landen. Die
+Firmen-Dublettenprüfung verwendet Name oder UID. Statusabfragen können Firmen zusätzlich anhand UID
+oder Handelsregister finden. Fremdschlüssel für Firmen, Vermittler, Kunden, Quellen, Jobs, Kontakte,
+Bewerbungen und Dokumenttypen werden zentral aufgelöst. Pflichtfelder werden erst vor einer echten
+Neuanlage geprüft, sodass eine gezielte Ergänzung vorhandener Zeilen möglich bleibt.
 
 ## Admin-KI-Konsole 2.3.6
 
