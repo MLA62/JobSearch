@@ -1,6 +1,14 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.3.5 ist produktiv verifiziert. Release 2.3.6 ist lokal vorbereitet und wartet auf die externe TOTP-Freigabe.
+Stand: 2026-09-09. Release 2.3.6 ist produktiv verifiziert.
+
+Quell-Commit: `5ce6b4cbbffbbc4efecce2e385468114be84327`.
+Produktiver `index.php`-SHA-256 (2.3.6): `e969ef8e146468e1efffd179de7ae572feb2e9e41f84179a0a91cc9ccf47b1af`, 1'160'890 Bytes, Modus 0644.
+Produktiver `app.css`-SHA-256 (2.3.6): `95cac6915638ec4c63259fb343cd82862320481b68bf664570d081855484acf7`, 50'965 Bytes, Modus 0644.
+Weitere produktive Dateien entsprechen den geprüften lokalen Bytes: `.htaccess` `e23b763acf3ca402a5e48f1ce566a516480f13f72569e8f7fdcf6888048f62e0`, `layout.css` `fc8e78d3fce0e8fe1ef557c4a4b60aee50ebd435a5901b5b21bca4530f9b5d20`, `layout.js` `2a153bfea6d9b63a522ccbdc9172cd7d39e9bb0cbce8224dc2356c02842975f1`.
+TOTP-Approval: `cfdd1b4cdb4c81c65b23123b2ef9e633` (ausgeführt 2026-09-09). Öffentliche Seite liefert HTTP 200, Version 2.3.6 sowie HSTS, CSP, nosniff, DENY und no-referrer.
+
+## Vorheriges produktives Release 2.3.5
 
 Quell-Commit: `1c1a0ae1414ab74bc280b9d3dae52dff40d2f34d`.
 Produktiver `index.php`-SHA-256 (2.3.5): `20a7271c7de9425e684b16268689656137e6949fc9d5edc06b315d60a0a62549`, 1'160'201 Bytes, Modus 0644.

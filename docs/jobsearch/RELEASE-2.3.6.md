@@ -1,6 +1,6 @@
 # Version 2.3.6 – Korrektes Admin-KI-Anfrageziel
 
-Stand: 09.09.2026. Das Deployment benötigt die externe TOTP-Freigabe.
+Stand: 09.09.2026. Das Deployment ist produktiv ausgeführt und verifiziert.
 
 ## Änderungen
 
@@ -19,4 +19,5 @@ Stand: 09.09.2026. Das Deployment benötigt die externe TOTP-Freigabe.
 - Hilfe- und Referenzgenerator im Prüfmodus
 - Chromium: exakter Request-Pfad, HTTP-422-Antwort, Erfolg, Eingabeerhalt, Markdown, Modal und
   fehlender Dokument-Scroll bei 390×800, 1366×768 und 2048×1080
-- Nach Deployment: Dateihashes, HTTPS-/Security-Header und Live-Version verifizieren
+- Produktive Dateihashes stimmen mit dem geprüften Release überein; HTTPS, Version und
+  Security-Header sind bestätigt.

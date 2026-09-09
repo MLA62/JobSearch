@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.3.6 ist dokumentiert und lokal geprüft; die produktive TOTP-Freigabe steht noch aus.
+Stand: 2026-09-09. Version 2.3.6 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
 
 ## Prüfstand 2.3.6
 
@@ -10,6 +10,8 @@ Stand: 2026-09-09. Version 2.3.6 ist dokumentiert und lokal geprüft; die produk
   zuvor übersehene HTTP-404-Pfad reproduzierbar ausgeschlossen.
 - Eingabeerhalt, konkrete Fehler, Erfolg, Markdown, Modal und drei Bildschirmgrössen bleiben Teil
   desselben Browsertests.
+- Die fünf Produktivdateien stimmen bytegenau mit dem geprüften Release überein. Die öffentliche
+  Seite liefert HTTP 200, Version 2.3.6 und die vorgesehenen Security-Header.
 
 ## Prüfstand 2.3.5
 

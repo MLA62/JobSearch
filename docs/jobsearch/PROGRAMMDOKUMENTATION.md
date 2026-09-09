@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.3.6 ist implementiert und lokal geprüft; das produktive Deployment benötigt die externe TOTP-Freigabe.
+Stand: 2026-09-09. Version 2.3.6 ist implementiert, vollständig geprüft und produktiv verifiziert.
 
 ## Admin-KI-Konsole 2.3.6
 
