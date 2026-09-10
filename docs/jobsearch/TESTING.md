@@ -1,7 +1,12 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-09. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-10. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
+
+Ergänzung 2.4.2: `table_layout_test.php` prüft die vollständigen, zeilenweisen Firmenlinks sowie
+die Beschränkung des Job-Room-Helpers und seiner Monatsauswahl auf `applied_at IS NOT NULL`.
+`company_address_visual_test.cjs` misst in Chromium bei 390, 1000 und 2048 Pixeln, dass Jobs,
+Bewerbungen und Kontakte jeweils als einzeiliger Block untereinander stehen und nicht umbrechen.
 
 Ergänzung 2.4.1: `table_layout_test.php` stellt sicher, dass Firmen nur aktive direkte Bewerbungen
 zu aktiven eigenen Jobs zählen, Vermittlerbeziehungen nicht mitgezählt werden und Firmenlink sowie

@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 09.09.2026. Aktuelles Verhalten für Release 2.4.1.
+Stand: 10.09.2026. Aktuelles Verhalten für Release 2.4.2.
+
+Ergänzung 2.4.2: Der Job-Room-Helper verwendet ausschließlich `applied_at` als Bewerbungsdatum.
+Datensätze ohne Bewerbungsdatum werden weder für die Monatsauswahl noch als Karte berücksichtigt;
+`created_at` und `updated_at` sind dafür kein Ersatz. Firmenlinks zu Jobs, Bewerbungen und Kontakten
+stehen in der Firmenliste jeweils vollständig auf einer eigenen Zeile.
 
 Ergänzung 2.4.1: Firmen zeigen Bewerbungen nur dann an, wenn ein aktiver Bewerbungsdatensatz zu
 einem aktiven Job genau dieser Firma besteht. Vermittlerbeziehungen werden im Firmenpfad dargestellt,
@@ -148,6 +153,8 @@ Kontaktzaehler: Anzahl Logzeilen der Person; offen/geplant ist deren Teilmenge, 
 
 Im Job-Room erfasst: Checkbox. Erst danach Vorstellungsgespraech und Noch offen/Anstellung/Absage sichtbar.
 Ausblenden loescht bereits gespeicherte Ergebnisse nicht. Ankreuzen ist keine API-Uebertragung an Job-Room.
+Der Job-Room-Helper listet nur tatsächlich datierte Bewerbungen; fehlende Bewerbungsdaten erzeugen
+weder einen Eintrag noch ein aus Erfassungs- oder Änderungszeit abgeleitetes Datum.
 
 ## Bestandsmigration v6
 

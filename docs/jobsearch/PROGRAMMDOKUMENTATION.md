@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-09. Version 2.4.1 ist implementiert, getestet und produktiv verifiziert.
+Stand: 2026-09-10. Version 2.4.2 ist implementiert und getestet; das Deployment ist vorbereitet.
+
+## Lesbare Firmenlinks und datierter Job-Room 2.4.2
+
+Die drei Verknüpfungen einer Firma werden als getrennte Blocklinks gerendert. `white-space: nowrap`
+hält Zähler und Bezeichnung zusammen; das Tabellenlayout kann die Spalte dadurch anhand des
+vollständigen Inhalts bemessen, während die Tabellenzelle selbst eine echte Zelle bleibt.
+
+`jobRoomHelperRows()` verlangt jetzt `applications.applied_at IS NOT NULL`. Monatsauswahl,
+Monatsgrenze und Sortierung verwenden ausschließlich diesen fachlichen Zeitpunkt. Der frühere
+Fallback auf `updated_at` oder `created_at` konnte noch nicht versandte Bewerbungen als leere
+Job-Room-Karten anzeigen und ist entfernt. Es wird kein Datum erfunden und kein Ersatzhinweis in
+der Liste ausgegeben. Datenbankstruktur und vorhandene Datensätze bleiben unverändert.
 
 ## Eindeutige Firmen-Bewerbungszahl 2.4.1
 

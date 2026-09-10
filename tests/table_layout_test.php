@@ -11,6 +11,7 @@ check(!str_contains($css, 'is-records') && !str_contains($js, 'is-records'), 'No
 check(str_contains($css, '.table-wrap .layout-table td { display: table-cell;'), 'Every data cell remains a table cell');
 check(str_contains($css, '.panel.table-wrap,'), 'Mobile panel overflow rule is overridden');
 check(str_contains($css, 'white-space: nowrap;'), 'Compact single-line cells');
+check(str_contains($css, '.layout-table td.link-list > a {') && str_contains($css, 'display: block;') && str_contains($css, '.layout-table td.link-list > a + a { margin-top: 4px; }'), 'Company relation links use one row per complete label');
 check(str_contains($css, '.sf-form { position: fixed;'), 'Filters are not clipped by table scrolling');
 check(str_contains($source, '<a class="menu-trigger" href="/?page=calendar&view=agenda">'), 'Calendar is a direct menu link');
 check(!str_contains($source, "class=\"menu-trigger\"><?= e(tr('nav.planning'))"), 'No one-item Planning submenu');
@@ -24,4 +25,6 @@ check(!str_contains($source, '(j2.company_id=c.id OR a.intermediary_company_id=c
 check(str_contains($source, 'JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.user_id AND j.deleted_at IS NULL JOIN companies c ON c.id=j.company_id AND c.owner_user_id=a.user_id AND c.deleted_at IS NULL'), 'Application lists include only owned active jobs and companies');
 check(str_contains($source, "if(\$appCompanyFilter>0){ \$appSql.=' AND j.company_id=?';"), 'Company application link filters the same direct relation as its count');
 check(str_contains($source, "if ($" . "action === 'apply_workflow_migration')"), 'Migration requires explicit reviewed action');
+check(str_contains($source, "a.user_id=? AND a.deleted_at IS NULL AND a.applied_at IS NOT NULL"), 'Job-Room excludes applications without an application date');
+check(str_contains($source, 'DATE_FORMAT(applied_at, "%Y-%m") month_key') && str_contains($source, 'deleted_at IS NULL AND applied_at IS NOT NULL ORDER BY month_key DESC'), 'Job-Room month filter is based only on actual application dates');
 echo "All table layout checks passed.\n";

@@ -20,8 +20,17 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       assert.equal(lines.length, 3);
       assert(lines.every(line => line.display === 'block' && line.whitespace === 'normal' && line.overflow === 'visible' && line.ellipsis !== 'ellipsis'));
       assert(lines[0].top < lines[1].top && lines[1].top < lines[2].top);
+      const links = await table.locator('tbody tr').first().locator('td.link-list > a').evaluateAll(nodes => nodes.map(node => {
+        const css = getComputedStyle(node);
+        const rect = node.getBoundingClientRect();
+        return { text: node.textContent.trim(), top: rect.top, height: rect.height,
+          lineHeight: Number.parseFloat(css.lineHeight), display: css.display, whitespace: css.whiteSpace };
+      }));
+      assert.deepEqual(links.map(link => link.text), ['1 Jobs', '2 Bewerbungen', '3 Kontakte']);
+      assert(links.every(link => link.display === 'block' && link.whitespace === 'nowrap' && link.height <= link.lineHeight * 1.25));
+      assert(links[0].top < links[1].top && links[1].top < links[2].top);
       await page.screenshot({ path: path.join(process.env.TEMP, `jema-company-address-${width}.png`), fullPage: true });
-      console.log(`PASS company address wrapping ${width}`);
+      console.log(`PASS company address and relation links ${width}`);
     }
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

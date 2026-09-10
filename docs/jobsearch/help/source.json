@@ -1,6 +1,6 @@
 {
-  "version": "2.4.1",
-  "reviewed": "2026-09-09",
+  "version": "2.4.2",
+  "reviewed": "2026-09-10",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -528,7 +528,8 @@
             "Öffne zugehörige Stellen, Bewerbungen oder Kontakte über die jeweiligen Links."
           ],
           "tips": [
-            "Die Bewerbungszahl einer Firma zählt nur aktive Bewerbungen zu aktiven Jobs dieser Firma. Eine Vermittler-Verknüpfung ist keine Bewerbung bei dieser Firma."
+            "Die Bewerbungszahl einer Firma zählt nur aktive Bewerbungen zu aktiven Jobs dieser Firma. Eine Vermittler-Verknüpfung ist keine Bewerbung bei dieser Firma.",
+            "Die Links zu Jobs, Bewerbungen und Kontakten stehen jeweils vollständig in einer eigenen Zeile."
           ]
         },
         "fr-CH": {
@@ -540,7 +541,8 @@
             "Ouvre les offres, candidatures ou contacts associés via leurs liens."
           ],
           "tips": [
-            "Le nombre de candidatures d’une entreprise compte uniquement les candidatures actives liées à ses offres actives. Un lien d’intermédiaire n’est pas une candidature auprès de cette entreprise."
+            "Le nombre de candidatures d’une entreprise compte uniquement les candidatures actives liées à ses offres actives. Un lien d’intermédiaire n’est pas une candidature auprès de cette entreprise.",
+            "Les liens vers les offres, les candidatures et les contacts figurent chacun en entier sur une ligne distincte."
           ]
         },
         "en-GB": {
@@ -552,7 +554,8 @@
             "Open related jobs, applications or contacts through their links."
           ],
           "tips": [
-            "A company’s application count includes only active applications for that company’s active jobs. A recruiter relationship is not an application to that company."
+            "A company’s application count includes only active applications for that company’s active jobs. A recruiter relationship is not an application to that company.",
+            "Links to jobs, applications and contacts each appear in full on their own line."
           ]
         },
         "pt-BR": {
@@ -564,7 +567,8 @@
             "Abra vagas, candidaturas ou contatos associados pelos respectivos links."
           ],
           "tips": [
-            "A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa."
+            "A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa.",
+            "Os links para vagas, candidaturas e contatos aparecem completos, cada um em uma linha própria."
           ]
         },
         "es-MX": {
@@ -576,7 +580,8 @@
             "Abre vacantes, solicitudes o contactos asociados mediante sus enlaces."
           ],
           "tips": [
-            "El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa."
+            "El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa.",
+            "Los enlaces a vacantes, solicitudes y contactos aparecen completos, cada uno en su propia línea."
           ]
         }
       }
@@ -1062,6 +1067,7 @@
             "Danach sind Vorstellungsgespräch und das Ergebnis Noch offen, Anstellung oder Absage sichtbar."
           ],
           "tips": [
+            "Die Job-Room-Hilfe zeigt nur Bewerbungen mit einem tatsächlichen Bewerbungsdatum. Fehlt es, ergänze es zuerst in der Bewerbung.",
             "Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung."
           ]
         },
@@ -1074,6 +1080,7 @@
             "Les champs entretien et résultat ouvert, embauche ou refus deviennent alors visibles."
           ],
           "tips": [
+            "L’aide Job-Room affiche uniquement les candidatures ayant une date de candidature réelle. Si elle manque, complète-la d’abord dans la candidature.",
             "La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche."
           ]
         },
@@ -1086,6 +1093,7 @@
             "Interview and the outcome open, hired or rejected then become visible."
           ],
           "tips": [
+            "The Job-Room helper shows only applications with an actual application date. If it is missing, add it to the application first.",
             "The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment."
           ]
         },
@@ -1098,6 +1106,7 @@
             "Os campos de entrevista e resultado aberto, contratado ou recusado ficam visíveis."
           ],
           "tips": [
+            "A ajuda do Job-Room mostra apenas candidaturas com uma data de candidatura real. Se estiver ausente, preencha-a primeiro na candidatura.",
             "A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação."
           ]
         },
@@ -1110,6 +1119,7 @@
             "Entonces aparecen entrevista y resultado abierto, contratación o rechazo."
           ],
           "tips": [
+            "La ayuda de Job-Room muestra solo solicitudes con una fecha de solicitud real. Si falta, añádela primero en la solicitud.",
             "La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación."
           ]
         }

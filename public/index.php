@@ -3243,6 +3243,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa.',
     'es-MX' => 'El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa.',
   ),
+  'help.v2.companies.tips.1' =>
+  array (
+    'de-CH' => 'Die Links zu Jobs, Bewerbungen und Kontakten stehen jeweils vollständig in einer eigenen Zeile.',
+    'fr-CH' => 'Les liens vers les offres, les candidatures et les contacts figurent chacun en entier sur une ligne distincte.',
+    'en-GB' => 'Links to jobs, applications and contacts each appear in full on their own line.',
+    'pt-BR' => 'Os links para vagas, candidaturas e contatos aparecem completos, cada um em uma linha própria.',
+    'es-MX' => 'Los enlaces a vacantes, solicitudes y contactos aparecen completos, cada uno en su propia línea.',
+  ),
   'help.v2.companies.title' =>
   array (
     'de-CH' => 'Firmen und Vermittler',
@@ -3548,6 +3556,14 @@ function helpTranslationSeeds(): array
     'es-MX' => 'El registro en Job-Room es independiente del estado de la solicitud.',
   ),
   'help.v2.jobroom.tips.0' =>
+  array (
+    'de-CH' => 'Die Job-Room-Hilfe zeigt nur Bewerbungen mit einem tatsächlichen Bewerbungsdatum. Fehlt es, ergänze es zuerst in der Bewerbung.',
+    'fr-CH' => 'L’aide Job-Room affiche uniquement les candidatures ayant une date de candidature réelle. Si elle manque, complète-la d’abord dans la candidature.',
+    'en-GB' => 'The Job-Room helper shows only applications with an actual application date. If it is missing, add it to the application first.',
+    'pt-BR' => 'A ajuda do Job-Room mostra apenas candidaturas com uma data de candidatura real. Se estiver ausente, preencha-a primeiro na candidatura.',
+    'es-MX' => 'La ayuda de Job-Room muestra solo solicitudes con una fecha de solicitud real. Si falta, añádela primero en la solicitud.',
+  ),
+  'help.v2.jobroom.tips.1' =>
   array (
     'de-CH' => 'Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung.',
     'fr-CH' => 'La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche.',
@@ -4342,7 +4358,7 @@ function helpTopicDefinitions(): array
       1 => 'contacts',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   7 =>
   array (
@@ -4450,7 +4466,7 @@ function helpTopicDefinitions(): array
       1 => 'applications',
     ),
     'step_count' => 3,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   14 =>
   array (
@@ -7208,11 +7224,11 @@ function jobRoomCountryLabel(?string $countryCode): string
 
 function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, ?string $monthEnd = null): array
 {
-    $where = 'a.user_id=? AND a.deleted_at IS NULL';
+    $where = 'a.user_id=? AND a.deleted_at IS NULL AND a.applied_at IS NOT NULL';
     $types = 'i';
     $values = [$userId];
     if ($monthStart !== null && $monthEnd !== null) {
-        $where .= ' AND COALESCE(a.applied_at, a.updated_at, a.created_at) >= ? AND COALESCE(a.applied_at, a.updated_at, a.created_at) < ?';
+        $where .= ' AND a.applied_at >= ? AND a.applied_at < ?';
         $types .= 'ss';
         $values[] = $monthStart;
         $values[] = $monthEnd;
@@ -7230,7 +7246,7 @@ function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, 
          JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
          LEFT JOIN contacts ct ON ct.id=a.primary_contact_id AND ct.deleted_at IS NULL
          WHERE ' . $where . '
-         ORDER BY COALESCE(a.applied_at, a.updated_at, a.created_at) DESC, c.name ASC, j.title ASC',
+         ORDER BY a.applied_at DESC, c.name ASC, j.title ASC',
         $types,
         $values
     );
@@ -10609,7 +10625,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.1','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.2','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14420,7 +14436,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.1';
+$codeVersion = '2.4.2';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15146,7 +15162,7 @@ startUiTranslationBuffer($appLocale);
         </div>
     <?php elseif ($page === 'job_room_helper'): ?>
         <?php
-        $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(COALESCE(applied_at, updated_at, created_at), "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL ORDER BY month_key DESC', 'i', [userId()]), 'month_key');
+        $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(applied_at, "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL AND applied_at IS NOT NULL ORDER BY month_key DESC', 'i', [userId()]), 'month_key');
         $currentJobRoomMonth = (new DateTimeImmutable('first day of this month'))->format('Y-m');
         if (!in_array($currentJobRoomMonth, $availableJobRoomMonths, true)) {
             array_unshift($availableJobRoomMonths, $currentJobRoomMonth);

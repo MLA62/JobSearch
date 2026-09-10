@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-09. Version 2.4.1 ist dokumentiert, vollständig geprüft und produktiv verifiziert.
+Stand: 2026-09-10. Version 2.4.2 ist dokumentiert; vollständige Prüfung und Deployment folgen im selben Releaseablauf.
+
+## Prüfstand 2.4.2
+
+- Firmenlinks zu Jobs, Bewerbungen und Kontakten stehen vollständig und jeweils auf einer eigenen Zeile.
+- Der Job-Room-Helper und seine Monatsauswahl berücksichtigen ausschließlich Bewerbungen mit
+  tatsächlichem `applied_at`; es gibt keinen Fallback auf Erfassungs- oder Änderungszeit.
+- Datenbankstruktur und Bestandsdaten werden nicht verändert.
+- Alle 34 PHP-Testdateien, 3'829 Hilfeprüfungen, 1'264 Hilfe-Seeds, 71 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- TOTP-Deployment, Dateihash- und öffentliche HTTP-Prüfung sind noch auszuführen.
 
 ## Prüfstand 2.4.1
 

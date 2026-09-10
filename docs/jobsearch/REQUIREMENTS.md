@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 09.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.1.
+Stand: 10.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.2.
+
+Ergänzung 2.4.2: In der Firmenliste müssen die Verknüpfungen zu Jobs, Bewerbungen und Kontakten
+jeweils vollständig und auf einer eigenen Zeile erscheinen. Zähler und Bezeichnung dürfen nicht
+zwischen Zeilen auseinanderfallen. Der Job-Room-Helper zeigt ausschließlich Bewerbungen mit einem
+tatsächlich gespeicherten Bewerbungsdatum (`applied_at`). Bewerbungen ohne dieses Datum erscheinen
+dort vollständig nicht; weder als leere Karte noch mit einem Ersatzdatum oder Hinweis.
 
 Ergänzung 2.4.1: Die bei einer Firma ausgewiesene Bewerbungszahl muss genau den aktiven,
 nicht gelöschten Bewerbungen zu aktiven Jobs dieser Firma entsprechen. Die Rolle einer Firma als
