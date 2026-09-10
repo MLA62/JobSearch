@@ -1,6 +1,15 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-09. Release 2.4.1 ist produktiv verifiziert.
+Stand: 2026-09-10. Release 2.4.2 ist produktiv verifiziert.
+
+Quell-Commit: `809283348cf88d017332a3ebf9c35f5ef692b5c9`.
+Produktiver `index.php`-SHA-256 (2.4.2): `8b0a8be5fdc2195084972face49b33c793dd563bdd88dd5529e56d0712a43f93`, 1'199'140 Bytes, Modus 0644.
+Produktiver `layout.css`-SHA-256 (2.4.2): `0a57f248f19f3afd3d95760ab5cdc61670c6f571c949b7e3e73652c7fd087e76`, 15'389 Bytes, Modus 0644.
+TOTP-Approval: `9f28909be84b0a93ded073cd50f647c9` (ausgeführt 2026-09-10). Öffentliche Seite und Stylesheet liefern HTTP 200; die Seite weist Version 2.4.2 sowie HSTS, CSP, nosniff, DENY und no-referrer aus. Das produktive Fehlerprotokoll erhielt zwischen Deployment und öffentlicher Abnahme keinen neuen Eintrag.
+
+Das Release ersetzte ausschließlich `index.php` und `assets/layout.css`; Sicherungskopien beider Vorgängerdateien wurden durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, `app.css`, `layout.js`, Speicherdateien und Datenbank blieben unverändert. Der bereits vor diesem Release vom Repository abweichende produktive `.htaccess`-Stand wurde ausdrücklich bewahrt. Das Release hat keine Daten- oder Schemawirkung.
+
+## Vorheriges produktives Release 2.4.1
 
 Quell-Commit: `7711d63933a97e007a3c3e88f0c12927218df880`.
 Produktiver `index.php`-SHA-256 (2.4.1): `231386df59571d838ebb5245b679699c03c6577f0051b86280fc2366a1c78134`, 1'197'806 Bytes, Modus 0644.

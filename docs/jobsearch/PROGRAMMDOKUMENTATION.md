@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-10. Version 2.4.2 ist implementiert und getestet; das Deployment ist vorbereitet.
+Stand: 2026-09-10. Version 2.4.2 ist implementiert, getestet und produktiv verifiziert.
 
 ## Lesbare Firmenlinks und datierter Job-Room 2.4.2
 

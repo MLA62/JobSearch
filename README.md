@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 10.09.2026. Version 2.4.2 ist für das Deployment vorbereitet. Firmen-Verknüpfungen sind zeilenweise lesbar; der Job-Room-Helper zeigt nur Bewerbungen mit Bewerbungsdatum.
+Stand: 10.09.2026. Version 2.4.2 ist produktiv. Firmen-Verknüpfungen sind zeilenweise lesbar; der Job-Room-Helper zeigt nur Bewerbungen mit Bewerbungsdatum.
 Release-Dokumentation: [Release 2.4.2](docs/jobsearch/RELEASE-2.4.2.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

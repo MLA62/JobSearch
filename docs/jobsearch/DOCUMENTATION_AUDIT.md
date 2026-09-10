@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-10. Version 2.4.2 ist dokumentiert; vollständige Prüfung und Deployment folgen im selben Releaseablauf.
+Stand: 2026-09-10. Version 2.4.2 ist vollständig geprüft, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.2
 
@@ -10,7 +10,17 @@ Stand: 2026-09-10. Version 2.4.2 ist dokumentiert; vollständige Prüfung und De
 - Datenbankstruktur und Bestandsdaten werden nicht verändert.
 - Alle 34 PHP-Testdateien, 3'829 Hilfeprüfungen, 1'264 Hilfe-Seeds, 71 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
-- TOTP-Deployment, Dateihash- und öffentliche HTTP-Prüfung sind noch auszuführen.
+- Nach TOTP-Freigabe `9f28909be84b0a93ded073cd50f647c9` wurden ausschließlich `index.php` und
+  `assets/layout.css` bereitgestellt. Die Produktivdateien stimmen bytegenau mit Quell-Commit
+  `809283348cf88d017332a3ebf9c35f5ef692b5c9` überein: `index.php` hat SHA-256
+  `8b0a8be5fdc2195084972face49b33c793dd563bdd88dd5529e56d0712a43f93` und 1'199'140 Bytes,
+  `layout.css` SHA-256 `0a57f248f19f3afd3d95760ab5cdc61670c6f571c949b7e3e73652c7fd087e76`
+  und 15'389 Bytes.
+- Die öffentliche Seite und das Stylesheet liefern HTTP 200. Die Seite weist Version 2.4.2 sowie
+  HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Das produktive Fehlerprotokoll erhielt zwischen
+  Deployment und Abnahme keinen neuen Eintrag.
+- `.htaccess`, `config.php`, Speicherdateien und Datenbank wurden nicht verändert. Der bereits vor
+  diesem Release abweichende produktive `.htaccess`-Stand blieb bewusst unangetastet.
 
 ## Prüfstand 2.4.1
 

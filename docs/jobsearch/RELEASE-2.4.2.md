@@ -15,5 +15,7 @@ Datum: 10.09.2026
 - PHP-Vertragstests prüfen CSS-Vertrag, Job-Room-Abfrage und Monatsauswahl.
 - Chromium misst die Linkdarstellung bei 390, 1000 und 2048 Pixeln.
 - Alle 34 PHP-Testdateien, Hilfe-/Dokumentationsprüfungen und alle sieben Chromium-Testdateien sind erfolgreich.
-- Das TOTP-Deployment und die anschließende Produktivprüfung stehen noch aus.
+- Nach TOTP-Freigabe wurden `index.php` und `assets/layout.css` bytegenau bereitgestellt.
+- Die öffentliche Seite und das Stylesheet liefern HTTP 200; Version 2.4.2 und die vorgesehenen
+  Sicherheitsheader sind produktiv bestätigt.
 - Das Release verändert weder Daten noch Datenbankschema.
