@@ -3173,11 +3173,19 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.calendar_sync.steps.2' =>
   array (
-    'de-CH' => 'Prüfe die letzte Synchronisationsmeldung; bei einer ausstehenden Workflow-Bereinigung wende dich an den Admin.',
-    'fr-CH' => 'Vérifie le dernier résultat; si le nettoyage du processus est en attente, contacte l’admin.',
-    'en-GB' => 'Check the latest sync result; contact an admin if workflow migration is still pending.',
-    'pt-BR' => 'Confira o último resultado; procure o administrador se a revisão do fluxo estiver pendente.',
-    'es-MX' => 'Revisa el último resultado; contacta al administrador si falta revisar los datos del proceso.',
+    'de-CH' => 'Änderungen und Löschungen an Kalender, Bewerbungen, Jobs, Firmen und zugeordneten Kontakten werden automatisch abgeglichen. Mit Jetzt synchronisieren kannst du den vollständigen Abgleich erneut auslösen.',
+    'fr-CH' => 'Les modifications et suppressions du calendrier, des candidatures, des postes, des entreprises et des contacts associés sont synchronisées automatiquement. Utilise Synchroniser maintenant pour relancer une synchronisation complète.',
+    'en-GB' => 'Changes and deletions to calendar entries, applications, jobs, companies and assigned contacts are synchronised automatically. Use Sync now to rerun a full synchronisation.',
+    'pt-BR' => 'Alterações e exclusões em calendário, candidaturas, vagas, empresas e contatos vinculados são sincronizadas automaticamente. Use Sincronizar agora para repetir a sincronização completa.',
+    'es-MX' => 'Los cambios y eliminaciones del calendario, las postulaciones, los empleos, las empresas y los contactos asignados se sincronizan automáticamente. Usa Sincronizar ahora para repetir la sincronización completa.',
+  ),
+  'help.v2.calendar_sync.steps.3' =>
+  array (
+    'de-CH' => 'Prüfe im Profil Zeitpunkt und Ergebnis des letzten Abgleichs. Ein Fehler bleibt dort sichtbar, bis ein neuer Abgleich erfolgreich war.',
+    'fr-CH' => 'Vérifie dans le profil la date et le résultat de la dernière synchronisation. Une erreur y reste visible jusqu’à la prochaine synchronisation réussie.',
+    'en-GB' => 'Check the time and result of the latest synchronisation in your profile. An error remains visible until a later synchronisation succeeds.',
+    'pt-BR' => 'Confira no perfil a data e o resultado da última sincronização. Um erro permanece visível até uma sincronização posterior ser concluída com sucesso.',
+    'es-MX' => 'Revisa en el perfil la fecha y el resultado de la última sincronización. Un error permanece visible hasta que una sincronización posterior finalice correctamente.',
   ),
   'help.v2.calendar_sync.summary' =>
   array (
@@ -3189,11 +3197,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.calendar_sync.tips.0' =>
   array (
-    'de-CH' => 'Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden.',
-    'fr-CH' => 'Un fichier ICS téléchargé ne se met pas à jour seul. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa.',
-    'en-GB' => 'A downloaded ICS file does not update itself. External events must not be deleted as JeMa-generated duplicates.',
-    'pt-BR' => 'Um arquivo ICS baixado não se atualiza sozinho. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa.',
-    'es-MX' => 'Un archivo ICS descargado no se actualiza solo. Los eventos externos no deben eliminarse como duplicados generados por JeMa.',
+    'de-CH' => 'Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Ein abonnierter privater ICS-Feed wird aktuell ausgeliefert; der Kalenderanbieter bestimmt jedoch sein Abrufintervall. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden.',
+    'fr-CH' => 'Un fichier ICS téléchargé ne se met pas à jour seul. Un flux ICS privé abonné est livré à jour, mais le fournisseur du calendrier détermine sa fréquence de lecture. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa.',
+    'en-GB' => 'A downloaded ICS file does not update itself. A subscribed private ICS feed is served current, but the calendar provider controls its polling interval. External events must not be deleted as JeMa-generated duplicates.',
+    'pt-BR' => 'Um arquivo ICS baixado não se atualiza sozinho. Um feed ICS privado assinado é fornecido atualizado, mas o provedor do calendário define o intervalo de consulta. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa.',
+    'es-MX' => 'Un archivo ICS descargado no se actualiza solo. Un canal ICS privado suscrito se entrega actualizado, pero el proveedor del calendario controla su intervalo de consulta. Los eventos externos no deben eliminarse como duplicados generados por JeMa.',
   ),
   'help.v2.calendar_sync.title' =>
   array (
@@ -4449,7 +4457,7 @@ function helpTopicDefinitions(): array
       0 => 'profile',
       1 => 'calendar',
     ),
-    'step_count' => 3,
+    'step_count' => 4,
     'tip_count' => 1,
   ),
   13 =>
@@ -7817,9 +7825,6 @@ function googleCalendarLinkIsCurrent(?array $link, string $hash): bool
 
 function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, array $user): array
 {
-    if (!dbOne($db, "SELECT migration_key FROM app_migrations WHERE migration_key='workflow_calendar_v6'")) {
-        throw new RuntimeException('Calendar migration has not completed; synchronization paused');
-    }
     $settings = googleCalendarSettings($db, $userId);
     if (!$settings || !(int) ($settings['sync_enabled'] ?? 0)) {
         throw new RuntimeException(tr('flash.google_calendar.credentials_required'));
@@ -8156,6 +8161,14 @@ function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array
     try {
         syncGoogleCalendarEvents($db, $config, $userId, $user);
     } catch (Throwable $exception) {
+        try {
+            $message = mb_substr($exception->getMessage(), 0, 1000);
+            $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_error=?, updated_at=NOW() WHERE user_id=?');
+            $stmt->bind_param('si', $message, $userId);
+            $stmt->execute();
+        } catch (Throwable $ignored) {
+            // Das urspruengliche Synchronisationsproblem bleibt die relevante Diagnose.
+        }
         error_log('Google calendar synchronization failed: ' . $exception->getMessage());
     }
 }
@@ -10625,7 +10638,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.2','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.3','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12488,6 +12501,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'failed' => (string) $result['failed'],
             ]), ((int) $result['failed'] > 0 ? 'warning' : 'success'));
         } catch (Throwable $exception) {
+            try {
+                $message = mb_substr($exception->getMessage(), 0, 1000);
+                $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_error=?, updated_at=NOW() WHERE user_id=?');
+                $stmt->bind_param('si', $message, $uid);
+                $stmt->execute();
+            } catch (Throwable $ignored) {
+            }
             flash(tr('flash.google_calendar.oauth_failed', null, ['error' => $exception->getMessage()]), 'danger');
         }
         redirect('/?page=profile#calendar-sync');
@@ -13436,6 +13456,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'company', $id, null, ['name' => $name, 'city' => $city, 'website' => $website, 'phone' => $phone, 'address_line1' => $addressLine1, 'notes' => $notes, 'is_intermediary' => $isIntermediary]);
         }
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         flash(tr('flash.companies.saved'));
         redirect('/?page=companies');
     }
@@ -13450,6 +13471,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'company', $id, $old, null);
         }
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         flash(tr('flash.companies.deleted'));
         redirect('/?page=companies');
     }
@@ -13475,6 +13497,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->rollback();
             throw $exception;
         }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.companies.deleted'));
         redirect('/?page=companies');
     }
@@ -13632,6 +13655,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) $stmt->insert_id;
             audit($db, userId(), 'create', 'job', $id, null, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes]);
         }
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         flash(tr('flash.jobs.saved'));
         unset($_SESSION['import_draft']);
         redirect('/?page=jobs&edit=' . $id . '#new');
@@ -13647,6 +13671,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $id, $uid); $stmt->execute();
             audit($db, userId(), 'delete', 'job', $id, $old, null);
         }
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         flash(tr('flash.jobs.deleted'));
         redirect('/?page=jobs');
     }
@@ -13672,6 +13697,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->rollback();
             throw $exception;
         }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.jobs.deleted'));
         $companyFilter = max(0, (int) ($_POST['company_id'] ?? 0));
         $returnUrl = '/?page=jobs&view=table';
@@ -13831,6 +13857,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('iii', $contactId, $applicationId, $uid);
             $stmt->execute();
         }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.contacts.saved'));
         redirect('/?page=applications&edit=' . $applicationId . '&contact=' . $contactId . '#contacts');
     }
@@ -13900,6 +13927,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('issssssssssii', $companyId, $firstName, $lastName, $position, $department, $email, $phone, $mobile, $linkedin, $language, $notes, $contactId, $uid);
         $stmt->execute();
         audit($db, $uid, 'update', 'contact', $contactId, $old, ['company_id'=>$companyId,'first_name'=>$firstName,'last_name'=>$lastName,'email'=>$email]);
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.contacts.updated'));
         redirect('/?page=contacts&edit_contact=' . $contactId);
     }
@@ -13915,6 +13943,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             audit($db, $uid, 'delete', 'contact', $contactId, $old, null);
         }
+        syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         flash(tr('flash.contacts.deleted'));
         redirect('/?page=contacts');
     }
@@ -13999,6 +14028,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('ii', $logId, $uid);
             $stmt->execute();
             audit($db, $uid, 'delete', 'contact_log', $logId, $old, null);
+            syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
             flash(tr('flash.contact_log.deleted'));
             redirect((int)($old['application_id'] ?? 0) > 0 ? '/?page=applications&edit=' . (int)$old['application_id'] . '&contact=' . (int)$old['contact_id'] . '#contact-log' : '/?page=contacts&edit_contact=' . (int)$old['contact_id'] . '#contact-log');
         }
@@ -14244,7 +14274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         syncApplicationWorkflow($db, $uid, $id);
         $db->commit();
         } catch (Throwable $exception) { $db->rollback(); throw $exception; }
-        if ($statusChanged || ($old['applied_at'] ?? '') !== ($appliedAt ?? '') || ($old['next_action'] ?? '') !== ($nextAction ?? '') || ($old['next_action_at'] ?? '') !== ($nextActionAt ?? '')) {
+        if ($statusChanged || (int)($old['primary_contact_id'] ?? 0) !== $primaryContactId || ($old['applied_at'] ?? '') !== ($appliedAt ?? '') || ($old['next_action'] ?? '') !== ($nextAction ?? '') || ($old['next_action_at'] ?? '') !== ($nextActionAt ?? '')) {
             syncCalendarAutomatically($db, $config, $uid, $currentUser ?? []);
         }
         if ($isAutosave) {
@@ -14406,6 +14436,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             audit($db, $uid, 'delete', 'application', $id, $old, null);
         }
+        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         flash(tr('applications.deleted'));
         redirect('/?page=applications');
     }
@@ -14436,7 +14467,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.2';
+$codeVersion = '2.4.3';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14758,6 +14789,8 @@ if ($page === 'calendar_feed') {
     }
     $feedStart = (new DateTimeImmutable('-90 days'))->setTime(0, 0);
     $feedEnd = (new DateTimeImmutable('+365 days'))->setTime(23, 59, 59);
+    header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');
+    header('Pragma: no-cache');
     calendarIcsResponse('jema-jobs-google.ics', calendarEventRows($db, (int) $feed['user_id'], $feedStart, $feedEnd), $feed);
 }
 if ($page === 'google_calendar_callback') {

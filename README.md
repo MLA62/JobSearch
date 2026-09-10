@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 10.09.2026. Version 2.4.2 ist produktiv. Firmen-Verknüpfungen sind zeilenweise lesbar; der Job-Room-Helper zeigt nur Bewerbungen mit Bewerbungsdatum.
-Release-Dokumentation: [Release 2.4.2](docs/jobsearch/RELEASE-2.4.2.md).
+Stand: 10.09.2026. Version 2.4.3 behebt den blockierten externen Kalenderabgleich und führt relevante Datenänderungen automatisch nach.
+Release-Dokumentation: [Release 2.4.3](docs/jobsearch/RELEASE-2.4.3.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

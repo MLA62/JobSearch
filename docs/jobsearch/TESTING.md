@@ -3,6 +3,11 @@
 Stand: 2026-09-10. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
+Ergänzung 2.4.3: `calendar_external_sync_test.php` prüft, dass der Google-Abgleich nicht mehr vom
+Workflow-v6-Marker abhängt, weiterhin den geprüften Exportfilter nutzt, Änderungen und Löschungen der
+verknüpften Kerndaten nachführt und Fehler dauerhaft sichtbar speichert. Zusätzlich wird der
+No-Cache-Vertrag des privaten ICS-Feeds geprüft.
+
 Ergänzung 2.4.2: `table_layout_test.php` prüft die vollständigen, zeilenweisen Firmenlinks sowie
 die Beschränkung des Job-Room-Helpers und seiner Monatsauswahl auf `applied_at IS NOT NULL`.
 `company_address_visual_test.cjs` misst in Chromium bei 390, 1000 und 2048 Pixeln, dass Jobs,
@@ -196,7 +201,7 @@ git diff --check
 | help_content | 24 Themen, fuenf Sprachfassungen, vollstaendige Keys/Platzhalter, echte tr-/DB-Aufloesung gegen synthetische DB-Zeilen, identische Kontexttexte und gueltige Themenverweise |
 | help_seed | Begrenzte Schreibziele, vollstaendige Uebersetzungen, Transaktion, Wiederholung, Fehler-Rollback, Sperre, Wiederanlauf; simulierter DB-Adapter |
 | documentation | Alle Markdown-Verweise lokal aufloesbar, historische Kennzeichnung, keine Platzhalter fuer noch fehlende Aufbaudokumente |
-| workflow_release / workflow_v6 | Statuscodes, Versandzeit, Kalenderprojektion, neue/alte Werte, Workflowdatum und konsistente Exporte |
+| workflow_release / workflow_v6 / calendar_external_sync | Statuscodes, Versandzeit, Kalenderprojektion, neue/alte Werte, Workflowdatum, konsistente Exporte, automatische Nachführung und persistente Synchronisationsfehler |
 | workflow_migration / workflow_migration_v6 | Vorschau, Sicherungen, Transaktion, Sperren, stale-preview und Fehlerfall; keine echte MariaDB |
 | calendar_today | Aktueller Tag in Monat/Arbeitswoche/Woche, keine Markierung ausserhalb des Bereichs |
 | job_date / region_choices | Datumssortierung/-filter und Schweizer Regionsauswahl |
@@ -277,7 +282,9 @@ Bilder liegen standardmaessig im temporaeren `jema-help`-Ordner; `JEMA_TEST_OUTP
 
 Workflow-v6-Migration nur an einer gesicherten Testkopie mit expliziter Vorschau testen. Konflikt zwischen Vorschau und Ausfuehrung, Fehler nach Sicherung, Wiederholung und unbekannte Legacywerte sind Pflichtfaelle.
 
-Google mit einem Testkalender pruefen: Marker fehlt/gesetzt, neu/erneut synchronisieren, Konflikt/ETag, Fremdeintrag und Termine mit Teilnehmern schuetzen. Keine reale Nachricht oder externe Kalenderaenderung als blosse UI-Probe ausloesen.
+Google mit einem Testkalender pruefen: mit fehlendem/gesetztem v6-Marker neu/erneut synchronisieren,
+Änderung und Löschung verknüpfter Kerndaten nachführen, Konflikt/ETag, Fremdeintrag und Termine mit
+Teilnehmern schuetzen. Keine reale Nachricht oder externe Kalenderaenderung als blosse UI-Probe ausloesen.
 
 ## Abnahmegrenzen
 

@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-10. Version 2.4.2 ist implementiert, getestet und produktiv verifiziert.
+Stand: 2026-09-10. Version 2.4.3 ist implementiert und getestet; die produktive Bereitstellung wird im Deployment-Nachweis geführt.
+
+## Zuverlässiger externer Kalenderabgleich 2.4.3
+
+`syncGoogleCalendarEventsLocked()` hängt nicht mehr vom Marker `workflow_calendar_v6` ab. Die
+Sicherheit bleibt durch `calendarEventRows()` und `calendarExportRows()` erhalten: Vorbereitungs- und
+Legacy-Projektionen werden nicht exportiert, fremde Google-Einträge bleiben geschützt und veraltete
+JeMa-Einträge werden nur nach einem fehlerfreien Exportlauf stillgelegt.
+
+Speichern und Löschen von Kalenderdaten sowie Änderungen an verknüpften Bewerbungen, Jobs, Firmen und
+primären Kontakten starten den Vollabgleich. Auch Löschkaskaden werden dadurch extern nachgeführt.
+Automatische und manuelle Fehler schreiben `user_google_calendar_settings.last_error`; ein erfolgreicher
+Lauf setzt den Fehler zurück und aktualisiert `last_sync_at`. Der private ICS-Feed setzt explizite
+No-Cache-Header. Das Abrufintervall eines abonnierten Feeds bleibt Sache des externen Kalenderanbieters.
 
 ## Lesbare Firmenlinks und datierter Job-Room 2.4.2
 
@@ -518,7 +531,7 @@ SMTP-Bewerbungsversand ist eine Aussenwirkung. `E-Mail / Antwort erfassen` ist d
 
 - SMTP: personenbezogene Einstellungen plus konfigurierte Systemmail-Funktion. Vor Aktivierung in einer neuen Umgebung nur kontrollierte Testpostfaecher verwenden.
 - ICS: Download ist ein Standbild; privater Feed kann abonniert werden. Feed-Token ist vertraulich.
-- Google: Betreiber-OAuth-Client plus Benutzerautorisierung und Zielkalender. Synchronisation nach Workflowmigration freigeben, Fremdeintraege schuetzen, Synchronisationsfehler sichtbar lassen.
+- Google: Betreiber-OAuth-Client plus Benutzerautorisierung und Zielkalender. Die geprüfte Exportprojektion läuft unabhängig von der getrennten Workflow-Bestandsmigration; Fremdeintraege schuetzen und Synchronisationsfehler sichtbar lassen.
 - Job-Room: externe manuelle Erfassung mit unabhaengiger Bestaetigung.
 - Textextraktion: `deploy/extract-document-texts.php`, PDF benoetigt `pdftotext`. Kein automatischer Browser-Screenshot-Worker fuer Inserate.
 - UI-Texte: DB-basierte Laufzeit plus bewusst versionierte Seeds. Hilfequelle und Generator siehe DB_I18N_CONCEPT.md.

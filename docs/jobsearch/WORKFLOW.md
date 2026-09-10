@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 10.09.2026. Aktuelles Verhalten für Release 2.4.2.
+Stand: 10.09.2026. Aktuelles Verhalten für Release 2.4.3.
+
+Ergänzung 2.4.3: Der direkte Google-Abgleich verwendet die geprüfte Kalenderprojektion auch dann,
+wenn die getrennte Workflow-v6-Bestandsbereinigung noch nicht ausgeführt wurde. Änderungen und
+Löschungen an Kalender, Bewerbung, Job, Firma oder primärem Kontakt lösen den Abgleich aus. Ein
+Fehler wird im Profil gespeichert; ein erfolgreicher Vollabgleich löscht ihn wieder. Der abonnierbare
+ICS-Feed wird ohne App-Cache ausgeliefert, wobei der externe Kalender sein Abrufintervall selbst bestimmt.
 
 Ergänzung 2.4.2: Der Job-Room-Helper verwendet ausschließlich `applied_at` als Bewerbungsdatum.
 Datensätze ohne Bewerbungsdatum werden weder für die Monatsauswahl noch als Karte berücksichtigt;
@@ -166,8 +172,10 @@ Alte erzeugte Vorbereitungs-/Dublettenereignisse stornieren, eindeutige datierte
 oder wiederherstellen, bekannte next_action-Felder bereinigen. Unbekannte Werte erhalten.
 Manuelle Termine und fremde Kalenderdaten nicht pauschal zusammenlegen oder loeschen.
 
-Google-Synchronisation ist bis zum v6-Marker gesperrt. Rueckweg: betroffene gesicherte Datensaetze
-gezielt pruefen/wiederherstellen; keine pauschale Ruecksicherung ueber spaetere Benutzerarbeit.
+Die Bestandsmigration bleibt ein eigener, explizit geprüfter Datenvorgang. Sie ist keine Voraussetzung
+für den Google-Abgleich; dessen Exportfilter blendet ungeprüfte Legacy-Projektionen aus. Rueckweg:
+betroffene gesicherte Datensaetze gezielt pruefen/wiederherstellen; keine pauschale Ruecksicherung ueber
+spaetere Benutzerarbeit.
 
 ## Querverweise
 

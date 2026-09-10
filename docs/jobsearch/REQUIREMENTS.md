@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 10.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.2.
+Stand: 10.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.3.
+
+Ergänzung 2.4.3: Der direkte Google-Kalenderabgleich darf nicht von der getrennt freizugebenden
+Workflow-v6-Bestandsbereinigung blockiert werden. Er verwendet unabhängig davon ausschließlich die
+geprüfte Kalenderprojektion. Änderungen und Löschungen an Kalenderdaten sowie an verknüpften
+Bewerbungen, Jobs, Firmen, primären Kontakten und vorhandenen Kontaktterminen müssen automatisch nachgeführt werden. Fehler eines
+automatischen oder manuellen Abgleichs bleiben im Profil sichtbar, bis ein erfolgreicher Lauf sie
+löscht. Der private abonnierbare ICS-Feed darf von der App nicht zwischengespeichert ausgeliefert werden.
 
 Ergänzung 2.4.2: In der Firmenliste müssen die Verknüpfungen zu Jobs, Bewerbungen und Kontakten
 jeweils vollständig und auf einer eigenen Zeile erscheinen. Zähler und Bezeichnung dürfen nicht

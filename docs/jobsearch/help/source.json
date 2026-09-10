@@ -1,5 +1,5 @@
 {
-  "version": "2.4.2",
+  "version": "2.4.3",
   "reviewed": "2026-09-10",
   "locales": [
     "de-CH",
@@ -991,10 +991,11 @@
           "steps": [
             "Richte den Kalenderzugriff im Profil ein und behandle die private Feed-Adresse vertraulich.",
             "Verbinde für Google dein Konto und wähle den gewünschten Zielkalender.",
-            "Prüfe die letzte Synchronisationsmeldung; bei einer ausstehenden Workflow-Bereinigung wende dich an den Admin."
+            "Änderungen und Löschungen an Kalender, Bewerbungen, Jobs, Firmen und zugeordneten Kontakten werden automatisch abgeglichen. Mit Jetzt synchronisieren kannst du den vollständigen Abgleich erneut auslösen.",
+            "Prüfe im Profil Zeitpunkt und Ergebnis des letzten Abgleichs. Ein Fehler bleibt dort sichtbar, bis ein neuer Abgleich erfolgreich war."
           ],
           "tips": [
-            "Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden."
+            "Ein einmaliger ICS-Download aktualisiert sich nicht selbst. Ein abonnierter privater ICS-Feed wird aktuell ausgeliefert; der Kalenderanbieter bestimmt jedoch sein Abrufintervall. Fremde Kalenderdaten dürfen nicht als automatisch erzeugte JeMa-Dubletten gelöscht werden."
           ]
         },
         "fr-CH": {
@@ -1003,10 +1004,11 @@
           "steps": [
             "Configure l’accès dans le profil et garde l’adresse privée du flux confidentielle.",
             "Pour Google, connecte ton compte et choisis le calendrier cible.",
-            "Vérifie le dernier résultat; si le nettoyage du processus est en attente, contacte l’admin."
+            "Les modifications et suppressions du calendrier, des candidatures, des postes, des entreprises et des contacts associés sont synchronisées automatiquement. Utilise Synchroniser maintenant pour relancer une synchronisation complète.",
+            "Vérifie dans le profil la date et le résultat de la dernière synchronisation. Une erreur y reste visible jusqu’à la prochaine synchronisation réussie."
           ],
           "tips": [
-            "Un fichier ICS téléchargé ne se met pas à jour seul. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa."
+            "Un fichier ICS téléchargé ne se met pas à jour seul. Un flux ICS privé abonné est livré à jour, mais le fournisseur du calendrier détermine sa fréquence de lecture. Les événements externes ne doivent pas être supprimés comme doublons générés par JeMa."
           ]
         },
         "en-GB": {
@@ -1015,10 +1017,11 @@
           "steps": [
             "Set up calendar access in your profile and keep the private feed address confidential.",
             "For Google, connect your account and select the target calendar.",
-            "Check the latest sync result; contact an admin if workflow migration is still pending."
+            "Changes and deletions to calendar entries, applications, jobs, companies and assigned contacts are synchronised automatically. Use Sync now to rerun a full synchronisation.",
+            "Check the time and result of the latest synchronisation in your profile. An error remains visible until a later synchronisation succeeds."
           ],
           "tips": [
-            "A downloaded ICS file does not update itself. External events must not be deleted as JeMa-generated duplicates."
+            "A downloaded ICS file does not update itself. A subscribed private ICS feed is served current, but the calendar provider controls its polling interval. External events must not be deleted as JeMa-generated duplicates."
           ]
         },
         "pt-BR": {
@@ -1027,10 +1030,11 @@
           "steps": [
             "Configure o acesso no perfil e mantenha o endereço privado do feed em sigilo.",
             "Para Google, conecte a conta e escolha o calendário de destino.",
-            "Confira o último resultado; procure o administrador se a revisão do fluxo estiver pendente."
+            "Alterações e exclusões em calendário, candidaturas, vagas, empresas e contatos vinculados são sincronizadas automaticamente. Use Sincronizar agora para repetir a sincronização completa.",
+            "Confira no perfil a data e o resultado da última sincronização. Um erro permanece visível até uma sincronização posterior ser concluída com sucesso."
           ],
           "tips": [
-            "Um arquivo ICS baixado não se atualiza sozinho. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa."
+            "Um arquivo ICS baixado não se atualiza sozinho. Um feed ICS privado assinado é fornecido atualizado, mas o provedor do calendário define o intervalo de consulta. Eventos externos não devem ser excluídos como duplicatas geradas pelo JeMa."
           ]
         },
         "es-MX": {
@@ -1039,10 +1043,11 @@
           "steps": [
             "Configura el acceso en el perfil y mantén confidencial la dirección privada del canal.",
             "Para Google, conecta tu cuenta y selecciona el calendario de destino.",
-            "Revisa el último resultado; contacta al administrador si falta revisar los datos del proceso."
+            "Los cambios y eliminaciones del calendario, las postulaciones, los empleos, las empresas y los contactos asignados se sincronizan automáticamente. Usa Sincronizar ahora para repetir la sincronización completa.",
+            "Revisa en el perfil la fecha y el resultado de la última sincronización. Un error permanece visible hasta que una sincronización posterior finalice correctamente."
           ],
           "tips": [
-            "Un archivo ICS descargado no se actualiza solo. Los eventos externos no deben eliminarse como duplicados generados por JeMa."
+            "Un archivo ICS descargado no se actualiza solo. Un canal ICS privado suscrito se entrega actualizado, pero el proveedor del calendario controla su intervalo de consulta. Los eventos externos no deben eliminarse como duplicados generados por JeMa."
           ]
         }
       }

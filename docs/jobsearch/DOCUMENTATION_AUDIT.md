@@ -1,6 +1,18 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-10. Version 2.4.2 ist vollständig geprüft, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-10. Version 2.4.3 ist implementiert und dokumentiert; produktive Nachweise folgen nach der TOTP-Bereitstellung.
+
+## Prüfstand 2.4.3
+
+- Das produktiv protokollierte Blockieren am fehlenden Marker `workflow_calendar_v6` ist im
+  Synchronisationspfad entfernt; der bestehende geprüfte Exportfilter bleibt aktiv.
+- Änderungen und Löschungen an Kalender, Bewerbungen, Jobs, Firmen und primären Kontakten lösen den
+  Google-Vollabgleich aus. Automatische und manuelle Fehler werden im Profil gespeichert.
+- Der abonnierbare private ICS-Feed wird mit No-Cache-Headern ausgeliefert.
+- Die Workflow-v6-Bestandsmigration ist unverändert ein eigener, explizit freizugebender Datenvorgang
+  und wird durch dieses Release nicht ausgeführt.
+- Alle 35 PHP-Testdateien, 3'840 Hilfeprüfungen, 1'269 Hilfe-Seeds, 72 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
 
 ## Prüfstand 2.4.2
 
