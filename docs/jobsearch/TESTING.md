@@ -2,6 +2,9 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.10: `report_fields_test.php` prüft den kombinierten Job-Room-Status, das zwingende
+Bewerbungsdatum, die bestätigte Erfassung und die fachlich lokalisierten Reportbezeichnungen.
+
 Ergänzung 2.4.9: `report_fields_test.php` prüft alle eindeutigen Report-Fallbacks: Vermittler über
 die markierte Stellenfirma, ausdrücklich kein Vermittler-Fallback bei einem normalen Arbeitgeber,
 zugewiesener namenloser Kontakt über E-Mail, Dokument-Job über Bewerbung, Kalenderfirma und

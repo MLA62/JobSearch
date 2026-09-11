@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.9.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.10.
+
+Ergänzung 2.4.10: `jobRoomApplicationStatus()` behandelt einen Datensatz nur dann als im Job-Room
+erfasst, wenn `job_room_registration=recorded` und ein tatsächliches `applied_at` vorhanden sind.
+Der sichtbare Status enthält anschließend sowohl die bestätigte Erfassung als auch das Resultat.
+Damit kann der technische Standardwert `job_room_result=open` keinen offenen Job-Room-Vorgang
+vortäuschen.
 
 Ergänzung 2.4.9: Vor der Reportformatierung normalisiert `reportNormalizeRelations()` ausschließlich
 eindeutig belegte Alternativbeziehungen. Das betrifft Vermittler über die als Vermittler markierte

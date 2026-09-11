@@ -346,6 +346,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobRoomCompanyName(array $row): string`
 - `function jobRoomApplicationMethod(?string $channel): string`
 - `function jobRoomApplicationResult(?string $result, ?string $applicationStatus, ?string $registration): string`
+- `function jobRoomApplicationStatus(?string $result, ?string $applicationStatus, ?string $registration, ?string $appliedAt): string`
 - `function jobRoomWorkloadLabel(array $row): string`
 - `function jobRoomCountryLabel(?string $countryCode): string`
 - `function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, ?string $monthEnd = null): array`

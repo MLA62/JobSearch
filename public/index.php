@@ -517,6 +517,10 @@ try {
         'applications.job_room_status' => [
             'de-CH' => 'Job-Room Status', 'fr-CH' => 'Statut Job-Room', 'en-GB' => 'Job-Room status', 'pt-BR' => 'Status do Job-Room', 'es-MX' => 'Estado de Job-Room',
         ],
+        'applications.job_room_recorded_result' => [
+            'de-CH' => 'Im Job-Room erfasst – :result', 'fr-CH' => 'Saisi dans Job-Room – :result', 'en-GB' => 'Recorded in Job-Room – :result',
+            'pt-BR' => 'Registrado no Job-Room – :result', 'es-MX' => 'Registrado en Job-Room – :result',
+        ],
         'applications.job_room_interview' => [
             'de-CH' => 'Vorstellungsgespräch', 'fr-CH' => 'Entretien d’embauche', 'en-GB' => 'Job interview', 'pt-BR' => 'Entrevista de emprego', 'es-MX' => 'Entrevista de trabajo',
         ],
@@ -3955,6 +3959,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Relações comprovadas também aparecem por caminhos alternativos válidos, como intermediário salvo como empresa da vaga, emprego do documento pela candidatura ou empresa do calendário pelo contato.',
     'es-MX' => 'Las relaciones comprobadas también se muestran mediante rutas alternativas válidas, como un intermediario guardado como empresa del empleo, el empleo de un documento mediante su solicitud o la empresa del calendario mediante el contacto.',
   ),
+  'help.v2.reports.tips.2' =>
+  array (
+    'de-CH' => 'Der Job-Room-Status unterscheidet eindeutig zwischen «noch nicht erfasst» und «erfasst – Resultat …». Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst.',
+    'fr-CH' => 'Le statut Job-Room distingue clairement «pas encore saisi» de «saisi – résultat …». Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room.',
+    'en-GB' => 'The Job-Room status clearly distinguishes “not yet recorded” from “recorded – result …”. Without an application date, an application is not considered recorded in Job-Room.',
+    'pt-BR' => 'O status do Job-Room distingue claramente “ainda não registrado” de “registrado – resultado …”. Sem uma data de candidatura, a candidatura não é considerada registrada no Job-Room.',
+    'es-MX' => 'El estado de Job-Room distingue claramente entre “todavía no registrado” y “registrado – resultado …”. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room.',
+  ),
   'help.v2.reports.title' =>
   array (
     'de-CH' => 'Listen, Filter und Auswertungen',
@@ -4545,7 +4557,7 @@ function helpTopicDefinitions(): array
       0 => 'reports',
     ),
     'step_count' => 4,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   15 =>
   array (
@@ -7098,8 +7110,8 @@ function reportFieldOptions(string $base): array
             'cover_letter_text'=>$db('cover_letter_text'), 'email_subject'=>$db('email_subject'), 'email_body'=>$db('email_body'),
             'salary_expectation'=>$db('salary_expectation'), 'salary_currency'=>$db('salary_currency'),
             'next_action'=>tr('applications.next_action'), 'next_action_at'=>$db('next_action_at'), 'notes'=>tr('common.comment'),
-            'job_room_result'=>$db('job_room_result'), 'job_room_interview'=>$db('job_room_interview'),
-            'job_room_registration'=>$db('job_room_registration'), 'created_at'=>tr('common.created'),
+            'job_room_result'=>tr('applications.job_room_status'), 'job_room_interview'=>tr('applications.job_room_interview'),
+            'job_room_registration'=>tr('applications.job_room_registration'), 'created_at'=>tr('common.created'),
             'updated_at'=>tr('common.updated'), 'latest_workflow_at'=>tr('applications.workflow_date'),
         ],
         'companies' => [
@@ -7407,6 +7419,16 @@ function jobRoomApplicationResult(?string $result, ?string $applicationStatus, ?
             default => tr('job_room_helper.result.open'),
         },
     };
+}
+
+function jobRoomApplicationStatus(?string $result, ?string $applicationStatus, ?string $registration, ?string $appliedAt): string
+{
+    if ($registration !== 'recorded' || trim((string) $appliedAt) === '') {
+        return tr('applications.job_room_not_recorded');
+    }
+    return tr('applications.job_room_recorded_result', null, [
+        'result' => jobRoomApplicationResult($result, $applicationStatus, $registration),
+    ]);
 }
 
 function jobRoomWorkloadLabel(array $row): string
@@ -7720,7 +7742,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             if ($base === 'applications' && $field === 'channel') { return optionLabel(applicationChannelOptions(), $value); }
             if ($base === 'applications' && $field === 'next_action') { return optionLabel(applicationNextActionOptions(), $value); }
             if ($base === 'applications' && $field === 'job_room_result') {
-                return jobRoomApplicationResult((string)$value, null, $row['job_room_registration'] ?? null);
+                return jobRoomApplicationStatus((string)$value, $row['status'] ?? null, $row['job_room_registration'] ?? null, $row['applied_at'] ?? null);
             }
             if ($base === 'applications' && $field === 'job_room_registration') {
                 return optionLabel(['unknown'=>tr('applications.job_room_unknown'),'not_recorded'=>tr('applications.job_room_not_recorded'),'recorded'=>tr('applications.job_room_recorded')], $value);
@@ -10999,7 +11021,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.9','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.10','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14846,7 +14868,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.9';
+$codeVersion = '2.4.10';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

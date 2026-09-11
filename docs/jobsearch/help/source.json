@@ -1,5 +1,5 @@
 {
-  "version": "2.4.9",
+  "version": "2.4.10",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -1166,7 +1166,8 @@
           ],
           "tips": [
             "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.",
-            "Belegte Beziehungen werden auch über gültige Alternativpfade angezeigt, zum Beispiel Vermittler als Stellenfirma, Dokument-Job über Bewerbung oder Kalenderfirma über Kontakt."
+            "Belegte Beziehungen werden auch über gültige Alternativpfade angezeigt, zum Beispiel Vermittler als Stellenfirma, Dokument-Job über Bewerbung oder Kalenderfirma über Kontakt.",
+            "Der Job-Room-Status unterscheidet eindeutig zwischen «noch nicht erfasst» und «erfasst – Resultat …». Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst."
           ]
         },
         "fr-CH": {
@@ -1180,7 +1181,8 @@
           ],
           "tips": [
             "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.",
-            "Les relations prouvées sont aussi affichées via des chemins alternatifs valides, par exemple intermédiaire comme entreprise de l’offre, emploi du document via la candidature ou entreprise du calendrier via le contact."
+            "Les relations prouvées sont aussi affichées via des chemins alternatifs valides, par exemple intermédiaire comme entreprise de l’offre, emploi du document via la candidature ou entreprise du calendrier via le contact.",
+            "Le statut Job-Room distingue clairement «pas encore saisi» de «saisi – résultat …». Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room."
           ]
         },
         "en-GB": {
@@ -1194,7 +1196,8 @@
           ],
           "tips": [
             "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.",
-            "Proven relations are also displayed through valid alternative paths, such as an intermediary stored as the job company, a document job through its application, or a calendar company through its contact."
+            "Proven relations are also displayed through valid alternative paths, such as an intermediary stored as the job company, a document job through its application, or a calendar company through its contact.",
+            "The Job-Room status clearly distinguishes “not yet recorded” from “recorded – result …”. Without an application date, an application is not considered recorded in Job-Room."
           ]
         },
         "pt-BR": {
@@ -1208,7 +1211,8 @@
           ],
           "tips": [
             "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.",
-            "Relações comprovadas também aparecem por caminhos alternativos válidos, como intermediário salvo como empresa da vaga, emprego do documento pela candidatura ou empresa do calendário pelo contato."
+            "Relações comprovadas também aparecem por caminhos alternativos válidos, como intermediário salvo como empresa da vaga, emprego do documento pela candidatura ou empresa do calendário pelo contato.",
+            "O status do Job-Room distingue claramente “ainda não registrado” de “registrado – resultado …”. Sem uma data de candidatura, a candidatura não é considerada registrada no Job-Room."
           ]
         },
         "es-MX": {
@@ -1222,7 +1226,8 @@
           ],
           "tips": [
             "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.",
-            "Las relaciones comprobadas también se muestran mediante rutas alternativas válidas, como un intermediario guardado como empresa del empleo, el empleo de un documento mediante su solicitud o la empresa del calendario mediante el contacto."
+            "Las relaciones comprobadas también se muestran mediante rutas alternativas válidas, como un intermediario guardado como empresa del empleo, el empleo de un documento mediante su solicitud o la empresa del calendario mediante el contacto.",
+            "El estado de Job-Room distingue claramente entre “todavía no registrado” y “registrado – resultado …”. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room."
           ]
         }
       }

@@ -1,6 +1,14 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.9 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.10 ist implementiert und zur Bereitstellung vorbereitet.
+
+## Eindeutiger Job-Room-Status 2.4.10
+
+Reports beschriften `job_room_result` fachlich als «Job-Room Status» und berechnen den sichtbaren
+Wert mit `jobRoomApplicationStatus()`. Ohne bestätigte Erfassung oder ohne Bewerbungsdatum erscheint
+«Noch nicht im Job-Room erfasst». Andernfalls zeigt der Report vollständig «Im Job-Room erfasst –
+Noch offen/Anstellung/Absage». Die getrennt auswählbaren Erfassungs- und Gesprächsfelder besitzen
+ebenfalls fachliche, lokalisierte Bezeichnungen statt technischer DB-Feldnamen.
 
 ## Vollständige Reportbeziehungen 2.4.9
 

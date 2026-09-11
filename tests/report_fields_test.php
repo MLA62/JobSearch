@@ -57,13 +57,21 @@ reportCheck(str_contains($source, 'foreach($viewReportHeaders as $header)') && s
 
 reportCheck(preg_match('/function jobRoomApplicationResult\(.*?^\}/ms', $source, $jobRoomResultMatch) === 1, 'Job-Room result formatter is isolated for regression testing');
 if (!function_exists('tr')) {
-    function tr(string $key): string { return $key; }
+    function tr(string $key, ?string $locale = null, array $replace = []): string {
+        foreach ($replace as $name => $value) { $key = str_replace(':' . $name, (string)$value, $key); }
+        return $key;
+    }
 }
 eval($jobRoomResultMatch[0]);
 reportCheck(jobRoomApplicationResult('open', 'sent', 'not_recorded') === 'applications.job_room_not_recorded', 'An application not recorded in Job-Room is not reported as open');
 reportCheck(jobRoomApplicationResult('open', 'sent', 'unknown') === 'applications.job_room_not_recorded', 'An unconfirmed Job-Room registration is not reported as open');
 reportCheck(jobRoomApplicationResult('open', 'sent', 'recorded') === 'job_room_helper.result.open', 'Open is shown only after confirmed Job-Room registration');
-reportCheck(str_contains($source, 'a.job_room_registration, a.channel') && str_contains($source, "\$row['job_room_registration'] ?? null"), 'Report and Job-Room helper use the actual registration state');
+reportCheck(preg_match('/function jobRoomApplicationStatus\(.*?^\}/ms', $source, $jobRoomStatusMatch) === 1, 'Combined Job-Room status formatter is isolated for regression testing');
+eval($jobRoomStatusMatch[0]);
+reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', null) === 'applications.job_room_not_recorded', 'A Job-Room status without an application date is not reported as recorded');
+reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00') === 'applications.job_room_recorded_result', 'A confirmed registration with an application date uses the explicit combined status');
+reportCheck(str_contains($source, "job_room_result'=>tr('applications.job_room_status')") && str_contains($source, "job_room_registration'=>tr('applications.job_room_registration')"), 'Job-Room report columns have user-facing labels instead of technical DB labels');
+reportCheck(str_contains($source, "\$row['applied_at'] ?? null") && str_contains($source, "\$row['job_room_registration'] ?? null"), 'Report status uses both the application date and the actual registration state');
 
 $optionStart = strpos($source, 'function reportFieldOptions(string $base): array');
 $optionEnd = strpos($source, 'function reportDefaultColumns(string $base): array', $optionStart);

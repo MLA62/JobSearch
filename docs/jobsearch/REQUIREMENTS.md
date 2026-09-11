@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.9.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.10.
+
+Ergänzung 2.4.10: Der Job-Room-Status in Reports muss Erfassung und Resultat eindeutig gemeinsam
+ausgeben. «Noch offen» allein ist unzulässig. Ohne Bewerbungsdatum oder ohne bestätigte Erfassung
+muss «Noch nicht im Job-Room erfasst» erscheinen; sonst «Im Job-Room erfasst – Resultat». Die
+Spaltenbezeichnungen müssen fachlich und lokalisiert sein, nicht als technische DB-Namen erscheinen.
 
 Ergänzung 2.4.9: Ausgewählte Beziehungsfelder eines Reports müssen ihren Inhalt über jeden
 eindeutig belegten Datenpfad ermitteln. Eine Stellenfirma mit Vermittlerkennzeichen erscheint als
