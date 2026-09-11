@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.10 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.11 ist implementiert und für das Deployment vorbereitet.
+
+## Wirksame Report-Anzeigearten 2.4.11
+
+`display_type` wird beim Speichern gegen die gewählte Datenbasis validiert und beim Öffnen an
+`reportRowsHtml()` übergeben. Tabelle, Liste, Karten und Vorschau besitzen eigenständige Renderer.
+Kalenderreports können zusätzlich nach Tag, Kalenderwoche oder Monat gruppiert werden; diese drei
+Anzeigearten werden bei anderen Datenbasen nicht angeboten. Beim Wechsel der Datenbasis aktualisiert
+der Browser neben Feldern, Sortierung und Status jetzt auch die gültigen Anzeigearten. Alle sichtbaren
+Werte bleiben HTML-escaped und mehrzeilig lesbar.
 
 ## Eindeutiger Job-Room-Status 2.4.10
 

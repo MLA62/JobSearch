@@ -11,6 +11,14 @@ function reportCheck(bool $condition, string $message): void
     echo "PASS {$message}\n";
 }
 
+function tr(string $key, ?string $locale = null, array $replace = []): string
+{
+    foreach ($replace as $name => $value) {
+        $key = str_replace(':' . $name, (string)$value, $key);
+    }
+    return $key;
+}
+
 reportCheck(preg_match('/function limitReportColumns\(.*?^\}/ms', $source, $match) === 1, 'Report column limiter is isolated for regression testing');
 eval($match[0]);
 $allowed = array_combine(array_map(static fn(int $number): string => 'field_' . $number, range(1, 20)), range(1, 20));
@@ -52,16 +60,23 @@ reportCheck(str_contains($source, "base.addEventListener('change'") && str_conta
 reportCheck(preg_match('/function reportOpenUrl\(array \$report\): string\s*\{.*?^\}/ms', $source, $openUrlMatch) === 1, 'Saved-report navigation can be isolated for regression testing');
 eval($openUrlMatch[0]);
 reportCheck(reportOpenUrl(['id'=>73, 'base_entity'=>'jobs', 'display_type'=>'table']) === '/?page=reports&view_report=73#report-view', 'Show opens the selected saved report instead of an unrelated module table');
-reportCheck(str_contains($source, '[$viewReportHeaders, $viewReportData] = reportDataset('), 'The visible report uses its saved settings and report dataset');
-reportCheck(str_contains($source, 'foreach($viewReportHeaders as $header)') && str_contains($source, 'foreach($viewReportData as $row)'), 'The report table renders exactly the selected headers and matching rows');
+reportCheck(str_contains($source, '[$viewReportHeaders, $viewReportData, $viewReportMeta] = reportDataset('), 'The visible report uses its saved settings, report dataset, and display metadata');
+reportCheck(str_contains($source, 'reportRowsHtml($viewReportHeaders, $viewReportData, $viewReportDisplayType, $viewReportMeta)'), 'The saved display type controls the visible report renderer');
+reportCheck(str_contains($source, 'data-report-display') && str_contains($source, 'const displays=') && str_contains($source, "display.value='table'"), 'Changing the data source refreshes the valid display types');
+reportCheck(str_contains($source, 'reportDisplayType($baseEntity, $_POST[\'display_type\'] ?? null)'), 'Save and update validate the display type against the selected data source');
+
+reportCheck(preg_match('/function reportDisplayOptions\(.*?^\}/ms', $source, $displayOptionsMatch) === 1, 'Report display options are isolated for regression testing');
+eval($displayOptionsMatch[0]);
+reportCheck(preg_match('/function reportDisplayType\(.*?^\}/ms', $source, $displayTypeMatch) === 1, 'Report display validation is isolated for regression testing');
+eval($displayTypeMatch[0]);
+reportCheck(reportDisplayType('jobs', 'cards') === 'cards', 'Card view remains available for normal report data');
+reportCheck(reportDisplayType('jobs', 'calendar_month') === 'table', 'Calendar-only view is rejected for non-calendar data');
+reportCheck(reportDisplayType('calendar', 'calendar_month') === 'calendar_month', 'Calendar month view remains available for calendar data');
+foreach (['table','list','cards','preview','calendar_day','calendar_week','calendar_month'] as $displayType) {
+    reportCheck(str_contains($source, "'{$displayType}'"), "Report renderer supports {$displayType}");
+}
 
 reportCheck(preg_match('/function jobRoomApplicationResult\(.*?^\}/ms', $source, $jobRoomResultMatch) === 1, 'Job-Room result formatter is isolated for regression testing');
-if (!function_exists('tr')) {
-    function tr(string $key, ?string $locale = null, array $replace = []): string {
-        foreach ($replace as $name => $value) { $key = str_replace(':' . $name, (string)$value, $key); }
-        return $key;
-    }
-}
 eval($jobRoomResultMatch[0]);
 reportCheck(jobRoomApplicationResult('open', 'sent', 'not_recorded') === 'applications.job_room_not_recorded', 'An application not recorded in Job-Room is not reported as open');
 reportCheck(jobRoomApplicationResult('open', 'sent', 'unknown') === 'applications.job_room_not_recorded', 'An unconfirmed Job-Room registration is not reported as open');

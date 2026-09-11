@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 11.09.2026. Version 2.4.10 stellt den Job-Room-Status in Reports eindeutig und datumsgebunden dar.
-Release-Dokumentation: [Release 2.4.10](docs/jobsearch/RELEASE-2.4.10.md).
+Stand: 11.09.2026. Version 2.4.11 setzt die gespeicherte Anzeigeart eines Reports tatsächlich um.
+Release-Dokumentation: [Release 2.4.11](docs/jobsearch/RELEASE-2.4.11.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

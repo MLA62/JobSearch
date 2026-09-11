@@ -3929,11 +3929,19 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.3' =>
   array (
-    'de-CH' => 'Öffne «Anzeigen», um den Report mit genau den gewählten Spalten zu sehen, und exportiere ihn bei Bedarf als PDF.',
-    'fr-CH' => 'Ouvre «Afficher» pour voir le rapport avec exactement les colonnes choisies, puis exporte-le en PDF si nécessaire.',
-    'en-GB' => 'Open “Show” to see the report with exactly the selected columns, then export it to PDF if needed.',
-    'pt-BR' => 'Abra “Mostrar” para ver o relatório exatamente com as colunas selecionadas e exporte-o em PDF se necessário.',
-    'es-MX' => 'Abre «Mostrar» para ver el informe exactamente con las columnas elegidas y expórtalo en PDF si lo necesitas.',
+    'de-CH' => 'Wähle die Anzeigeart: Tabelle, Liste, Karten oder Vorschau. Für Kalenderdaten stehen zusätzlich Tages-, Wochen- und Monatsgruppen zur Verfügung.',
+    'fr-CH' => 'Choisis le mode d’affichage: tableau, liste, cartes ou aperçu. Les données du calendrier proposent aussi des groupes par jour, semaine et mois.',
+    'en-GB' => 'Choose the display type: table, list, cards or preview. Calendar data also offers day, week and month groups.',
+    'pt-BR' => 'Escolha o modo de exibição: tabela, lista, cartões ou prévia. Os dados do calendário também oferecem grupos por dia, semana e mês.',
+    'es-MX' => 'Elige el tipo de visualización: tabla, lista, tarjetas o vista previa. Los datos del calendario también ofrecen grupos por día, semana y mes.',
+  ),
+  'help.v2.reports.steps.4' =>
+  array (
+    'de-CH' => 'Öffne «Anzeigen», um den Report mit den gewählten Spalten und der gespeicherten Anzeigeart zu sehen, und exportiere ihn bei Bedarf als PDF.',
+    'fr-CH' => 'Ouvre «Afficher» pour voir le rapport avec les colonnes choisies et le mode d’affichage enregistré, puis exporte-le en PDF si nécessaire.',
+    'en-GB' => 'Open “Show” to see the report with the selected columns and saved display type, then export it to PDF if needed.',
+    'pt-BR' => 'Abra “Mostrar” para ver o relatório com as colunas selecionadas e o modo de exibição salvo e exporte-o em PDF se necessário.',
+    'es-MX' => 'Abre «Mostrar» para ver el informe con las columnas elegidas y el tipo de visualización guardado; expórtalo en PDF si lo necesitas.',
   ),
   'help.v2.reports.summary' =>
   array (
@@ -4556,7 +4564,7 @@ function helpTopicDefinitions(): array
     array (
       0 => 'reports',
     ),
-    'step_count' => 4,
+    'step_count' => 5,
     'tip_count' => 3,
   ),
   15 =>
@@ -7062,9 +7070,19 @@ function reportBaseOptions(): array
     return ['jobs'=>tr('nav.jobs'),'applications'=>tr('nav.applications'),'companies'=>tr('nav.companies'),'contacts'=>tr('nav.contacts'),'documents'=>tr('nav.documents'),'calendar'=>tr('nav.calendar')];
 }
 
-function reportDisplayOptions(): array
+function reportDisplayOptions(?string $base = null): array
 {
-    return ['table'=>tr('common.table'),'list'=>tr('common.list'),'cards'=>tr('common.cards'),'preview'=>tr('common.preview'),'calendar_day'=>tr('calendar.day_view'),'calendar_week'=>tr('calendar.week_view'),'calendar_month'=>tr('calendar.month_view')];
+    $options = ['table'=>tr('common.table'),'list'=>tr('common.list'),'cards'=>tr('common.cards'),'preview'=>tr('common.preview')];
+    if ($base === null || $base === 'calendar') {
+        $options += ['calendar_day'=>tr('calendar.day_view'),'calendar_week'=>tr('calendar.week_view'),'calendar_month'=>tr('calendar.month_view')];
+    }
+    return $options;
+}
+
+function reportDisplayType(string $base, ?string $displayType): string
+{
+    $displayType = (string) $displayType;
+    return array_key_exists($displayType, reportDisplayOptions($base)) ? $displayType : 'table';
 }
 
 function reportOpenUrl(array $report): string
@@ -7701,6 +7719,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
     });
 
     $data = [];
+    $displayMeta = [];
     foreach ($rows as $row) {
         $row = reportNormalizeRelations($base, $row);
         if ($base === 'applications') {
@@ -7709,6 +7728,9 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             $row['status'] = $workflow['status'];
             $row['channel'] = optionLabel(applicationChannelOptions(), $row['channel']);
         }
+        $displayMeta[] = $base === 'calendar'
+            ? reportCalendarDisplayMeta((string)($row['starts_at'] ?? ''), $currentUser)
+            : [];
         $data[] = array_map(static function(string $field) use ($row, $currentUser, $base): string {
             $value = $row[$field] ?? '';
             if ($field === 'latest_workflow_at') { return displayDateTime($value ?: null, $currentUser, false); }
@@ -7756,7 +7778,82 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
         }, $columns);
     }
 
-    return [$headers, $data];
+    return [$headers, $data, $displayMeta];
+}
+
+function reportCalendarDisplayMeta(?string $value, array $currentUser): array
+{
+    if (!$value) {
+        return ['calendar_day'=>'—', 'calendar_week'=>'—', 'calendar_month'=>'—'];
+    }
+    try {
+        $timezone = new DateTimeZone((string)($currentUser['timezone'] ?? 'Europe/Zurich'));
+        $date = new DateTimeImmutable($value, $timezone);
+        return [
+            'calendar_day'=>displayDateTime($value, $currentUser, false),
+            'calendar_week'=>tr('calendar.week_number_short') . ' ' . $date->format('W') . ' / ' . $date->format('o'),
+            'calendar_month'=>$date->format('m/Y'),
+        ];
+    } catch (Throwable) {
+        return ['calendar_day'=>'—', 'calendar_week'=>'—', 'calendar_month'=>'—'];
+    }
+}
+
+function reportRowDetailsHtml(array $headers, array $row): string
+{
+    $html = '<dl class="report-entry-fields">';
+    foreach ($headers as $index=>$header) {
+        $html .= '<div><dt>' . e((string)$header) . '</dt><dd>' . nl2br(e((string)($row[$index] ?? ''))) . '</dd></div>';
+    }
+    return $html . '</dl>';
+}
+
+function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string
+{
+    if (!$rows) {
+        return '<p class="empty">' . e(tr('common.no_entries')) . '</p>';
+    }
+    if ($displayType === 'table') {
+        $html = '<div class="table-wrap"><table><thead><tr>';
+        foreach ($headers as $header) {
+            $html .= '<th>' . e((string)$header) . '</th>';
+        }
+        $html .= '</tr></thead><tbody>';
+        foreach ($rows as $row) {
+            $html .= '<tr>';
+            foreach ($row as $value) {
+                $html .= '<td>' . nl2br(e((string)$value)) . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        return $html . '</tbody></table></div>';
+    }
+    if (in_array($displayType, ['calendar_day','calendar_week','calendar_month'], true)) {
+        $groups = [];
+        foreach ($rows as $index=>$row) {
+            $group = (string)($displayMeta[$index][$displayType] ?? '—');
+            $groups[$group][] = $row;
+        }
+        $html = '<div class="report-calendar-groups report-calendar-groups--' . e($displayType) . '">';
+        foreach ($groups as $group=>$groupRows) {
+            $html .= '<section class="report-calendar-group"><h3>' . e($group) . '</h3><div class="report-entries report-entries--cards">';
+            foreach ($groupRows as $row) {
+                $html .= '<article class="report-entry">' . reportRowDetailsHtml($headers, $row) . '</article>';
+            }
+            $html .= '</div></section>';
+        }
+        return $html . '</div>';
+    }
+    $class = $displayType === 'cards' ? 'cards' : ($displayType === 'preview' ? 'preview' : 'list');
+    $html = '<div class="report-entries report-entries--' . e($class) . '">';
+    foreach ($rows as $row) {
+        $html .= '<article class="report-entry">';
+        if ($displayType === 'preview') {
+            $html .= '<h3>' . e((string)($row[0] ?? '—')) . '</h3>';
+        }
+        $html .= reportRowDetailsHtml($headers, $row) . '</article>';
+    }
+    return $html . '</div>';
 }
 
 function calendarViewOptions(): array
@@ -11021,7 +11118,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.10','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.11','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12926,7 +13023,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim((string) ($_POST['report_name'] ?? ''));
         $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
         $baseEntity = array_key_exists((string) ($_POST['base_entity'] ?? ''), reportBaseOptions()) ? (string) $_POST['base_entity'] : 'jobs';
-        $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
+        $displayType = reportDisplayType($baseEntity, $_POST['display_type'] ?? null);
         if ($name === '') {
             flash(tr('flash.reports.name_required'), 'danger');
             redirect('/?page=reports');
@@ -12947,7 +13044,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim((string) ($_POST['report_name'] ?? ''));
         $description = trim((string) ($_POST['report_description'] ?? '')) ?: null;
         $baseEntity = array_key_exists((string) ($_POST['base_entity'] ?? ''), reportBaseOptions()) ? (string) $_POST['base_entity'] : 'jobs';
-        $displayType = array_key_exists((string) ($_POST['display_type'] ?? ''), reportDisplayOptions()) ? (string) $_POST['display_type'] : 'table';
+        $displayType = reportDisplayType($baseEntity, $_POST['display_type'] ?? null);
         $old = dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$id, userId()]);
         if (!$old || $name === '') {
             flash(tr('flash.reports.update_failed'), 'danger');
@@ -14868,7 +14965,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.10';
+$codeVersion = '2.4.11';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15562,22 +15659,23 @@ startUiTranslationBuffer($appLocale);
         $viewReport = $viewReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$viewReportId, userId()]) : null;
         $reportViewMissing = $viewReportId > 0 && !$viewReport;
         $reportBaseOptions = reportBaseOptions();
-        $reportDisplayOptions = reportDisplayOptions();
+        $allReportDisplayOptions = reportDisplayOptions();
         foreach ($reports as &$reportRow) {
             $reportRow['base_label'] = (string) ($reportBaseOptions[$reportRow['base_entity']] ?? $reportRow['base_entity']);
-            $reportRow['display_label'] = (string) ($reportDisplayOptions[$reportRow['display_type']] ?? $reportRow['display_type']);
+            $reportRow['display_label'] = (string) ($allReportDisplayOptions[$reportRow['display_type']] ?? $reportRow['display_type']);
         }
         unset($reportRow);
         $reportListSfFields = [
             'name'=>['label'=>tr('common.name')],
             'base_label'=>['label'=>tr('reports.base'), 'choices'=>array_combine(array_values($reportBaseOptions), array_values($reportBaseOptions))],
-            'display_label'=>['label'=>tr('reports.view'), 'choices'=>array_combine(array_values($reportDisplayOptions), array_values($reportDisplayOptions))],
+            'display_label'=>['label'=>tr('reports.view'), 'choices'=>array_combine(array_values($allReportDisplayOptions), array_values($allReportDisplayOptions))],
             'updated_at'=>['label'=>tr('common.updated')],
         ];
         $reportListSf = sfState('reports', $reportListSfFields, ['sort'=>'updated_at','dir'=>'desc']);
         $reportListPreserve = ['page'=>'reports', 'edit_report'=>$editReportId ?: '', 'view_report'=>$viewReportId ?: ''];
         $reports = sfApplyRows($reports, $reportListSf, $reportListSfFields);
         $reportBase = (string)($editReport['base_entity'] ?? 'jobs');
+        $reportDisplayOptions = reportDisplayOptions($reportBase);
         $reportFields = reportFieldOptions($reportBase);
         $reportSettings = $editReport ? loadReportSettings($db, (int)$editReport['id'], $reportBase) : ['columns'=>reportDefaultColumns($reportBase), 'filters'=>[], 'sort'=>['field_name'=>array_key_first($reportFields), 'direction'=>'asc']];
         $reportEditorFields = reportEditorFieldOptions($reportFields, $reportSettings['columns']);
@@ -15585,17 +15683,22 @@ startUiTranslationBuffer($appLocale);
         $reportFieldCatalog = [];
         $reportDefaultCatalog = [];
         $reportStatusCatalog = [];
+        $reportDisplayCatalog = [];
         foreach (array_keys($reportBaseOptions) as $reportBaseKey) {
             $reportFieldCatalog[$reportBaseKey] = reportFieldOptions($reportBaseKey);
             $reportDefaultCatalog[$reportBaseKey] = reportDefaultColumns($reportBaseKey);
             $reportStatusCatalog[$reportBaseKey] = reportStatusOptions($reportBaseKey);
+            $reportDisplayCatalog[$reportBaseKey] = reportDisplayOptions($reportBaseKey);
         }
         $reportColumnLimit = reportColumnLimit();
         $viewReportHeaders = [];
         $viewReportData = [];
+        $viewReportMeta = [];
+        $viewReportDisplayType = 'table';
         if ($viewReport) {
             $viewReportSettings = loadReportSettings($db, (int)$viewReport['id'], (string)$viewReport['base_entity']);
-            [$viewReportHeaders, $viewReportData] = reportDataset($db, userId(), $viewReport, $viewReportSettings, $currentUser);
+            [$viewReportHeaders, $viewReportData, $viewReportMeta] = reportDataset($db, userId(), $viewReport, $viewReportSettings, $currentUser);
+            $viewReportDisplayType = reportDisplayType((string)$viewReport['base_entity'], $viewReport['display_type'] ?? null);
         }
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('reports.title')) ?></h1></div><span><?= e(tr('reports.count', null, ['count' => (string) count($reports)])) ?></span></div>
@@ -15611,7 +15714,7 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('common.description')) ?><textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label>
                     <div class="two">
                         <label><?= e(tr('reports.base')) ?><select name="base_entity" data-report-base><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= $reportBase===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
-                        <label><?= e(tr('reports.view')) ?><select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                        <label><?= e(tr('reports.view')) ?><select name="display_type" data-report-display><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= reportDisplayType($reportBase, $editReport['display_type'] ?? null)===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     </div>
                     <fieldset class="report-config" data-report-column-picker><legend><?= e(tr('reports.columns')) ?></legend><?php foreach($reportEditorFields as $field=>$label): ?><label class="check report-column-option"><span class="report-drag-handle" draggable="true" data-report-drag-handle aria-hidden="true">↕</span><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
                     <small class="meta-line" data-report-column-count><?= e(tr('reports.column_count', null, ['selected'=>(string)count($reportSettings['columns']), 'count'=>(string)$reportColumnLimit])) ?></small>
@@ -15626,10 +15729,12 @@ startUiTranslationBuffer($appLocale);
                     const picker=form.querySelector('[data-report-column-picker]');
                     const sort=form.querySelector('[data-report-sort]');
                     const status=form.querySelector('[data-report-status]');
+                    const display=form.querySelector('[data-report-display]');
                     const counter=form.querySelector('[data-report-column-count]');
                     const fields=<?= json_encode($reportFieldCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const defaults=<?= json_encode($reportDefaultCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const statuses=<?= json_encode($reportStatusCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const displays=<?= json_encode($reportDisplayCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const limit=<?= (int)$reportColumnLimit ?>;
                     const countTemplate=<?= json_encode(tr('reports.column_count'), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const limitMessage=<?= json_encode(tr('reports.column_limit_reached', null, ['count'=>(string)$reportColumnLimit]), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
@@ -15681,6 +15786,9 @@ startUiTranslationBuffer($appLocale);
                         Object.entries(fields[key]||{}).forEach(([value,label])=>{const option=new Option(label,value);sort.add(option);});
                         status.replaceChildren(new Option(allLabel,''));
                         Object.entries(statuses[key]||{}).forEach(([value,label])=>status.add(new Option(label,value)));
+                        display.replaceChildren();
+                        Object.entries(displays[key]||{}).forEach(([value,label])=>display.add(new Option(label,value)));
+                        display.value='table';
                         updateCounter();
                     });
                     picker.querySelectorAll('.report-column-option').forEach(enableColumnDrag);
@@ -15691,9 +15799,9 @@ startUiTranslationBuffer($appLocale);
             <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= nl2br(e(richTextPlain((string)$report['description']))) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
         </div>
         <?php if($viewReport): ?>
-            <section class="panel table-wrap" id="report-view">
+            <section class="panel" id="report-view" data-report-display-type="<?= e($viewReportDisplayType) ?>">
                 <div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h2><?= e((string)$viewReport['name']) ?></h2><p><?= nl2br(e(richTextPlain((string)$viewReport['description']))) ?></p></div><div class="actions"><a class="button" href="/?page=reports&edit_report=<?= (int)$viewReport['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a class="button primary" href="/?page=export_pdf&type=report&report_id=<?= (int)$viewReport['id'] ?>">PDF</a></div></div>
-                <table><thead><tr><?php foreach($viewReportHeaders as $header): ?><th><?= e((string)$header) ?></th><?php endforeach; ?></tr></thead><tbody><?php foreach($viewReportData as $row): ?><tr><?php foreach($row as $value): ?><td><?= nl2br(e((string)$value)) ?></td><?php endforeach; ?></tr><?php endforeach; ?><?php if(!$viewReportData): ?><tr><td colspan="<?= max(1,count($viewReportHeaders)) ?>" class="empty"><?= e(tr('common.no_entries')) ?></td></tr><?php endif; ?></tbody></table>
+                <?= reportRowsHtml($viewReportHeaders, $viewReportData, $viewReportDisplayType, $viewReportMeta) ?>
             </section>
         <?php endif; ?>
     <?php elseif ($page === 'job_room_helper'): ?>

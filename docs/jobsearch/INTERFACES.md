@@ -315,7 +315,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function sfHeader(string $context, string $field, string $label, array $state, array $preserve = [], array $fields = []): string`
 - `function sfToolbar(string $context, array $state, array $preserve = [], array $fields = []): string`
 - `function reportBaseOptions(): array`
-- `function reportDisplayOptions(): array`
+- `function reportDisplayOptions(?string $base = null): array`
+- `function reportDisplayType(string $base, ?string $displayType): string`
 - `function reportOpenUrl(array $report): string`
 - `function reportExportType(array $report): ?string`
 - `function reportColumnLimit(): int`
@@ -356,6 +357,9 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function saveReportSettings(mysqli $db, int $reportId, string $base): void`
 - `function loadReportSettings(mysqli $db, int $reportId, string $base): array`
 - `function reportDataset(mysqli $db, int $userId, array $report, array $settings, array $currentUser): array`
+- `function reportCalendarDisplayMeta(?string $value, array $currentUser): array`
+- `function reportRowDetailsHtml(array $headers, array $row): string`
+- `function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string`
 - `function calendarViewOptions(): array`
 - `function calendarAnchorDate(array $user): DateTimeImmutable`
 - `function calendarRange(string $view, DateTimeImmutable $anchor): array`

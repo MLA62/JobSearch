@@ -2,6 +2,10 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.11: `report_fields_test.php` prüft die datenbasisabhängige Anzeigeartvalidierung, die
+Verknüpfung des gespeicherten Werts mit dem Renderer und die dynamische Aktualisierung im Editor.
+Der Chromium-Test deckt Auswahl, Speichern und die unterschiedlichen DOM-Ausgaben der Ansichten ab.
+
 Ergänzung 2.4.10: `report_fields_test.php` prüft den kombinierten Job-Room-Status, das zwingende
 Bewerbungsdatum, die bestätigte Erfassung und die fachlich lokalisierten Reportbezeichnungen.
 

@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.10.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.11.
+
+Ergänzung 2.4.11: Die gespeicherte Anzeigeart eines Reports muss die Bildschirmdarstellung tatsächlich
+steuern. Tabelle, Liste, Karten und Vorschau sind für alle Datenbasen verfügbar. Tages-, Wochen- und
+Monatsgruppen stehen ausschließlich für Kalenderdaten zur Wahl. Beim Wechsel der Datenbasis muss die
+Auswahlliste sofort aktualisiert werden; eine ungültige Kombination fällt serverseitig auf Tabelle zurück.
 
 Ergänzung 2.4.10: Der Job-Room-Status in Reports muss Erfassung und Resultat eindeutig gemeinsam
 ausgeben. «Noch offen» allein ist unzulässig. Ohne Bewerbungsdatum oder ohne bestätigte Erfassung

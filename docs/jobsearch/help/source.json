@@ -1,5 +1,5 @@
 {
-  "version": "2.4.10",
+  "version": "2.4.11",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -1162,7 +1162,8 @@
             "Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.",
             "Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.",
             "Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.",
-            "Öffne «Anzeigen», um den Report mit genau den gewählten Spalten zu sehen, und exportiere ihn bei Bedarf als PDF."
+            "Wähle die Anzeigeart: Tabelle, Liste, Karten oder Vorschau. Für Kalenderdaten stehen zusätzlich Tages-, Wochen- und Monatsgruppen zur Verfügung.",
+            "Öffne «Anzeigen», um den Report mit den gewählten Spalten und der gespeicherten Anzeigeart zu sehen, und exportiere ihn bei Bedarf als PDF."
           ],
           "tips": [
             "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.",
@@ -1177,7 +1178,8 @@
             "Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.",
             "Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.",
             "Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.",
-            "Ouvre «Afficher» pour voir le rapport avec exactement les colonnes choisies, puis exporte-le en PDF si nécessaire."
+            "Choisis le mode d’affichage: tableau, liste, cartes ou aperçu. Les données du calendrier proposent aussi des groupes par jour, semaine et mois.",
+            "Ouvre «Afficher» pour voir le rapport avec les colonnes choisies et le mode d’affichage enregistré, puis exporte-le en PDF si nécessaire."
           ],
           "tips": [
             "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.",
@@ -1192,7 +1194,8 @@
             "Select field filters and sorting in column headers; reset them when needed.",
             "Choose a data source and then up to twelve database fields at once as report columns.",
             "Drag the selected columns into order, set filters and save the report; the refreshed view opens immediately.",
-            "Open “Show” to see the report with exactly the selected columns, then export it to PDF if needed."
+            "Choose the display type: table, list, cards or preview. Calendar data also offers day, week and month groups.",
+            "Open “Show” to see the report with the selected columns and saved display type, then export it to PDF if needed."
           ],
           "tips": [
             "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.",
@@ -1207,7 +1210,8 @@
             "Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.",
             "Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.",
             "Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.",
-            "Abra “Mostrar” para ver o relatório exatamente com as colunas selecionadas e exporte-o em PDF se necessário."
+            "Escolha o modo de exibição: tabela, lista, cartões ou prévia. Os dados do calendário também oferecem grupos por dia, semana e mês.",
+            "Abra “Mostrar” para ver o relatório com as colunas selecionadas e o modo de exibição salvo e exporte-o em PDF se necessário."
           ],
           "tips": [
             "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.",
@@ -1222,7 +1226,8 @@
             "Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.",
             "Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.",
             "Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.",
-            "Abre «Mostrar» para ver el informe exactamente con las columnas elegidas y expórtalo en PDF si lo necesitas."
+            "Elige el tipo de visualización: tabla, lista, tarjetas o vista previa. Los datos del calendario también ofrecen grupos por día, semana y mes.",
+            "Abre «Mostrar» para ver el informe con las columnas elegidas y el tipo de visualización guardado; expórtalo en PDF si lo necesitas."
           ],
           "tips": [
             "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.",

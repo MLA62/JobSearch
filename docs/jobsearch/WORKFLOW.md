@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.10.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.11.
+
+Ergänzung 2.4.11: Ein Report speichert die Anzeigeart zusammen mit Datenbasis, Feldern, Filtern und
+Sortierung. Beim Anzeigen normalisiert `reportDisplayType()` die Kombination und `reportRowsHtml()`
+rendert Tabelle, Liste, Karten, Vorschau oder bei Kalenderdaten gruppierte Tages-, Wochen- und
+Monatsansichten. Ein Basiswechsel ersetzt im Editor auch die Liste gültiger Anzeigearten.
 
 Ergänzung 2.4.10: `jobRoomApplicationStatus()` behandelt einen Datensatz nur dann als im Job-Room
 erfasst, wenn `job_room_registration=recorded` und ein tatsächliches `applied_at` vorhanden sind.
