@@ -2,6 +2,11 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.9: `report_fields_test.php` prüft alle eindeutigen Report-Fallbacks: Vermittler über
+die markierte Stellenfirma, ausdrücklich kein Vermittler-Fallback bei einem normalen Arbeitgeber,
+zugewiesener namenloser Kontakt über E-Mail, Dokument-Job über Bewerbung, Kalenderfirma und
+Kalenderkontakt über Kontakt sowie Kontakt-Job über Bewerbung.
+
 Ergänzung 2.4.8: `report_fields_test.php` prüft die Semantik des Job-Room-Resultatfeldes. Die Werte
 `unknown` und `not_recorded` dürfen nicht als «Noch offen» erscheinen; «Noch offen» ist nur bei
 bestätigter Job-Room-Erfassung (`recorded`) zulässig. Ausserdem werden das Laden des tatsächlichen

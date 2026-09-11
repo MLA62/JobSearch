@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.8.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.9.
+
+Ergänzung 2.4.9: Vor der Reportformatierung normalisiert `reportNormalizeRelations()` ausschließlich
+eindeutig belegte Alternativbeziehungen. Das betrifft Vermittler über die als Vermittler markierte
+Stellenfirma, zugewiesene Kontakte ohne Namen über deren E-Mail, den Dokument-Job über die verknüpfte
+Bewerbung, den Kalender-Firmenbezug über den Kontakt und den Kontakt-Job über dessen Bewerbung.
 
 Ergänzung 2.4.8: Bei der Ausgabe des Feldes Job-Room-Resultat wird zuerst
 `job_room_registration` ausgewertet. Nur `recorded` erlaubt die Werte «Noch offen», «Anstellung»

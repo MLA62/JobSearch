@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.8 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.9 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+
+## Prüfstand 2.4.9
+
+- Das Reportfeld Vermittler zeigt die Stellenfirma, wenn diese selbst als Vermittler markiert ist und
+  keine separate Vermittlerzuordnung besteht.
+- Zuweisungen bleiben leer, wenn kein belegter Beziehungspfad vorhanden ist; es werden keine
+  unverbundenen Datensätze geraten.
+- Gleichartige eindeutige Leerstellen sind für Kontaktname, Dokument-Job, Kalenderfirma,
+  Kalenderkontakt und Kontakt-Job geschlossen.
+- Alle 36 PHP-Testdateien, 3'907 Hilfeprüfungen, 1'304 Hilfe-Seeds, 78 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
 
 ## Prüfstand 2.4.8
 

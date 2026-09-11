@@ -3,7 +3,7 @@
 return [
     'app_name' => 'JeMa Jobs',
     'app_url' => 'https://jobs.jema.business',
-    'app_version' => '2.4.8',
+    'app_version' => '2.4.9',
     'app_key' => 'replace-with-64-random-hex-characters',
     'registration_enabled' => true,
     'max_users' => 10,

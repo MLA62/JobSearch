@@ -3947,6 +3947,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.',
     'es-MX' => 'Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.',
   ),
+  'help.v2.reports.tips.1' =>
+  array (
+    'de-CH' => 'Belegte Beziehungen werden auch über gültige Alternativpfade angezeigt, zum Beispiel Vermittler als Stellenfirma, Dokument-Job über Bewerbung oder Kalenderfirma über Kontakt.',
+    'fr-CH' => 'Les relations prouvées sont aussi affichées via des chemins alternatifs valides, par exemple intermédiaire comme entreprise de l’offre, emploi du document via la candidature ou entreprise du calendrier via le contact.',
+    'en-GB' => 'Proven relations are also displayed through valid alternative paths, such as an intermediary stored as the job company, a document job through its application, or a calendar company through its contact.',
+    'pt-BR' => 'Relações comprovadas também aparecem por caminhos alternativos válidos, como intermediário salvo como empresa da vaga, emprego do documento pela candidatura ou empresa do calendário pelo contato.',
+    'es-MX' => 'Las relaciones comprobadas también se muestran mediante rutas alternativas válidas, como un intermediario guardado como empresa del empleo, el empleo de un documento mediante su solicitud o la empresa del calendario mediante el contacto.',
+  ),
   'help.v2.reports.title' =>
   array (
     'de-CH' => 'Listen, Filter und Auswertungen',
@@ -4537,7 +4545,7 @@ function helpTopicDefinitions(): array
       0 => 'reports',
     ),
     'step_count' => 4,
-    'tip_count' => 1,
+    'tip_count' => 2,
   ),
   15 =>
   array (
@@ -7197,6 +7205,35 @@ function reportEditorFieldOptions(array $fields, array $selected): array
     return $ordered;
 }
 
+function reportNormalizeRelations(string $base, array $row): array
+{
+    if ($base === 'applications') {
+        if (empty($row['intermediary_company_id']) && !empty($row['company_is_intermediary'])) {
+            $row['intermediary_company_id'] = $row['company_id'] ?? null;
+            $row['intermediary_company'] = $row['company'] ?? '';
+        }
+        if (trim((string)($row['primary_contact'] ?? '')) === '' && !empty($row['primary_contact_id'])) {
+            $row['primary_contact'] = (string)($row['primary_contact_email'] ?? '');
+        }
+    } elseif ($base === 'documents') {
+        if (empty($row['job_id']) && !empty($row['application_job_id'])) {
+            $row['job_id'] = $row['application_job_id'];
+        }
+    } elseif ($base === 'calendar') {
+        if (trim((string)($row['company'] ?? '')) === '') {
+            $row['company'] = (string)($row['contact_company'] ?? '');
+        }
+        if (trim((string)($row['contact'] ?? '')) === '' && !empty($row['contact_id'])) {
+            $row['contact'] = (string)($row['contact_email'] ?? '');
+        }
+    } elseif ($base === 'contacts') {
+        if (trim((string)($row['name'] ?? '')) === '') {
+            $row['name'] = (string)($row['email'] ?? '');
+        }
+    }
+    return $row;
+}
+
 function reportStatusOptions(string $base): array
 {
     return match ($base) {
@@ -7553,9 +7590,9 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
 
     $rows = match ($base) {
         'applications' => dbAll($db, 'SELECT ' . applicationWorkflowDateSql('a') . ' latest_workflow_at,
-            a.id, a.job_id, j.title, j.company_id, c.name company, a.intermediary_company_id,
+            a.id, a.job_id, j.title, j.company_id, c.name company, c.is_intermediary company_is_intermediary, a.intermediary_company_id,
             ic.name intermediary_company, a.primary_contact_id,
-            TRIM(CONCAT_WS(" ", pc.first_name, pc.last_name)) primary_contact, a.status, a.applied_at,
+            TRIM(CONCAT_WS(" ", pc.first_name, pc.last_name)) primary_contact, pc.email primary_contact_email, a.status, a.applied_at,
             a.channel, a.application_url, a.portal_account, a.reference_number, a.online_notes,
             a.cover_letter_text, a.email_subject, a.email_body, a.salary_expectation, a.salary_currency,
             a.next_action, a.next_action_at, a.notes, a.job_room_result, a.job_room_interview,
@@ -7571,7 +7608,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             country_code, latitude, longitude, rating, notes, created_at, updated_at
             FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
         'contacts' => dbAll($db, 'SELECT c.id, c.company_id, co.name company, c.application_id,
-            aj.title application, c.job_id, j.title job, TRIM(CONCAT_WS(" ", c.first_name, c.last_name)) name,
+            aj.title application, COALESCE(c.job_id,a.job_id) job_id, COALESCE(j.title,aj.title) job, TRIM(CONCAT_WS(" ", c.first_name, c.last_name)) name,
             c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile,
             c.linkedin_url, c.preferred_language, c.notes, c.created_at, c.updated_at,
             (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs
@@ -7582,7 +7619,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             LEFT JOIN jobs j ON j.id=c.job_id AND j.deleted_at IS NULL
             WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
         'documents' => dbAll($db, 'SELECT d.id, d.document_type_id, dt.code type, d.language_code,
-            d.scope, d.application_id, aj.title application, d.job_id, COALESCE(j.title, aj.title) job,
+            d.scope, d.application_id, aj.title application, d.job_id, a.job_id application_job_id, COALESCE(j.title, aj.title) job,
             d.title, d.description, d.original_filename filename, d.mime_type, d.file_size, d.sha256,
             d.valid_from, d.valid_until, d.version, d.is_current, d.created_at, d.updated_at
             FROM user_documents d
@@ -7592,16 +7629,17 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             LEFT JOIN jobs j ON j.id=d.job_id AND j.deleted_at IS NULL
             WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
         'calendar' => dbAll($db, 'SELECT ce.id, ce.application_id, j.title application, ce.contact_id,
-            TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)) contact, c.name company, ce.title,
+            TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)) contact, ct.email contact_email, c.name company, cc.name contact_company, ce.title,
             ce.event_type type, ce.entry_kind, ce.source_type, ce.source_id, ce.source_key,
             ce.starts_at, ce.ends_at, ce.all_day, ce.status, ce.location, ce.notes, ce.completed_at,
-            CONCAT_WS(" · ", NULLIF(j.title,""), NULLIF(c.name,""), NULLIF(TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)),"")) meta,
+            CONCAT_WS(" · ", NULLIF(j.title,""), NULLIF(COALESCE(c.name,cc.name),""), NULLIF(COALESCE(NULLIF(TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)),""),ct.email),"")) meta,
             ce.created_at, ce.updated_at
             FROM calendar_events ce
             LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL
             LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL
             LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
             LEFT JOIN contacts ct ON ct.id=ce.contact_id AND ct.deleted_at IS NULL
+            LEFT JOIN companies cc ON cc.id=ct.company_id AND cc.deleted_at IS NULL
             WHERE ce.owner_user_id=?', 'i', [$userId]),
         default => dbAll($db, 'SELECT j.id, j.company_id, c.name company, j.source_id, js.name source,
             j.external_id, j.title, j.description, j.notes, j.requirements, j.benefits,
@@ -7642,6 +7680,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
 
     $data = [];
     foreach ($rows as $row) {
+        $row = reportNormalizeRelations($base, $row);
         if ($base === 'applications') {
             $workflow = applicationWorkflowView($row);
             $row['applied_at'] = $workflow['sent_at'];
@@ -10960,7 +10999,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.8','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.9','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14807,7 +14846,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.8';
+$codeVersion = '2.4.9';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

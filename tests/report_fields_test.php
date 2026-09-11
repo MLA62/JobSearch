@@ -25,6 +25,23 @@ eval($editorFieldsMatch[0]);
 $editorFields = reportEditorFieldOptions(['one'=>'One','two'=>'Two','three'=>'Three'], ['three','one']);
 reportCheck(array_keys($editorFields) === ['three','one','two'], 'The editor preserves saved column order before unselected fields');
 
+reportCheck(preg_match('/function reportNormalizeRelations\(.*?^\}/ms', $source, $relationMatch) === 1, 'Report relation normalizer is isolated for regression testing');
+eval($relationMatch[0]);
+$mediated = reportNormalizeRelations('applications', ['company_id'=>8,'company'=>'Agency AG','company_is_intermediary'=>1,'intermediary_company_id'=>null,'intermediary_company'=>'']);
+reportCheck($mediated['intermediary_company_id'] === 8 && $mediated['intermediary_company'] === 'Agency AG', 'An intermediary stored as the job company is shown as intermediary');
+$direct = reportNormalizeRelations('applications', ['company_id'=>8,'company'=>'Employer AG','company_is_intermediary'=>0,'intermediary_company_id'=>null,'intermediary_company'=>'']);
+reportCheck(empty($direct['intermediary_company']), 'A normal employer is not invented as intermediary');
+$contact = reportNormalizeRelations('applications', ['primary_contact_id'=>3,'primary_contact'=>'','primary_contact_email'=>'person@example.test']);
+reportCheck($contact['primary_contact'] === 'person@example.test', 'An assigned nameless contact remains visible by email');
+$document = reportNormalizeRelations('documents', ['job_id'=>null,'application_job_id'=>19]);
+reportCheck($document['job_id'] === 19, 'A document inherits the job ID from its linked application');
+$calendar = reportNormalizeRelations('calendar', ['company'=>'','contact_company'=>'Contact Company AG']);
+reportCheck($calendar['company'] === 'Contact Company AG', 'A calendar entry inherits the company from its linked contact');
+$calendarContact = reportNormalizeRelations('calendar', ['contact_id'=>4,'contact'=>'','contact_email'=>'calendar@example.test']);
+reportCheck($calendarContact['contact'] === 'calendar@example.test', 'A calendar contact without a name remains visible by email');
+$namedContact = reportNormalizeRelations('contacts', ['name'=>'','email'=>'contact@example.test']);
+reportCheck($namedContact['name'] === 'contact@example.test', 'A nameless contact remains visible by email');
+
 reportCheck(str_contains($source, 'function reportColumnLimit(): int') && str_contains($source, 'return 12;'), 'The report field maximum is explicit');
 reportCheck(str_contains($source, 'reportSelectedColumns($base, $_POST[\'report_columns\'] ?? [])'), 'The server validates saved report columns');
 reportCheck(str_contains($source, 'reportSelectedColumns($base, $requestedColumns)'), 'The server validates exported report columns');
@@ -61,6 +78,7 @@ foreach (['owner_user_id', 'user_id', 'deleted_at', 'storage_path', 'active_uniq
 foreach (['FROM applications a', 'FROM companies WHERE', 'FROM contacts c', 'FROM user_documents d', 'FROM calendar_events ce', 'FROM jobs j'] as $queryFragment) {
     reportCheck(str_contains($source, $queryFragment), "Complete report dataset includes {$queryFragment}");
 }
+reportCheck(str_contains($source, 'COALESCE(c.job_id,a.job_id) job_id') && str_contains($source, 'COALESCE(j.title,aj.title) job'), 'A contact inherits the job relation from its linked application');
 reportCheck(str_contains($source, 'richTextPlain((string)$value)'), 'Rich database content is exported as readable plain text');
 reportCheck(str_contains($source, "JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT"), 'Field metadata embedded in JavaScript is safely encoded');
 

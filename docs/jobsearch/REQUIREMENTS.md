@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.8.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.9.
+
+Ergänzung 2.4.9: Ausgewählte Beziehungsfelder eines Reports müssen ihren Inhalt über jeden
+eindeutig belegten Datenpfad ermitteln. Eine Stellenfirma mit Vermittlerkennzeichen erscheint als
+Vermittler, sofern keine separate Vermittlerzuordnung besteht. Entsprechend werden Jobbezüge von
+Dokumenten über ihre Bewerbung, Firmenbezüge von Kalendereinträgen über ihren Kontakt und fehlende
+Kontaktnamen über die zugewiesene E-Mail ergänzt. Es dürfen keine unverbundenen Datensätze geraten
+oder willkürlich zugeordnet werden.
 
 Ergänzung 2.4.8: Das Feld Job-Room-Resultat darf «Noch offen» nur anzeigen, wenn die Bewerbung
 nachweislich im Job-Room erfasst wurde. Bei `unknown` oder `not_recorded` muss stattdessen

@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.8 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.9 ist implementiert und für die produktive Bereitstellung vorbereitet.
+
+## Vollständige Reportbeziehungen 2.4.9
+
+`reportNormalizeRelations()` schließt leere Ausgaben, wenn dieselbe Beziehung über einen zweiten,
+eindeutigen Datenpfad belegt ist. Bei Bewerbungen wird die Stellenfirma als Vermittler ausgegeben,
+wenn sie `is_intermediary=1` trägt und keine separate Vermittlerfirma hinterlegt ist. Ein zugewiesener
+Kontakt ohne Vor- und Nachnamen wird über seine E-Mail sichtbar. Dokumente übernehmen die Job-ID aus
+ihrer Bewerbung. Kalendereinträge übernehmen Firma und ersatzweise den Kontaktnamen aus dem verknüpften
+Kontakt. Kontakte mit Bewerbungsbezug übernehmen den Job aus dieser Bewerbung. Die Normalisierung
+ordnet keine lediglich vorhandenen, aber unverbundenen Firmen oder Kontakte zu.
 
 ## Job-Room-Resultat und Spaltenreihenfolge 2.4.8
 

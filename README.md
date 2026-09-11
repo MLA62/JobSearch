@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 11.09.2026. Version 2.4.8 unterscheidet ein fehlendes Job-Room-Resultat eindeutig von einem tatsächlich offenen Resultat.
-Release-Dokumentation: [Release 2.4.8](docs/jobsearch/RELEASE-2.4.8.md).
+Stand: 11.09.2026. Version 2.4.9 vervollständigt abgeleitete Beziehungen in Reports über belegte alternative Datenpfade.
+Release-Dokumentation: [Release 2.4.9](docs/jobsearch/RELEASE-2.4.9.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

@@ -1,5 +1,5 @@
 {
-  "version": "2.4.8",
+  "version": "2.4.9",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -1165,7 +1165,8 @@
             "Öffne «Anzeigen», um den Report mit genau den gewählten Spalten zu sehen, und exportiere ihn bei Bedarf als PDF."
           ],
           "tips": [
-            "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten."
+            "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.",
+            "Belegte Beziehungen werden auch über gültige Alternativpfade angezeigt, zum Beispiel Vermittler als Stellenfirma, Dokument-Job über Bewerbung oder Kalenderfirma über Kontakt."
           ]
         },
         "fr-CH": {
@@ -1178,7 +1179,8 @@
             "Ouvre «Afficher» pour voir le rapport avec exactement les colonnes choisies, puis exporte-le en PDF si nécessaire."
           ],
           "tips": [
-            "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité."
+            "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.",
+            "Les relations prouvées sont aussi affichées via des chemins alternatifs valides, par exemple intermédiaire comme entreprise de l’offre, emploi du document via la candidature ou entreprise du calendrier via le contact."
           ]
         },
         "en-GB": {
@@ -1191,7 +1193,8 @@
             "Open “Show” to see the report with exactly the selected columns, then export it to PDF if needed."
           ],
           "tips": [
-            "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security."
+            "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.",
+            "Proven relations are also displayed through valid alternative paths, such as an intermediary stored as the job company, a document job through its application, or a calendar company through its contact."
           ]
         },
         "pt-BR": {
@@ -1204,7 +1207,8 @@
             "Abra “Mostrar” para ver o relatório exatamente com as colunas selecionadas e exporte-o em PDF se necessário."
           ],
           "tips": [
-            "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança."
+            "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.",
+            "Relações comprovadas também aparecem por caminhos alternativos válidos, como intermediário salvo como empresa da vaga, emprego do documento pela candidatura ou empresa do calendário pelo contato."
           ]
         },
         "es-MX": {
@@ -1217,7 +1221,8 @@
             "Abre «Mostrar» para ver el informe exactamente con las columnas elegidas y expórtalo en PDF si lo necesitas."
           ],
           "tips": [
-            "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad."
+            "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.",
+            "Las relaciones comprobadas también se muestran mediante rutas alternativas válidas, como un intermediario guardado como empresa del empleo, el empleo de un documento mediante su solicitud o la empresa del calendario mediante el contacto."
           ]
         }
       }
