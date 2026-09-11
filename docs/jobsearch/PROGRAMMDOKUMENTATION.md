@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.5 ist implementiert, vollständig geprüft und produktiv bereitgestellt.
+Stand: 2026-09-11. Version 2.4.6 ist implementiert und für die produktive Bereitstellung vorbereitet.
+
+## Vollständige Reportfelder 2.4.6
+
+`reportFieldOptions()` führt für jede der sechs Datenbasen alle fachlich auswertbaren Felder, IDs und
+lesbaren Relationen. Die zugehörigen Abfragen verwenden weiterhin feste SQL-Listen und gebundene
+Mandantenparameter; vom Browser gelieferte Feldnamen werden nie in SQL eingesetzt. Interne Eigentümer-,
+Lösch-, Speicherpfad- und Eindeutigkeitsfelder bleiben ausgeschlossen.
+
+`limitReportColumns()` dedupliziert und validiert die Auswahl, `reportSelectedColumns()` wendet die
+Obergrenze zwölf beim Speichern, Laden und Export an. Der Reporteditor hält für jede Datenbasis den
+vollständigen Feld- und Statuskatalog bereit und aktualisiert Auswahl, Sortierung, Statusfilter und
+Zähler ohne Seitenneuladung. Rich-Text-Inhalte werden im Export als lesbarer Text ausgegeben; Datums-,
+Enum-, Sprach-, Länder-, Boolean- und Dateigrößenwerte werden verständlich formatiert.
 
 ## Eindeutiger TOTP-Zustandswechsel 2.4.5
 

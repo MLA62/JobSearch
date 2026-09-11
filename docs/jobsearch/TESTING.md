@@ -2,6 +2,12 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.6: `report_fields_test.php` prüft die Obergrenze zwölf, Reihenfolge, Deduplizierung,
+Ablehnung unbekannter Felder, serverseitige Durchsetzung beim Speichern und Export sowie die dynamische
+Aktualisierung nach einem Basiswechsel. Zusätzlich kontrolliert der Test exemplarisch vollständige
+Feldkataloge, alle sechs festen Datensatzabfragen, Plain-Text-Ausgabe von Rich Text und den Ausschluss
+interner Eigentümer-, Lösch-, Speicherpfad- und Eindeutigkeitsfelder.
+
 Ergänzung 2.4.5: `security_hardening_test.php` isoliert die reine TOTP-Zustandsfunktion und prüft
 authentifizierte Sitzung, offene Challenge und fehlende Challenge. Statische Vertragsprüfungen stellen
 zusätzlich sicher, dass Zustandszweige vor Rate-Limit und Codeprüfung liegen, veraltete Formulare keine

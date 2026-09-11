@@ -1,5 +1,5 @@
 {
-  "version": "2.4.5",
+  "version": "2.4.6",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -1155,11 +1155,12 @@
           "summary": "Listen und gespeicherte Reports zeigen unterschiedliche Ausschnitte deiner Daten.",
           "steps": [
             "Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.",
-            "Lege für einen Report Datenbasis, Spalten, Filter und Reihenfolge fest und speichere ihn.",
+            "Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.",
+            "Lege Filter und Reihenfolge fest und speichere den Report.",
             "Prüfe die Vorschau und exportiere bei Bedarf als PDF."
           ],
           "tips": [
-            "Eine Tabellenzeile gehört zu einem Datensatz; lange Inhalte umbrechen. Bewerbungslisten zeigen Workflowdatum ohne Uhrzeit."
+            "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten."
           ]
         },
         "fr-CH": {
@@ -1167,11 +1168,12 @@
           "summary": "Les listes et rapports enregistrés présentent différentes vues de tes données.",
           "steps": [
             "Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.",
-            "Définis source, colonnes, filtres et ordre du rapport puis enregistre-le.",
+            "Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.",
+            "Définis les filtres et l’ordre, puis enregistre le rapport.",
             "Vérifie l’aperçu et exporte en PDF si nécessaire."
           ],
           "tips": [
-            "Chaque ligne correspond à un enregistrement; les textes longs passent à la ligne. Les candidatures affichent la date du processus sans heure."
+            "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité."
           ]
         },
         "en-GB": {
@@ -1179,11 +1181,12 @@
           "summary": "Lists and saved reports provide different views of your data.",
           "steps": [
             "Select field filters and sorting in column headers; reset them when needed.",
-            "Choose the report’s data source, columns, filters and ordering, then save it.",
+            "Choose a data source and then up to twelve database fields at once as report columns.",
+            "Set filters and ordering, then save the report.",
             "Inspect the preview and export to PDF if needed."
           ],
           "tips": [
-            "One table row represents one record; long text wraps. Application lists show the workflow date without time."
+            "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security."
           ]
         },
         "pt-BR": {
@@ -1191,11 +1194,12 @@
           "summary": "Listas e relatórios salvos mostram diferentes recortes dos dados.",
           "steps": [
             "Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.",
-            "Defina base, colunas, filtros e ordem do relatório e salve.",
+            "Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.",
+            "Defina filtros e ordenação e salve o relatório.",
             "Confira a prévia e exporte em PDF se necessário."
           ],
           "tips": [
-            "Cada linha corresponde a um registro; textos longos quebram linha. Candidaturas mostram a data do processo sem horário."
+            "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança."
           ]
         },
         "es-MX": {
@@ -1203,11 +1207,12 @@
           "summary": "Las listas e informes guardados presentan distintas vistas de tus datos.",
           "steps": [
             "Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.",
-            "Define origen, columnas, filtros y orden del informe y guárdalo.",
+            "Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.",
+            "Define filtros y orden, y guarda el informe.",
             "Revisa la vista previa y exporta en PDF si lo necesitas."
           ],
           "tips": [
-            "Cada fila representa un registro; los textos largos pasan a otra línea. Las solicitudes muestran la fecha del proceso sin hora."
+            "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad."
           ]
         }
       }
@@ -1963,6 +1968,20 @@
     }
   ],
   "ui": {
+    "reports.column_count": {
+      "de-CH": "{selected} von maximal {count} Feldern gewählt.",
+      "fr-CH": "{selected} champs sélectionnés sur un maximum de {count}.",
+      "en-GB": "{selected} of a maximum of {count} fields selected.",
+      "pt-BR": "{selected} de no máximo {count} campos selecionados.",
+      "es-MX": "{selected} de un máximo de {count} campos seleccionados."
+    },
+    "reports.column_limit_reached": {
+      "de-CH": "Es können höchstens {count} Felder gleichzeitig gewählt werden.",
+      "fr-CH": "Il est possible de sélectionner au maximum {count} champs à la fois.",
+      "en-GB": "A maximum of {count} fields can be selected at once.",
+      "pt-BR": "É possível selecionar no máximo {count} campos de uma vez.",
+      "es-MX": "Se pueden seleccionar como máximo {count} campos a la vez."
+    },
     "help.category.process": {
       "de-CH": "Bewerbungsprozess",
       "fr-CH": "Candidatures",

@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 11.09.2026. Version 2.4.5 ist produktiv bereitgestellt; sie trennt eine echte offene TOTP-Anmeldung eindeutig von bereits angemeldeten oder veralteten Sitzungen.
-Release-Dokumentation: [Release 2.4.5](docs/jobsearch/RELEASE-2.4.5.md).
+Stand: 11.09.2026. Version 2.4.6 erweitert gespeicherte Auswertungen um alle fachlich auswertbaren Datenbankfelder und begrenzt die gleichzeitige Auswahl auf zwölf Spalten.
+Release-Dokumentation: [Release 2.4.6](docs/jobsearch/RELEASE-2.4.6.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

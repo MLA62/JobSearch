@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.5.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.6.
+
+Ergänzung 2.4.6: In Auswertungen müssen für Stellen, Bewerbungen, Firmen, Kontakte, Dokumente und
+Kalender sämtliche fachlich auswertbaren Datenbankfelder als Spalten wählbar sein. Pro Report sind
+höchstens zwölf Felder gleichzeitig zulässig; Browser und Server setzen diese Grenze durch. IDs und
+lesbare Beziehungen dürfen ausgewertet werden. Mandantenkennungen, Soft-Delete-Felder, generierte
+Eindeutigkeitsmarker und interne Dokumentpfade werden aus Sicherheitsgründen nicht angeboten. Beim
+Wechsel der Datenbasis müssen Felder, Sortierung und Statusfilter unmittelbar passend aktualisiert werden.
 
 Ergänzung 2.4.5: Die TOTP-Eingabe darf nur eine durch eine erfolgreiche Passwortprüfung ausdrücklich
 eröffnete Zwei-Faktor-Challenge verifizieren. Eine bereits authentifizierte Sitzung darf weder erneut

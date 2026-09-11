@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.5 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.6 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+
+## Prüfstand 2.4.6
+
+- Alle fachlich auswertbaren Felder der sechs Reportdatenbasen stehen zur Auswahl; interne
+  Mandanten-, Lösch-, Speicherpfad- und Eindeutigkeitsfelder sind ausgeschlossen.
+- Oberfläche, Speicherung, Laden und Export begrenzen einen Report auf zwölf eindeutige erlaubte Felder.
+- Ein Datenbasiswechsel aktualisiert Spalten, Sortierfelder und Statusfilter unmittelbar.
+- Alle 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294 Hilfe-Seeds, 75 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich. Die
+  Produktionsabnahme folgt unmittelbar im Deploymentlauf.
 
 ## Prüfstand 2.4.5
 

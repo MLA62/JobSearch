@@ -318,8 +318,12 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function reportDisplayOptions(): array`
 - `function reportOpenUrl(array $report): string`
 - `function reportExportType(array $report): ?string`
+- `function reportColumnLimit(): int`
+- `function reportDbFieldLabel(string $field): string`
 - `function reportFieldOptions(string $base): array`
 - `function reportDefaultColumns(string $base): array`
+- `function limitReportColumns(array $allowedFields, mixed $rawColumns, int $limit): array`
+- `function reportSelectedColumns(string $base, mixed $rawColumns): array`
 - `function reportStatusOptions(string $base): array`
 - `function jobStatusOptions(): array`
 - `function workplaceTypeOptions(): array`

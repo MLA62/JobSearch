@@ -3901,13 +3901,21 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.1' =>
   array (
-    'de-CH' => 'Lege für einen Report Datenbasis, Spalten, Filter und Reihenfolge fest und speichere ihn.',
-    'fr-CH' => 'Définis source, colonnes, filtres et ordre du rapport puis enregistre-le.',
-    'en-GB' => 'Choose the report’s data source, columns, filters and ordering, then save it.',
-    'pt-BR' => 'Defina base, colunas, filtros e ordem do relatório e salve.',
-    'es-MX' => 'Define origen, columnas, filtros y orden del informe y guárdalo.',
+    'de-CH' => 'Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.',
+    'fr-CH' => 'Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.',
+    'en-GB' => 'Choose a data source and then up to twelve database fields at once as report columns.',
+    'pt-BR' => 'Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.',
+    'es-MX' => 'Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.',
   ),
   'help.v2.reports.steps.2' =>
+  array (
+    'de-CH' => 'Lege Filter und Reihenfolge fest und speichere den Report.',
+    'fr-CH' => 'Définis les filtres et l’ordre, puis enregistre le rapport.',
+    'en-GB' => 'Set filters and ordering, then save the report.',
+    'pt-BR' => 'Defina filtros e ordenação e salve o relatório.',
+    'es-MX' => 'Define filtros y orden, y guarda el informe.',
+  ),
+  'help.v2.reports.steps.3' =>
   array (
     'de-CH' => 'Prüfe die Vorschau und exportiere bei Bedarf als PDF.',
     'fr-CH' => 'Vérifie l’aperçu et exporte en PDF si nécessaire.',
@@ -3925,11 +3933,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.tips.0' =>
   array (
-    'de-CH' => 'Eine Tabellenzeile gehört zu einem Datensatz; lange Inhalte umbrechen. Bewerbungslisten zeigen Workflowdatum ohne Uhrzeit.',
-    'fr-CH' => 'Chaque ligne correspond à un enregistrement; les textes longs passent à la ligne. Les candidatures affichent la date du processus sans heure.',
-    'en-GB' => 'One table row represents one record; long text wraps. Application lists show the workflow date without time.',
-    'pt-BR' => 'Cada linha corresponde a um registro; textos longos quebram linha. Candidaturas mostram a data do processo sem horário.',
-    'es-MX' => 'Cada fila representa un registro; los textos largos pasan a otra línea. Las solicitudes muestran la fecha del proceso sin hora.',
+    'de-CH' => 'Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.',
+    'fr-CH' => 'Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.',
+    'en-GB' => 'All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.',
+    'pt-BR' => 'Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.',
+    'es-MX' => 'Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.',
   ),
   'help.v2.reports.title' =>
   array (
@@ -4259,6 +4267,22 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Revisar dados antigos do fluxo',
     'es-MX' => 'Revisar datos anteriores del proceso',
   ),
+  'reports.column_count' =>
+  array (
+    'de-CH' => '{selected} von maximal {count} Feldern gewählt.',
+    'fr-CH' => '{selected} champs sélectionnés sur un maximum de {count}.',
+    'en-GB' => '{selected} of a maximum of {count} fields selected.',
+    'pt-BR' => '{selected} de no máximo {count} campos selecionados.',
+    'es-MX' => '{selected} de un máximo de {count} campos seleccionados.',
+  ),
+  'reports.column_limit_reached' =>
+  array (
+    'de-CH' => 'Es können höchstens {count} Felder gleichzeitig gewählt werden.',
+    'fr-CH' => 'Il est possible de sélectionner au maximum {count} champs à la fois.',
+    'en-GB' => 'A maximum of {count} fields can be selected at once.',
+    'pt-BR' => 'É possível selecionar no máximo {count} campos de uma vez.',
+    'es-MX' => 'Se pueden seleccionar como máximo {count} campos a la vez.',
+  ),
 );
     return $catalog;
 }
@@ -4504,7 +4528,7 @@ function helpTopicDefinitions(): array
     array (
       0 => 'reports',
     ),
-    'step_count' => 3,
+    'step_count' => 4,
     'tip_count' => 1,
   ),
   15 =>
@@ -7033,21 +7057,127 @@ function reportExportType(array $report): ?string
     return in_array($base, ['jobs', 'applications', 'companies', 'contacts', 'documents'], true) ? $base : null;
 }
 
+function reportColumnLimit(): int
+{
+    return 12;
+}
+
+function reportDbFieldLabel(string $field): string
+{
+    $suffix = match (currentLocale()) {
+        'fr-CH' => 'champ DB',
+        'en-GB' => 'DB field',
+        'pt-BR' => 'campo DB',
+        'es-MX' => 'campo DB',
+        default => 'DB-Feld',
+    };
+    return $field . ' · ' . $suffix;
+}
+
 function reportFieldOptions(string $base): array
 {
+    $db = static fn(string $field): string => reportDbFieldLabel($field);
     return match ($base) {
-        'applications' => ['title'=>tr('reports.field.job'),'company'=>tr('companies.company'),'status'=>tr('common.status'),'channel'=>tr('applications.channel'),'application_url'=>tr('applications.online_url'),'reference_number'=>tr('applications.reference_number'),'applied_at'=>tr('applications.sent_at'),'latest_workflow_at'=>tr('applications.workflow_date')],
-        'companies' => ['name'=>tr('companies.company'),'city'=>tr('companies.city'),'website'=>tr('companies.website'),'is_intermediary'=>tr('companies.intermediary'),'updated_at'=>tr('common.updated')],
-        'contacts' => ['name'=>tr('contacts.contact'),'company'=>tr('companies.company'),'email'=>tr('auth.email'),'phone'=>tr('profile.phone'),'position'=>tr('contacts.position'),'open_logs'=>tr('contact_log.open_count'),'updated_at'=>tr('common.updated')],
-        'documents' => ['title'=>tr('documents.document'),'type'=>tr('documents.type'),'filename'=>tr('documents.file'),'scope'=>tr('common.area'),'version'=>tr('documents.version'),'created_at'=>tr('common.created')],
-        'calendar' => ['starts_at'=>tr('common.time'),'title'=>tr('calendar.event'),'type'=>tr('documents.type'),'status'=>tr('common.status'),'meta'=>tr('calendar.reference')],
-        default => ['title'=>tr('common.title'),'company'=>tr('companies.company'),'location'=>tr('jobs.location'),'status'=>tr('common.status'),'workplace_type'=>tr('jobs.workplace_type'),'updated_at'=>tr('common.updated')],
+        'applications' => [
+            'id'=>'ID', 'job_id'=>tr('reports.field.job').' ID', 'title'=>tr('reports.field.job'),
+            'company_id'=>tr('companies.company').' ID', 'company'=>tr('companies.company'),
+            'intermediary_company_id'=>tr('companies.intermediary').' ID', 'intermediary_company'=>tr('companies.intermediary'),
+            'primary_contact_id'=>tr('contacts.contact').' ID', 'primary_contact'=>tr('contacts.contact'),
+            'status'=>tr('common.status'), 'applied_at'=>tr('applications.sent_at'), 'channel'=>tr('applications.channel'),
+            'application_url'=>tr('applications.online_url'), 'portal_account'=>tr('applications.portal_account'),
+            'reference_number'=>tr('applications.reference_number'), 'online_notes'=>$db('online_notes'),
+            'cover_letter_text'=>$db('cover_letter_text'), 'email_subject'=>$db('email_subject'), 'email_body'=>$db('email_body'),
+            'salary_expectation'=>$db('salary_expectation'), 'salary_currency'=>$db('salary_currency'),
+            'next_action'=>tr('applications.next_action'), 'next_action_at'=>$db('next_action_at'), 'notes'=>tr('common.comment'),
+            'job_room_result'=>$db('job_room_result'), 'job_room_interview'=>$db('job_room_interview'),
+            'job_room_registration'=>$db('job_room_registration'), 'created_at'=>tr('common.created'),
+            'updated_at'=>tr('common.updated'), 'latest_workflow_at'=>tr('applications.workflow_date'),
+        ],
+        'companies' => [
+            'id'=>'ID', 'name'=>tr('companies.company'), 'legal_name'=>$db('legal_name'), 'website'=>tr('companies.website'),
+            'email'=>tr('auth.email'), 'phone'=>tr('profile.phone'), 'industry'=>$db('industry'),
+            'employee_count'=>$db('employee_count'), 'is_intermediary'=>tr('companies.intermediary'),
+            'address_line1'=>$db('address_line1'), 'address_line2'=>$db('address_line2'),
+            'postal_code'=>tr('companies.postal_code'), 'city'=>tr('companies.city'), 'region'=>tr('companies.region'),
+            'country_code'=>tr('profile.country'), 'latitude'=>$db('latitude'), 'longitude'=>$db('longitude'),
+            'rating'=>$db('rating'), 'notes'=>tr('common.comment'), 'created_at'=>tr('common.created'),
+            'updated_at'=>tr('common.updated'),
+        ],
+        'contacts' => [
+            'id'=>'ID', 'company_id'=>tr('companies.company').' ID', 'company'=>tr('companies.company'),
+            'application_id'=>tr('nav.applications').' ID', 'application'=>tr('nav.applications'),
+            'job_id'=>tr('reports.field.job').' ID', 'job'=>tr('reports.field.job'), 'name'=>tr('contacts.contact'),
+            'first_name'=>tr('auth.first_name'), 'last_name'=>tr('auth.last_name'), 'position'=>tr('contacts.position'),
+            'department'=>tr('contacts.department'), 'email'=>tr('auth.email'), 'phone'=>tr('profile.phone'),
+            'mobile'=>tr('profile.mobile'), 'linkedin_url'=>'LinkedIn', 'preferred_language'=>tr('profile.language_label'),
+            'notes'=>tr('common.comment'), 'open_logs'=>tr('contact_log.open_count'),
+            'created_at'=>tr('common.created'), 'updated_at'=>tr('common.updated'),
+        ],
+        'documents' => [
+            'id'=>'ID', 'document_type_id'=>tr('documents.type').' ID', 'type'=>tr('documents.type'),
+            'language_code'=>tr('documents.language'), 'scope'=>tr('common.area'),
+            'application_id'=>tr('nav.applications').' ID', 'application'=>tr('nav.applications'),
+            'job_id'=>tr('reports.field.job').' ID', 'job'=>tr('reports.field.job'), 'title'=>tr('documents.document'),
+            'description'=>tr('common.description'), 'filename'=>tr('documents.file'), 'mime_type'=>$db('mime_type'),
+            'file_size'=>$db('file_size'), 'sha256'=>'SHA-256', 'valid_from'=>tr('documents.valid_from'),
+            'valid_until'=>tr('documents.valid_until'), 'version'=>tr('documents.version'), 'is_current'=>tr('common.current'),
+            'created_at'=>tr('common.created'), 'updated_at'=>tr('common.updated'),
+        ],
+        'calendar' => [
+            'id'=>'ID', 'application_id'=>tr('nav.applications').' ID', 'application'=>tr('nav.applications'),
+            'contact_id'=>tr('contacts.contact').' ID', 'contact'=>tr('contacts.contact'), 'company'=>tr('companies.company'),
+            'title'=>tr('calendar.event'), 'type'=>tr('documents.type'), 'entry_kind'=>$db('entry_kind'),
+            'source_type'=>$db('source_type'), 'source_id'=>$db('source_id'), 'source_key'=>$db('source_key'),
+            'starts_at'=>tr('calendar.start'), 'ends_at'=>tr('calendar.end'), 'all_day'=>tr('calendar.all_day'),
+            'status'=>tr('common.status'), 'location'=>tr('calendar.location'), 'notes'=>tr('contact_log.notes'),
+            'completed_at'=>$db('completed_at'), 'meta'=>tr('calendar.reference'),
+            'created_at'=>tr('common.created'), 'updated_at'=>tr('common.updated'),
+        ],
+        default => [
+            'id'=>'ID', 'company_id'=>tr('companies.company').' ID', 'company'=>tr('companies.company'),
+            'source_id'=>$db('source_id'), 'source'=>$db('source'), 'external_id'=>$db('external_id'),
+            'title'=>tr('common.title'), 'description'=>tr('common.description'), 'notes'=>tr('common.comment'),
+            'requirements'=>$db('requirements'), 'benefits'=>$db('benefits'), 'employment_type'=>$db('employment_type'),
+            'engagement_type'=>tr('jobs.engagement_type'), 'contract_term'=>tr('jobs.contract_term'),
+            'fixed_term_start'=>$db('fixed_term_start'), 'fixed_term_end'=>$db('fixed_term_end'),
+            'workplace_type'=>tr('jobs.workplace_type'), 'workload_min'=>tr('profile.workload_min'),
+            'workload_max'=>tr('profile.workload_max'), 'salary_min'=>tr('profile.salary'),
+            'salary_max'=>$db('salary_max'), 'salary_currency'=>$db('salary_currency'),
+            'salary_period'=>tr('profile.salary_format'), 'location'=>tr('jobs.location'), 'country_code'=>tr('profile.country'),
+            'source_url'=>tr('jobs.source_url'), 'published_at'=>$db('published_at'), 'expires_at'=>$db('expires_at'),
+            'status'=>tr('common.status'), 'match_score'=>$db('match_score'), 'raw_import_data'=>$db('raw_import_data'),
+            'created_at'=>tr('common.created'), 'updated_at'=>tr('common.updated'),
+        ],
     };
 }
 
 function reportDefaultColumns(string $base): array
 {
-    return array_slice(array_keys(reportFieldOptions($base)), 0, 6);
+    return match ($base) {
+        'applications' => ['title','company','status','channel','applied_at','latest_workflow_at'],
+        'companies' => ['name','city','website','is_intermediary','updated_at'],
+        'contacts' => ['name','company','email','phone','position','open_logs'],
+        'documents' => ['title','type','filename','scope','version','created_at'],
+        'calendar' => ['starts_at','title','type','status','meta'],
+        default => ['title','company','location','status','workplace_type','updated_at'],
+    };
+}
+
+function limitReportColumns(array $allowedFields, mixed $rawColumns, int $limit): array
+{
+    $selected = [];
+    foreach ((array) $rawColumns as $field) {
+        $field = (string) $field;
+        if (isset($allowedFields[$field]) && !in_array($field, $selected, true)) {
+            $selected[] = $field;
+        }
+    }
+    return array_slice($selected, 0, max(1, $limit));
+}
+
+function reportSelectedColumns(string $base, mixed $rawColumns): array
+{
+    return limitReportColumns(reportFieldOptions($base), $rawColumns, reportColumnLimit());
 }
 
 function reportStatusOptions(string $base): array
@@ -7056,7 +7186,8 @@ function reportStatusOptions(string $base): array
         'applications' => applicationStatusOptions(),
         'contacts' => ['open'=>tr('contacts.open_planned_logs'),'none'=>tr('contacts.no_open_logs')],
         'calendar' => calendarStatusOptions(),
-        default => jobStatusOptions(),
+        'jobs' => jobStatusOptions(),
+        default => [],
     };
 }
 
@@ -7326,7 +7457,7 @@ function saveReportSettings(mysqli $db, int $reportId, string $base): void
     $db->query('DELETE FROM saved_report_sorts WHERE report_id=' . $reportId);
 
     $fields = reportFieldOptions($base);
-    $columns = array_values(array_filter((array) ($_POST['report_columns'] ?? []), static fn($field): bool => isset($fields[(string)$field])));
+    $columns = reportSelectedColumns($base, $_POST['report_columns'] ?? []);
     if (!$columns) {
         $columns = reportDefaultColumns($base);
     }
@@ -7375,7 +7506,10 @@ function loadReportSettings(mysqli $db, int $reportId, string $base): array
     $columns = dbAll($db, 'SELECT field_name, label FROM saved_report_columns WHERE report_id=? AND is_visible=1 ORDER BY sort_order, id', 'i', [$reportId]);
     $filters = dbAll($db, 'SELECT field_name, value_json FROM saved_report_filters WHERE report_id=? ORDER BY sort_order, id', 'i', [$reportId]);
     $sort = dbOne($db, 'SELECT field_name, direction FROM saved_report_sorts WHERE report_id=? ORDER BY priority, id LIMIT 1', 'i', [$reportId]);
-    $selected = $columns ? array_map(static fn(array $row): string => (string)$row['field_name'], $columns) : reportDefaultColumns($base);
+    $selected = reportSelectedColumns($base, $columns ? array_column($columns, 'field_name') : reportDefaultColumns($base));
+    if (!$selected) {
+        $selected = reportDefaultColumns($base);
+    }
     $filterValues = [];
     foreach ($filters as $filter) {
         $filterValues[(string)$filter['field_name']] = json_decode((string)$filter['value_json'], true) ?: '';
@@ -7388,10 +7522,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
     $base = (string) ($report['base_entity'] ?? 'jobs');
     $fields = reportFieldOptions($base);
     $requestedColumns = (array)$settings['columns'];
-    if ($base === 'applications') {
-        $requestedColumns = array_unique(array_map(static fn($field) => in_array($field, ['next_action','next_action_at'], true) ? 'latest_workflow_at' : $field, $requestedColumns));
-    }
-    $columns = array_values(array_filter($requestedColumns, static fn($field): bool => isset($fields[(string)$field])));
+    $columns = reportSelectedColumns($base, $requestedColumns);
     if (!$columns) {
         $columns = reportDefaultColumns($base);
     }
@@ -7401,12 +7532,67 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
     $status = (string) ($filters['status'] ?? '');
 
     $rows = match ($base) {
-        'applications' => applicationExportRows($db, $userId),
-        'companies' => dbAll($db, 'SELECT name, city, website, is_intermediary, updated_at FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
-        'contacts' => dbAll($db, 'SELECT CONCAT(c.last_name, " ", c.first_name) name, co.name company, c.email, COALESCE(NULLIF(c.phone,""), c.mobile) phone, c.position, c.updated_at, (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
-        'documents' => dbAll($db, 'SELECT d.title, dt.name_key type, d.original_filename filename, d.scope, d.version, d.created_at FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
-        'calendar' => calendarEventRows($db, $userId, (new DateTimeImmutable('-30 days'))->setTime(0, 0), (new DateTimeImmutable('+90 days'))->setTime(23, 59, 59)),
-        default => dbAll($db, 'SELECT j.title, c.name company, j.location_text location, j.status, j.workplace_type, j.updated_at FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL', 'i', [$userId]),
+        'applications' => dbAll($db, 'SELECT ' . applicationWorkflowDateSql('a') . ' latest_workflow_at,
+            a.id, a.job_id, j.title, j.company_id, c.name company, a.intermediary_company_id,
+            ic.name intermediary_company, a.primary_contact_id,
+            TRIM(CONCAT_WS(" ", pc.first_name, pc.last_name)) primary_contact, a.status, a.applied_at,
+            a.channel, a.application_url, a.portal_account, a.reference_number, a.online_notes,
+            a.cover_letter_text, a.email_subject, a.email_body, a.salary_expectation, a.salary_currency,
+            a.next_action, a.next_action_at, a.notes, a.job_room_result, a.job_room_interview,
+            a.job_room_registration, a.created_at, a.updated_at
+            FROM applications a
+            JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL
+            JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
+            LEFT JOIN companies ic ON ic.id=a.intermediary_company_id AND ic.deleted_at IS NULL
+            LEFT JOIN contacts pc ON pc.id=a.primary_contact_id AND pc.deleted_at IS NULL
+            WHERE a.user_id=? AND a.deleted_at IS NULL', 'i', [$userId]),
+        'companies' => dbAll($db, 'SELECT id, name, legal_name, website, email, phone, industry,
+            employee_count, is_intermediary, address_line1, address_line2, postal_code, city, region,
+            country_code, latitude, longitude, rating, notes, created_at, updated_at
+            FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$userId]),
+        'contacts' => dbAll($db, 'SELECT c.id, c.company_id, co.name company, c.application_id,
+            aj.title application, c.job_id, j.title job, TRIM(CONCAT_WS(" ", c.first_name, c.last_name)) name,
+            c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile,
+            c.linkedin_url, c.preferred_language, c.notes, c.created_at, c.updated_at,
+            (SELECT COUNT(*) FROM contact_logs l WHERE l.contact_id=c.id AND l.status IN ("open","planned")) open_logs
+            FROM contacts c
+            JOIN companies co ON co.id=c.company_id AND co.deleted_at IS NULL
+            LEFT JOIN applications a ON a.id=c.application_id AND a.deleted_at IS NULL
+            LEFT JOIN jobs aj ON aj.id=a.job_id AND aj.deleted_at IS NULL
+            LEFT JOIN jobs j ON j.id=c.job_id AND j.deleted_at IS NULL
+            WHERE c.owner_user_id=? AND c.deleted_at IS NULL', 'i', [$userId]),
+        'documents' => dbAll($db, 'SELECT d.id, d.document_type_id, dt.code type, d.language_code,
+            d.scope, d.application_id, aj.title application, d.job_id, COALESCE(j.title, aj.title) job,
+            d.title, d.description, d.original_filename filename, d.mime_type, d.file_size, d.sha256,
+            d.valid_from, d.valid_until, d.version, d.is_current, d.created_at, d.updated_at
+            FROM user_documents d
+            JOIN document_types dt ON dt.id=d.document_type_id
+            LEFT JOIN applications a ON a.id=d.application_id AND a.deleted_at IS NULL
+            LEFT JOIN jobs aj ON aj.id=a.job_id AND aj.deleted_at IS NULL
+            LEFT JOIN jobs j ON j.id=d.job_id AND j.deleted_at IS NULL
+            WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
+        'calendar' => dbAll($db, 'SELECT ce.id, ce.application_id, j.title application, ce.contact_id,
+            TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)) contact, c.name company, ce.title,
+            ce.event_type type, ce.entry_kind, ce.source_type, ce.source_id, ce.source_key,
+            ce.starts_at, ce.ends_at, ce.all_day, ce.status, ce.location, ce.notes, ce.completed_at,
+            CONCAT_WS(" · ", NULLIF(j.title,""), NULLIF(c.name,""), NULLIF(TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)),"")) meta,
+            ce.created_at, ce.updated_at
+            FROM calendar_events ce
+            LEFT JOIN applications a ON a.id=ce.application_id AND a.deleted_at IS NULL
+            LEFT JOIN jobs j ON j.id=a.job_id AND j.deleted_at IS NULL
+            LEFT JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
+            LEFT JOIN contacts ct ON ct.id=ce.contact_id AND ct.deleted_at IS NULL
+            WHERE ce.owner_user_id=?', 'i', [$userId]),
+        default => dbAll($db, 'SELECT j.id, j.company_id, c.name company, j.source_id, js.name source,
+            j.external_id, j.title, j.description, j.notes, j.requirements, j.benefits,
+            j.employment_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end,
+            j.workplace_type, j.workload_min, j.workload_max, j.salary_min, j.salary_max,
+            j.salary_currency, j.salary_period, j.location_text location, j.country_code, j.source_url,
+            j.published_at, j.expires_at, j.status, j.match_score, j.raw_import_data, j.created_at, j.updated_at
+            FROM jobs j
+            JOIN companies c ON c.id=j.company_id AND c.deleted_at IS NULL
+            LEFT JOIN job_sources js ON js.id=j.source_id
+            WHERE j.owner_user_id=? AND j.deleted_at IS NULL', 'i', [$userId]),
     };
 
     $rows = array_values(array_filter($rows, static function(array $row) use ($q, $status, $base): bool {
@@ -7442,14 +7628,48 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             $row['status'] = $workflow['status'];
             $row['channel'] = optionLabel(applicationChannelOptions(), $row['channel']);
         }
-        $data[] = array_map(static function(string $field) use ($row, $currentUser): string {
+        $data[] = array_map(static function(string $field) use ($row, $currentUser, $base): string {
             $value = $row[$field] ?? '';
             if ($field === 'latest_workflow_at') { return displayDateTime($value ?: null, $currentUser, false); }
-            if (in_array($field, ['updated_at','created_at','applied_at','next_action_at','starts_at'], true)) {
+            if (in_array($field, ['updated_at','created_at','applied_at','next_action_at','starts_at','ends_at','completed_at','published_at'], true)) {
                 return displayDateTime($value ?: null, $currentUser);
             }
-            if ($field === 'is_intermediary') {
-                return !empty($value) ? 'Ja' : 'Nein';
+            if (in_array($field, ['fixed_term_start','fixed_term_end','expires_at','valid_from','valid_until'], true)) {
+                return displayDateTime($value ?: null, $currentUser, false);
+            }
+            if (in_array($field, ['is_intermediary','is_current','all_day','job_room_interview'], true)) {
+                return !empty($value) ? tr('job_room_helper.value.yes') : tr('job_room_helper.value.no');
+            }
+            if (in_array($field, ['description','notes','requirements','benefits','raw_import_data','online_notes','cover_letter_text','email_body'], true)) {
+                return richTextPlain((string)$value);
+            }
+            if ($field === 'file_size') {
+                return bytesLabel((int)$value);
+            }
+            if ($field === 'country_code') {
+                return countryChoices()[(string)$value] ?? (string)$value;
+            }
+            if (in_array($field, ['language_code','preferred_language'], true)) {
+                return documentLanguageChoices()[(string)$value] ?? (string)$value;
+            }
+            if ($base === 'jobs' && $field === 'status') { return optionLabel(jobStatusOptions(), $value); }
+            if ($base === 'jobs' && $field === 'workplace_type') { return optionLabel(workplaceTypeOptions(), $value); }
+            if ($base === 'jobs' && $field === 'engagement_type') { return optionLabel(engagementTypeOptions(), $value); }
+            if ($base === 'jobs' && $field === 'contract_term') { return optionLabel(contractTermOptions(), $value); }
+            if ($base === 'jobs' && $field === 'salary_period') { return optionLabel(salaryPeriodOptions(), $value); }
+            if ($base === 'applications' && $field === 'status') { return optionLabel(applicationStatusOptions(), $value); }
+            if ($base === 'applications' && $field === 'channel') { return optionLabel(applicationChannelOptions(), $value); }
+            if ($base === 'applications' && $field === 'next_action') { return optionLabel(applicationNextActionOptions(), $value); }
+            if ($base === 'applications' && $field === 'job_room_result') {
+                return optionLabel(['open'=>tr('job_room_helper.result.open'),'hired'=>tr('job_room_helper.result.hired'),'rejected'=>tr('job_room_helper.result.rejected')], $value);
+            }
+            if ($base === 'applications' && $field === 'job_room_registration') {
+                return optionLabel(['not_recorded'=>tr('applications.job_room_not_recorded'),'recorded'=>tr('applications.job_room_recorded')], $value);
+            }
+            if ($base === 'calendar' && $field === 'status') { return optionLabel(calendarStatusOptions(), $value); }
+            if ($base === 'calendar' && $field === 'type') { return optionLabel(calendarEventTypeOptions(), $value); }
+            if ($base === 'documents' && $field === 'type') {
+                return documentTypeLabel((string)$value, currentLocale($currentUser));
             }
             return (string) $value;
         }, $columns);
@@ -10720,7 +10940,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.5','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.6','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14567,7 +14787,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.5';
+$codeVersion = '2.4.6';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15277,6 +15497,15 @@ startUiTranslationBuffer($appLocale);
         $reportFields = reportFieldOptions($reportBase);
         $reportSettings = $editReport ? loadReportSettings($db, (int)$editReport['id'], $reportBase) : ['columns'=>reportDefaultColumns($reportBase), 'filters'=>[], 'sort'=>['field_name'=>array_key_first($reportFields), 'direction'=>'asc']];
         $reportStatuses = reportStatusOptions($reportBase);
+        $reportFieldCatalog = [];
+        $reportDefaultCatalog = [];
+        $reportStatusCatalog = [];
+        foreach (array_keys($reportBaseOptions) as $reportBaseKey) {
+            $reportFieldCatalog[$reportBaseKey] = reportFieldOptions($reportBaseKey);
+            $reportDefaultCatalog[$reportBaseKey] = reportDefaultColumns($reportBaseKey);
+            $reportStatusCatalog[$reportBaseKey] = reportStatusOptions($reportBaseKey);
+        }
+        $reportColumnLimit = reportColumnLimit();
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('reports.title')) ?></h1></div><span><?= e(tr('reports.count', null, ['count' => (string) count($reports)])) ?></span></div>
         <?php if($reportEditMissing): ?><div class="alert warning"><?= e(tr('reports.not_found')) ?></div><?php endif; ?>
@@ -15289,14 +15518,60 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('common.name')) ?><input name="report_name" value="<?= e($editReport['name'] ?? '') ?>" required></label>
                     <label><?= e(tr('common.description')) ?><textarea name="report_description" rows="3"><?= e($editReport['description'] ?? '') ?></textarea></label>
                     <div class="two">
-                        <label><?= e(tr('reports.base')) ?><select name="base_entity"><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= $reportBase===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+                        <label><?= e(tr('reports.base')) ?><select name="base_entity" data-report-base><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= $reportBase===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                         <label><?= e(tr('reports.view')) ?><select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     </div>
-                    <fieldset class="report-config"><legend><?= e(tr('reports.columns')) ?></legend><?php foreach($reportFields as $field=>$label): ?><label class="check"><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
-                    <div class="two"><label><?= e(tr('reports.filter_text')) ?><input name="report_q" value="<?= e((string)($reportSettings['filters']['q'] ?? '')) ?>" placeholder="<?= e(tr('reports.all_columns')) ?>"></label><label><?= e(tr('common.status')) ?><select name="report_status"><option value=""><?= e(tr('common.all')) ?></option><?php foreach($reportStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($reportSettings['filters']['status'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
-                    <div class="two"><label><?= e(tr('reports.sort_by')) ?><select name="report_sort"><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('reports.direction')) ?><select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>><?= e(tr('sf.asc')) ?></option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>><?= e(tr('sf.desc')) ?></option></select></label></div>
+                    <fieldset class="report-config" data-report-column-picker><legend><?= e(tr('reports.columns')) ?></legend><?php foreach($reportFields as $field=>$label): ?><label class="check"><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
+                    <small class="meta-line" data-report-column-count><?= e(tr('reports.column_count', null, ['selected'=>(string)count($reportSettings['columns']), 'count'=>(string)$reportColumnLimit])) ?></small>
+                    <div class="two"><label><?= e(tr('reports.filter_text')) ?><input name="report_q" value="<?= e((string)($reportSettings['filters']['q'] ?? '')) ?>" placeholder="<?= e(tr('reports.all_columns')) ?>"></label><label><?= e(tr('common.status')) ?><select name="report_status" data-report-status><option value=""><?= e(tr('common.all')) ?></option><?php foreach($reportStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($reportSettings['filters']['status'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
+                    <div class="two"><label><?= e(tr('reports.sort_by')) ?><select name="report_sort" data-report-sort><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('reports.direction')) ?><select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>><?= e(tr('sf.asc')) ?></option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>><?= e(tr('sf.desc')) ?></option></select></label></div>
                     <div class="actions"><button class="primary" name="action" value="<?= $editReport ? 'update_report' : 'save_report' ?>"><?= e($editReport ? tr('common.save_changes') : tr('common.save')) ?></button><?php if($editReport): ?><a class="button" href="/?page=reports"><?= e(tr('common.new')) ?></a><a class="button" href="/?page=export_pdf&type=report&report_id=<?= (int)$editReport['id'] ?>">PDF</a><?php endif; ?></div>
                 </form>
+                <script>(()=>{
+                    const form=document.querySelector('#report-editor form');
+                    if(!form)return;
+                    const base=form.querySelector('[data-report-base]');
+                    const picker=form.querySelector('[data-report-column-picker]');
+                    const sort=form.querySelector('[data-report-sort]');
+                    const status=form.querySelector('[data-report-status]');
+                    const counter=form.querySelector('[data-report-column-count]');
+                    const fields=<?= json_encode($reportFieldCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const defaults=<?= json_encode($reportDefaultCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const statuses=<?= json_encode($reportStatusCatalog, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const limit=<?= (int)$reportColumnLimit ?>;
+                    const countTemplate=<?= json_encode(tr('reports.column_count'), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const limitMessage=<?= json_encode(tr('reports.column_limit_reached', null, ['count'=>(string)$reportColumnLimit]), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const allLabel=<?= json_encode(tr('common.all'), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    const updateCounter=()=>{
+                        const selected=picker.querySelectorAll('input:checked').length;
+                        counter.textContent=countTemplate.replace('{selected}',String(selected)).replace('{count}',String(limit));
+                    };
+                    const enforceLimit=event=>{
+                        if(event.target.matches('input[type="checkbox"]')&&event.target.checked&&picker.querySelectorAll('input:checked').length>limit){
+                            event.target.checked=false;
+                            counter.textContent=limitMessage;
+                            return;
+                        }
+                        updateCounter();
+                    };
+                    picker.addEventListener('change',enforceLimit);
+                    base.addEventListener('change',()=>{
+                        const key=base.value;
+                        const selected=new Set(defaults[key]||[]);
+                        picker.querySelectorAll('label.check').forEach(node=>node.remove());
+                        Object.entries(fields[key]||{}).forEach(([value,label])=>{
+                            const wrapper=document.createElement('label');wrapper.className='check';
+                            const input=document.createElement('input');input.type='checkbox';input.name='report_columns[]';input.value=value;input.checked=selected.has(value);
+                            wrapper.append(input,document.createTextNode(' '+label));picker.append(wrapper);
+                        });
+                        sort.replaceChildren();
+                        Object.entries(fields[key]||{}).forEach(([value,label])=>{const option=new Option(label,value);sort.add(option);});
+                        status.replaceChildren(new Option(allLabel,''));
+                        Object.entries(statuses[key]||{}).forEach(([value,label])=>status.add(new Option(label,value)));
+                        updateCounter();
+                    });
+                    updateCounter();
+                })();</script>
                 <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a class="button" href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
             </section>
             <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= nl2br(e(richTextPlain((string)$report['description']))) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>

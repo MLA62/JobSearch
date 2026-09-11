@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.5.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.6.
+
+Ergänzung 2.4.6: Beim Erstellen oder Bearbeiten eines Reports bestimmt die Datenbasis die vollständige
+Liste fachlich freigegebener Spalten. Ein Basiswechsel ersetzt Feldauswahl, Sortierfelder und Statuswerte
+sofort. Die Oberfläche verhindert eine dreizehnte Auswahl; beim Speichern, Laden und Export begrenzt der
+Server unabhängig davon auf zwölf eindeutige und erlaubte Felder. Nicht mehr erlaubte Legacy-Felder werden
+beim Laden verworfen.
 
 Ergänzung 2.4.5: Nach einer gültigen Passwortprüfung mit aktivem TOTP entsteht eine explizite offene
 Challenge. Nur dieser Zustand rendert und verarbeitet die Code-Eingabe. Eine bereits angemeldete Sitzung
