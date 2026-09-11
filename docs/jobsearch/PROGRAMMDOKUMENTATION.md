@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.7 ist implementiert und für die produktive Bereitstellung vorbereitet.
+Stand: 2026-09-11. Version 2.4.7 ist implementiert und produktiv verifiziert.
 
 ## Gespeicherte Reportansicht 2.4.7
 
@@ -9,6 +9,8 @@ Report innerhalb der Auswertungsseite. Der Report wird anhand von `id` und `owne
 `loadReportSettings()` liefert die gespeicherten Felder, Filter und Sortierung; `reportDataset()` erzeugt
 daraus Kopfzeile und Daten in derselben Feldreihenfolge. Die Ausgabe escaped jeden Wert und setzt nur
 Zeilenumbrüche um. Bearbeitung und PDF-Export bleiben unmittelbar bei der Reportansicht erreichbar.
+Das produktive Deployment ersetzte ausschließlich `index.php`; lokale und produktive Datei wurden
+bytegleich bestätigt. Die öffentliche Seite liefert HTTP 200 und Version 2.4.7.
 
 ## Vollständige Reportfelder 2.4.6
 

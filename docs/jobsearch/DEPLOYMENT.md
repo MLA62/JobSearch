@@ -1,12 +1,18 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-11. Release 2.4.6 ist produktiv verifiziert.
+Stand: 2026-09-11. Release 2.4.7 ist produktiv verifiziert.
+
+Quell-Commit: `125ef5ada3dae706eb4dc3eea4caf46de2225c68`.
+Produktiver `index.php`-SHA-256 (2.4.7): `6d7e910808588b15f1f66c28d79aa954fcc2a8f79bbbad530951057f94b514bd`, 1'230'818 Bytes, Modus 0644.
+TOTP-Approval: `d8d8aa21bbcc8870f84a46cf01df1786` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.7 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Schema- oder Datenwirkung.
+
+## Vorheriges produktives Release 2.4.6
 
 Quell-Commit: `d60e612608c241d889cd0b8031a171dc72179eaf`.
 Produktiver `index.php`-SHA-256 (2.4.6): `2b09657af12f475626bfac23df6ab7050637e554f1f1c35ab7f1e3de043d2113`, 1'228'991 Bytes, Modus 0644.
-TOTP-Approval: `c4e6c8076cd82de9ebf4d80d9271f885` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.6 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
-
-Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Schema- oder Datenwirkung.
+TOTP-Approval: `c4e6c8076cd82de9ebf4d80d9271f885` (ausgeführt 2026-09-11).
 
 ## Vorheriges produktives Release 2.4.5
 

@@ -20,3 +20,12 @@ gespeicherten Felder.
 
 Der Regressionstest reproduziert die alte Fehlleitung und prüft Route, Report-ID, gespeicherte Einstellungen,
 Datensatzaufbereitung sowie die gemeinsame Spaltenquelle für Tabellenkopf und Tabellenzeilen.
+
+Alle 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294 Hilfe-Seeds, beide Dokumentationsgeneratoren,
+76 Markdown-Dateien mit 61 lokalen Links und alle sieben Chromium-Testdateien waren erfolgreich.
+
+## Deployment
+
+Nach externer TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` ersetzt.
+Die lokale und produktive Datei sind bytegleich. Die öffentliche Seite liefert HTTP 200, Version 2.4.7
+sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`. Datenbank, Konfiguration und Assets blieben unverändert.

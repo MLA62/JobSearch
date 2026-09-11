@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.7 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+Stand: 2026-09-11. Version 2.4.7 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.7
 
@@ -9,8 +9,9 @@ Stand: 2026-09-11. Version 2.4.7 ist implementiert, dokumentiert und für die pr
   Filterung und Sortierung.
 - Tabellenköpfe und Datenzellen entstehen aus derselben validierten Spaltenauswahl.
 - Alle 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294 Hilfe-Seeds, 76 Markdown-Dateien/61 lokale
-  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich. Die
-  Produktionsabnahme folgt unmittelbar im Deploymentlauf.
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Lokale und produktive `index.php` sind bytegleich. Die öffentliche Seite liefert HTTP 200,
+  Version 2.4.7 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.6
 
