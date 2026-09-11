@@ -17,4 +17,7 @@ Stand: 11.09.2026.
 
 `tests/report_fields_test.php` deckt Feldumfang, Ausschlüsse, Obergrenze, Reihenfolge, Deduplizierung,
 serverseitige Validierung, dynamische Oberfläche, feste SQL-Abfragen und sichere JavaScript-Einbettung ab.
-Die vollständige PHP-, Hilfe-, Dokumentations- und Chromium-Regression wird vor dem Deployment ausgeführt.
+Die vollständige Regression war erfolgreich: 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294
+Hilfe-Seeds, 75 Markdown-Dateien mit 61 lokalen Links und sieben Chromium-Testdateien. Nach der
+TOTP-Freigabe wurden lokale und produktive `index.php` bytegleich verifiziert; die öffentliche Anwendung
+liefert HTTP 200, Version 2.4.6 und alle vorgesehenen Sicherheitsheader.

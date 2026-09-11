@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.6 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+Stand: 2026-09-11. Version 2.4.6 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.6
 
@@ -9,8 +9,9 @@ Stand: 2026-09-11. Version 2.4.6 ist implementiert, dokumentiert und für die pr
 - Oberfläche, Speicherung, Laden und Export begrenzen einen Report auf zwölf eindeutige erlaubte Felder.
 - Ein Datenbasiswechsel aktualisiert Spalten, Sortierfelder und Statusfilter unmittelbar.
 - Alle 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294 Hilfe-Seeds, 75 Markdown-Dateien/61 lokale
-  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich. Die
-  Produktionsabnahme folgt unmittelbar im Deploymentlauf.
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Nach TOTP-Freigabe sind lokale und produktive `index.php` bytegleich. Die öffentliche Anwendung
+  liefert HTTP 200, Version 2.4.6 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.5
 
