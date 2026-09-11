@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.4 ist implementiert und wird nach bestandenen Prüfungen produktiv bereitgestellt.
+Stand: 2026-09-11. Version 2.4.4 ist implementiert, vollständig geprüft und produktiv bereitgestellt.
 
 ## Vollständiger Google-Kalenderabgleich 2.4.4
 

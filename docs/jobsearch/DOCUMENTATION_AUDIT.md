@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.4 ist implementiert und dokumentiert; produktive Nachweise folgen nach der TOTP-Bereitstellung.
+Stand: 2026-09-11. Version 2.4.4 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.4
 
@@ -12,6 +12,11 @@ Stand: 2026-09-11. Version 2.4.4 ist implementiert und dokumentiert; produktive 
 - Erwartete und bestätigte Exporte sowie konkrete Einzelfehler sind im Ergebnis nachvollziehbar.
 - Jede angemeldete Sitzung stößt genau eine vollständige Bestandsprüfung an; unvollständige Läufe
   erhalten keinen erfolgreichen Sitzungsmarker.
+- Alle 35 PHP-Testdateien, 3'851 Hilfeprüfungen, 1'274 Hilfe-Seeds, 73 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Nach TOTP-Freigabe sind lokale und produktive `index.php` bytegleich. Die öffentliche Seite liefert
+  HTTP 200, Version 2.4.4 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`; für den
+  Deployment-Tag wurde kein neuer produktiver Serverfehler protokolliert.
 
 ## Prüfstand 2.4.3
 

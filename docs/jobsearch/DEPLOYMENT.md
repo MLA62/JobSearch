@@ -1,12 +1,20 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-11. Release 2.4.3 ist produktiv verifiziert.
+Stand: 2026-09-11. Release 2.4.4 ist produktiv verifiziert.
+
+Quell-Commit: `cec56a6ab356348215c7c4b833e1ed500cfc8276`.
+Produktiver `index.php`-SHA-256 (2.4.4): `d603281e1d63ab6111d852c71ba3ebd43238706c930a1e6772af823b813fba8c`, 1'208'101 Bytes, Modus 0644.
+TOTP-Approval: `89484f6223a44247dbe29dbc8a35df74` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.4 sowie HSTS, CSP, nosniff, DENY und no-referrer aus. Das produktive Fehlerprotokoll blieb beim Deployment und öffentlichen Abnahmenachweis unverändert.
+
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Schemawirkung. Bei der nächsten angemeldeten Anfrage verifiziert und repariert die App den benutzereigenen Google-Kalenderbestand. Die Workflow-v6-Bestandsmigration wurde nicht ausgeführt.
+
+## Vorheriges produktives Release 2.4.3
 
 Quell-Commit: `c1761c2aae940cbf9e74e861426fc41d25cfb205`.
 Produktiver `index.php`-SHA-256 (2.4.3): `a88cc4fa71365511c721bf53f1a5c75c72fc0c5fed8b65d3ab956e637074af27`, 1'202'761 Bytes, Modus 0644.
-TOTP-Approval: `e68a2097b1730a2252fb2e7cb7cd7c48` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.3 sowie HSTS, CSP, nosniff, DENY und no-referrer aus. Das produktive Fehlerprotokoll enthält für den Deployment-Tag keinen neuen Eintrag.
+TOTP-Approval: `e68a2097b1730a2252fb2e7cb7cd7c48` (ausgeführt 2026-09-11). Die öffentliche Seite lieferte HTTP 200 und wies Version 2.4.3 sowie HSTS, CSP, nosniff, DENY und no-referrer aus. Das produktive Fehlerprotokoll enthielt für den Deployment-Tag keinen neuen Eintrag.
 
-Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Daten- oder Schemawirkung. Die Workflow-v6-Bestandsmigration wurde nicht ausgeführt.
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hatte keine Daten- oder Schemawirkung. Die Workflow-v6-Bestandsmigration wurde nicht ausgeführt.
 
 ## Vorheriges produktives Release 2.4.2
 

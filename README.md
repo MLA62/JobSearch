@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 11.09.2026. Version 2.4.4 prüft den vollständigen Google-Kalenderbestand und stellt fehlende JeMa-Termine wieder her.
+Stand: 11.09.2026. Version 2.4.4 ist produktiv bereitgestellt; sie prüft den vollständigen Google-Kalenderbestand und stellt fehlende JeMa-Termine wieder her.
 Release-Dokumentation: [Release 2.4.4](docs/jobsearch/RELEASE-2.4.4.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

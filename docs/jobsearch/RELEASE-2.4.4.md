@@ -18,4 +18,9 @@ Datum: 11.09.2026
 
 ## Produktive Bereitstellung
 
-Die TOTP-Bereitstellung und der anschließende Live-Nachweis werden im Deployment-Dokument ergänzt.
+Nach externer TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php`
+bereitgestellt; cPanel legte vorher eine Sicherungskopie an. Die Produktionsdatei entspricht exakt
+dem geprüften Release-Stand. Die öffentliche Seite liefert HTTP 200, weist Version 2.4.4 und alle
+vorgesehenen Sicherheitsheader aus und erzeugte beim Abnahmenachweis keinen neuen PHP-Fehler.
+Der benutzerspezifische Vollabgleich startet bei der nächsten angemeldeten App-Anfrage und meldet
+im Profil die bestätigten und erwarteten Termine.
