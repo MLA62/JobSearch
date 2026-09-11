@@ -1,6 +1,14 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.6 ist implementiert, vollständig geprüft und produktiv bereitgestellt.
+Stand: 2026-09-11. Version 2.4.7 ist implementiert und für die produktive Bereitstellung vorbereitet.
+
+## Gespeicherte Reportansicht 2.4.7
+
+`reportOpenUrl()` verweist nicht mehr auf eine allgemeine Modulansicht, sondern auf den ausgewählten
+Report innerhalb der Auswertungsseite. Der Report wird anhand von `id` und `owner_user_id` geladen.
+`loadReportSettings()` liefert die gespeicherten Felder, Filter und Sortierung; `reportDataset()` erzeugt
+daraus Kopfzeile und Daten in derselben Feldreihenfolge. Die Ausgabe escaped jeden Wert und setzt nur
+Zeilenumbrüche um. Bearbeitung und PDF-Export bleiben unmittelbar bei der Reportansicht erreichbar.
 
 ## Vollständige Reportfelder 2.4.6
 

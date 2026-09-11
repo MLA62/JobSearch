@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.6 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.7 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+
+## Prüfstand 2.4.7
+
+- Der frühere Anzeigen-Link zur allgemeinen Modultabelle ist entfernt.
+- Die sichtbare Reporttabelle lädt den ausgewählten eigenen Report samt gespeicherter Feldreihenfolge,
+  Filterung und Sortierung.
+- Tabellenköpfe und Datenzellen entstehen aus derselben validierten Spaltenauswahl.
+- Alle 36 PHP-Testdateien, 3'885 Hilfeprüfungen, 1'294 Hilfe-Seeds, 76 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich. Die
+  Produktionsabnahme folgt unmittelbar im Deploymentlauf.
 
 ## Prüfstand 2.4.6
 

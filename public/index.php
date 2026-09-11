@@ -3917,11 +3917,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.3' =>
   array (
-    'de-CH' => 'Prüfe die Vorschau und exportiere bei Bedarf als PDF.',
-    'fr-CH' => 'Vérifie l’aperçu et exporte en PDF si nécessaire.',
-    'en-GB' => 'Inspect the preview and export to PDF if needed.',
-    'pt-BR' => 'Confira a prévia e exporte em PDF se necessário.',
-    'es-MX' => 'Revisa la vista previa y exporta en PDF si lo necesitas.',
+    'de-CH' => 'Öffne «Anzeigen», um den Report mit genau den gewählten Spalten zu sehen, und exportiere ihn bei Bedarf als PDF.',
+    'fr-CH' => 'Ouvre «Afficher» pour voir le rapport avec exactement les colonnes choisies, puis exporte-le en PDF si nécessaire.',
+    'en-GB' => 'Open “Show” to see the report with exactly the selected columns, then export it to PDF if needed.',
+    'pt-BR' => 'Abra “Mostrar” para ver o relatório exatamente com as colunas selecionadas e exporte-o em PDF se necessário.',
+    'es-MX' => 'Abre «Mostrar» para ver el informe exactamente con las columnas elegidas y expórtalo en PDF si lo necesitas.',
   ),
   'help.v2.reports.summary' =>
   array (
@@ -7041,14 +7041,7 @@ function reportDisplayOptions(): array
 
 function reportOpenUrl(array $report): string
 {
-    $base = (string) ($report['base_entity'] ?? 'jobs');
-    $display = (string) ($report['display_type'] ?? 'table');
-    $page = ['jobs'=>'jobs','applications'=>'applications','companies'=>'companies','contacts'=>'contacts','documents'=>'documents','calendar'=>'calendar'][$base] ?? 'jobs';
-    $params = ['page' => $page];
-    if (in_array($page, ['jobs', 'applications'], true) && in_array($display, ['cards', 'table'], true)) {
-        $params['view'] = $display;
-    }
-    return '/?' . http_build_query($params);
+    return '/?' . http_build_query(['page'=>'reports', 'view_report'=>(int)($report['id'] ?? 0)]) . '#report-view';
 }
 
 function reportExportType(array $report): ?string
@@ -10940,7 +10933,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.6','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.7','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14787,7 +14780,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.6';
+$codeVersion = '2.4.7';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15477,6 +15470,9 @@ startUiTranslationBuffer($appLocale);
         $editReportId = (int) ($_GET['edit_report'] ?? 0);
         $editReport = $editReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$editReportId, userId()]) : null;
         $reportEditMissing = $editReportId > 0 && !$editReport;
+        $viewReportId = (int) ($_GET['view_report'] ?? 0);
+        $viewReport = $viewReportId > 0 ? dbOne($db, 'SELECT id, name, description, base_entity, display_type FROM saved_reports WHERE id=? AND owner_user_id=?', 'ii', [$viewReportId, userId()]) : null;
+        $reportViewMissing = $viewReportId > 0 && !$viewReport;
         $reportBaseOptions = reportBaseOptions();
         $reportDisplayOptions = reportDisplayOptions();
         foreach ($reports as &$reportRow) {
@@ -15506,9 +15502,16 @@ startUiTranslationBuffer($appLocale);
             $reportStatusCatalog[$reportBaseKey] = reportStatusOptions($reportBaseKey);
         }
         $reportColumnLimit = reportColumnLimit();
+        $viewReportHeaders = [];
+        $viewReportData = [];
+        if ($viewReport) {
+            $viewReportSettings = loadReportSettings($db, (int)$viewReport['id'], (string)$viewReport['base_entity']);
+            [$viewReportHeaders, $viewReportData] = reportDataset($db, userId(), $viewReport, $viewReportSettings, $currentUser);
+        }
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('reports.title')) ?></h1></div><span><?= e(tr('reports.count', null, ['count' => (string) count($reports)])) ?></span></div>
         <?php if($reportEditMissing): ?><div class="alert warning"><?= e(tr('reports.not_found')) ?></div><?php endif; ?>
+        <?php if($reportViewMissing): ?><div class="alert warning"><?= e(tr('reports.not_found')) ?></div><?php endif; ?>
         <div class="reports-layout">
             <section class="panel report-editor-panel" id="report-editor">
                 <h2><?= e($editReport ? tr('reports.edit') : tr('reports.save')) ?></h2>
@@ -15576,6 +15579,12 @@ startUiTranslationBuffer($appLocale);
             </section>
             <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= nl2br(e(richTextPlain((string)$report['description']))) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
         </div>
+        <?php if($viewReport): ?>
+            <section class="panel table-wrap" id="report-view">
+                <div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h2><?= e((string)$viewReport['name']) ?></h2><p><?= nl2br(e(richTextPlain((string)$viewReport['description']))) ?></p></div><div class="actions"><a class="button" href="/?page=reports&edit_report=<?= (int)$viewReport['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a class="button primary" href="/?page=export_pdf&type=report&report_id=<?= (int)$viewReport['id'] ?>">PDF</a></div></div>
+                <table><thead><tr><?php foreach($viewReportHeaders as $header): ?><th><?= e((string)$header) ?></th><?php endforeach; ?></tr></thead><tbody><?php foreach($viewReportData as $row): ?><tr><?php foreach($row as $value): ?><td><?= nl2br(e((string)$value)) ?></td><?php endforeach; ?></tr><?php endforeach; ?><?php if(!$viewReportData): ?><tr><td colspan="<?= max(1,count($viewReportHeaders)) ?>" class="empty"><?= e(tr('common.no_entries')) ?></td></tr><?php endif; ?></tbody></table>
+            </section>
+        <?php endif; ?>
     <?php elseif ($page === 'job_room_helper'): ?>
         <?php
         $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(applied_at, "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL AND applied_at IS NOT NULL ORDER BY month_key DESC', 'i', [userId()]), 'month_key');

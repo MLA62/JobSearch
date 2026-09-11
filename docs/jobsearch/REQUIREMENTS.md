@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.6.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.7.
+
+Ergänzung 2.4.7: «Anzeigen» eines gespeicherten Reports muss den Report selbst öffnen. Die Tabelle
+muss exakt die gespeicherte Spaltenauswahl in derselben Reihenfolge und mit den dazugehörigen Werten
+zeigen. Sie darf nicht auf die allgemeine Stellen-, Bewerbungs-, Firmen- oder sonstige Modultabelle
+umleiten, weil deren feste Spalten nicht der Reportdefinition entsprechen.
 
 Ergänzung 2.4.6: In Auswertungen müssen für Stellen, Bewerbungen, Firmen, Kontakte, Dokumente und
 Kalender sämtliche fachlich auswertbaren Datenbankfelder als Spalten wählbar sein. Pro Report sind

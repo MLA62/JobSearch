@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.6.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.7.
+
+Ergänzung 2.4.7: Der Anzeigen-Link bleibt in «Auswertungen», lädt den gewählten Report
+mandantenbegrenzt über seine ID, übernimmt dessen gespeicherte Felder, Filter und Sortierung und rendert
+darunter die wirkliche Reporttabelle. Tabellenköpfe und Datenzellen werden aus demselben validierten
+Spaltenarray erzeugt und bleiben deshalb positionsgleich.
 
 Ergänzung 2.4.6: Beim Erstellen oder Bearbeiten eines Reports bestimmt die Datenbasis die vollständige
 Liste fachlich freigegebener Spalten. Ein Basiswechsel ersetzt Feldauswahl, Sortierfelder und Statuswerte

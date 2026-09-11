@@ -25,6 +25,11 @@ reportCheck(str_contains($source, 'reportSelectedColumns($base, $_POST[\'report_
 reportCheck(str_contains($source, 'reportSelectedColumns($base, $requestedColumns)'), 'The server validates exported report columns');
 reportCheck(str_contains($source, 'data-report-column-picker') && str_contains($source, 'data-report-column-count'), 'The editor displays the full field picker and live selection count');
 reportCheck(str_contains($source, "base.addEventListener('change'") && str_contains($source, "picker.addEventListener('change',enforceLimit)"), 'Changing the data source refreshes fields and enforces the maximum immediately');
+reportCheck(preg_match('/function reportOpenUrl\(array \$report\): string\s*\{.*?^\}/ms', $source, $openUrlMatch) === 1, 'Saved-report navigation can be isolated for regression testing');
+eval($openUrlMatch[0]);
+reportCheck(reportOpenUrl(['id'=>73, 'base_entity'=>'jobs', 'display_type'=>'table']) === '/?page=reports&view_report=73#report-view', 'Show opens the selected saved report instead of an unrelated module table');
+reportCheck(str_contains($source, '[$viewReportHeaders, $viewReportData] = reportDataset('), 'The visible report uses its saved settings and report dataset');
+reportCheck(str_contains($source, 'foreach($viewReportHeaders as $header)') && str_contains($source, 'foreach($viewReportData as $row)'), 'The report table renders exactly the selected headers and matching rows');
 
 $optionStart = strpos($source, 'function reportFieldOptions(string $base): array');
 $optionEnd = strpos($source, 'function reportDefaultColumns(string $base): array', $optionStart);

@@ -2,6 +2,11 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.7: `report_fields_test.php` reproduziert den fehlerhaften Anzeigen-Link. Der Test stellt
+sicher, dass «Anzeigen» die konkrete Report-ID öffnet, die sichtbare Ansicht ihre Daten über
+`loadReportSettings()` und `reportDataset()` bezieht und Kopfzeile sowie Zeilen ausschließlich aus dem
+gleichen gewählten Spaltenarray rendert.
+
 Ergänzung 2.4.6: `report_fields_test.php` prüft die Obergrenze zwölf, Reihenfolge, Deduplizierung,
 Ablehnung unbekannter Felder, serverseitige Durchsetzung beim Speichern und Export sowie die dynamische
 Aktualisierung nach einem Basiswechsel. Zusätzlich kontrolliert der Test exemplarisch vollständige
