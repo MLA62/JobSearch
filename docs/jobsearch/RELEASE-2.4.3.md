@@ -1,6 +1,6 @@
 # Version 2.4.3 – Zuverlässiger externer Kalenderabgleich
 
-Datum: 10.09.2026
+Datum: 11.09.2026
 
 ## Korrekturen
 
@@ -18,3 +18,10 @@ Datum: 10.09.2026
   Eigentumsmarker und den Schutz fremder Einträge.
 - Alle 35 PHP-Testdateien, Hilfe-/Dokumentationsprüfungen und alle sieben Chromium-Testdateien sind erfolgreich.
 - Die Workflow-v6-Bestandsmigration wird durch dieses Release weder ausgeführt noch als ausgeführt dokumentiert.
+
+## Produktive Bereitstellung
+
+- Nach TOTP-Freigabe wurde die geprüfte `index.php` mit Sicherung der Vorgängerversion bereitgestellt.
+- Produktive und lokale Datei sind bytegleich; die öffentliche Seite liefert HTTP 200 und Version 2.4.3.
+- HSTS, CSP, `nosniff`, `DENY` und `no-referrer` wurden produktiv bestätigt.
+- Für den Deployment-Tag enthält das produktive Fehlerprotokoll keinen neuen Eintrag.

@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-10. Version 2.4.3 ist implementiert und getestet; die produktive Bereitstellung wird im Deployment-Nachweis geführt.
+Stand: 2026-09-11. Version 2.4.3 ist implementiert, getestet und produktiv verifiziert; der Nachweis wird im Deployment-Dokument geführt.
 
 ## Zuverlässiger externer Kalenderabgleich 2.4.3
 

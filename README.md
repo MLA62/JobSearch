@@ -1,6 +1,6 @@
 # JeMa Jobs
 
-Stand: 10.09.2026. Version 2.4.3 behebt den blockierten externen Kalenderabgleich und führt relevante Datenänderungen automatisch nach.
+Stand: 11.09.2026. Version 2.4.3 ist produktiv bereitgestellt; sie behebt den blockierten externen Kalenderabgleich und führt relevante Datenänderungen automatisch nach.
 Release-Dokumentation: [Release 2.4.3](docs/jobsearch/RELEASE-2.4.3.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.

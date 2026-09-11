@@ -1,6 +1,14 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-10. Release 2.4.2 ist produktiv verifiziert.
+Stand: 2026-09-11. Release 2.4.3 ist produktiv verifiziert.
+
+Quell-Commit: `c1761c2aae940cbf9e74e861426fc41d25cfb205`.
+Produktiver `index.php`-SHA-256 (2.4.3): `a88cc4fa71365511c721bf53f1a5c75c72fc0c5fed8b65d3ab956e637074af27`, 1'202'761 Bytes, Modus 0644.
+TOTP-Approval: `e68a2097b1730a2252fb2e7cb7cd7c48` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.3 sowie HSTS, CSP, nosniff, DENY und no-referrer aus. Das produktive Fehlerprotokoll enthält für den Deployment-Tag keinen neuen Eintrag.
+
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Daten- oder Schemawirkung. Die Workflow-v6-Bestandsmigration wurde nicht ausgeführt.
+
+## Vorheriges produktives Release 2.4.2
 
 Quell-Commit: `809283348cf88d017332a3ebf9c35f5ef692b5c9`.
 Produktiver `index.php`-SHA-256 (2.4.2): `8b0a8be5fdc2195084972face49b33c793dd563bdd88dd5529e56d0712a43f93`, 1'199'140 Bytes, Modus 0644.
