@@ -369,6 +369,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function googleFormRequest(array $params): array`
 - `function googleAccessToken(mysqli $db, array $config, int $userId, array $settings): string`
 - `function googleCalendarStableId(int $userId, string $calendarId, string $source, int $id): string`
+- `function googleCalendarCandidateIds(int $userId, string $calendarId, string $source, int $id, ?array $link, string $hash): array`
 - `function backupGoogleCalendarEvent(mysqli $db, int $userId, string $calendarId, array $event): void`
 - `function googleCalendarOwnsEvent(array $remote, string $source, int $id): bool`
 - `function calendarExportRows(array $events): array`
@@ -384,7 +385,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function googleImportedCalendarEventPayload(array $event, array $user): array`
 - `function syncImportedCalendarEvent(mysqli $db, array $config, int $userId, array $user, array $event): void`
 - `function deleteGoogleCalendarEvent(mysqli $db, array $config, int $userId, array $user, int $eventId): void`
-- `function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array $user): void`
+- `function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array $user): bool`
 - `function localeForCountry(?string $countryCode): string`
 - `function displayDateTime(?string $value, ?array $user = null, bool $withTime = true): string`
 - `function percentageRangeLabel(mixed $min, mixed $max): string`

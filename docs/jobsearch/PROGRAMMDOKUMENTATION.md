@@ -1,6 +1,26 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.3 ist implementiert, getestet und produktiv verifiziert; der Nachweis wird im Deployment-Dokument geführt.
+Stand: 2026-09-11. Version 2.4.4 ist implementiert und wird nach bestandenen Prüfungen produktiv bereitgestellt.
+
+## Vollständiger Google-Kalenderabgleich 2.4.4
+
+Der bisherige Schnellpfad betrachtete eine gespeicherte Prüfsumme als ausreichend und fragte den
+zugehörigen Google-Termin nicht nochmals ab. Nach einer externen Löschung oder dem Wechsel des
+Zielkalenders blieb die lokale Verknüpfung deshalb scheinbar aktuell, obwohl der Termin im gewählten
+Kalender fehlte.
+
+Der Vollabgleich prüft nun jeden unveränderten Link zuerst gegen Google und akzeptiert ihn nur mit
+passendem privaten JeMa-Eigentumsmarker. Fehlende Links werden im aktuellen Kalender unter der
+kalenderabhängigen stabilen ID erstellt. Bereits von Google gelöschte und deshalb gesperrte IDs
+erhalten reproduzierbare Ersatzkandidaten; ein abgebrochener Versuch kann dadurch ohne Dublette
+wiederholt werden. Gefundene fremde Termine werden nicht verändert.
+
+Vor dem Vergleich projiziert die App die Statusverläufe aller aktiven Bewerbungen erneut. Das
+Ergebnis enthält die Anzahl erwarteter und bestätigter Exporte. Der automatische Abgleich gilt nur
+dann als vollständig, wenn beide Zahlen übereinstimmen und kein Einzelfehler vorliegt. Bis zu acht
+konkrete Fehler mit Quelle und Datensatz-ID bleiben im Profil erhalten. Jede angemeldete Sitzung
+startet diese Vollständigkeitsprüfung einmal; bei einem unvollständigen Lauf wird sie nicht als
+erledigt markiert und bei der nächsten angemeldeten Anfrage wiederholt.
 
 ## Zuverlässiger externer Kalenderabgleich 2.4.3
 

@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.3 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.4 ist implementiert und dokumentiert; produktive Nachweise folgen nach der TOTP-Bereitstellung.
+
+## Prüfstand 2.4.4
+
+- Ein unveränderter Link wird erst nach erfolgreichem Abruf und geprüftem JeMa-Eigentumsmarker als
+  bestätigt gezählt.
+- Kalenderwechsel und extern gelöschte Google-Termine führen zu einer sicheren Neuerstellung statt
+  zu einem dauerhaften Scheinerfolg.
+- Vor jedem Vollabgleich werden die Kalendernachweise aller aktiven Bewerbungsverläufe neu projiziert.
+- Erwartete und bestätigte Exporte sowie konkrete Einzelfehler sind im Ergebnis nachvollziehbar.
+- Jede angemeldete Sitzung stößt genau eine vollständige Bestandsprüfung an; unvollständige Läufe
+  erhalten keinen erfolgreichen Sitzungsmarker.
 
 ## Prüfstand 2.4.3
 

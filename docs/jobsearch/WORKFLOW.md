@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 10.09.2026. Aktuelles Verhalten für Release 2.4.3.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.4.
+
+Ergänzung 2.4.4: Der Google-Abgleich verifiziert auch bei unverändertem Inhalt die tatsächliche
+Existenz jedes JeMa-Termins im aktuell gewählten Zielkalender. Veraltete Verknüpfungen nach einem
+Kalenderwechsel und extern gelöschte Google-Termine werden mit einer reproduzierbaren Ersatz-ID
+wiederhergestellt. Vorher werden Statusverläufe aller aktiven Bewerbungen erneut projiziert.
+Erwartete und bestätigte Exportzahlen müssen übereinstimmen; Einzelfehler werden mit Quelle und ID
+gespeichert. Die erste angemeldete Anfrage jeder Sitzung stößt diese Vollständigkeitsreparatur an;
+unvollständige Läufe werden bei der nächsten Anfrage erneut versucht.
 
 Ergänzung 2.4.3: Der direkte Google-Abgleich verwendet die geprüfte Kalenderprojektion auch dann,
 wenn die getrennte Workflow-v6-Bestandsbereinigung noch nicht ausgeführt wurde. Änderungen und

@@ -1,6 +1,10 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-10. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+
+Ergänzung 2.4.4: Die Kalenderregression prüft kalenderabhängige stabile IDs, reproduzierbare
+Ersatz-IDs für extern gelöschte Termine, Remote-Verifikation vor dem Hash-Schnellpfad,
+Neuprojektion vorhandener Bewerbungsverläufe sowie den Vergleich erwarteter und bestätigter Exporte.
 Ein gruenes Fixture ist kein Beleg fuer eine ausgefuehrte Produktionsmigration.
 
 Ergänzung 2.4.3: `calendar_external_sync_test.php` prüft, dass der Google-Abgleich nicht mehr vom

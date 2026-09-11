@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $source = file_get_contents($argv[1] ?? __DIR__ . '/../public/index.php');
-foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
+foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarCandidateIds','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
     if (!preg_match('/^function ' . $name . '\\(.*?(?=^function |\\z)/ms', $source, $match)) { throw new RuntimeException('Missing ' . $name); }
     eval(trim($match[0]));
 }
@@ -42,6 +42,11 @@ check(googleCalendarOwnsEvent($payload,'workflow_event',10),'Ownership marker re
 check(!googleCalendarLinkIsCurrent(['google_event_id'=>'','last_hash'=>'same'],'same'),'Failed creation retried');
 check(!googleCalendarLinkIsCurrent(['google_event_id'=>'id','last_hash'=>'same','last_error'=>'timeout'],'same'),'Failed update retried');
 check(googleCalendarStableId(1,'calendar','workflow_event',10)===googleCalendarStableId(1,'calendar','workflow_event',10),'Stable retry ID');
+$firstCalendar = googleCalendarCandidateIds(1,'first','workflow_event',10,['google_event_id'=>'old','last_hash'=>'same'],'same');
+$secondCalendar = googleCalendarCandidateIds(1,'second','workflow_event',10,['google_event_id'=>'old','last_hash'=>'same'],'same');
+check($firstCalendar[0]==='old' && $firstCalendar[1]!==$secondCalendar[1], 'Selected calendar receives its own stable event ID');
+$recovery = googleCalendarCandidateIds(1,'first','workflow_event',10,['google_event_id'=>$firstCalendar[1],'last_hash'=>'same'],'same');
+check(count($recovery)===5 && count(array_unique($recovery))===5, 'Deleted remote events have deterministic recovery IDs');
 check(applicationDefaultNextAction('sent')===null && applicationDefaultNextAction('ready')===null, 'No invented next action');
 if (extension_loaded('mysqli')) { throw new RuntimeException('Run with php -n'); }
 class mysqli {}

@@ -870,11 +870,11 @@ try {
             'es-MX' => 'Conexión Google eliminada.',
         ],
         'flash.google_calendar.sync_done' => [
-            'de-CH' => 'Google Kalender synchronisiert: {created} neu, {updated} aktualisiert, {failed} Fehler.',
-            'fr-CH' => 'Google Agenda synchronisé : {created} nouveau, {updated} actualisé, {failed} erreur(s).',
-            'en-GB' => 'Google Calendar synced: {created} created, {updated} updated, {failed} failed.',
-            'pt-BR' => 'Google Agenda sincronizado: {created} novo(s), {updated} atualizado(s), {failed} erro(s).',
-            'es-MX' => 'Google Calendar sincronizado: {created} nuevo(s), {updated} actualizado(s), {failed} error(es).',
+            'de-CH' => 'Google Kalender synchronisiert: {verified}/{expected} Termine bestätigt, {created} neu, {updated} aktualisiert, {failed} Fehler.',
+            'fr-CH' => 'Google Agenda synchronisé : {verified}/{expected} rendez-vous confirmés, {created} nouveau, {updated} actualisé, {failed} erreur(s).',
+            'en-GB' => 'Google Calendar synced: {verified}/{expected} appointments confirmed, {created} created, {updated} updated, {failed} failed.',
+            'pt-BR' => 'Google Agenda sincronizado: {verified}/{expected} compromissos confirmados, {created} novo(s), {updated} atualizado(s), {failed} erro(s).',
+            'es-MX' => 'Google Calendar sincronizado: {verified}/{expected} citas confirmadas, {created} nueva(s), {updated} actualizada(s), {failed} error(es).',
         ],
         'flash.google_calendar.oauth_failed' => [
             'de-CH' => 'Google-Verbindung fehlgeschlagen: {error}',
@@ -3181,11 +3181,19 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.calendar_sync.steps.3' =>
   array (
-    'de-CH' => 'Prüfe im Profil Zeitpunkt und Ergebnis des letzten Abgleichs. Ein Fehler bleibt dort sichtbar, bis ein neuer Abgleich erfolgreich war.',
-    'fr-CH' => 'Vérifie dans le profil la date et le résultat de la dernière synchronisation. Une erreur y reste visible jusqu’à la prochaine synchronisation réussie.',
-    'en-GB' => 'Check the time and result of the latest synchronisation in your profile. An error remains visible until a later synchronisation succeeds.',
-    'pt-BR' => 'Confira no perfil a data e o resultado da última sincronização. Um erro permanece visível até uma sincronização posterior ser concluída com sucesso.',
-    'es-MX' => 'Revisa en el perfil la fecha y el resultado de la última sincronización. Un error permanece visible hasta que una sincronización posterior finalice correctamente.',
+    'de-CH' => 'Der Vollabgleich prüft jeden erwarteten JeMa-Termin im aktuell gewählten Google-Kalender und stellt extern gelöschte oder nach einem Kalenderwechsel fehlende Termine wieder her.',
+    'fr-CH' => 'La synchronisation complète vérifie chaque événement JeMa attendu dans le calendrier Google sélectionné et rétablit les événements supprimés à l’extérieur ou manquants après un changement de calendrier.',
+    'en-GB' => 'A full sync verifies every expected JeMa event in the currently selected Google calendar and restores events deleted externally or missing after a calendar change.',
+    'pt-BR' => 'A sincronização completa verifica cada evento JeMa esperado no calendário Google selecionado e restaura eventos excluídos externamente ou ausentes após a troca de calendário.',
+    'es-MX' => 'La sincronización completa verifica cada evento JeMa esperado en el calendario de Google seleccionado y restaura los eventos eliminados externamente o ausentes tras cambiar de calendario.',
+  ),
+  'help.v2.calendar_sync.steps.4' =>
+  array (
+    'de-CH' => 'Prüfe im Profil Zeitpunkt und Ergebnis des letzten Abgleichs. Ein Fehler nennt die betroffene Quelle und bleibt sichtbar, bis alle erwarteten Termine bestätigt wurden.',
+    'fr-CH' => 'Vérifie dans le profil la date et le résultat de la dernière synchronisation. Une erreur indique la source concernée et reste visible jusqu’à la confirmation de tous les événements attendus.',
+    'en-GB' => 'Check the time and result of the latest synchronisation in your profile. An error identifies the affected source and remains visible until every expected event is confirmed.',
+    'pt-BR' => 'Confira no perfil a data e o resultado da última sincronização. Um erro identifica a fonte afetada e permanece visível até que todos os eventos esperados sejam confirmados.',
+    'es-MX' => 'Revisa en el perfil la fecha y el resultado de la última sincronización. Un error identifica la fuente afectada y permanece visible hasta que se confirmen todos los eventos esperados.',
   ),
   'help.v2.calendar_sync.summary' =>
   array (
@@ -4457,7 +4465,7 @@ function helpTopicDefinitions(): array
       0 => 'profile',
       1 => 'calendar',
     ),
-    'step_count' => 4,
+    'step_count' => 5,
     'tip_count' => 1,
   ),
   13 =>
@@ -7754,6 +7762,25 @@ function googleCalendarStableId(int $userId, string $calendarId, string $source,
     return hash('sha256', 'jobs.jema.business:' . $userId . ':' . $calendarId . ':' . $source . ':' . $id);
 }
 
+function googleCalendarCandidateIds(int $userId, string $calendarId, string $source, int $id, ?array $link, string $hash): array
+{
+    $stableId = googleCalendarStableId($userId, $calendarId, $source, $id);
+    if (($link['last_hash'] ?? '') === 'retired') {
+        $stableId = hash('sha256', $stableId . ':timed-v5');
+    }
+    $linkedId = trim((string) ($link['google_event_id'] ?? ''));
+    $seed = $linkedId !== '' ? $linkedId : $stableId;
+    $candidates = [];
+    if ($linkedId !== '' && ($link['last_hash'] ?? '') !== 'retired') {
+        $candidates[] = $linkedId;
+    }
+    $candidates[] = $stableId;
+    for ($attempt = 1; $attempt <= 4; $attempt++) {
+        $candidates[] = hash('sha256', $stableId . ':recovery:' . $seed . ':' . $hash . ':' . $attempt);
+    }
+    return array_values(array_unique($candidates));
+}
+
 function backupGoogleCalendarEvent(mysqli $db, int $userId, string $calendarId, array $event): void
 {
     $json = json_encode($event, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
@@ -7846,12 +7873,18 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
     $updated = (int) $importResult['updated'];
     $failed = $importError !== null ? 1 : 0;
     $exportFailed = 0;
+    $errors = $importError !== null ? ['Google-Import: ' . $importError] : [];
+    // Rebuild every status-derived calendar entry before comparing the local and remote inventories.
+    foreach (dbAll($db, 'SELECT id FROM applications WHERE user_id=? AND deleted_at IS NULL ORDER BY id', 'i', [$userId]) as $application) {
+        syncApplicationWorkflow($db, $userId, (int) $application['id']);
+    }
     $range = dbOne($db, "SELECT MIN(starts_at) first_at, MAX(COALESCE(ends_at,starts_at)) last_at FROM calendar_events WHERE owner_user_id=? AND status<>'cancelled'", 'i', [$userId]);
     if (!empty($range['first_at'])) {
         $start = new DateTimeImmutable($range['first_at']);
         $end = new DateTimeImmutable($range['last_at']);
     }
     $activeExports = [];
+    $verified = 0;
     foreach (calendarExportRows(calendarEventRows($db, $userId, $start, $end)) as $event) {
         $sourceType = (string) $event['source'];
         $sourceId = (int) $event['id'];
@@ -7861,37 +7894,53 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
         $activeExports[$sourceType . ':' . $sourceId] = true;
         $hash = googleCalendarSyncHash($event);
         $link = dbOne($db, 'SELECT google_event_id, last_hash, last_error FROM google_calendar_event_links WHERE user_id=? AND source_type=? AND source_id=? LIMIT 1', 'isi', [$userId, $sourceType, $sourceId]);
-        if (googleCalendarLinkIsCurrent($link, $hash)) {
-            continue;
-        }
         $payload = googleCalendarEventPayload($config, $event, $user);
         try {
-            $stableId = googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
-            if (($link['last_hash'] ?? '') === 'retired') {
-                // A cancelled legacy projection gets a reproducible replacement ID.
-                $stableId = hash('sha256', $stableId . ':timed-v5');
-                $googleEventId = $stableId;
-            } else {
-                $googleEventId = trim((string)($link['google_event_id'] ?? '')) ?: $stableId;
-            }
             $baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events';
             $remote = null;
-            try {
-                $remote = googleJsonRequest('GET', $baseUrl . '/' . rawurlencode($googleEventId), ['Authorization: Bearer ' . $token]);
-            } catch (RuntimeException $exception) {
-                if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
+            $googleEventId = '';
+            $createId = '';
+            $candidateIds = googleCalendarCandidateIds($userId, $calendarId, $sourceType, $sourceId, $link, $hash);
+            $stableId = googleCalendarStableId($userId, $calendarId, $sourceType, $sourceId);
+            if (($link['last_hash'] ?? '') === 'retired') {
+                $stableId = hash('sha256', $stableId . ':timed-v5');
             }
-            if ($remote === null && $googleEventId !== $stableId) {
-                $googleEventId = $stableId;
+            foreach ($candidateIds as $candidateIndex => $candidateId) {
                 try {
-                    $remote = googleJsonRequest('GET', $baseUrl . '/' . $googleEventId, ['Authorization: Bearer ' . $token]);
+                    $candidateRemote = googleJsonRequest('GET', $baseUrl . '/' . rawurlencode($candidateId), ['Authorization: Bearer ' . $token]);
                 } catch (RuntimeException $exception) {
-                    if (!in_array($exception->getCode(), [404, 410], true)) { throw $exception; }
+                    if ($exception->getCode() === 410) {
+                        continue;
+                    }
+                    if ($exception->getCode() === 404) {
+                        $linkedId = trim((string) ($link['google_event_id'] ?? ''));
+                        // A missing link from another selected calendar is not reused there; prefer the current stable ID.
+                        if ($candidateIndex === 0 && $linkedId !== '' && $candidateId === $linkedId && $candidateId !== $stableId) {
+                            continue;
+                        }
+                        $createId = $candidateId;
+                        break;
+                    }
+                    throw $exception;
                 }
+                if (($candidateRemote['status'] ?? '') === 'cancelled') {
+                    continue;
+                }
+                if (!googleCalendarOwnsEvent($candidateRemote, $sourceType, $sourceId)) {
+                    continue;
+                }
+                $remote = $candidateRemote;
+                $googleEventId = $candidateId;
+                break;
             }
             if ($remote !== null) {
-                if (!googleCalendarOwnsEvent($remote, $sourceType, $sourceId)) {
-                    throw new RuntimeException('Calendar event ownership mismatch');
+                if (googleCalendarLinkIsCurrent($link, $hash)) {
+                    $emptyError = null;
+                    $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE google_event_id=VALUES(google_event_id), last_hash=VALUES(last_hash), last_error=NULL, synced_at=NOW()');
+                    $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $googleEventId, $hash, $emptyError);
+                    $stmt->execute();
+                    $verified++;
+                    continue;
                 }
                 backupGoogleCalendarEvent($db, $userId, $calendarId, $remote);
                 $headers = ['Authorization: Bearer ' . $token];
@@ -7899,7 +7948,10 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
                 googleJsonRequest('PATCH', $baseUrl . '/' . rawurlencode($googleEventId), $headers, $payload + ['status' => 'confirmed']);
                 $updated++;
             } else {
-                $response = googleJsonRequest('POST', $baseUrl, ['Authorization: Bearer ' . $token], $payload + ['id' => $googleEventId]);
+                if ($createId === '') {
+                    throw new RuntimeException('No unused Google event id is available');
+                }
+                $response = googleJsonRequest('POST', $baseUrl, ['Authorization: Bearer ' . $token], $payload + ['id' => $createId]);
                 $googleEventId = (string)($response['id'] ?? '');
                 $created++;
             }
@@ -7910,6 +7962,7 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
             $stmt = $db->prepare('INSERT INTO google_calendar_event_links (user_id, source_type, source_id, google_event_id, last_hash, last_error, synced_at) VALUES (?, ?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE google_event_id=VALUES(google_event_id), last_hash=VALUES(last_hash), last_error=NULL, synced_at=NOW()');
             $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $googleEventId, $hash, $emptyError);
             $stmt->execute();
+            $verified++;
         } catch (Throwable $exception) {
             $failed++;
             $exportFailed++;
@@ -7919,6 +7972,7 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
             $unsyncedHash = '';
             $stmt->bind_param('isisss', $userId, $sourceType, $sourceId, $emptyId, $unsyncedHash, $message);
             $stmt->execute();
+            $errors[] = $sourceType . ' #' . $sourceId . ': ' . $message;
         }
     }
     // Erst nach erfolgreicher Neuzuordnung werden alte JeMa-Projektionen ausgeblendet.
@@ -7947,15 +8001,19 @@ function syncGoogleCalendarEventsLocked(mysqli $db, array $config, int $userId, 
                 cascadeExec($db, "UPDATE google_calendar_event_links SET last_hash='retired', last_error=NULL, synced_at=NOW() WHERE user_id=? AND source_type=? AND source_id=?", 'isi', [$userId, $obsolete['source_type'], (int)$obsolete['source_id']]);
             } catch (Throwable $exception) {
                 $failed++;
-                cascadeExec($db, 'UPDATE google_calendar_event_links SET last_error=? WHERE user_id=? AND source_type=? AND source_id=?', 'sisi', [mb_substr($exception->getMessage(), 0, 1000), $userId, $obsolete['source_type'], (int)$obsolete['source_id']]);
+                $message = mb_substr($exception->getMessage(), 0, 1000);
+                cascadeExec($db, 'UPDATE google_calendar_event_links SET last_error=? WHERE user_id=? AND source_type=? AND source_id=?', 'sisi', [$message, $userId, $obsolete['source_type'], (int)$obsolete['source_id']]);
+                $errors[] = (string)$obsolete['source_type'] . ' #' . (int)$obsolete['source_id'] . ': ' . $message;
             }
         }
     }
-    $lastError = $failed > 0 ? ($importError ?? (string)$failed . ' sync errors') : null;
+    $lastError = $failed > 0
+        ? mb_substr(implode(' | ', array_slice($errors, 0, 8)) . (count($errors) > 8 ? ' | +' . (count($errors) - 8) . ' weitere Fehler' : ''), 0, 4000)
+        : null;
     $stmt = $db->prepare('UPDATE user_google_calendar_settings SET last_sync_at=NOW(), last_error=? WHERE user_id=?');
     $stmt->bind_param('si', $lastError, $userId);
     $stmt->execute();
-    return ['created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
+    return ['expected' => count($activeExports), 'verified' => $verified, 'created' => $created, 'updated' => $updated, 'deleted' => (int) $importResult['deleted'], 'failed' => $failed];
 }
 
 function googleCalendarEventPayload(array $config, array $event, array $user): array
@@ -8152,14 +8210,20 @@ function deleteGoogleCalendarEvent(mysqli $db, array $config, int $userId, array
     googleJsonRequest('DELETE', 'https://www.googleapis.com/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode((string) $link['google_event_id']), ['Authorization: Bearer ' . $token]);
 }
 
-function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array $user): void
+function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array $user): bool
 {
     $settings = googleCalendarSettings($db, $userId);
     if (!$settings || !(int) ($settings['sync_enabled'] ?? 0) || empty($settings['refresh_token_encrypted'])) {
-        return;
+        return true;
     }
     try {
-        syncGoogleCalendarEvents($db, $config, $userId, $user);
+        $result = syncGoogleCalendarEvents($db, $config, $userId, $user);
+        $complete = (int) ($result['failed'] ?? 0) === 0
+            && (int) ($result['verified'] ?? 0) === (int) ($result['expected'] ?? 0);
+        if (!$complete) {
+            unset($_SESSION['google_calendar_repair_revision']);
+        }
+        return $complete;
     } catch (Throwable $exception) {
         try {
             $message = mb_substr($exception->getMessage(), 0, 1000);
@@ -8170,6 +8234,8 @@ function syncCalendarAutomatically(mysqli $db, array $config, int $userId, array
             // Das urspruengliche Synchronisationsproblem bleibt die relevante Diagnose.
         }
         error_log('Google calendar synchronization failed: ' . $exception->getMessage());
+        unset($_SESSION['google_calendar_repair_revision']);
+        return false;
     }
 }
 
@@ -10638,7 +10704,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.3','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.4','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12498,6 +12564,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash(tr('flash.google_calendar.sync_done', null, [
                 'created' => (string) $result['created'],
                 'updated' => (string) $result['updated'],
+                'verified' => (string) $result['verified'],
+                'expected' => (string) $result['expected'],
                 'failed' => (string) $result['failed'],
             ]), ((int) $result['failed'] > 0 ? 'warning' : 'success'));
         } catch (Throwable $exception) {
@@ -14467,7 +14535,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.3';
+$codeVersion = '2.4.4';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -14487,6 +14555,15 @@ if (isSupportImpersonation()) {
 }
 if ($currentUser && in_array($currentUser['timezone'], timezone_identifiers_list(), true)) {
     date_default_timezone_set($currentUser['timezone']);
+}
+$calendarRepairRevision = 'google-calendar-completeness-v1';
+$calendarSyncAttemptedThisRequest = false;
+if ($currentUser && (string) ($_SESSION['google_calendar_repair_revision'] ?? '') !== $calendarRepairRevision) {
+    // Every signed-in session verifies the complete remote inventory once, including unchanged links.
+    $calendarSyncAttemptedThisRequest = true;
+    if (syncCalendarAutomatically($db, $config, userId(), $currentUser)) {
+        $_SESSION['google_calendar_repair_revision'] = $calendarRepairRevision;
+    }
 }
 if ($page === 'verify_email') {
     $token = trim((string) ($_GET['token'] ?? ''));
@@ -15265,7 +15342,9 @@ startUiTranslationBuffer($appLocale);
         $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)($_GET['view'] ?? 'agenda') : 'agenda';
         $anchor = calendarAnchorDate($currentUser);
         [$rangeStart, $rangeEnd, $prevStep, $nextStep] = calendarRange($calendarView, $anchor);
-        syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
+        if (!$calendarSyncAttemptedThisRequest) {
+            syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
+        }
         $calendarEvents = calendarEventRows($db, userId(), $rangeStart, $rangeEnd);
         $calendarStatusLabels = calendarStatusOptions();
         $calendarSfFields = [

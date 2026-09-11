@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 10.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.3.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.4.
+
+Ergänzung 2.4.4: Ein unveränderter lokaler Hash darf nur dann als erfolgreich synchronisiert gelten,
+wenn der zugehörige JeMa-Termin im aktuell gewählten Google-Kalender tatsächlich vorhanden ist und
+den passenden JeMa-Eigentumsmarker trägt. Bei Kalenderwechsel, externer Löschung oder veralteter
+Zuordnung muss der Termin mit einer kollisionssicheren, reproduzierbaren ID neu erstellt werden.
+Vor jedem Vollabgleich werden alle vorhandenen Bewerbungsverläufe erneut in die erlaubten
+Kalendernachweise projiziert. Der Abgleich meldet erwartete und bestätigte Termine; nur Gleichheit
+ohne Einzelfehler gilt als vollständig. Jede angemeldete Sitzung führt diese Vollständigkeitsprüfung
+mindestens einmal aus; unvollständige Läufe werden bei der nächsten Anfrage erneut ausgeführt.
 
 Ergänzung 2.4.3: Der direkte Google-Kalenderabgleich darf nicht von der getrennt freizugebenden
 Workflow-v6-Bestandsbereinigung blockiert werden. Er verwendet unabhängig davon ausschließlich die

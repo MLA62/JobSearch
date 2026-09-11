@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 11.09.2026. Version 2.4.3 ist produktiv bereitgestellt; sie behebt den blockierten externen Kalenderabgleich und führt relevante Datenänderungen automatisch nach.
-Release-Dokumentation: [Release 2.4.3](docs/jobsearch/RELEASE-2.4.3.md).
+Stand: 11.09.2026. Version 2.4.4 prüft den vollständigen Google-Kalenderbestand und stellt fehlende JeMa-Termine wieder her.
+Release-Dokumentation: [Release 2.4.4](docs/jobsearch/RELEASE-2.4.4.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
