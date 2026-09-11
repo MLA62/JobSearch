@@ -25,3 +25,9 @@ ohne Vermittlerzuordnung ab.
 
 Alle 36 PHP-Testdateien, 3'907 Hilfeprüfungen, 1'304 Hilfe-Seeds, beide Dokumentationsgeneratoren,
 78 Markdown-Dateien mit 61 lokalen Links und alle sieben Chromium-Testdateien waren erfolgreich.
+
+## Deployment
+
+Nach externer TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` ersetzt.
+Die lokale und produktive Datei sind bytegleich. Die öffentliche Seite liefert HTTP 200, Version 2.4.9
+sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`. Datenbank, Konfiguration und Assets blieben unverändert.

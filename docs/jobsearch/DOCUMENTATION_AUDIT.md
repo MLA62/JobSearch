@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.9 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+Stand: 2026-09-11. Version 2.4.9 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.9
 
@@ -12,6 +12,8 @@ Stand: 2026-09-11. Version 2.4.9 ist implementiert, dokumentiert und für die pr
   Kalenderkontakt und Kontakt-Job geschlossen.
 - Alle 36 PHP-Testdateien, 3'907 Hilfeprüfungen, 1'304 Hilfe-Seeds, 78 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Lokale und produktive `index.php` sind bytegleich. Die öffentliche Seite liefert HTTP 200,
+  Version 2.4.9 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.8
 

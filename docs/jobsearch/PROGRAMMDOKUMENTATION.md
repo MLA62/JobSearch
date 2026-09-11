@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.9 ist implementiert und für die produktive Bereitstellung vorbereitet.
+Stand: 2026-09-11. Version 2.4.9 ist implementiert und produktiv verifiziert.
 
 ## Vollständige Reportbeziehungen 2.4.9
 
@@ -11,6 +11,8 @@ Kontakt ohne Vor- und Nachnamen wird über seine E-Mail sichtbar. Dokumente übe
 ihrer Bewerbung. Kalendereinträge übernehmen Firma und ersatzweise den Kontaktnamen aus dem verknüpften
 Kontakt. Kontakte mit Bewerbungsbezug übernehmen den Job aus dieser Bewerbung. Die Normalisierung
 ordnet keine lediglich vorhandenen, aber unverbundenen Firmen oder Kontakte zu.
+Das Deployment ersetzte ausschließlich `index.php`; lokale und produktive Datei wurden bytegleich
+bestätigt. Die öffentliche Seite liefert HTTP 200 und Version 2.4.9.
 
 ## Job-Room-Resultat und Spaltenreihenfolge 2.4.8
 
