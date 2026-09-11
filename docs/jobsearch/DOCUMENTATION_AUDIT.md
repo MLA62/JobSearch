@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.9 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.10 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.10
+
+- Der Job-Room-Status zeigt Erfassung und Resultat eindeutig gemeinsam.
+- Ohne Bewerbungsdatum oder ohne bestätigte Erfassung erscheint «Noch nicht im Job-Room erfasst».
+- Technische Job-Room-DB-Feldnamen sind in der Reportauswahl durch lokalisierte Fachbegriffe ersetzt.
+- Alle 36 PHP-Testdateien, 3'918 Hilfeprüfungen, 1'309 Hilfe-Seeds, 79 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Lokale und produktive `index.php` sind bytegleich. Die öffentliche Seite liefert HTTP 200,
+  Version 2.4.10 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.9
 

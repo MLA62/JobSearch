@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.10 ist implementiert und zur Bereitstellung vorbereitet.
+Stand: 2026-09-11. Version 2.4.10 ist implementiert und produktiv verifiziert.
 
 ## Eindeutiger Job-Room-Status 2.4.10
 
@@ -9,6 +9,8 @@ Wert mit `jobRoomApplicationStatus()`. Ohne bestätigte Erfassung oder ohne Bewe
 «Noch nicht im Job-Room erfasst». Andernfalls zeigt der Report vollständig «Im Job-Room erfasst –
 Noch offen/Anstellung/Absage». Die getrennt auswählbaren Erfassungs- und Gesprächsfelder besitzen
 ebenfalls fachliche, lokalisierte Bezeichnungen statt technischer DB-Feldnamen.
+Das Deployment ersetzte ausschließlich `index.php`; lokale und produktive Datei wurden bytegleich
+bestätigt. Die öffentliche Seite liefert HTTP 200 und Version 2.4.10.
 
 ## Vollständige Reportbeziehungen 2.4.9
 

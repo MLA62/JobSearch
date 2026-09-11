@@ -20,11 +20,13 @@ Reportausgabe ein.
 ## Prüfung
 
 `php -l public/index.php` und `php tests/report_fields_test.php` prüfen Syntax, Statuslogik,
-Bewerbungsdatum, Erfassungszustand und Spaltenbeschriftungen. Der vollständige Testlauf wird vor dem
-Deployment ausgeführt.
+Bewerbungsdatum, Erfassungszustand und Spaltenbeschriftungen. Alle 36 PHP-Testdateien, 3'918
+Hilfeprüfungen, 1'309 Hilfe-Seeds, beide Dokumentationsgeneratoren, 79 Markdown-Dateien mit 61
+lokalen Links und alle sieben Chromium-Testdateien waren erfolgreich.
 
 ## Deployment
 
-Das Deployment erfolgt nach erfolgreicher TOTP-Freigabe nach
-`public_html/jobs.jema.business/index.php`. Anschließend werden Dateihash, HTTP-Antwort,
-Sicherheitsheader und Versionsnummer produktiv verifiziert.
+Nach externer TOTP-Freigabe wurde ausschließlich `public_html/jobs.jema.business/index.php` ersetzt.
+Die lokale und produktive Datei sind bytegleich. Die öffentliche Seite liefert HTTP 200, Version
+2.4.10 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`. Datenbank, Konfiguration und Assets
+blieben unverändert.

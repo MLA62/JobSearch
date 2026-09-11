@@ -1,6 +1,14 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-11. Release 2.4.9 ist produktiv verifiziert.
+Stand: 2026-09-11. Release 2.4.10 ist produktiv verifiziert.
+
+Quell-Commit: `19d88f15ce051f5cff1f5e5a2c946b51bbc25704`.
+Produktiver `index.php`-SHA-256 (2.4.10): `ed56ca94f2bf1d7273c4fd087a46bdf00851cdbcf0c5bf09ab0d51867c8c0bf5`, 1'239'462 Bytes, Modus 0644.
+TOTP-Approval: `f7281b03e3c1fccf74adda7222faad90` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.10 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Schema- oder Datenwirkung.
+
+## Vorheriges produktives Release 2.4.9
 
 Quell-Commit: `00aad99a308eb00690b3efa0878a1b4951b58e18`.
 Produktiver `index.php`-SHA-256 (2.4.9): `0cfc5a4e41afc6f58b2d28575c4256c9f320064a19f56a1613d9410e533810e1`, 1'237'537 Bytes, Modus 0644.
