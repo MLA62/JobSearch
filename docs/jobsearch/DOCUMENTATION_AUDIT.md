@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.5 ist implementiert, dokumentiert und für das Deployment vorbereitet.
+Stand: 2026-09-11. Version 2.4.5 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.5
 
@@ -12,7 +12,10 @@ Stand: 2026-09-11. Version 2.4.5 ist implementiert, dokumentiert und für das De
   Challenge begrenzt.
 - Alle 35 PHP-Testdateien, 3'862 Hilfeprüfungen, 1'279 Hilfe-Seeds, 74 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
-- Git- und Produktivnachweise werden beim Deployment vervollständigt.
+- Nach TOTP-Freigabe sind lokale und produktive `index.php` bytegleich. Die öffentliche Seite liefert
+  HTTP 200, Version 2.4.5 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`. Eine veraltete
+  TOTP-Anfrage ohne Challenge wird mit HTTP 302 zur Anmeldung geleitet; das produktive Fehlerprotokoll
+  blieb bei Deployment und Abnahme unverändert.
 
 ## Prüfstand 2.4.4
 

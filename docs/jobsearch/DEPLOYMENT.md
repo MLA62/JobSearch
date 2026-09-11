@@ -1,6 +1,14 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-11. Release 2.4.4 ist produktiv verifiziert.
+Stand: 2026-09-11. Release 2.4.5 ist produktiv verifiziert.
+
+Quell-Commit: `a44c68847a3557faba8154bf6d4b00e3d1e467ed`.
+Produktiver `index.php`-SHA-256 (2.4.5): `03b78c2f66d1ece02758bc5825ffc48b3c66c37c8a153de253ddd66c5a591246`, 1'209'983 Bytes, Modus 0644.
+TOTP-Approval: `bc954b704938510815debaa9733c5a57` (ausgeführt 2026-09-11). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.5 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Eine veraltete TOTP-Anfrage ohne offene Challenge führt mit HTTP 302 zur Anmeldung. Das produktive Fehlerprotokoll blieb beim Deployment und bei der öffentlichen Abnahme unverändert.
+
+Das Release ersetzte ausschließlich `index.php`; eine Sicherungskopie der Vorgängerdatei wurde durch den Deployment-Ablauf erstellt. `.htaccess`, `config.php`, Stylesheets, JavaScript, Speicherdateien und Datenbank blieben unverändert. Das Release hat keine Schema- oder Datenwirkung.
+
+## Vorheriges produktives Release 2.4.4
 
 Quell-Commit: `cec56a6ab356348215c7c4b833e1ed500cfc8276`.
 Produktiver `index.php`-SHA-256 (2.4.4): `d603281e1d63ab6111d852c71ba3ebd43238706c930a1e6772af823b813fba8c`, 1'208'101 Bytes, Modus 0644.

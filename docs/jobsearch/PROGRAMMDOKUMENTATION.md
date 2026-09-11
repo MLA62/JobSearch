@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.5 ist implementiert und für die produktive Bereitstellung vorbereitet.
+Stand: 2026-09-11. Version 2.4.5 ist implementiert, vollständig geprüft und produktiv bereitgestellt.
 
 ## Eindeutiger TOTP-Zustandswechsel 2.4.5
 
