@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.7.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.8.
+
+Ergänzung 2.4.8: Das Feld Job-Room-Resultat darf «Noch offen» nur anzeigen, wenn die Bewerbung
+nachweislich im Job-Room erfasst wurde. Bei `unknown` oder `not_recorded` muss stattdessen
+«Noch nicht im Job-Room erfasst» erscheinen. Andere Bewerbungs- und Reportfelder bleiben unverändert.
+Die Reihenfolge gewählter Reportspalten ist im Editor per Drag-and-drop änderbar und wird gespeichert.
+Nach dem Speichern muss unmittelbar die neu geladene Reportansicht erscheinen; eine alte Ansicht darf
+nicht stehen bleiben.
 
 Ergänzung 2.4.7: «Anzeigen» eines gespeicherten Reports muss den Report selbst öffnen. Die Tabelle
 muss exakt die gespeicherte Spaltenauswahl in derselben Reihenfolge und mit den dazugehörigen Werten

@@ -2,6 +2,12 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.8: `report_fields_test.php` prüft die Semantik des Job-Room-Resultatfeldes. Die Werte
+`unknown` und `not_recorded` dürfen nicht als «Noch offen» erscheinen; «Noch offen» ist nur bei
+bestätigter Job-Room-Erfassung (`recorded`) zulässig. Ausserdem werden das Laden des tatsächlichen
+Erfassungsstatus, die Wiederherstellung der gespeicherten Spaltenreihenfolge und die Drag-and-drop-
+Ereignisse geprüft.
+
 Ergänzung 2.4.7: `report_fields_test.php` reproduziert den fehlerhaften Anzeigen-Link. Der Test stellt
 sicher, dass «Anzeigen» die konkrete Report-ID öffnet, die sichtbare Ansicht ihre Daten über
 `loadReportSettings()` und `reportDataset()` bezieht und Kopfzeile sowie Zeilen ausschließlich aus dem

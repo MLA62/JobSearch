@@ -20,16 +20,33 @@ reportCheck(count($limited) === 12, 'At most twelve report fields are accepted')
 reportCheck($limited[0] === 'field_1' && $limited[11] === 'field_12', 'Report fields retain their selected order');
 reportCheck(count(array_unique($limited)) === count($limited) && !in_array('unknown', $limited, true), 'Unknown and duplicate report fields are rejected');
 
+reportCheck(preg_match('/function reportEditorFieldOptions\(.*?^\}/ms', $source, $editorFieldsMatch) === 1, 'Report editor field ordering is isolated for regression testing');
+eval($editorFieldsMatch[0]);
+$editorFields = reportEditorFieldOptions(['one'=>'One','two'=>'Two','three'=>'Three'], ['three','one']);
+reportCheck(array_keys($editorFields) === ['three','one','two'], 'The editor preserves saved column order before unselected fields');
+
 reportCheck(str_contains($source, 'function reportColumnLimit(): int') && str_contains($source, 'return 12;'), 'The report field maximum is explicit');
 reportCheck(str_contains($source, 'reportSelectedColumns($base, $_POST[\'report_columns\'] ?? [])'), 'The server validates saved report columns');
 reportCheck(str_contains($source, 'reportSelectedColumns($base, $requestedColumns)'), 'The server validates exported report columns');
 reportCheck(str_contains($source, 'data-report-column-picker') && str_contains($source, 'data-report-column-count'), 'The editor displays the full field picker and live selection count');
+reportCheck(str_contains($source, 'data-report-drag-handle') && str_contains($source, "handle.addEventListener('dragstart'") && str_contains($source, "wrapper.addEventListener('dragover'"), 'Report columns can be reordered by drag and drop');
+reportCheck(str_contains($source, "redirect('/?page=reports&edit_report=' . \$reportId . '&view_report=' . \$reportId . '#report-view')") && str_contains($source, "redirect('/?page=reports&edit_report=' . \$id . '&view_report=' . \$id . '#report-view')"), 'Saving immediately reloads the updated report instead of leaving the previous view visible');
 reportCheck(str_contains($source, "base.addEventListener('change'") && str_contains($source, "picker.addEventListener('change',enforceLimit)"), 'Changing the data source refreshes fields and enforces the maximum immediately');
 reportCheck(preg_match('/function reportOpenUrl\(array \$report\): string\s*\{.*?^\}/ms', $source, $openUrlMatch) === 1, 'Saved-report navigation can be isolated for regression testing');
 eval($openUrlMatch[0]);
 reportCheck(reportOpenUrl(['id'=>73, 'base_entity'=>'jobs', 'display_type'=>'table']) === '/?page=reports&view_report=73#report-view', 'Show opens the selected saved report instead of an unrelated module table');
 reportCheck(str_contains($source, '[$viewReportHeaders, $viewReportData] = reportDataset('), 'The visible report uses its saved settings and report dataset');
 reportCheck(str_contains($source, 'foreach($viewReportHeaders as $header)') && str_contains($source, 'foreach($viewReportData as $row)'), 'The report table renders exactly the selected headers and matching rows');
+
+reportCheck(preg_match('/function jobRoomApplicationResult\(.*?^\}/ms', $source, $jobRoomResultMatch) === 1, 'Job-Room result formatter is isolated for regression testing');
+if (!function_exists('tr')) {
+    function tr(string $key): string { return $key; }
+}
+eval($jobRoomResultMatch[0]);
+reportCheck(jobRoomApplicationResult('open', 'sent', 'not_recorded') === 'applications.job_room_not_recorded', 'An application not recorded in Job-Room is not reported as open');
+reportCheck(jobRoomApplicationResult('open', 'sent', 'unknown') === 'applications.job_room_not_recorded', 'An unconfirmed Job-Room registration is not reported as open');
+reportCheck(jobRoomApplicationResult('open', 'sent', 'recorded') === 'job_room_helper.result.open', 'Open is shown only after confirmed Job-Room registration');
+reportCheck(str_contains($source, 'a.job_room_registration, a.channel') && str_contains($source, "\$row['job_room_registration'] ?? null"), 'Report and Job-Room helper use the actual registration state');
 
 $optionStart = strpos($source, 'function reportFieldOptions(string $base): array');
 $optionEnd = strpos($source, 'function reportDefaultColumns(string $base): array', $optionStart);

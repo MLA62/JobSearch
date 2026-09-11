@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.7 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.8 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+
+## Prüfstand 2.4.8
+
+- Das Feld Job-Room-Resultat unterscheidet eine fehlende Erfassung von einem offenen Resultat.
+- «Noch offen» wird ausschließlich bei `job_room_registration=recorded` ausgegeben.
+- Report und Job-Room-Hilfe verwenden dieselbe zentrale Ableitung; andere Felder bleiben unverändert.
+- Die gewählten Reportspalten lassen sich per Drag-and-drop ordnen; gespeicherte Reihenfolgen werden
+  beim Bearbeiten wiederhergestellt.
+- Speichern und Aktualisieren öffnen unmittelbar die frisch aus der Datenbank geladene Reportansicht.
+- Alle 36 PHP-Testdateien, 3'896 Hilfeprüfungen, 1'299 Hilfe-Seeds, 77 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
 
 ## Prüfstand 2.4.7
 

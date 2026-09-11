@@ -1,5 +1,5 @@
 {
-  "version": "2.4.7",
+  "version": "2.4.8",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -1083,7 +1083,8 @@
           ],
           "tips": [
             "Die Job-Room-Hilfe zeigt nur Bewerbungen mit einem tatsächlichen Bewerbungsdatum. Fehlt es, ergänze es zuerst in der Bewerbung.",
-            "Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung."
+            "Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung.",
+            "Das Feld Job-Room-Resultat zeigt „Noch offen“ erst nach bestätigter Erfassung; vorher steht dort „Noch nicht im Job-Room erfasst“."
           ]
         },
         "fr-CH": {
@@ -1096,7 +1097,8 @@
           ],
           "tips": [
             "L’aide Job-Room affiche uniquement les candidatures ayant une date de candidature réelle. Si elle manque, complète-la d’abord dans la candidature.",
-            "La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche."
+            "La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche.",
+            "Le résultat Job-Room n’indique « ouvert » qu’après confirmation de la saisie; auparavant il indique que la candidature n’est pas encore saisie."
           ]
         },
         "en-GB": {
@@ -1109,7 +1111,8 @@
           ],
           "tips": [
             "The Job-Room helper shows only applications with an actual application date. If it is missing, add it to the application first.",
-            "The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment."
+            "The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment.",
+            "The Job-Room result says ‘open’ only after registration is confirmed; beforehand it says the application has not yet been recorded."
           ]
         },
         "pt-BR": {
@@ -1122,7 +1125,8 @@
           ],
           "tips": [
             "A ajuda do Job-Room mostra apenas candidaturas com uma data de candidatura real. Se estiver ausente, preencha-a primeiro na candidatura.",
-            "A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação."
+            "A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação.",
+            "O resultado do Job-Room mostra ‘aberto’ somente após a confirmação do registro; antes disso informa que a candidatura ainda não foi registrada."
           ]
         },
         "es-MX": {
@@ -1135,7 +1139,8 @@
           ],
           "tips": [
             "La ayuda de Job-Room muestra solo solicitudes con una fecha de solicitud real. Si falta, añádela primero en la solicitud.",
-            "La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación."
+            "La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación.",
+            "El resultado de Job-Room muestra ‘abierto’ solo después de confirmar el registro; antes indica que la solicitud todavía no está registrada."
           ]
         }
       }
@@ -1156,7 +1161,7 @@
           "steps": [
             "Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.",
             "Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.",
-            "Lege Filter und Reihenfolge fest und speichere den Report.",
+            "Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.",
             "Öffne «Anzeigen», um den Report mit genau den gewählten Spalten zu sehen, und exportiere ihn bei Bedarf als PDF."
           ],
           "tips": [
@@ -1169,7 +1174,7 @@
           "steps": [
             "Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.",
             "Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.",
-            "Définis les filtres et l’ordre, puis enregistre le rapport.",
+            "Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.",
             "Ouvre «Afficher» pour voir le rapport avec exactement les colonnes choisies, puis exporte-le en PDF si nécessaire."
           ],
           "tips": [
@@ -1182,7 +1187,7 @@
           "steps": [
             "Select field filters and sorting in column headers; reset them when needed.",
             "Choose a data source and then up to twelve database fields at once as report columns.",
-            "Set filters and ordering, then save the report.",
+            "Drag the selected columns into order, set filters and save the report; the refreshed view opens immediately.",
             "Open “Show” to see the report with exactly the selected columns, then export it to PDF if needed."
           ],
           "tips": [
@@ -1195,7 +1200,7 @@
           "steps": [
             "Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.",
             "Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.",
-            "Defina filtros e ordenação e salve o relatório.",
+            "Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.",
             "Abra “Mostrar” para ver o relatório exatamente com as colunas selecionadas e exporte-o em PDF se necessário."
           ],
           "tips": [
@@ -1208,7 +1213,7 @@
           "steps": [
             "Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.",
             "Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.",
-            "Define filtros y orden, y guarda el informe.",
+            "Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.",
             "Abre «Mostrar» para ver el informe exactamente con las columnas elegidas y expórtalo en PDF si lo necesitas."
           ],
           "tips": [

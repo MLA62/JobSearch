@@ -1,6 +1,22 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.7 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.8 ist implementiert und für die produktive Bereitstellung vorbereitet.
+
+## Job-Room-Resultat und Spaltenreihenfolge 2.4.8
+
+`jobRoomApplicationResult()` prüft vor der Resultatausgabe den Wert von `job_room_registration`.
+Nur bei `recorded` wird `job_room_result` als «Noch offen», «Anstellung» oder «Absage» dargestellt.
+Bei `unknown`, `not_recorded` oder einem fehlenden Wert lautet die Ausgabe «Noch nicht im Job-Room
+erfasst». Die Regel gilt gezielt für das Job-Room-Resultat in Reports und in der Job-Room-Hilfe;
+andere Felder werden nicht umgedeutet.
+
+`reportEditorFieldOptions()` stellt beim Bearbeiten zuerst die bereits ausgewählten Felder in ihrer
+gespeicherten Reihenfolge bereit. Der Griff jedes Feldes erlaubt eine Neuordnung per Drag-and-drop.
+Da erfolgreiche HTML-Formulare gleichnamige Checkboxen in DOM-Reihenfolge übertragen, speichert
+`saveReportSettings()` diese Reihenfolge unverändert als `sort_order`.
+Die Redirects nach `save_report` und `update_report` enthalten sowohl `edit_report` als auch
+`view_report` mit derselben ID. Damit entsteht die Ansicht nach jeder Änderung neu aus den gerade
+gespeicherten Einstellungen.
 
 ## Gespeicherte Reportansicht 2.4.7
 

@@ -324,6 +324,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function reportDefaultColumns(string $base): array`
 - `function limitReportColumns(array $allowedFields, mixed $rawColumns, int $limit): array`
 - `function reportSelectedColumns(string $base, mixed $rawColumns): array`
+- `function reportEditorFieldOptions(array $fields, array $selected): array`
 - `function reportStatusOptions(string $base): array`
 - `function jobStatusOptions(): array`
 - `function workplaceTypeOptions(): array`
@@ -343,7 +344,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationChannelOptions(): array`
 - `function jobRoomCompanyName(array $row): string`
 - `function jobRoomApplicationMethod(?string $channel): string`
-- `function jobRoomApplicationResult(?string $result, ?string $applicationStatus = null): string`
+- `function jobRoomApplicationResult(?string $result, ?string $applicationStatus, ?string $registration): string`
 - `function jobRoomWorkloadLabel(array $row): string`
 - `function jobRoomCountryLabel(?string $countryCode): string`
 - `function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, ?string $monthEnd = null): array`

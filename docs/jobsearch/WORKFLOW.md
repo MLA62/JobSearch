@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.7.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.8.
+
+Ergänzung 2.4.8: Bei der Ausgabe des Feldes Job-Room-Resultat wird zuerst
+`job_room_registration` ausgewertet. Nur `recorded` erlaubt die Werte «Noch offen», «Anstellung»
+oder «Absage»; alle nicht bestätigten Zustände werden als «Noch nicht im Job-Room erfasst» ausgegeben.
+Im Report-Editor lassen sich Felder am Griff per Drag-and-drop ordnen. Die Formularreihenfolge wird
+als Spaltenreihenfolge gespeichert und beim erneuten Bearbeiten wiederhergestellt.
+Nach dem Anlegen oder Aktualisieren lädt die Zielroute Editor und Report anhand derselben Report-ID
+neu und springt direkt zur aktualisierten Reporttabelle.
 
 Ergänzung 2.4.7: Der Anzeigen-Link bleibt in «Auswertungen», lädt den gewählten Report
 mandantenbegrenzt über seine ID, übernimmt dessen gespeicherte Felder, Filter und Sortierung und rendert

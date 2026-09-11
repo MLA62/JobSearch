@@ -1503,6 +1503,10 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
 
 .report-config { padding: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .report-config legend { font-weight: 900; color: var(--muted); padding: 0 6px; }
+.report-column-option { cursor: default; align-items: center; }
+.report-column-option.is-dragging { opacity: .45; }
+.report-drag-handle { cursor: grab; color: var(--muted); font-weight: 900; padding: 2px 5px; border: 1px solid var(--line); border-radius: 5px; user-select: none; }
+.report-drag-handle:active { cursor: grabbing; }
 
 .kanban { display: grid; grid-template-columns: repeat(5, minmax(180px, 1fr)); gap: 12px; overflow: auto; }
 .kanban > div { background: #eef2f7; border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 12px; min-height: 180px; }

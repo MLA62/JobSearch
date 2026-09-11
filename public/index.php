@@ -3587,6 +3587,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação.',
     'es-MX' => 'La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación.',
   ),
+  'help.v2.jobroom.tips.2' =>
+  array (
+    'de-CH' => 'Das Feld Job-Room-Resultat zeigt „Noch offen“ erst nach bestätigter Erfassung; vorher steht dort „Noch nicht im Job-Room erfasst“.',
+    'fr-CH' => 'Le résultat Job-Room n’indique « ouvert » qu’après confirmation de la saisie; auparavant il indique que la candidature n’est pas encore saisie.',
+    'en-GB' => 'The Job-Room result says ‘open’ only after registration is confirmed; beforehand it says the application has not yet been recorded.',
+    'pt-BR' => 'O resultado do Job-Room mostra ‘aberto’ somente após a confirmação do registro; antes disso informa que a candidatura ainda não foi registrada.',
+    'es-MX' => 'El resultado de Job-Room muestra ‘abierto’ solo después de confirmar el registro; antes indica que la solicitud todavía no está registrada.',
+  ),
   'help.v2.jobroom.title' =>
   array (
     'de-CH' => 'Job-Room',
@@ -3909,11 +3917,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.2' =>
   array (
-    'de-CH' => 'Lege Filter und Reihenfolge fest und speichere den Report.',
-    'fr-CH' => 'Définis les filtres et l’ordre, puis enregistre le rapport.',
-    'en-GB' => 'Set filters and ordering, then save the report.',
-    'pt-BR' => 'Defina filtros e ordenação e salve o relatório.',
-    'es-MX' => 'Define filtros y orden, y guarda el informe.',
+    'de-CH' => 'Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.',
+    'fr-CH' => 'Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.',
+    'en-GB' => 'Drag the selected columns into order, set filters and save the report; the refreshed view opens immediately.',
+    'pt-BR' => 'Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.',
+    'es-MX' => 'Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.',
   ),
   'help.v2.reports.steps.3' =>
   array (
@@ -4514,7 +4522,7 @@ function helpTopicDefinitions(): array
       1 => 'applications',
     ),
     'step_count' => 3,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   14 =>
   array (
@@ -7173,6 +7181,22 @@ function reportSelectedColumns(string $base, mixed $rawColumns): array
     return limitReportColumns(reportFieldOptions($base), $rawColumns, reportColumnLimit());
 }
 
+function reportEditorFieldOptions(array $fields, array $selected): array
+{
+    $ordered = [];
+    foreach ($selected as $field) {
+        if (isset($fields[$field])) {
+            $ordered[$field] = $fields[$field];
+        }
+    }
+    foreach ($fields as $field => $label) {
+        if (!array_key_exists($field, $ordered)) {
+            $ordered[$field] = $label;
+        }
+    }
+    return $ordered;
+}
+
 function reportStatusOptions(string $base): array
 {
     return match ($base) {
@@ -7331,8 +7355,11 @@ function jobRoomApplicationMethod(?string $channel): string
     };
 }
 
-function jobRoomApplicationResult(?string $result, ?string $applicationStatus = null): string
+function jobRoomApplicationResult(?string $result, ?string $applicationStatus, ?string $registration): string
 {
+    if ($registration !== 'recorded') {
+        return tr('applications.job_room_not_recorded');
+    }
     return match ((string) $result) {
         'open' => tr('job_room_helper.result.open'),
         'hired' => tr('job_room_helper.result.hired'),
@@ -7391,7 +7418,7 @@ function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, 
     }
     return dbAll(
         $db,
-        'SELECT a.id application_id, a.status application_status, a.job_room_result, a.job_room_interview, a.channel, a.applied_at, a.application_url, a.reference_number,
+        'SELECT a.id application_id, a.status application_status, a.job_room_result, a.job_room_interview, a.job_room_registration, a.channel, a.applied_at, a.application_url, a.reference_number,
                 j.id job_id, j.title job_title, j.source_url, j.employment_type, j.workload_min, j.workload_max,
                 c.id company_id, c.name company_name, c.is_intermediary, c.email company_email, c.phone company_phone,
                 c.address_line1, c.address_line2, c.postal_code, c.city, c.country_code,
@@ -7429,7 +7456,7 @@ function jobRoomHelperFields(array $row, array $currentUser): array
         'job_room_helper.field.rav_assigned' => tr('job_room_helper.value.no'),
         'job_room_helper.field.workload' => jobRoomWorkloadLabel($row),
         'job_room_helper.field.interview' => !empty($row['job_room_interview']) ? tr('job_room_helper.value.yes') : tr('job_room_helper.value.no'),
-        'job_room_helper.field.result' => jobRoomApplicationResult($row['job_room_result'] ?? null, $row['application_status'] ?? null),
+        'job_room_helper.field.result' => jobRoomApplicationResult($row['job_room_result'] ?? null, $row['application_status'] ?? null, $row['job_room_registration'] ?? null),
     ];
 }
 
@@ -7654,10 +7681,10 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             if ($base === 'applications' && $field === 'channel') { return optionLabel(applicationChannelOptions(), $value); }
             if ($base === 'applications' && $field === 'next_action') { return optionLabel(applicationNextActionOptions(), $value); }
             if ($base === 'applications' && $field === 'job_room_result') {
-                return optionLabel(['open'=>tr('job_room_helper.result.open'),'hired'=>tr('job_room_helper.result.hired'),'rejected'=>tr('job_room_helper.result.rejected')], $value);
+                return jobRoomApplicationResult((string)$value, null, $row['job_room_registration'] ?? null);
             }
             if ($base === 'applications' && $field === 'job_room_registration') {
-                return optionLabel(['not_recorded'=>tr('applications.job_room_not_recorded'),'recorded'=>tr('applications.job_room_recorded')], $value);
+                return optionLabel(['unknown'=>tr('applications.job_room_unknown'),'not_recorded'=>tr('applications.job_room_not_recorded'),'recorded'=>tr('applications.job_room_recorded')], $value);
             }
             if ($base === 'calendar' && $field === 'status') { return optionLabel(calendarStatusOptions(), $value); }
             if ($base === 'calendar' && $field === 'type') { return optionLabel(calendarEventTypeOptions(), $value); }
@@ -10933,7 +10960,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.7','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.8','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12851,7 +12878,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         saveReportSettings($db, $reportId, $baseEntity);
         audit($db, $uid, 'create', 'saved_report', $reportId, null, ['name' => $name, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
         flash(tr('flash.reports.saved'));
-        redirect('/?page=reports');
+        redirect('/?page=reports&edit_report=' . $reportId . '&view_report=' . $reportId . '#report-view');
     }
 
     if ($action === 'update_report') {
@@ -12872,7 +12899,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         saveReportSettings($db, $id, $baseEntity);
         audit($db, $uid, 'update', 'saved_report', $id, $old, ['name' => $name, 'description' => $description, 'base_entity' => $baseEntity, 'display_type' => $displayType]);
         flash(tr('flash.reports.updated'));
-        redirect('/?page=reports&edit_report=' . $id);
+        redirect('/?page=reports&edit_report=' . $id . '&view_report=' . $id . '#report-view');
     }
 
     if ($action === 'delete_report') {
@@ -14780,7 +14807,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.7';
+$codeVersion = '2.4.8';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15487,11 +15514,12 @@ startUiTranslationBuffer($appLocale);
             'updated_at'=>['label'=>tr('common.updated')],
         ];
         $reportListSf = sfState('reports', $reportListSfFields, ['sort'=>'updated_at','dir'=>'desc']);
-        $reportListPreserve = ['page'=>'reports', 'edit_report'=>$editReportId ?: ''];
+        $reportListPreserve = ['page'=>'reports', 'edit_report'=>$editReportId ?: '', 'view_report'=>$viewReportId ?: ''];
         $reports = sfApplyRows($reports, $reportListSf, $reportListSfFields);
         $reportBase = (string)($editReport['base_entity'] ?? 'jobs');
         $reportFields = reportFieldOptions($reportBase);
         $reportSettings = $editReport ? loadReportSettings($db, (int)$editReport['id'], $reportBase) : ['columns'=>reportDefaultColumns($reportBase), 'filters'=>[], 'sort'=>['field_name'=>array_key_first($reportFields), 'direction'=>'asc']];
+        $reportEditorFields = reportEditorFieldOptions($reportFields, $reportSettings['columns']);
         $reportStatuses = reportStatusOptions($reportBase);
         $reportFieldCatalog = [];
         $reportDefaultCatalog = [];
@@ -15524,7 +15552,7 @@ startUiTranslationBuffer($appLocale);
                         <label><?= e(tr('reports.base')) ?><select name="base_entity" data-report-base><?php foreach($reportBaseOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= $reportBase===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                         <label><?= e(tr('reports.view')) ?><select name="display_type"><?php foreach($reportDisplayOptions as $v=>$l): ?><option value="<?= e($v) ?>" <?= ($editReport['display_type'] ?? 'table')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     </div>
-                    <fieldset class="report-config" data-report-column-picker><legend><?= e(tr('reports.columns')) ?></legend><?php foreach($reportFields as $field=>$label): ?><label class="check"><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
+                    <fieldset class="report-config" data-report-column-picker><legend><?= e(tr('reports.columns')) ?></legend><?php foreach($reportEditorFields as $field=>$label): ?><label class="check report-column-option"><span class="report-drag-handle" draggable="true" data-report-drag-handle aria-hidden="true">↕</span><input type="checkbox" name="report_columns[]" value="<?= e($field) ?>" <?= in_array($field, $reportSettings['columns'], true)?'checked':'' ?>> <?= e($label) ?></label><?php endforeach; ?></fieldset>
                     <small class="meta-line" data-report-column-count><?= e(tr('reports.column_count', null, ['selected'=>(string)count($reportSettings['columns']), 'count'=>(string)$reportColumnLimit])) ?></small>
                     <div class="two"><label><?= e(tr('reports.filter_text')) ?><input name="report_q" value="<?= e((string)($reportSettings['filters']['q'] ?? '')) ?>" placeholder="<?= e(tr('reports.all_columns')) ?>"></label><label><?= e(tr('common.status')) ?><select name="report_status" data-report-status><option value=""><?= e(tr('common.all')) ?></option><?php foreach($reportStatuses as $v=>$l): ?><option value="<?= e($v) ?>" <?= (string)($reportSettings['filters']['status'] ?? '')===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label></div>
                     <div class="two"><label><?= e(tr('reports.sort_by')) ?><select name="report_sort" data-report-sort><?php foreach($reportFields as $field=>$label): ?><option value="<?= e($field) ?>" <?= (string)($reportSettings['sort']['field_name'] ?? '')===$field?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><label><?= e(tr('reports.direction')) ?><select name="report_dir"><option value="asc" <?= ($reportSettings['sort']['direction'] ?? 'asc')==='asc'?'selected':'' ?>><?= e(tr('sf.asc')) ?></option><option value="desc" <?= ($reportSettings['sort']['direction'] ?? '')==='desc'?'selected':'' ?>><?= e(tr('sf.desc')) ?></option></select></label></div>
@@ -15545,6 +15573,26 @@ startUiTranslationBuffer($appLocale);
                     const countTemplate=<?= json_encode(tr('reports.column_count'), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const limitMessage=<?= json_encode(tr('reports.column_limit_reached', null, ['count'=>(string)$reportColumnLimit]), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
                     const allLabel=<?= json_encode(tr('common.all'), JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+                    let draggedOption=null;
+                    const enableColumnDrag=wrapper=>{
+                        const handle=wrapper.querySelector('[data-report-drag-handle]');
+                        if(!handle)return;
+                        handle.addEventListener('dragstart',event=>{
+                            draggedOption=wrapper;
+                            wrapper.classList.add('is-dragging');
+                            if(event.dataTransfer){event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain','report-column');}
+                        });
+                        wrapper.addEventListener('dragover',event=>{
+                            if(!draggedOption||draggedOption===wrapper)return;
+                            event.preventDefault();
+                            const rect=wrapper.getBoundingClientRect();
+                            picker.insertBefore(draggedOption,event.clientY<rect.top+rect.height/2?wrapper:wrapper.nextSibling);
+                        });
+                        handle.addEventListener('dragend',()=>{
+                            draggedOption?.classList.remove('is-dragging');
+                            draggedOption=null;
+                        });
+                    };
                     const updateCounter=()=>{
                         const selected=picker.querySelectorAll('input:checked').length;
                         counter.textContent=countTemplate.replace('{selected}',String(selected)).replace('{count}',String(limit));
@@ -15563,9 +15611,10 @@ startUiTranslationBuffer($appLocale);
                         const selected=new Set(defaults[key]||[]);
                         picker.querySelectorAll('label.check').forEach(node=>node.remove());
                         Object.entries(fields[key]||{}).forEach(([value,label])=>{
-                            const wrapper=document.createElement('label');wrapper.className='check';
+                            const wrapper=document.createElement('label');wrapper.className='check report-column-option';
+                            const handle=document.createElement('span');handle.className='report-drag-handle';handle.draggable=true;handle.dataset.reportDragHandle='';handle.setAttribute('aria-hidden','true');handle.textContent='↕';
                             const input=document.createElement('input');input.type='checkbox';input.name='report_columns[]';input.value=value;input.checked=selected.has(value);
-                            wrapper.append(input,document.createTextNode(' '+label));picker.append(wrapper);
+                            wrapper.append(handle,input,document.createTextNode(' '+label));picker.append(wrapper);enableColumnDrag(wrapper);
                         });
                         sort.replaceChildren();
                         Object.entries(fields[key]||{}).forEach(([value,label])=>{const option=new Option(label,value);sort.add(option);});
@@ -15573,6 +15622,7 @@ startUiTranslationBuffer($appLocale);
                         Object.entries(statuses[key]||{}).forEach(([value,label])=>status.add(new Option(label,value)));
                         updateCounter();
                     });
+                    picker.querySelectorAll('.report-column-option').forEach(enableColumnDrag);
                     updateCounter();
                 })();</script>
                 <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a class="button" href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
