@@ -29,3 +29,10 @@ die Drag-and-drop-Ereignisse des Editors.
 
 Alle 36 PHP-Testdateien, 3'896 Hilfeprüfungen, 1'299 Hilfe-Seeds, beide Dokumentationsgeneratoren,
 77 Markdown-Dateien mit 61 lokalen Links und alle sieben Chromium-Testdateien waren erfolgreich.
+
+## Deployment
+
+Nach externer TOTP-Freigabe wurden ausschließlich `public_html/jobs.jema.business/index.php` und
+`public_html/jobs.jema.business/assets/app.css` ersetzt. Beide Dateien sind bytegleich zum getesteten
+Stand. Seite und Stylesheet liefern HTTP 200; die Seite weist Version 2.4.8 sowie HSTS, CSP,
+`nosniff`, `DENY` und `no-referrer` aus. Datenbank, Konfiguration und JavaScript-Dateien blieben unverändert.

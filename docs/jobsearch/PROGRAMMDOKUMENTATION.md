@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.8 ist implementiert und für die produktive Bereitstellung vorbereitet.
+Stand: 2026-09-11. Version 2.4.8 ist implementiert und produktiv verifiziert.
 
 ## Job-Room-Resultat und Spaltenreihenfolge 2.4.8
 
@@ -17,6 +17,9 @@ Da erfolgreiche HTML-Formulare gleichnamige Checkboxen in DOM-Reihenfolge übert
 Die Redirects nach `save_report` und `update_report` enthalten sowohl `edit_report` als auch
 `view_report` mit derselben ID. Damit entsteht die Ansicht nach jeder Änderung neu aus den gerade
 gespeicherten Einstellungen.
+Das Deployment ersetzte ausschließlich `index.php` und `assets/app.css`; beide Dateien wurden
+bytegleich verifiziert. Die öffentliche Seite und das Stylesheet liefern HTTP 200, die Seite weist
+Version 2.4.8 aus.
 
 ## Gespeicherte Reportansicht 2.4.7
 

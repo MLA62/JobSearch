@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.8 ist implementiert, dokumentiert und für die produktive Prüfung vorbereitet.
+Stand: 2026-09-11. Version 2.4.8 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.8
 
@@ -12,6 +12,8 @@ Stand: 2026-09-11. Version 2.4.8 ist implementiert, dokumentiert und für die pr
 - Speichern und Aktualisieren öffnen unmittelbar die frisch aus der Datenbank geladene Reportansicht.
 - Alle 36 PHP-Testdateien, 3'896 Hilfeprüfungen, 1'299 Hilfe-Seeds, 77 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sowie `assets/app.css` sind bytegleich. Seite und Stylesheet liefern
+  HTTP 200; die Seite weist Version 2.4.8 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus.
 
 ## Prüfstand 2.4.7
 
