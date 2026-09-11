@@ -1,6 +1,14 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.4.
+Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.5.
+
+Ergänzung 2.4.5: Die TOTP-Eingabe darf nur eine durch eine erfolgreiche Passwortprüfung ausdrücklich
+eröffnete Zwei-Faktor-Challenge verifizieren. Eine bereits authentifizierte Sitzung darf weder erneut
+geprüft noch wegen eines veralteten Formulars mit einer widersprüchlichen Fehlermeldung versehen werden;
+veraltete Challenge-Daten werden verworfen und die Sitzung bleibt auf dem Dashboard. Fehlt ohne aktive
+Sitzung die Challenge, führt der Ablauf ohne falsche Code-Fehlermeldung zur Anmeldung zurück. Ein wirklich
+abgelehnter Code lässt den Benutzer unauthentifiziert und erlaubt nur innerhalb derselben offenen Challenge
+einen neuen Versuch.
 
 Ergänzung 2.4.4: Ein unveränderter lokaler Hash darf nur dann als erfolgreich synchronisiert gelten,
 wenn der zugehörige JeMa-Termin im aktuell gewählten Google-Kalender tatsächlich vorhanden ist und

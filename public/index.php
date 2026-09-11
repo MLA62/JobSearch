@@ -4099,6 +4099,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Links de redefinição são enviados somente por e-mail e nunca aparecem na página de solicitação. Falhas repetidas causam bloqueio temporário.',
     'es-MX' => 'Los enlaces de restablecimiento se envían solo por correo y nunca aparecen en la página de solicitud. Los fallos repetidos provocan un bloqueo temporal.',
   ),
+  'help.v2.security.tips.2' =>
+  array (
+    'de-CH' => 'Die Code-Seite gehört immer zu einer offenen Anmeldung. Bereits angemeldete oder veraltete Seiten werden ohne widersprüchliche Code-Fehlermeldung verlassen.',
+    'fr-CH' => 'La page du code appartient toujours à une connexion en attente. Une page obsolète ou une session déjà connectée est quittée sans message contradictoire sur le code.',
+    'en-GB' => 'The code page always belongs to a pending sign-in. Stale pages and already signed-in sessions leave it without a contradictory code error.',
+    'pt-BR' => 'A página do código sempre pertence a um acesso pendente. Páginas antigas e sessões já autenticadas saem dela sem uma mensagem contraditória sobre o código.',
+    'es-MX' => 'La página del código siempre pertenece a un acceso pendiente. Las páginas antiguas y las sesiones ya autenticadas salen de ella sin un mensaje contradictorio sobre el código.',
+  ),
   'help.v2.security.title' =>
   array (
     'de-CH' => 'Anmeldung und Sicherheit',
@@ -4310,7 +4318,7 @@ function helpTopicDefinitions(): array
       0 => 'profile',
     ),
     'step_count' => 3,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   3 =>
   array (
@@ -4956,6 +4964,14 @@ function clearAuthenticatedSession(): void
         $_SESSION['support_target_user_id'],
         $_SESSION['support_target_name']
     );
+}
+
+function twoFactorChallengeState(int $authenticatedUserId, int $pendingUserId): string
+{
+    if ($authenticatedUserId > 0) {
+        return 'authenticated';
+    }
+    return $pendingUserId > 0 ? 'pending' : 'missing';
 }
 
 function flash(string $message, string $type = 'success'): void
@@ -10704,7 +10720,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.4','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.5','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -11872,6 +11888,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/?page=two_factor');
         }
         session_regenerate_id(true);
+        unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
         $_SESSION['session_version'] = (int)($user['session_version'] ?? 0);
@@ -11883,8 +11900,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'verify_two_factor') {
         $pendingUserId = (int) ($_SESSION['pending_2fa_user_id'] ?? 0);
+        $challengeState = twoFactorChallengeState((int) ($currentUser['id'] ?? 0), $pendingUserId);
+        if ($challengeState === 'authenticated') {
+            unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
+            redirect('/?page=dashboard');
+        }
+        if ($challengeState === 'missing') {
+            clearAuthenticatedSession();
+            unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
+            redirect('/?page=login');
+        }
         $totpIdentity = (string)$pendingUserId;
-        if ($pendingUserId < 1 || !authRateAllowed($db, 'totp', $totpIdentity, 300)) {
+        if (!authRateAllowed($db, 'totp', $totpIdentity, 300)) {
             usleep(250000);
             flash(tr('auth.totp_invalid'), 'danger');
             redirect('/?page=two_factor');
@@ -14510,8 +14537,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if ($page === 'two_factor' && !empty($_SESSION['pending_2fa_user_id'])) {
-    clearAuthenticatedSession();
+if ($page === 'two_factor') {
+    $challengeState = twoFactorChallengeState((int) ($currentUser['id'] ?? 0), (int) ($_SESSION['pending_2fa_user_id'] ?? 0));
+    if ($challengeState === 'authenticated') {
+        unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_user_name']);
+    } elseif ($challengeState === 'pending') {
+        clearAuthenticatedSession();
+    }
 }
 
 $currentUser = userId() ? dbOne($db, 'SELECT * FROM users WHERE id = ?', 'i', [userId()]) : null;
@@ -14535,7 +14567,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.4';
+$codeVersion = '2.4.5';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15048,7 +15080,6 @@ startUiTranslationBuffer($appLocale);
         <p><a href="/?page=forgot_password"><?= e(tr('auth.forgot_password')) ?></a></p>
     </section>
 <?php elseif ($page === 'two_factor' && !$currentUser): ?>
-    <?php if (empty($_SESSION['pending_2fa_user_id'])): ?><p class="alert warning"><?= e(tr('auth.totp_invalid')) ?></p><?php endif; ?>
     <section class="auth-card">
         <?= languagePickerHtml($appLocale, 'locale-picker-auth') ?>
         <p class="eyebrow"><?= e(tr('auth.security')) ?></p><h1><?= e(tr('auth.two_factor_title')) ?></h1>

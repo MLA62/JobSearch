@@ -223,6 +223,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function endSupportImpersonationSession(): void`
 - `function requireLogin(): void`
 - `function clearAuthenticatedSession(): void`
+- `function twoFactorChallengeState(int $authenticatedUserId, int $pendingUserId): string`
 - `function flash(string $message, string $type = 'success'): void`
 - `function outboundEmailEnabled(array $config): bool`
 - `function secretKey(array $config): string`

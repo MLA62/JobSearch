@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.4 ist implementiert, vollständig geprüft und produktiv bereitgestellt.
+Stand: 2026-09-11. Version 2.4.5 ist implementiert und für die produktive Bereitstellung vorbereitet.
+
+## Eindeutiger TOTP-Zustandswechsel 2.4.5
+
+`twoFactorChallengeState()` unterscheidet drei Zustände: eine bereits authentifizierte Sitzung, eine
+offene Challenge und eine fehlende Challenge. Der POST-Handler prüft diesen Zustand vor Rate-Limit,
+Datenbankzugriff und Codeprüfung. Ein altes TOTP-Formular kann deshalb keine Fehlermeldung mehr in einer
+bereits angemeldeten Sitzung erzeugen. Es entfernt nur überholte Challenge-Daten und führt zum Dashboard.
+
+Eine Anfrage ohne authentifizierte Sitzung und ohne offene Challenge führt kommentarlos zur Anmeldung;
+sie wird nicht fälschlich als ungültiger Sicherheitscode gewertet. Ausschließlich eine offene Challenge
+darf die TOTP-Rate-Begrenzung und den Authenticator prüfen. Der normale Login ohne aktiviertes TOTP entfernt
+vorsorglich alte Challenge-Werte, bevor die authentifizierte Sitzung gesetzt wird.
 
 ## Vollständiger Google-Kalenderabgleich 2.4.4
 

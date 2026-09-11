@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.4.
+Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.5.
+
+Ergänzung 2.4.5: Nach einer gültigen Passwortprüfung mit aktivem TOTP entsteht eine explizite offene
+Challenge. Nur dieser Zustand rendert und verarbeitet die Code-Eingabe. Eine bereits angemeldete Sitzung
+ignoriert ein veraltetes TOTP-Formular, löscht dessen Challenge-Reste und kehrt zum Dashboard zurück.
+Ohne Anmeldung und ohne Challenge geht es direkt zur Login-Seite. Erst ein gültiger Code überführt die
+offene Challenge in eine authentifizierte Sitzung; ein ungültiger Code erzeugt keine Anmeldung.
 
 Ergänzung 2.4.4: Der Google-Abgleich verifiziert auch bei unverändertem Inhalt die tatsächliche
 Existenz jedes JeMa-Termins im aktuell gewählten Zielkalender. Veraltete Verknüpfungen nach einem

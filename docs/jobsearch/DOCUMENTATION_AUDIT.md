@@ -1,6 +1,18 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.4 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-11. Version 2.4.5 ist implementiert, dokumentiert und für das Deployment vorbereitet.
+
+## Prüfstand 2.4.5
+
+- Der TOTP-Handler unterscheidet eine authentifizierte Sitzung, eine offene Challenge und eine fehlende
+  Challenge, bevor Rate-Limit, Datenbank oder Authenticator angesprochen werden.
+- Ein veraltetes TOTP-Formular kann in einer bestehenden Sitzung keine widersprüchliche Ablehnung mehr
+  anzeigen; fehlende Challenges führen ohne falsche Code-Fehlermeldung zur Anmeldung.
+- Ein tatsächlich ungültiger Code erzeugt keine authentifizierte Sitzung und bleibt auf die offene
+  Challenge begrenzt.
+- Alle 35 PHP-Testdateien, 3'862 Hilfeprüfungen, 1'279 Hilfe-Seeds, 74 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sieben Chromium-Testdateien sind erfolgreich.
+- Git- und Produktivnachweise werden beim Deployment vervollständigt.
 
 ## Prüfstand 2.4.4
 

@@ -2,6 +2,11 @@
 
 Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.5: `security_hardening_test.php` isoliert die reine TOTP-Zustandsfunktion und prüft
+authentifizierte Sitzung, offene Challenge und fehlende Challenge. Statische Vertragsprüfungen stellen
+zusätzlich sicher, dass Zustandszweige vor Rate-Limit und Codeprüfung liegen, veraltete Formulare keine
+falsche Code-Fehlermeldung mehr rendern und nur eine echte offene Challenge erneut versucht werden kann.
+
 Ergänzung 2.4.4: Die Kalenderregression prüft kalenderabhängige stabile IDs, reproduzierbare
 Ersatz-IDs für extern gelöschte Termine, Remote-Verifikation vor dem Hash-Schnellpfad,
 Neuprojektion vorhandener Bewerbungsverläufe sowie den Vergleich erwarteter und bestätigter Exporte.
