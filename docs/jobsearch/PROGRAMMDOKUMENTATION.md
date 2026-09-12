@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-12. Version 2.4.12 ist implementiert und für das Deployment vorbereitet.
+Stand: 2026-09-12. Version 2.4.12 ist implementiert und produktiv verifiziert.
 
 ## Beziehungsfilter der Firmenspalte Links 2.4.12
 
@@ -10,6 +10,8 @@ prüfen dieselben mandantenbegrenzten, nicht gelöschten Beziehungen, deren Zahl
 erscheinen. `sfApplySql()` akzeptiert dafür ausschließlich fest im Feldkatalog definierte
 `choice_clauses`; Benutzereingaben werden nicht als SQL übernommen. Die bisherige freie Textsuche
 auf einem fachfremden Aktualisierungsdatum entfällt.
+Das Deployment ersetzte `index.php` und `assets/app.css`; beide produktiven Dateien sind bytegleich
+mit dem geprüften Quellstand. Die öffentliche Seite liefert HTTP 200 und Version 2.4.12.
 
 ## Wirksame Report-Anzeigearten 2.4.11
 

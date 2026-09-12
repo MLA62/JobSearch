@@ -24,6 +24,10 @@ wurden 81 Markdown-Dateien und 61 lokale Links geprüft.
 
 ## Deployment
 
-Das Deployment ersetzt ausschließlich `public_html/jobs.jema.business/index.php` und
-`public_html/jobs.jema.business/assets/app.css`. Produktive Hashes und HTTP-Prüfung werden nach der
-externen TOTP-Freigabe ergänzt.
+Das Deployment mit TOTP-Approval `b24d81f48591f82d663550e487ae27b3` ersetzte ausschließlich
+`public_html/jobs.jema.business/index.php` und `public_html/jobs.jema.business/assets/app.css`.
+Der produktive SHA-256 von `index.php` lautet
+`4631f68e8210a0f7e71c7c717388d90f3060b917c3862fc1006f8b642e8a6d26`, jener von `app.css`
+`549f36767ca7817f6689a6f24b7c3ec5096000ff57f5532d9560fe6744d61728`. Beide Dateien sind
+bytegleich mit dem geprüften lokalen Stand. Die öffentliche Seite liefert HTTP 200, Version 2.4.12
+und die vorgesehenen Sicherheitsheader.

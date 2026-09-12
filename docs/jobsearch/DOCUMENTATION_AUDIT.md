@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-11. Version 2.4.10 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-12. Version 2.4.12 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.12
+
+- Die Firmenspalte «Links» filtert Jobs, Bewerbungen und Kontakte jeweils nach vorhandenen oder
+  fehlenden aktiven Einträgen; mehrere Kriterien gelten gleichzeitig.
+- Die gespeicherte Report-Anzeigeart steuert wirksam Tabelle, Liste, Karten, Vorschau und die drei
+  Kalendergruppierungen aus der enthaltenen, zuvor nicht ausgerollten Version 2.4.11.
+- Alle 36 PHP-Testdateien, 3'952 Hilfeprüfungen, 1'329 Hilfe-Seeds, 81 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle acht Chromium-Testdateien sind erfolgreich.
+- Lokale und produktive `index.php` sowie `assets/app.css` sind bytegleich. Die öffentliche Seite
+  liefert HTTP 200, Version 2.4.12 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.10
 
