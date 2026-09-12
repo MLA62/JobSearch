@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 11.09.2026. Aktuelles Verhalten für Release 2.4.11.
+Stand: 12.09.2026. Aktuelles Verhalten für Release 2.4.12.
+
+Ergänzung 2.4.12: Der Spaltenfilter «Links» verwendet geprüfte Auswahlwerte statt einer Texteingabe.
+Für Jobs, Bewerbungen und Kontakte kann jeweils Vorhandensein oder Nichtvorhandensein verlangt werden.
+`sfState()` speichert die Auswahl wie andere Feldfilter; `sfApplySql()` bildet jeden Wert ausschließlich
+auf eine fest definierte SQL-Bedingung ab und kombiniert mehrere Kriterien mit UND.
 
 Ergänzung 2.4.11: Ein Report speichert die Anzeigeart zusammen mit Datenbasis, Feldern, Filtern und
 Sortierung. Beim Anzeigen normalisiert `reportDisplayType()` die Kombination und `reportRowsHtml()`

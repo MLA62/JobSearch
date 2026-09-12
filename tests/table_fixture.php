@@ -16,7 +16,9 @@ function tr($key, $locale = null, $replace = []) {
         'applications.job_room_recorded'=>'Im Job-Room erfasst', 'applications.job_room_interview'=>'Vorstellungsgespraech',
         'job_room_helper.result.open'=>'Noch offen', 'job_room_helper.result.hired'=>'Anstellung', 'job_room_helper.result.rejected'=>'Absage',
         'sf.title'=>'Sortieren / Filtern', 'sf.filter'=>'Filter', 'sf.sorting'=>'Sortierung',
-        'sf.none'=>'Keine', 'sf.asc'=>'Aufsteigend', 'sf.desc'=>'Absteigend', 'sf.apply'=>'Anwenden', 'sf.clear_filter'=>'Zuruecksetzen'];
+        'sf.none'=>'Keine', 'sf.asc'=>'Aufsteigend', 'sf.desc'=>'Absteigend', 'sf.apply'=>'Anwenden', 'sf.clear_filter'=>'Zuruecksetzen',
+        'sf.with_entries'=>'{entity}: mit Eintraegen', 'sf.without_entries'=>'{entity}: ohne Eintraege'];
+    foreach ($replace as $name=>$value) { $labels[$key] = str_replace('{'.$name.'}', (string)$value, $labels[$key] ?? $key); }
     return $labels[$key] ?? $key;
 }
 function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
@@ -26,7 +28,12 @@ function applicationStatusOptions() { global $applicationStatuses; return $appli
 function applicationNextActionLabel($value) { return $value; }
 function applicationChannelOptions() { return ['email'=>'E-Mail','website'=>'Onlineformular']; }
 $currentUser = []; $edit = null; $applicationEdit = ['id'=>0,'job_room_interview'=>1,'job_room_result'=>'open'];
-$companySf = $companyPreserve = $appSf = $appPreserve = [];
+$companyPreserve = $appSf = $appPreserve = [];
+$companySf = ['filters'=>[], 'sort'=>[], '_fields'=>['links'=>['choices'=>[
+    'jobs_with'=>'Jobs: mit Eintraegen', 'jobs_without'=>'Jobs: ohne Eintraege',
+    'applications_with'=>'Bewerbungen: mit Eintraegen', 'applications_without'=>'Bewerbungen: ohne Eintraege',
+    'contacts_with'=>'Kontakte: mit Eintraegen', 'contacts_without'=>'Kontakte: ohne Eintraege',
+]]]];
 $applicationStatuses = ['sent'=>'Gesendet']; $nextActionOptions = ['follow_up'=>'Nachfassen'];
 $companyRows = [];
 foreach (['Beispiel Vermittlung AG', 'Muster Direkt AG', 'Test Personal AG'] as $i=>$name) {

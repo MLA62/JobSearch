@@ -1,6 +1,10 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-11. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-12. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+
+Ergänzung 2.4.12: `table_layout_test.php` prüft die sechs Beziehungsfilter, ihre UND-Verknüpfung und
+den Ausschluss dynamischer SQL-Bindewerte. `company_address_visual_test.cjs` öffnet den Links-Filter
+und kontrolliert, dass statt einer Texteingabe alle sechs lesbaren Auswahlwerte erscheinen.
 
 Ergänzung 2.4.11: `report_fields_test.php` prüft die datenbasisabhängige Anzeigeartvalidierung, die
 Verknüpfung des gespeicherten Werts mit dem Renderer und die dynamische Aktualisierung im Editor.

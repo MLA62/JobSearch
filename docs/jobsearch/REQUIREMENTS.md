@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 11.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.11.
+Stand: 12.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.12.
+
+Ergänzung 2.4.12: Der Filter der Firmenspalte «Links» muss Jobs, Bewerbungen und Kontakte getrennt
+nach «mit Einträgen» oder «ohne Einträge» filtern können. Mehrere gewählte Kriterien gelten
+gleichzeitig. Gezählt werden ausschließlich aktive, dem Benutzer gehörende Beziehungen; freie
+Textsuche auf technisch nicht zugehörigen Werten ist an dieser Stelle unzulässig.
 
 Ergänzung 2.4.11: Die gespeicherte Anzeigeart eines Reports muss die Bildschirmdarstellung tatsächlich
 steuern. Tabelle, Liste, Karten und Vorschau sind für alle Datenbasen verfügbar. Tages-, Wochen- und

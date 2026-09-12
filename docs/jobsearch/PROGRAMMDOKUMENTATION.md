@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-11. Version 2.4.11 ist implementiert und für das Deployment vorbereitet.
+Stand: 2026-09-12. Version 2.4.12 ist implementiert und für das Deployment vorbereitet.
+
+## Beziehungsfilter der Firmenspalte Links 2.4.12
+
+Die Spalte «Links» besitzt sechs fachliche Filteroptionen: Jobs, Bewerbungen und Kontakte jeweils
+«mit Einträgen» oder «ohne Einträge». Mehrere ausgewählte Kriterien werden mit UND verknüpft und
+prüfen dieselben mandantenbegrenzten, nicht gelöschten Beziehungen, deren Zahlen in der Tabelle
+erscheinen. `sfApplySql()` akzeptiert dafür ausschließlich fest im Feldkatalog definierte
+`choice_clauses`; Benutzereingaben werden nicht als SQL übernommen. Die bisherige freie Textsuche
+auf einem fachfremden Aktualisierungsdatum entfällt.
 
 ## Wirksame Report-Anzeigearten 2.4.11
 

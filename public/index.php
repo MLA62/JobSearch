@@ -3271,6 +3271,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Os links para vagas, candidaturas e contatos aparecem completos, cada um em uma linha própria.',
     'es-MX' => 'Los enlaces a vacantes, solicitudes y contactos aparecen completos, cada uno en su propia línea.',
   ),
+  'help.v2.companies.tips.2' =>
+  array (
+    'de-CH' => 'Im Spaltenfilter Links kannst du für Jobs, Bewerbungen und Kontakte unabhängig wählen, ob Einträge vorhanden oder nicht vorhanden sein sollen. Mehrere gewählte Kriterien gelten gleichzeitig.',
+    'fr-CH' => 'Dans le filtre de colonne Liens, tu peux choisir séparément si des offres, candidatures et contacts doivent être présents ou absents. Plusieurs critères sélectionnés s’appliquent simultanément.',
+    'en-GB' => 'In the Links column filter, independently choose whether jobs, applications and contacts must be present or absent. Multiple selected criteria apply together.',
+    'pt-BR' => 'No filtro da coluna Links, escolha separadamente se vagas, candidaturas e contatos devem existir ou não. Vários critérios selecionados são aplicados ao mesmo tempo.',
+    'es-MX' => 'En el filtro de la columna Enlaces, elige por separado si deben existir o no vacantes, solicitudes y contactos. Varios criterios seleccionados se aplican a la vez.',
+  ),
   'help.v2.companies.title' =>
   array (
     'de-CH' => 'Firmen und Vermittler',
@@ -4319,6 +4327,22 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'É possível selecionar no máximo {count} campos de uma vez.',
     'es-MX' => 'Se pueden seleccionar como máximo {count} campos a la vez.',
   ),
+  'sf.with_entries' =>
+  array (
+    'de-CH' => '{entity}: mit Einträgen',
+    'fr-CH' => '{entity}: avec entrées',
+    'en-GB' => '{entity}: with entries',
+    'pt-BR' => '{entity}: com registros',
+    'es-MX' => '{entity}: con registros',
+  ),
+  'sf.without_entries' =>
+  array (
+    'de-CH' => '{entity}: ohne Einträge',
+    'fr-CH' => '{entity}: sans entrée',
+    'en-GB' => '{entity}: without entries',
+    'pt-BR' => '{entity}: sem registros',
+    'es-MX' => '{entity}: sin registros',
+  ),
 );
     return $catalog;
 }
@@ -4442,7 +4466,7 @@ function helpTopicDefinitions(): array
       1 => 'contacts',
     ),
     'step_count' => 3,
-    'tip_count' => 2,
+    'tip_count' => 3,
   ),
   7 =>
   array (
@@ -6939,6 +6963,20 @@ function sfApplySql(array $state, array $fields, string &$types, array &$values)
         if (isset($fields[$field]['choices'])) {
             $selected = array_values(array_intersect(array_map('strval', (array) $filter), array_map('strval', array_keys((array) $fields[$field]['choices']))));
             if (!$selected) {
+                continue;
+            }
+            if (isset($fields[$field]['choice_clauses'])) {
+                $allowedClauses = (array)$fields[$field]['choice_clauses'];
+                $selectedClauses = [];
+                foreach ($selected as $choice) {
+                    $clause = (string)($allowedClauses[$choice] ?? '');
+                    if ($clause !== '') {
+                        $selectedClauses[] = '(' . $clause . ')';
+                    }
+                }
+                if ($selectedClauses) {
+                    $clauses[] = '(' . implode(' AND ', $selectedClauses) . ')';
+                }
                 continue;
             }
             $clauses[] = $expr . ' IN (' . implode(',', array_fill(0, count($selected), '?')) . ')';
@@ -11118,7 +11156,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.11','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.12','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14965,7 +15003,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.11';
+$codeVersion = '2.4.12';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -16373,10 +16411,38 @@ startUiTranslationBuffer($appLocale);
     <?php elseif ($page === 'companies'): ?>
         <?php
         $edit = isset($_GET['edit']) ? dbOne($db, 'SELECT * FROM companies WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
-        $companySfFields = ['name'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'address'=>['label'=>tr('companies.address_phone'),'expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.postal_code, c.city, c.phone)'], 'role'=>['label'=>tr('companies.role_intermediary'),'expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")', 'choices'=>['Direkt'=>tr('companies.direct_company'),'Vermittler'=>tr('companies.intermediary')]], 'links'=>['label'=>tr('companies.links'),'expr'=>'CAST(c.updated_at AS CHAR)']];
+        $companyJobCountExpr = '(SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL)';
+        $companyContactCountExpr = '(SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL)';
+        $companyApplicationCountExpr = '(SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id AND j2.owner_user_id=c.owner_user_id AND j2.deleted_at IS NULL WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND j2.company_id=c.id)';
+        $companyLinkChoices = [
+            'jobs_with'=>tr('sf.with_entries', null, ['entity'=>tr('nav.jobs')]),
+            'jobs_without'=>tr('sf.without_entries', null, ['entity'=>tr('nav.jobs')]),
+            'applications_with'=>tr('sf.with_entries', null, ['entity'=>tr('nav.applications')]),
+            'applications_without'=>tr('sf.without_entries', null, ['entity'=>tr('nav.applications')]),
+            'contacts_with'=>tr('sf.with_entries', null, ['entity'=>tr('nav.contacts')]),
+            'contacts_without'=>tr('sf.without_entries', null, ['entity'=>tr('nav.contacts')]),
+        ];
+        $companySfFields = [
+            'name'=>['label'=>tr('companies.company'),'expr'=>'c.name'],
+            'address'=>['label'=>tr('companies.address_phone'),'expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.postal_code, c.city, c.phone)'],
+            'role'=>['label'=>tr('companies.role_intermediary'),'expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")', 'choices'=>['Direkt'=>tr('companies.direct_company'),'Vermittler'=>tr('companies.intermediary')]],
+            'links'=>[
+                'label'=>tr('companies.links'),
+                'expr'=>'(' . $companyJobCountExpr . ' + ' . $companyApplicationCountExpr . ' + ' . $companyContactCountExpr . ')',
+                'choices'=>$companyLinkChoices,
+                'choice_clauses'=>[
+                    'jobs_with'=>$companyJobCountExpr . ' > 0',
+                    'jobs_without'=>$companyJobCountExpr . ' = 0',
+                    'applications_with'=>$companyApplicationCountExpr . ' > 0',
+                    'applications_without'=>$companyApplicationCountExpr . ' = 0',
+                    'contacts_with'=>$companyContactCountExpr . ' > 0',
+                    'contacts_without'=>$companyContactCountExpr . ' = 0',
+                ],
+            ],
+        ];
         $companySf = sfState('companies', $companySfFields, ['sort'=>'name','dir'=>'asc']);
         $companyPreserve = ['page'=>'companies', 'edit'=>$_GET['edit'] ?? ''];
-        $companySql='SELECT c.*, (SELECT COUNT(*) FROM jobs j WHERE j.company_id=c.id AND j.owner_user_id=c.owner_user_id AND j.deleted_at IS NULL) job_count, (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id=c.id AND ct.owner_user_id=c.owner_user_id AND ct.deleted_at IS NULL) contact_count, (SELECT COUNT(*) FROM applications a JOIN jobs j2 ON j2.id=a.job_id AND j2.owner_user_id=c.owner_user_id AND j2.deleted_at IS NULL WHERE a.user_id=c.owner_user_id AND a.deleted_at IS NULL AND j2.company_id=c.id) application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL'; $companyTypes='i'; $companyVals=[userId()];
+        $companySql='SELECT c.*, ' . $companyJobCountExpr . ' job_count, ' . $companyContactCountExpr . ' contact_count, ' . $companyApplicationCountExpr . ' application_count, (SELECT GROUP_CONCAT(DISTINCT CONCAT(client.id, "::", client.name) ORDER BY client.name SEPARATOR "||") FROM company_relationships cr JOIN companies client ON client.id=cr.client_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.intermediary_company_id=c.id AND cr.deleted_at IS NULL AND client.deleted_at IS NULL) mediated_clients, (SELECT GROUP_CONCAT(DISTINCT CONCAT(intermediary.id, "::", intermediary.name) ORDER BY intermediary.name SEPARATOR "||") FROM company_relationships cr JOIN companies intermediary ON intermediary.id=cr.intermediary_company_id WHERE cr.owner_user_id=c.owner_user_id AND cr.client_company_id=c.id AND cr.deleted_at IS NULL AND intermediary.deleted_at IS NULL) mediated_by FROM companies c WHERE c.owner_user_id=? AND c.deleted_at IS NULL'; $companyTypes='i'; $companyVals=[userId()];
         $companySql .= sfApplySql($companySf, $companySfFields, $companyTypes, $companyVals);
         $companySql .= sfOrderSql($companySf, $companySfFields, 'name');
         $companyRows = dbAll($db, $companySql, $companyTypes, $companyVals);

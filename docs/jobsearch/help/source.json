@@ -1,5 +1,5 @@
 {
-  "version": "2.4.11",
+  "version": "2.4.12",
   "reviewed": "2026-09-11",
   "locales": [
     "de-CH",
@@ -534,7 +534,8 @@
           ],
           "tips": [
             "Die Bewerbungszahl einer Firma zählt nur aktive Bewerbungen zu aktiven Jobs dieser Firma. Eine Vermittler-Verknüpfung ist keine Bewerbung bei dieser Firma.",
-            "Die Links zu Jobs, Bewerbungen und Kontakten stehen jeweils vollständig in einer eigenen Zeile."
+            "Die Links zu Jobs, Bewerbungen und Kontakten stehen jeweils vollständig in einer eigenen Zeile.",
+            "Im Spaltenfilter Links kannst du für Jobs, Bewerbungen und Kontakte unabhängig wählen, ob Einträge vorhanden oder nicht vorhanden sein sollen. Mehrere gewählte Kriterien gelten gleichzeitig."
           ]
         },
         "fr-CH": {
@@ -547,7 +548,8 @@
           ],
           "tips": [
             "Le nombre de candidatures d’une entreprise compte uniquement les candidatures actives liées à ses offres actives. Un lien d’intermédiaire n’est pas une candidature auprès de cette entreprise.",
-            "Les liens vers les offres, les candidatures et les contacts figurent chacun en entier sur une ligne distincte."
+            "Les liens vers les offres, les candidatures et les contacts figurent chacun en entier sur une ligne distincte.",
+            "Dans le filtre de colonne Liens, tu peux choisir séparément si des offres, candidatures et contacts doivent être présents ou absents. Plusieurs critères sélectionnés s’appliquent simultanément."
           ]
         },
         "en-GB": {
@@ -560,7 +562,8 @@
           ],
           "tips": [
             "A company’s application count includes only active applications for that company’s active jobs. A recruiter relationship is not an application to that company.",
-            "Links to jobs, applications and contacts each appear in full on their own line."
+            "Links to jobs, applications and contacts each appear in full on their own line.",
+            "In the Links column filter, independently choose whether jobs, applications and contacts must be present or absent. Multiple selected criteria apply together."
           ]
         },
         "pt-BR": {
@@ -573,7 +576,8 @@
           ],
           "tips": [
             "A contagem de candidaturas de uma empresa inclui apenas candidaturas ativas para vagas ativas dessa empresa. Um vínculo de intermediário não é uma candidatura nessa empresa.",
-            "Os links para vagas, candidaturas e contatos aparecem completos, cada um em uma linha própria."
+            "Os links para vagas, candidaturas e contatos aparecem completos, cada um em uma linha própria.",
+            "No filtro da coluna Links, escolha separadamente se vagas, candidaturas e contatos devem existir ou não. Vários critérios selecionados são aplicados ao mesmo tempo."
           ]
         },
         "es-MX": {
@@ -586,7 +590,8 @@
           ],
           "tips": [
             "El conteo de solicitudes de una empresa incluye solo solicitudes activas para vacantes activas de esa empresa. Un vínculo de intermediario no es una solicitud a esa empresa.",
-            "Los enlaces a vacantes, solicitudes y contactos aparecen completos, cada uno en su propia línea."
+            "Los enlaces a vacantes, solicitudes y contactos aparecen completos, cada uno en su propia línea.",
+            "En el filtro de la columna Enlaces, elige por separado si deben existir o no vacantes, solicitudes y contactos. Varios criterios seleccionados se aplican a la vez."
           ]
         }
       }
@@ -1988,6 +1993,20 @@
     }
   ],
   "ui": {
+    "sf.with_entries": {
+      "de-CH": "{entity}: mit Einträgen",
+      "fr-CH": "{entity}: avec entrées",
+      "en-GB": "{entity}: with entries",
+      "pt-BR": "{entity}: com registros",
+      "es-MX": "{entity}: con registros"
+    },
+    "sf.without_entries": {
+      "de-CH": "{entity}: ohne Einträge",
+      "fr-CH": "{entity}: sans entrée",
+      "en-GB": "{entity}: without entries",
+      "pt-BR": "{entity}: sem registros",
+      "es-MX": "{entity}: sin registros"
+    },
     "reports.column_count": {
       "de-CH": "{selected} von maximal {count} Feldern gewählt.",
       "fr-CH": "{selected} champs sélectionnés sur un maximum de {count}.",
