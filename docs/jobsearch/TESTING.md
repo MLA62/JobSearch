@@ -2,6 +2,12 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.20: `import_clipboard_visual_test.cjs` führt den produktiven Paste-Handler in Chromium
+mit zwei lediglich beschriftet sichtbaren Links aus. Der Test verlangt beide vollständigen HTTPS-
+Ziele genau einmal, behält vorhandenen Feldinhalt und weist ein `javascript:`-Ziel zurück.
+`job_import_dialog_test.php` sichert die Verdrahtung des Schnellimportfelds sowie des HTML- und
+URI-Listen-Zwischenablagekanals zusätzlich als Quellvertrag ab.
+
 Ergänzung 2.4.19: `rich_text_chronology_test.php` prüft beide neuen markierungsweiten Befehle und
 deren sprachabhängige Beschriftungen. `rich_text_editor_visual_test.cjs` führt den produktiven
 Editorcode in Chromium aus: Zwei Absätze mit einem internen weichen Umbruch werden zu einem Absatz

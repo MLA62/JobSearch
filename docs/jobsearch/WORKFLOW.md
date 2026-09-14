@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.19.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.20.
+
+Ergänzung 2.4.20: Das Schnellimportfeld wertet beim Einfügen neben `text/plain` auch die
+`text/html`- und `text/uri-list`-Anteile der Zwischenablage aus. Sichere HTTP-/HTTPS-Ziele von `<a href>` werden direkt
+unter ihrem sichtbaren Linktext als Klartext eingefügt, dedupliziert und anschliessend vom
+bestehenden `extractImportUrls()`-Pfad verarbeitet. Ohne sichere Linkziele bleibt das native
+Klartext-Einfügen unverändert. Vorhandener Text vor und nach der Auswahl bleibt erhalten.
 
 Ergänzung 2.4.19: Im Rich-Text-Mini-Editor konvertiert `¶` sämtliche von der aktuellen Auswahl
 geschnittenen Textblöcke in einzelne `<p>`-Absätze; vorhandene `<br>`-Grenzen werden dabei zu

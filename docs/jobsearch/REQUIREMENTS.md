@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.19.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.20.
+
+Ergänzung 2.4.20: Werden formatierte Suchresultate, HTML-Inhalte oder sichtbare Linktexte aus einer
+Webseite in den Schnellimport eingefügt, müssen die hinter den Links gespeicherten HTTP-/HTTPS-Ziele
+als Klartext-URLs übernommen werden. Linkbeschriftungen allein dürfen das Ziel nicht ersetzen.
+Mehrere eindeutige Links bleiben in ihrer Reihenfolge erhalten; unsichere Protokolle wie
+`javascript:` werden nicht übernommen. Bereits vorhandener Feldinhalt darf beim Einfügen nicht
+verloren gehen.
 
 Ergänzung 2.4.19: Der Rich-Text-Editor muss markierte Textblöcke in beide Richtungen umwandeln.
 `¶` zerlegt alle markierten Zeilen an vorhandenen weichen Umbrüchen in echte HTML-Absätze.

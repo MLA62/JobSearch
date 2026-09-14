@@ -4021,11 +4021,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.0' =>
   array (
-    'de-CH' => 'Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.',
-    'fr-CH' => 'Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.',
-    'en-GB' => 'Paste one or more verified advertisement URLs into quick import, one per line. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.',
-    'pt-BR' => 'Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.',
-    'es-MX' => 'Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.',
+    'de-CH' => 'Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Kopierst du formatierte Treffer aus einer Webseite, übernimmt die App auch die hinter sichtbaren Linktexten gespeicherten HTTPS-Ziele vollständig. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.',
+    'fr-CH' => 'Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.',
+    'en-GB' => 'Paste one or more verified advertisement URLs into quick import, one per line. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.',
+    'pt-BR' => 'Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.',
+    'es-MX' => 'Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.',
   ),
   'help.v2.search.steps.1' =>
   array (
@@ -11687,7 +11687,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.19','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.20','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15546,7 +15546,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.19';
+$codeVersion = '2.4.20';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17057,7 +17057,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('job_search.section')) ?></p><h1><?= e(tr('job_search.title')) ?></h1></div><span><?= e(tr('job_search.active_portals', null, ['count' => (string) count($platformRows)])) ?></span></div>
         <section class="panel"><div class="section-head"><div><p class="eyebrow"><?= e(tr('job_search.profile_based')) ?></p><h2><?= e(tr('job_search.find_matching')) ?></h2></div><div class="actions"><form method="post"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><button type="submit" name="action" value="reset_platform_search_criteria"><?= e(tr('job_search.profile_defaults')) ?></button></form></div></div>
             <?php if($aiNote !== ''): ?><p class="alert success"><?= e($aiNote) ?></p><?php endif; ?>
-            <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e((string) ($_SESSION['platform_import_payload'] ?? '')) ?></textarea><button class="primary" type="submit" name="action" value="preview_import"><?= e(tr('jobs.create_suggestion')) ?></button></form></section>
+            <section class="panel import-panel" id="quick-import"><h2><?= e(tr('jobs.quick_import')) ?></h2><p><?= e(tr('jobs.quick_import_hint')) ?></p><form method="post" class="import-form"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><textarea name="import_payload" data-import-payload rows="4" placeholder="<?= e(tr('jobs.quick_import_placeholder')) ?>" required><?= e((string) ($_SESSION['platform_import_payload'] ?? '')) ?></textarea><button class="primary" type="submit" name="action" value="preview_import"><?= e(tr('jobs.create_suggestion')) ?></button></form></section>
             <form method="post" class="stack"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><h3>Profilbasierte Suche</h3><div class="two"><label><?= e(tr('job_search.query')) ?><input name="search_query" value="<?= e($searchCriteria['search_query']) ?>" placeholder="<?= e(tr('job_search.query_placeholder')) ?>"></label><label><?= e(tr('job_search.location')) ?><input name="search_location" value="<?= e($searchCriteria['search_location']) ?>" placeholder="<?= e(tr('jobs.location')) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_roles')) ?><textarea name="desired_roles" rows="2"><?= e($searchCriteria['desired_roles']) ?></textarea></label><label><?= e(tr('profile.desired_locations')) ?><textarea name="desired_locations" rows="2"><?= e($searchCriteria['desired_locations']) ?></textarea></label></div><div class="two"><label><?= e(tr('profile.workload_min')) ?><input type="number" min="0" max="100" name="workload_min" value="<?= e($searchCriteria['workload_min']) ?>"></label><label><?= e(tr('profile.workload_max')) ?><input type="number" min="0" max="100" name="workload_max" value="<?= e($searchCriteria['workload_max']) ?>"></label></div><div class="two"><label><?= e(tr('profile.desired_level')) ?><input name="desired_level" value="<?= e($searchCriteria['desired_level']) ?>"></label><label><?= e(tr('profile.remote_preference')) ?><input name="remote_preference" value="<?= e($searchCriteria['remote_preference']) ?>"></label></div><label><?= e(tr('profile.desired_benefits')) ?><textarea name="desired_benefits" rows="2"><?= e($searchCriteria['desired_benefits']) ?></textarea></label><label><?= e(tr('profile.exclusions')) ?><textarea name="excluded_industries" rows="2"><?= e($searchCriteria['excluded_industries']) ?></textarea></label><div class="two"><label><?= e(tr('profile.travel_percentage')) ?><input type="number" min="0" max="100" name="travel_percentage" value="<?= e($searchCriteria['travel_percentage']) ?>"></label><label><?= e(tr('profile.available_from')) ?><input type="date" name="available_from" value="<?= e($searchCriteria['available_from']) ?>"></label></div><label><?= e(tr('job_search.total_prepare')) ?><input type="number" min="1" max="25" name="total_count" value="<?= (int)$searchCriteria['total_count'] ?>"></label><fieldset class="check platform-choice-grid"><legend><?= e(tr('job_search.select_portals')) ?></legend><?php foreach($platformRows as $platform): ?><label><input type="checkbox" name="platform_ids[]" value="<?= (int)$platform['id'] ?>" <?= in_array((int)$platform['id'], $searchCriteria['platform_ids'], true) ? 'checked' : '' ?>> <span><strong><?= e($platform['name']) ?></strong><small><?= e($platform['base_url']) ?></small></span></label><?php endforeach; ?></fieldset><div class="actions"><button type="submit" name="action" value="save_platform_search_criteria">Suchkriterien speichern</button><button class="primary" type="submit" name="action" value="search_ai_jobs">Passende Jobs suchen</button></div></form>
             <?= verifiedSearchScript(currentLocale()) ?>
             <script>window.addEventListener('DOMContentLoaded',()=>{const labels=<?= json_encode($aiResultLabels, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;const headers=document.querySelectorAll('#results th');[labels.take,labels.match,labels.company,labels.location,labels.title,labels.description,labels.link].forEach((label,index)=>{if(headers[index])headers[index].textContent=label;});document.querySelectorAll('#results button[value="prepare_ai_job_import"]').forEach(button=>button.textContent=labels.take);document.querySelectorAll('#results a[target="_blank"]').forEach(link=>link.textContent=labels.open);const empty=document.querySelector('#results .empty');if(empty)empty.textContent=labels.empty;});</script>
@@ -17887,6 +17887,63 @@ startUiTranslationBuffer($appLocale);
         document.body.classList.remove('modal-open');
     });
 })();
+/* import-clipboard-start */
+(() => {
+    const clipboardFallbackText = (plain, uriList) => {
+        let value=plain||'';
+        (uriList||'').split(/\r?\n/).map((entry)=>entry.trim()).filter((entry)=>entry && !entry.startsWith('#') && /^https?:\/\//i.test(entry)).forEach((href)=>{
+            if(!value.includes(href))value+=(value && !value.endsWith('\n')?'\n':'')+href;
+        });
+        return value;
+    };
+    const clipboardImportText = (html, fallback) => {
+        if(!html) return fallback;
+        const documentValue=new DOMParser().parseFromString(html,'text/html');
+        const seen=new Set();
+        documentValue.body.querySelectorAll('a[href]').forEach((anchor)=>{
+            const href=(anchor.href||anchor.getAttribute('href')||'').trim();
+            const label=(anchor.textContent||'').trim();
+            if(!/^https?:\/\//i.test(href)){
+                anchor.replaceWith(documentValue.createTextNode(label));
+                return;
+            }
+            if(seen.has(href)){
+                anchor.replaceWith(documentValue.createTextNode(label));
+                return;
+            }
+            seen.add(href);
+            anchor.replaceWith(documentValue.createTextNode(label && label!==href ? `${label}\n${href}` : href));
+        });
+        if(!seen.size) return fallback;
+        documentValue.body.querySelectorAll('br').forEach((node)=>node.replaceWith(documentValue.createTextNode('\n')));
+        documentValue.body.querySelectorAll('p,div,li,h1,h2,h3,h4,h5,h6,tr').forEach((node)=>{
+            node.before(documentValue.createTextNode('\n'));
+            node.after(documentValue.createTextNode('\n'));
+        });
+        let value=(documentValue.body.textContent||'').replace(/\r\n?/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+        seen.forEach((href)=>{if(!value.includes(href))value+=(value?'\n':'')+href;});
+        return value || fallback;
+    };
+    document.querySelectorAll('textarea[data-import-payload]').forEach((field)=>{
+        field.addEventListener('paste',(event)=>{
+            const clipboard=event.clipboardData;
+            const html=clipboard?.getData('text/html')||'';
+            const plain=clipboard?.getData('text/plain')||'';
+            const fallback=clipboardFallbackText(plain,clipboard?.getData('text/uri-list')||'');
+            const value=clipboardImportText(html,fallback);
+            if(value===plain || !/https?:\/\//i.test(value)) return;
+            event.preventDefault();
+            const start=field.selectionStart??field.value.length;
+            const end=field.selectionEnd??start;
+            const before=field.value.slice(0,start);
+            const after=field.value.slice(end);
+            const insertion=(before && !before.endsWith('\n')?'\n':'')+value+(after && !after.startsWith('\n')?'\n':'');
+            field.setRangeText(insertion,start,end,'end');
+            field.dispatchEvent(new Event('input',{bubbles:true}));
+        });
+    });
+})();
+/* import-clipboard-end */
 (() => {
     const input = document.querySelector('[name="admin_ai_instruction"]');
     if (!input) return;

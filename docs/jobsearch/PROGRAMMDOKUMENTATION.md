@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.19 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.20 ist implementiert und lokal verifiziert.
+
+## Linktreuer Schnellimport aus der Zwischenablage 2.4.20
+
+Das Schnellimport-Textarea trägt `data-import-payload`. Der zugehörige Paste-Handler liest den
+HTML-, URI-Listen- und Klartextkanal der Zwischenablage. `clipboardImportText()` ersetzt sichere verlinkte
+Beschriftungen durch Beschriftung plus vollständiges `href`, entfernt unsichere Linkprotokolle,
+dedupliziert gleiche Ziele und normalisiert Blockgrenzen zu Zeilenumbrüchen. Der resultierende
+Klartext wird mit `setRangeText()` an der aktuellen Auswahl eingefügt und löst ein normales
+`input`-Ereignis aus. Dadurch bleiben URL, vorhandener Inhalt und der bestehende serverseitige
+Import-/Drill-down-Pfad erhalten, ohne HTML im Datenfeld zu speichern.
 
 ## Absatzkonvertierung im Mini-Editor 2.4.19
 

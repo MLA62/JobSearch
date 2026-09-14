@@ -29,5 +29,6 @@ foreach (['de-CH','fr-CH','en-GB','pt-BR','es-MX'] as $locale) {
 }
 helpAssert(str_contains($source, "['prepare_quick_import','process_quick_import','cancel_quick_import']"),'Quick-import JSON lifecycle is routed');
 helpAssert(str_contains($source, "\$_SESSION['pending_quick_imports']") && str_contains($source, "'next'=>0"),'Quick-import progress is durable between item requests');
+helpAssert(str_contains($source,'data-import-payload') && str_contains($source,'clipboardImportText') && str_contains($source,"clipboard?.getData('text/html')") && str_contains($source,"clipboard?.getData('text/uri-list')"),'Formatted clipboard links keep their target URLs in quick import');
 helpAssert(str_contains($source, "verifiedJobImport(\$config, \$uid, \$sourceUrl") && str_contains($source, "'processed'=>(int)\$run['next']"),'Each quick-import item is verified and reports progress');
 echo "$helpChecks import dialog checks passed\n";
