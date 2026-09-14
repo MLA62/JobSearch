@@ -2,6 +2,12 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.19: `rich_text_chronology_test.php` prüft beide neuen markierungsweiten Befehle und
+deren sprachabhängige Beschriftungen. `rich_text_editor_visual_test.cjs` führt den produktiven
+Editorcode in Chromium aus: Zwei Absätze mit einem internen weichen Umbruch werden zu einem Absatz
+mit `<br>` verbunden und danach zu drei echten `<p>`-Absätzen zurückgewandelt. Fettformatierung und
+der synchronisierte Formularwert müssen in beiden Richtungen erhalten bleiben.
+
 Ergänzung 2.4.18: `job_import_storage_test.php` reproduziert den bisherigen Firmenkonflikt und
 prüft, dass der bestehende Zieljob der verifizierten Firma zugeordnet wird, ohne die bisherige Firma
 zu verändern oder einen zweiten Job anzulegen. Ein weiterer Fall erzwingt geänderte Quell-URLs und

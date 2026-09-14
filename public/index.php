@@ -3045,11 +3045,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.3' =>
   array (
-    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.',
-    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.',
-    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.',
-    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.',
-    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.',
+    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Markiere mehrere Zeilen oder Absätze: ¶ wandelt sie in echte Absätze um; der direkt folgende ↵-Button verbindet sie mit weichen Umbrüchen wie Shift+Enter. Inline-Formatierungen bleiben erhalten. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.',
+    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Sélectionnez plusieurs lignes ou paragraphes : ¶ les convertit en paragraphes réels et le bouton ↵ juste à côté les relie par des sauts de ligne souples comme Maj+Entrée. La mise en forme en ligne est conservée. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.',
+    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. Select several lines or paragraphs: ¶ converts them to real paragraphs and the adjacent ↵ button joins them with soft line breaks like Shift+Enter. Inline formatting is retained. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.',
+    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. Selecione várias linhas ou parágrafos: ¶ converte em parágrafos reais e o botão ↵ ao lado une com quebras suaves como Shift+Enter. A formatação inline é preservada. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.',
+    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Selecciona varias líneas o párrafos: ¶ los convierte en párrafos reales y el botón ↵ contiguo los une con saltos suaves como Mayús+Intro. Se conserva el formato en línea. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.',
   ),
   'help.v2.applications.tips.4' =>
   array (
@@ -11687,7 +11687,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.18','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.19','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15546,7 +15546,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.18';
+$codeVersion = '2.4.19';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18092,12 +18092,12 @@ startUiTranslationBuffer($appLocale);
     const richNames = new Set(<?= json_encode(richTextFieldNames(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>);
     const locale = <?= json_encode(substr($appLocale, 0, 2), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     const labelSets = {
-        de:{paragraph:'Absatz',bold:'Fett',italic:'Kursiv',bullets:'Aufzählung',numbers:'Nummerierte Liste',indent:'Einrücken',outdent:'Ausrücken',clear:'Formatierung löschen',link:'Link',linkPrompt:'HTTPS-Link oder E-Mail-Adresse',image:'Bild',imagePrompt:'HTTPS-Adresse des Bildes',table:'Tabelle',divider:'Trennlinie',source:'HTML bearbeiten',heading:'Titel',content:'Inhalt'},
-        fr:{paragraph:'Paragraphe',bold:'Gras',italic:'Italique',bullets:'Liste à puces',numbers:'Liste numérotée',indent:'Augmenter le retrait',outdent:'Réduire le retrait',clear:'Effacer la mise en forme',link:'Lien',linkPrompt:'Lien HTTPS ou adresse e-mail',image:'Image',imagePrompt:"Adresse HTTPS de l’image",table:'Tableau',divider:'Ligne de séparation',source:'Modifier le HTML',heading:'Titre',content:'Contenu'},
-        it:{paragraph:'Paragrafo',bold:'Grassetto',italic:'Corsivo',bullets:'Elenco puntato',numbers:'Elenco numerato',indent:'Aumenta rientro',outdent:'Riduci rientro',clear:'Cancella formattazione',link:'Link',linkPrompt:'Link HTTPS o indirizzo e-mail',image:'Immagine',imagePrompt:"Indirizzo HTTPS dell’immagine",table:'Tabella',divider:'Linea divisoria',source:"Modifica l’HTML",heading:'Titolo',content:'Contenuto'},
-        en:{paragraph:'Paragraph',bold:'Bold',italic:'Italic',bullets:'Bulleted list',numbers:'Numbered list',indent:'Indent',outdent:'Outdent',clear:'Clear formatting',link:'Link',linkPrompt:'HTTPS link or email address',image:'Image',imagePrompt:'HTTPS image address',table:'Table',divider:'Divider',source:'Edit HTML',heading:'Heading',content:'Content'},
-        es:{paragraph:'Párrafo',bold:'Negrita',italic:'Cursiva',bullets:'Lista con viñetas',numbers:'Lista numerada',indent:'Aumentar sangría',outdent:'Reducir sangría',clear:'Borrar formato',link:'Enlace',linkPrompt:'Enlace HTTPS o correo electrónico',image:'Imagen',imagePrompt:'Dirección HTTPS de la imagen',table:'Tabla',divider:'Línea divisoria',source:'Editar HTML',heading:'Título',content:'Contenido'},
-        pt:{paragraph:'Parágrafo',bold:'Negrito',italic:'Itálico',bullets:'Lista com marcadores',numbers:'Lista numerada',indent:'Aumentar recuo',outdent:'Diminuir recuo',clear:'Limpar formatação',link:'Ligação',linkPrompt:'Ligação HTTPS ou endereço de e-mail',image:'Imagem',imagePrompt:'Endereço HTTPS da imagem',table:'Tabela',divider:'Linha divisória',source:'Editar HTML',heading:'Título',content:'Conteúdo'}
+        de:{paragraph:'Markierte Zeilen in Absätze umwandeln',softBreak:'Markierte Absätze in weiche Zeilenumbrüche (Shift+Enter) umwandeln',bold:'Fett',italic:'Kursiv',bullets:'Aufzählung',numbers:'Nummerierte Liste',indent:'Einrücken',outdent:'Ausrücken',clear:'Formatierung löschen',link:'Link',linkPrompt:'HTTPS-Link oder E-Mail-Adresse',image:'Bild',imagePrompt:'HTTPS-Adresse des Bildes',table:'Tabelle',divider:'Trennlinie',source:'HTML bearbeiten',heading:'Titel',content:'Inhalt'},
+        fr:{paragraph:'Convertir les lignes sélectionnées en paragraphes',softBreak:'Convertir les paragraphes sélectionnés en sauts de ligne souples (Maj+Entrée)',bold:'Gras',italic:'Italique',bullets:'Liste à puces',numbers:'Liste numérotée',indent:'Augmenter le retrait',outdent:'Réduire le retrait',clear:'Effacer la mise en forme',link:'Lien',linkPrompt:'Lien HTTPS ou adresse e-mail',image:'Image',imagePrompt:"Adresse HTTPS de l’image",table:'Tableau',divider:'Ligne de séparation',source:'Modifier le HTML',heading:'Titre',content:'Contenu'},
+        it:{paragraph:'Converti le righe selezionate in paragrafi',softBreak:'Converti i paragrafi selezionati in interruzioni di riga morbide (Maiusc+Invio)',bold:'Grassetto',italic:'Corsivo',bullets:'Elenco puntato',numbers:'Elenco numerato',indent:'Aumenta rientro',outdent:'Diminuisci rientro',clear:'Cancella formattazione',link:'Link',linkPrompt:'Link HTTPS o indirizzo e-mail',image:'Immagine',imagePrompt:"Indirizzo HTTPS dell’immagine",table:'Tabella',divider:'Linea divisoria',source:"Modifica l’HTML",heading:'Titolo',content:'Contenuto'},
+        en:{paragraph:'Convert selected lines to paragraphs',softBreak:'Convert selected paragraphs to soft line breaks (Shift+Enter)',bold:'Bold',italic:'Italic',bullets:'Bulleted list',numbers:'Numbered list',indent:'Indent',outdent:'Outdent',clear:'Clear formatting',link:'Link',linkPrompt:'HTTPS link or email address',image:'Image',imagePrompt:'HTTPS image address',table:'Table',divider:'Divider',source:'Edit HTML',heading:'Heading',content:'Content'},
+        es:{paragraph:'Convertir las líneas seleccionadas en párrafos',softBreak:'Convertir los párrafos seleccionados en saltos de línea suaves (Mayús+Intro)',bold:'Negrita',italic:'Cursiva',bullets:'Lista con viñetas',numbers:'Lista numerada',indent:'Aumentar sangría',outdent:'Reducir sangría',clear:'Borrar formato',link:'Enlace',linkPrompt:'Enlace HTTPS o correo electrónico',image:'Imagen',imagePrompt:'Dirección HTTPS de la imagen',table:'Tabla',divider:'Línea divisoria',source:'Editar HTML',heading:'Título',content:'Contenido'},
+        pt:{paragraph:'Converter as linhas selecionadas em parágrafos',softBreak:'Converter os parágrafos selecionados em quebras de linha suaves (Shift+Enter)',bold:'Negrito',italic:'Itálico',bullets:'Lista com marcadores',numbers:'Lista numerada',indent:'Aumentar recuo',outdent:'Diminuir recuo',clear:'Limpar formatação',link:'Ligação',linkPrompt:'Ligação HTTPS ou endereço de e-mail',image:'Imagem',imagePrompt:'Endereço HTTPS da imagem',table:'Tabela',divider:'Linha divisória',source:'Editar HTML',heading:'Título',content:'Conteúdo'}
     };
     const labels = labelSets[locale] || labelSets.de;
     const allowed = new Set(['P','BR','STRONG','B','EM','I','U','UL','OL','LI','BLOCKQUOTE','A','IMG','TABLE','THEAD','TBODY','TR','TH','TD','HR','H2','H3']);
@@ -18147,7 +18147,63 @@ startUiTranslationBuffer($appLocale);
         };
         const sync = (notify = true) => shell.classList.contains('is-source') ? commitSource(notify) : commitEditor(notify);
         const command = (label, title, handler) => { const button=document.createElement('button'); button.type='button'; button.textContent=label; button.title=title; button.addEventListener('mousedown',(event)=>event.preventDefault()); button.addEventListener('click',()=>{editor.focus();handler();sync();}); toolbar.appendChild(button); };
-        command('¶',labels.paragraph,()=>document.execCommand('formatBlock',false,'p'));
+        const selectedTopLevelNodes = () => {
+            const selection=window.getSelection();
+            if(!selection || selection.rangeCount===0) return [];
+            const range=selection.getRangeAt(0);
+            if(!editor.contains(range.commonAncestorContainer)) return [];
+            return Array.from(editor.childNodes).filter((node)=>{try{return range.intersectsNode(node);}catch{return false;}});
+        };
+        const selectNodes = (nodes) => {
+            if(!nodes.length) return;
+            const selection=window.getSelection(); const range=document.createRange();
+            range.setStartBefore(nodes[0]); range.setEndAfter(nodes[nodes.length-1]);
+            selection.removeAllRanges(); selection.addRange(range);
+        };
+        const appendParagraphs = (target, nodes) => {
+            let paragraph=document.createElement('p');
+            const flush=()=>{if(!paragraph.childNodes.length)paragraph.appendChild(document.createElement('br'));target.appendChild(paragraph);paragraph=document.createElement('p');};
+            nodes.forEach((node)=>{const copy=node.cloneNode(true);if(copy.nodeType===Node.ELEMENT_NODE && copy.nodeName==='BR')flush();else paragraph.appendChild(copy);});
+            if(paragraph.childNodes.length) flush();
+        };
+        const convertSelectedBlocks = (soft) => {
+            const selection=window.getSelection();
+            if(!selection || selection.rangeCount===0) return;
+            const original=selection.getRangeAt(0);
+            if(original.collapsed){
+                if(soft){if(!document.execCommand('insertLineBreak'))document.execCommand('insertHTML',false,'<br>');}
+                else document.execCommand('formatBlock',false,'p');
+                return;
+            }
+            const nodes=selectedTopLevelNodes();
+            if(!nodes.length) return;
+            const replacement=document.createDocumentFragment();
+            if(soft){
+                const paragraph=document.createElement('p'); let needsBreak=false;
+                const appendLine=(lineNodes)=>{if(needsBreak)paragraph.appendChild(document.createElement('br'));lineNodes.forEach((node)=>paragraph.appendChild(node.cloneNode(true)));needsBreak=true;};
+                nodes.forEach((node)=>{
+                    const copy=node.cloneNode(true);
+                    if(copy.nodeType===Node.ELEMENT_NODE && ['P','DIV','H2','H3','BLOCKQUOTE'].includes(copy.nodeName)) appendLine(Array.from(copy.childNodes));
+                    else if(copy.nodeType===Node.ELEMENT_NODE && ['UL','OL'].includes(copy.nodeName)) Array.from(copy.children).forEach((item)=>appendLine(Array.from(item.childNodes)));
+                    else if(copy.nodeType===Node.ELEMENT_NODE && copy.nodeName==='BR') appendLine([]);
+                    else appendLine([copy]);
+                });
+                if(!paragraph.childNodes.length)paragraph.appendChild(document.createElement('br'));
+                replacement.appendChild(paragraph);
+            }else{
+                nodes.forEach((node)=>{
+                    const copy=node.cloneNode(true);
+                    if(copy.nodeType===Node.ELEMENT_NODE && ['P','DIV','H2','H3','BLOCKQUOTE'].includes(copy.nodeName)) appendParagraphs(replacement,Array.from(copy.childNodes));
+                    else if(copy.nodeType===Node.ELEMENT_NODE && ['UL','OL'].includes(copy.nodeName)) Array.from(copy.children).forEach((item)=>appendParagraphs(replacement,Array.from(item.childNodes)));
+                    else if(copy.nodeType===Node.ELEMENT_NODE && ['TABLE','IMG','HR'].includes(copy.nodeName)) replacement.appendChild(copy);
+                    else appendParagraphs(replacement,[copy]);
+                });
+            }
+            const range=document.createRange(); range.setStartBefore(nodes[0]); range.setEndAfter(nodes[nodes.length-1]); range.deleteContents();
+            const inserted=Array.from(replacement.childNodes); range.insertNode(replacement); selectNodes(inserted);
+        };
+        command('¶',labels.paragraph,()=>convertSelectedBlocks(false));
+        command('↵',labels.softBreak,()=>convertSelectedBlocks(true));
         command('B',labels.bold,()=>document.execCommand('bold'));
         command('I',labels.italic,()=>document.execCommand('italic'));
         command('•',labels.bullets,()=>document.execCommand('insertUnorderedList'));

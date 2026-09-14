@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.18.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.19.
+
+Ergänzung 2.4.19: Im Rich-Text-Mini-Editor konvertiert `¶` sämtliche von der aktuellen Auswahl
+geschnittenen Textblöcke in einzelne `<p>`-Absätze; vorhandene `<br>`-Grenzen werden dabei zu
+Absatzgrenzen. Der direkt daneben angeordnete Button `↵` verbindet die gewählten Absätze innerhalb
+eines `<p>` mit `<br>`-Umbrüchen, also dem Ergebnis von Shift+Enter. Die Auswahl bleibt nach der
+Umwandlung erhalten und der bereinigte HTML-Wert wird unmittelbar in das Formularfeld geschrieben.
 
 Ergänzung 2.4.18: `start_application` bindet die erneute Inseratanalyse mit `target_job_id` an die
 ausdrücklich gewählte Stelle. `importStoreDraft()` aktualisiert dadurch genau diesen eigenen Job und

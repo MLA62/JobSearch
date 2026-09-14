@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.18 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.19 ist implementiert und lokal verifiziert.
+
+## Absatzkonvertierung im Mini-Editor 2.4.19
+
+`convertSelectedBlocks(false)` erweitert die aktuelle Auswahl auf die davon berührten obersten
+Editorblöcke, zerlegt vorhandene direkte `<br>`-Grenzen und setzt jeden Teil als echtes `<p>` ein.
+`convertSelectedBlocks(true)` führt die umgekehrte Operation aus und verbindet die ausgewählten
+Absätze durch `<br>`. Verschachtelte Inline-Elemente werden geklont und dadurch erhalten; Listen
+werden zeilenweise übernommen, während Tabellen, Bilder und Trennlinien bei der Absatzoperation
+eigenständige Blöcke bleiben. Nach dem DOM-Austausch setzt `selectNodes()` die Auswahl neu und der
+bestehende `sync()`-Pfad bereinigt und speichert den HTML-Stand im zugehörigen Textarea-Feld.
 
 ## Unbedingte Bewerbungsvorbereitung 2.4.18
 

@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.18.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.19.
+
+Ergänzung 2.4.19: Der Rich-Text-Editor muss markierte Textblöcke in beide Richtungen umwandeln.
+`¶` zerlegt alle markierten Zeilen an vorhandenen weichen Umbrüchen in echte HTML-Absätze.
+Der unmittelbar folgende Button `↵` verbindet alle markierten Absätze mit weichen Umbrüchen
+entsprechend Shift+Enter. Inline-Formatierungen wie Fett, Kursiv und Links bleiben erhalten; der
+umgewandelte Stand wird sofort in das zu speichernde Feld synchronisiert.
 
 Ergänzung 2.4.18: Der ausdrückliche Auftrag «Bewerbung vorbereiten» darf nicht wegen einer
 widersprüchlichen Firmenzuordnung oder einer vorübergehend fehlgeschlagenen Inserat-, KI- oder

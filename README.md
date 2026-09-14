@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 14.09.2026. Version 2.4.18 führt eine ausdrücklich angeforderte Bewerbung auch bei einer widersprüchlichen oder vorübergehend nicht verfügbaren Inseratanalyse zuverlässig fort.
-Release-Dokumentation: [Release 2.4.18](docs/jobsearch/RELEASE-2.4.18.md).
+Stand: 14.09.2026. Version 2.4.19 führt eine ausdrücklich angeforderte Bewerbung zuverlässig fort und erweitert den Rich-Text-Editor um markierungsweite Absatz- und weiche Zeilenumbruch-Konvertierung.
+Release-Dokumentation: [Release 2.4.19](docs/jobsearch/RELEASE-2.4.19.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
