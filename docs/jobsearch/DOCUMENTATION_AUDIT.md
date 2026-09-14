@@ -1,6 +1,20 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.14 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.15 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.15
+
+- Vor jeder Bewerbungsvorbereitung wird die Originalausschreibung erneut durch die strukturierte
+  KI-Analyse geführt; ohne vollständiges KI-Ergebnis wird die Bewerbung nicht verändert.
+- Die Empfängerauflösung wurde für Primär-, Bewerbungs-, Job-, HR- und sonstige Firmenkontakte
+  einzeln geprüft. Ein bereits vorhandener Kontakt wird auch ohne Primärmarkierung verwendet.
+- Bestehende vollständige Texte werden beim Öffnen geprüft; ein veralteter unvollständiger
+  Empfängerblock wird ersetzt und nicht dupliziert.
+- Alle 38 PHP-Testdateien, 4'027 Hilfeprüfungen, 1'379 Hilfe-Seeds, 84 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sechs Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `b5f4762ea2641081efa77bbd4599167c1bf9bed7c1b287fed5e27b131ded5d68` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.15 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.14
 

@@ -1,15 +1,21 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.14 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.15 ist produktiv verifiziert.
+
+Quell-Commit: `899d50881f9a6b006e4bbf9e798d1c4a668d3712`.
+Produktiver `index.php`-SHA-256 (2.4.15): `b5f4762ea2641081efa77bbd4599167c1bf9bed7c1b287fed5e27b131ded5d68`, 1'272'963 Bytes, Modus 0644.
+TOTP-Approval: `b73ceab724057bde6dc8386bc6bb2672` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.15 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_081936_420586ae_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und Datenbank blieben unverändert.
+Das Release hat keine Schema- oder Datenwirkung.
+
+## Vorheriges produktives Release 2.4.14
 
 Quell-Commit: `2c08442a0b9278080ec9a1aa6c67d5b81d4c3394`.
 Produktiver `index.php`-SHA-256 (2.4.14): `50403990b6d39c1adacdaafffa67749d7959cbaaa503558c47dedcd02257a291`, 1'267'816 Bytes, Modus 0644.
-TOTP-Approval: `e6e31ac720bb8145a0bcf9360b2eca94` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.14 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
-
-Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
-`approval.lauber.online/storage/file_backups/20260914_075655_acbf9c43_public_html_jobs.jema.business_index.php`
-gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und Datenbank blieben unverändert.
-Das Release hat keine Schema- oder Datenwirkung.
+TOTP-Approval: `e6e31ac720bb8145a0bcf9360b2eca94` (ausgeführt 2026-09-14).
 
 ## Vorheriges produktives Release 2.4.13
 
