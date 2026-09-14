@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.14 ist implementiert, dokumentiert und lokal vollständig verifiziert.
+Stand: 2026-09-14. Version 2.4.14 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.14
 
@@ -12,6 +12,9 @@ Stand: 2026-09-14. Version 2.4.14 ist implementiert, dokumentiert und lokal voll
   Ausfallentwurf zwingend am Anfang; Voranstellen, Nichtduplizieren und fehlender Kontakt sind geprüft.
 - Alle 38 PHP-Testdateien, 4'010 Hilfeprüfungen, 1'369 Hilfe-Seeds, 83 Markdown-Dateien/61 lokale
   Links, beide Generatoren sowie alle sechs Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `50403990b6d39c1adacdaafffa67749d7959cbaaa503558c47dedcd02257a291` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.14 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.13
 

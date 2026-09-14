@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.14 ist implementiert und lokal vollständig verifiziert.
+Stand: 2026-09-14. Version 2.4.14 ist implementiert und produktiv verifiziert.
 
 ## Eindeutige Reportfilter und Empfängerblock 2.4.14
 

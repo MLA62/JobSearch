@@ -16,3 +16,5 @@ Stand: 14.09.2026.
 ## Daten- und Betriebswirkung
 
 Keine Schema- oder Datenmigration. Das Release ändert Anwendungscode, Tests, Hilfe und Dokumentation.
+Die produktive `index.php` ist mit dem getesteten Quellstand bytegleich; HTTP 200, Version und
+Sicherheitsheader wurden nach dem TOTP-Deployment verifiziert.
