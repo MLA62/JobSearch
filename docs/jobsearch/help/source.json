@@ -1,5 +1,5 @@
 {
-  "version": "2.4.14",
+  "version": "2.4.15",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -689,7 +689,7 @@
           "title": "Bewerbungsworkflow",
           "summary": "Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
           "steps": [
-            "Beim Vorbereiten legt die App eine neue Bewerbung an oder öffnet die bereits aktive Bewerbung. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage. Danach füllt die App Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil-, Stellen-, Firmen- und Kontaktdaten sowie dem lesbaren aktuellen Lebenslauf vor.",
+            "Beim Vorbereiten analysiert die App die Originalausschreibung erneut über die KI-API, ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten und legt danach eine neue Bewerbung an oder öffnet die bereits aktive Bewerbung. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.",
             "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion werden die vorhandenen Texte gemäß dieser Instruktion überarbeitet; bei leerem Instruktionsfeld erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten. Die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
             "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
@@ -699,14 +699,15 @@
             "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
           "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
           "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
-          "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch."
+          "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch.",
+          "Für den Empfänger verwendet die App vorhandene Primär-, Bewerbungs-, Job- und Firmenkontakte in dieser Priorität. Auch bereits gefüllte Schreiben werden beim Öffnen auf den vollständigen Adressblock geprüft."
           ]
         },
         "fr-CH": {
           "title": "Parcours de candidature",
           "summary": "Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens → Acceptation ou refus.",
           "steps": [
-            "Lors de la préparation, l’application crée une nouvelle candidature ou ouvre celle qui est déjà active. Les candidatures supprimées restent supprimées et ne bloquent pas une nouvelle création. Elle préremplit ensuite l’objet, l’e-mail et la lettre de motivation avec les données disponibles.",
+            "Lors de la préparation, l’application réanalyse l’annonce originale via l’API d’IA, complète les données vérifiées de l’entreprise, de l’adresse, du contact et du poste, puis crée ou ouvre la candidature active.",
             "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, les textes existants sont révisés conformément à celle-ci; si le champ est vide, l’IA recrée entièrement les trois textes à partir des données de candidature disponibles. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
             "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
@@ -716,14 +717,15 @@
             "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
           "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
           "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
-          "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée."
+          "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée.",
+          "Le destinataire est choisi parmi les contacts principal, de candidature, d’offre puis d’entreprise. Les lettres existantes sont aussi contrôlées lors de leur ouverture."
           ]
         },
         "en-GB": {
           "title": "Application workflow",
           "summary": "Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or rejected.",
           "steps": [
-            "When preparing, the app creates a new application or opens the already active one. Deleted applications stay deleted and do not block a new record. It then prefills the subject, accompanying email and cover letter from the available profile, job, company, contact and CV data.",
+            "When preparing, the app reanalyses the original advertisement through the AI API, fills verified company, address, contact and job data, then creates a new application or opens the active one.",
             "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, the existing texts are revised according to it; if the instruction field is empty, AI recreates all three texts from scratch using the available application data. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
             "Record each interview as a separate appointment and document acceptance or rejection."
@@ -733,14 +735,15 @@
             "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open.",
           "The Sent at field accepts the stored timestamp, including seconds.",
           "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.",
-          "Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response."
+          "Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response.",
+          "The recipient is resolved from primary, application-linked, job-linked and company contacts in that order. Existing letters are checked when opened as well."
           ]
         },
         "pt-BR": {
           "title": "Fluxo de candidatura",
           "summary": "Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
           "steps": [
-            "Ao preparar, o aplicativo cria uma nova candidatura ou abre a que já está ativa. Candidaturas excluídas continuam excluídas e não bloqueiam um novo registro. Depois, preenche assunto, e-mail e carta com os dados disponíveis.",
+            "Ao preparar, o aplicativo reanalisa o anúncio original pela API de IA, completa dados verificados da empresa, endereço, contato e vaga e depois cria ou abre a candidatura ativa.",
             "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, os textos existentes são revisados de acordo com ela; se o campo estiver vazio, a IA recria os três textos do zero usando os dados disponíveis da candidatura. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
             "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
@@ -750,14 +753,15 @@
             "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
           "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
           "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
-          "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada."
+          "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada.",
+          "O destinatário é resolvido entre contato principal, da candidatura, da vaga e da empresa, nessa ordem. Cartas existentes também são verificadas ao abrir."
           ]
         },
         "es-MX": {
           "title": "Proceso de solicitud",
           "summary": "Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
           "steps": [
-            "Al preparar, la aplicación crea una solicitud nueva o abre la que ya está activa. Las solicitudes eliminadas permanecen eliminadas y no bloquean un registro nuevo. Después completa el asunto, el correo y la carta con los datos disponibles.",
+            "Al preparar, la aplicación vuelve a analizar el anuncio original mediante la API de IA, completa datos verificados de empresa, dirección, contacto y vacante y después crea o abre la solicitud activa.",
             "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, los textos existentes se revisan según ella; si el campo está vacío, la IA vuelve a crear los tres textos desde cero usando los datos disponibles de la solicitud. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
             "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
@@ -767,7 +771,8 @@
             "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
           "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
           "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
-          "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios."
+          "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios.",
+          "El destinatario se resuelve entre contacto principal, de la solicitud, de la vacante y de la empresa, en ese orden. Las cartas existentes también se comprueban al abrir."
           ]
         }
       }
@@ -2541,6 +2546,13 @@
       "en-GB": "The application could not be created in the database. No application data was changed. Error reference: {reference}.",
       "pt-BR": "A candidatura não pôde ser criada no banco de dados. Nenhum dado da candidatura foi alterado. Referência do erro: {reference}.",
       "es-MX": "La solicitud no pudo crearse en la base de datos. No se modificaron datos de la solicitud. Referencia del error: {reference}."
+    },
+    "applications.prepare_analysis_failed": {
+      "de-CH": "Die Originalausschreibung konnte nicht vollständig mit der KI analysiert werden. Die Bewerbung wurde nicht verändert. Ursache: {reason} Fehlerreferenz: {reference}.",
+      "fr-CH": "L’annonce originale n’a pas pu être entièrement analysée par l’IA. La candidature n’a pas été modifiée. Cause : {reason} Référence d’erreur : {reference}.",
+      "en-GB": "The original advertisement could not be fully analysed by AI. The application was not changed. Cause: {reason} Error reference: {reference}.",
+      "pt-BR": "O anúncio original não pôde ser analisado integralmente pela IA. A candidatura não foi alterada. Motivo: {reason} Referência do erro: {reference}.",
+      "es-MX": "El anuncio original no pudo analizarse completamente con IA. La solicitud no se modificó. Motivo: {reason} Referencia del error: {reference}."
     },
     "applications.prepare_texts_failed": {
       "de-CH": "Die Bewerbung wurde angelegt, aber die Texte konnten nicht vorbereitet werden. Der Datensatz ist geöffnet und kann manuell bearbeitet werden. Fehlerreferenz: {reference}.",

@@ -53,7 +53,7 @@ $empty=verifiedJobImport(['openai_api_key'=>'TEST-ONLY'],7,'https://example.test
 helpAssert($empty['assessment']['score']===null,'Empty profile remains unscored');
 helpAssert(str_contains($GLOBALS['wire'],'"checks":{"type":"object","additionalProperties":false,"properties":{},"required":[]}'),'Empty schema properties encoded as an object on the wire');
 $GLOBALS['response']=$good; $GLOBALS['response']['checks']=null; $manualDiagnostic=[];
-$manual=verifiedJobImport(['openai_api_key'=>'TEST-ONLY'],7,'https://example.test/job',$criteria,$manualDiagnostic,true);
-helpAssert($manual['title']==='Sales Manager' && !isset($manual['assessment']) && $manualDiagnostic['stage']==='manual_import_without_ai_assessment','Manual URL still imports when AI assessment fails');
+try { verifiedJobImport(['openai_api_key'=>'TEST-ONLY'],7,'https://example.test/job',$criteria,$manualDiagnostic,true); throw new LogicException('Manual import without AI result was accepted'); }
+catch (RuntimeException) { helpAssert($manualDiagnostic['stage']==='criteria_evaluation','Manual URL also requires a completed AI analysis'); }
 helpAssert(jobVerificationChecks([],[])===[],'Empty criteria conversion');
 echo "$helpChecks contract checks passed\n";

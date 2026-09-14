@@ -1,6 +1,21 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.14 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.15 ist implementiert und lokal verifiziert.
+
+## KI-Neuanalyse und effektiver Bewerbungskontakt 2.4.15
+
+Vor `start_application` liest `verifiedJobImport()` die Originalausschreibung und zugehörige
+Firmenquellen erneut und verlangt eine vollständig abgeschlossene strukturierte KI-Analyse.
+`importStoreDraft()` ergänzt daraus Firma, Kontakte und Job ausschliesslich in bisher leeren Feldern.
+Ohne gültiges KI-Ergebnis wird keine Bewerbung angelegt oder verändert; die Fehlermeldung nennt die
+konkrete Ursache und eine Protokollreferenz.
+
+`applicationRecipientForApplication()` bestimmt den vorhandenen Empfänger zentral. Vorrang haben
+Primärkontakt, direkter Bewerbungsbezug, Jobbezug, HR-/Recruiting-Kontakt und erst danach ein anderer
+Kontakt der Arbeitgeber- oder Vermittlerfirma. Derselbe Empfänger wird im KI-Kontext, im lokalen
+Ausfallentwurf und in der abschliessenden Serverprüfung verwendet. Auch ein bereits vollständig
+gefülltes Motivationsschreiben wird beim Öffnen geprüft; ein alter unvollständiger Adressblock wird
+ersetzt statt davor dupliziert.
 
 ## Eindeutige Reportfilter und Empfängerblock 2.4.14
 

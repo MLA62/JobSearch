@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.14.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.15.
+
+Ergänzung 2.4.15: Jede Originalausschreibung wird beim Import und unmittelbar vor der
+Bewerbungsvorbereitung über die KI-API analysiert. Belegte Firmen-, Adress-, Kontakt- und Jobdaten
+ergänzen leere Datenbankfelder. Ein vorhandener Kontakt muss unabhängig davon verwendet werden, ob
+er als Primärkontakt, Bewerbungskontakt, Jobkontakt oder Firmenkontakt erfasst ist. Bereits vorhandene
+Texte werden ebenfalls auf den vollständigen Empfängerblock geprüft und nötigenfalls korrigiert.
 
 Ergänzung 2.4.14: Auswahlfilter geöffneter Reports müssen jeden sichtbaren fachlichen Wert
 eindeutig behandeln. Unterschiedliche Anzeigen dürfen auch dann nicht gemeinsam gefiltert werden,

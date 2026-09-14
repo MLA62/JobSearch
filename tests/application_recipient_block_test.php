@@ -28,6 +28,10 @@ $again = applicationCoverLetterWithRecipientBlock($letter, $block);
 if (substr_count(richTextPlain($again), 'Bardusch AG') !== 1) throw new RuntimeException('Address block was duplicated.');
 echo "PASS existing address block is not duplicated\n";
 
+$oldBlock = applicationCoverLetterWithRecipientBlock('<p>Bardusch AG<br>Industriestrasse 22<br>2545 Selzach</p><p>Guten Tag</p>', $block);
+if (substr_count(richTextPlain($oldBlock), 'Bardusch AG') !== 1 || !str_starts_with(richTextPlain($oldBlock), $expected)) throw new RuntimeException('Incomplete recipient block was not replaced.');
+echo "PASS an incomplete old address block is replaced instead of duplicated\n";
+
 $misplaced = applicationCoverLetterWithRecipientBlock('<p>Motivation zuerst</p><p>Bardusch AG<br>Patrick Wenger<br>Industriestrasse 22<br>2545 Selzach</p>', $block);
 if (!str_starts_with(richTextPlain($misplaced), $expected)) throw new RuntimeException('A misplaced address block was accepted.');
 echo "PASS recipient block is enforced at the beginning, not merely somewhere in the letter\n";
@@ -35,3 +39,17 @@ echo "PASS recipient block is enforced at the beginning, not merely somewhere in
 $withoutContact = implode("\n", applicationRecipientBlockLines($data, null, false));
 if (str_contains($withoutContact, 'Patrick Wenger') || str_contains($withoutContact, '[')) throw new RuntimeException('Unknown contact produced a person or placeholder.');
 echo "PASS unknown contact is neither invented nor represented by a placeholder\n";
+
+$application = ['id'=>40,'job_id'=>50,'primary_contact_id'=>0,'company_id'=>60,'intermediary_company_id'=>70];
+$companyContact = ['id'=>1,'company_id'=>60,'application_id'=>0,'job_id'=>0,'position'=>'Sales','department'=>''];
+$hrContact = ['id'=>2,'company_id'=>60,'application_id'=>0,'job_id'=>0,'position'=>'HR Business Partner','department'=>'Human Resources'];
+$jobContact = ['id'=>3,'company_id'=>60,'application_id'=>0,'job_id'=>50,'position'=>'Sales','department'=>''];
+$applicationContact = ['id'=>4,'company_id'=>60,'application_id'=>40,'job_id'=>0,'position'=>'Sales','department'=>''];
+$primaryContact = ['id'=>5,'company_id'=>60,'application_id'=>0,'job_id'=>0,'position'=>'Sales','department'=>''];
+if (applicationRecipientCandidatePriority($companyContact,$application)!==6) throw new RuntimeException('Company fallback priority is wrong.');
+if (applicationRecipientCandidatePriority($hrContact,$application)!==4) throw new RuntimeException('HR company contact priority is wrong.');
+if (applicationRecipientCandidatePriority($jobContact,$application)!==2) throw new RuntimeException('Job-linked contact priority is wrong.');
+if (applicationRecipientCandidatePriority($applicationContact,$application)!==1) throw new RuntimeException('Application-linked contact priority is wrong.');
+$application['primary_contact_id']=5;
+if (applicationRecipientCandidatePriority($primaryContact,$application)!==0) throw new RuntimeException('Primary contact priority is wrong.');
+echo "PASS existing contacts are ranked primary, application, job, HR and company-wide\n";

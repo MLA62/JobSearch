@@ -2,6 +2,13 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.15: `application_recipient_block_test.php` prüft zusätzlich die Prioritäten für
+Primär-, Bewerbungs-, Job-, HR- und Firmenkontakte sowie den Austausch eines alten unvollständigen
+Adressblocks. `application_ai_texts_test.php` kontrolliert die zentrale Kontaktauflösung, die Prüfung
+bereits gefüllter Texte und die erneute Inserat-KI-Analyse vor der Bewerbungsvorbereitung.
+`job_verification_contract_test.php` stellt sicher, dass auch manuell angestossene Inseratimporte
+ohne gültiges KI-Ergebnis nicht mehr stillschweigend übernommen werden.
+
 Ergänzung 2.4.14: `report_filters_test.php` prüft Von, Bis, Datumsbereich, Minimum, Maximum,
 Zahlenbereich, Textsuche, jede semantische Auswahloption einschließlich Leerwert, kombinierte
 Filter sowie ungültige Eingaben. Der Chromium-Test wählt jede verfügbare Job-Room-Option einzeln

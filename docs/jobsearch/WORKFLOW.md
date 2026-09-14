@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.14.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.15.
+
+Ergänzung 2.4.15: Vor dem Anlegen oder Öffnen einer Bewerbung wird das Originalinserat erneut
+gelesen und zwingend über die strukturierte KI-Analyse geführt. Die belegten Ergebnisse ergänzen
+Firma, Kontakt und Job fill-only. Danach ermittelt die Bewerbung ihren Empfänger in der Reihenfolge
+Primärkontakt, Bewerbungsbezug, Jobbezug, HR-/Recruiting-Firmenkontakt, sonstiger Firmenkontakt.
+Diese Auflösung gilt identisch für KI-Prompt, Ausfalltext und bestehende Motivationsschreiben.
 
 Ergänzung 2.4.14: Auswahlfilter verwenden den fertig formatierten, sichtbaren Fachwert. Dadurch
 bleiben insbesondere «Noch nicht im Job-Room erfasst» und «Im Job-Room erfasst – Noch offen» trotz
