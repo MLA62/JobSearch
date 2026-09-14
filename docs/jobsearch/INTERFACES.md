@@ -325,6 +325,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function reportViewApplyFilters(array $columns, array $rows, array $displayMeta, array $filters): array`
 - `function reportViewFiltersHtml(int $reportId, string $displayType, array $definitions, array $state): string`
 - `function reportRecordUrl(string $base, array $row): string`
+- `function reportFieldRecordUrl(string $base, string $field, array $row): string`
 - `function reportOpenUrl(array $report): string`
 - `function reportExportType(array $report): ?string`
 - `function reportColumnLimit(): int`
@@ -366,8 +367,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function loadReportSettings(mysqli $db, int $reportId, string $base): array`
 - `function reportDataset(mysqli $db, int $userId, array $report, array $settings, array $currentUser): array`
 - `function reportCalendarDisplayMeta(?string $value, array $currentUser): array`
-- `function reportRowDetailsHtml(array $headers, array $row): string`
-- `function reportRecordLinkHtml(array $displayMeta): string`
+- `function reportFieldValueHtml(mixed $value, string $url): string`
+- `function reportRowDetailsHtml(array $headers, array $row, array $displayMeta = []): string`
 - `function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string`
 - `function calendarViewOptions(): array`
 - `function calendarAnchorDate(array $user): DateTimeImmutable`

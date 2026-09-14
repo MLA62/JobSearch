@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.16.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.17.
+
+Ergänzung 2.4.17: Reportresultate dürfen keine separate Aktionsspalte und keinen separaten
+«Datensatz öffnen»-Button verbrauchen. Jeder nicht leere Feldinhalt muss selbst auf den fachlich
+passenden individuellen Datensatz verweisen. Beziehungsfelder öffnen die jeweilige Firma,
+Vermittlerfirma, Stelle, Bewerbung oder Kontaktperson; andere Felder öffnen den Basisdatensatz der
+Zeile. Dieses Verhalten gilt für Tabelle, Liste, Karten, Vorschau und Kalendergruppen.
 
 Ergänzung 2.4.16: Fehlen nach der strukturierten KI-Analyse einer Originalausschreibung
 Firmenanschrift oder Recruiting-Kontakt, muss die App selbstständig eine zweite KI-Recherche im

@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.16.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.17.
+
+Ergänzung 2.4.17: `reportFieldRecordUrl()` bestimmt für jede sichtbare Reportspalte das konkrete
+Linkziel. Beziehungsfelder verwenden ihre eigene Fremd-ID; alle übrigen Felder verwenden die ID des
+Basisdatensatzes. `reportDataset()` liefert die positionsgleichen `cell_urls` zusammen mit den
+formatierten Werten. Sämtliche Renderer verlinken den Feldinhalt direkt und geben weder zusätzliche
+Aktionsspalte noch separaten Datensatzbutton aus.
 
 Ergänzung 2.4.16: `verifiedJobImport()` führt nach der strukturierten Inseratanalyse eine zweite
 Responses-API-Anfrage mit Websuche aus, sobald Strasse, PLZ, Ort oder ein Recruiting-Kontakt fehlen.

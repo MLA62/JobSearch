@@ -3981,11 +3981,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.6' =>
   array (
-    'de-CH' => 'Öffne «Anzeigen», wechsle jederzeit direkt zwischen Tabelle und Karten und öffne jeden Treffer über «Datensatz öffnen» im zugehörigen Originaldatensatz. Exportiere den Report bei Bedarf als PDF.',
-    'fr-CH' => 'Ouvre «Afficher», passe à tout moment du tableau aux cartes et ouvre chaque résultat dans son enregistrement source avec «Ouvrir l’enregistrement». Exporte le rapport en PDF si nécessaire.',
-    'en-GB' => 'Open “Show”, switch directly between table and cards at any time, and use “Open record” to open each result in its source record. Export the report to PDF if needed.',
-    'pt-BR' => 'Abra “Mostrar”, alterne diretamente entre tabela e cartões a qualquer momento e use “Abrir registro” para abrir cada resultado no registro original. Exporte o relatório em PDF se necessário.',
-    'es-MX' => 'Abre «Mostrar», alterna directamente entre tabla y tarjetas en cualquier momento y usa «Abrir registro» para abrir cada resultado en su registro original. Exporta el informe en PDF si lo necesitas.',
+    'de-CH' => 'Öffne «Anzeigen» und wechsle jederzeit direkt zwischen Tabelle und Karten. Jeder nicht leere Feldinhalt ist selbst verlinkt: Firmen- und Vermittlerwerte öffnen die jeweilige Firma, Jobwerte den Job, Kontaktwerte den Kontakt und die übrigen Werte den Datensatz der Reportzeile. Eine zusätzliche Aktionsspalte wird nicht verwendet. Exportiere den Report bei Bedarf als PDF.',
+    'fr-CH' => 'Ouvre «Afficher» et passe à tout moment du tableau aux cartes. Chaque valeur non vide est elle-même liée: les valeurs d’entreprise et d’intermédiaire ouvrent l’entreprise concernée, les valeurs d’offre ouvrent l’offre, les valeurs de contact ouvrent le contact et les autres valeurs ouvrent l’enregistrement de la ligne. Aucune colonne d’actions supplémentaire n’est utilisée. Exporte le rapport en PDF si nécessaire.',
+    'en-GB' => 'Open “Show” and switch directly between table and cards at any time. Every non-empty field value is itself linked: company and intermediary values open that company, job values open the job, contact values open the contact, and other values open the report row’s record. No extra actions column is used. Export the report to PDF if needed.',
+    'pt-BR' => 'Abra “Mostrar” e alterne diretamente entre tabela e cartões a qualquer momento. Cada valor não vazio é um link: valores de empresa e intermediário abrem a empresa correspondente, valores de vaga abrem a vaga, valores de contato abrem o contato e os demais valores abrem o registro da linha. Não há coluna de ações adicional. Exporte o relatório em PDF se necessário.',
+    'es-MX' => 'Abre «Mostrar» y alterna directamente entre tabla y tarjetas en cualquier momento. Cada valor no vacío es un enlace: los valores de empresa e intermediario abren la empresa correspondiente, los valores de vacante abren la vacante, los valores de contacto abren el contacto y los demás valores abren el registro de la fila. No se usa una columna de acciones adicional. Exporta el informe en PDF si lo necesitas.',
   ),
   'help.v2.reports.summary' =>
   array (
@@ -7389,6 +7389,48 @@ function reportRecordUrl(string $base, array $row): string
     };
 }
 
+function reportFieldRecordUrl(string $base, string $field, array $row): string
+{
+    $targetBase = $base;
+    $targetId = (int)($row['id'] ?? 0);
+    if ($base === 'applications') {
+        if (in_array($field, ['job_id','title'], true)) {
+            $targetBase = 'jobs'; $targetId = (int)($row['job_id'] ?? 0);
+        } elseif (in_array($field, ['company_id','company'], true)) {
+            $targetBase = 'companies'; $targetId = (int)($row['company_id'] ?? 0);
+        } elseif (in_array($field, ['intermediary_company_id','intermediary_company'], true)) {
+            $targetBase = 'companies'; $targetId = (int)($row['intermediary_company_id'] ?? 0);
+        } elseif (in_array($field, ['primary_contact_id','primary_contact'], true)) {
+            $targetBase = 'contacts'; $targetId = (int)($row['primary_contact_id'] ?? 0);
+        }
+    } elseif ($base === 'contacts') {
+        if (in_array($field, ['company_id','company'], true)) {
+            $targetBase = 'companies'; $targetId = (int)($row['company_id'] ?? 0);
+        } elseif (in_array($field, ['application_id','application'], true)) {
+            $targetBase = 'applications'; $targetId = (int)($row['application_id'] ?? 0);
+        } elseif (in_array($field, ['job_id','job'], true)) {
+            $targetBase = 'jobs'; $targetId = (int)($row['job_id'] ?? 0);
+        }
+    } elseif ($base === 'documents') {
+        if (in_array($field, ['application_id','application'], true)) {
+            $targetBase = 'applications'; $targetId = (int)($row['application_id'] ?? 0);
+        } elseif (in_array($field, ['job_id','job'], true)) {
+            $targetBase = 'jobs'; $targetId = (int)($row['job_id'] ?? 0);
+        }
+    } elseif ($base === 'calendar') {
+        if (in_array($field, ['application_id','application'], true)) {
+            $targetBase = 'applications'; $targetId = (int)($row['application_id'] ?? 0);
+        } elseif (in_array($field, ['contact_id','contact'], true)) {
+            $targetBase = 'contacts'; $targetId = (int)($row['contact_id'] ?? 0);
+        } elseif ($field === 'company') {
+            $targetBase = 'companies'; $targetId = (int)($row['company_id'] ?? 0);
+        }
+    } elseif ($base === 'jobs' && in_array($field, ['company_id','company'], true)) {
+        $targetBase = 'companies'; $targetId = (int)($row['company_id'] ?? 0);
+    }
+    return reportRecordUrl($targetBase, ['id'=>$targetId]);
+}
+
 function reportOpenUrl(array $report): string
 {
     return '/?' . http_build_query(['page'=>'reports', 'view_report'=>(int)($report['id'] ?? 0)]) . '#report-view';
@@ -7973,7 +8015,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             LEFT JOIN jobs j ON j.id=d.job_id AND j.deleted_at IS NULL
             WHERE d.user_id=? AND d.deleted_at IS NULL', 'i', [$userId]),
         'calendar' => dbAll($db, 'SELECT ce.id, ce.application_id, j.title application, ce.contact_id,
-            TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)) contact, ct.email contact_email, c.name company, cc.name contact_company, ce.title,
+            TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)) contact, ct.email contact_email, COALESCE(c.id,cc.id) company_id, c.name company, cc.name contact_company, ce.title,
             ce.event_type type, ce.entry_kind, ce.source_type, ce.source_id, ce.source_key,
             ce.starts_at, ce.ends_at, ce.all_day, ce.status, ce.location, ce.notes, ce.completed_at,
             CONCAT_WS(" · ", NULLIF(j.title,""), NULLIF(COALESCE(c.name,cc.name),""), NULLIF(COALESCE(NULLIF(TRIM(CONCAT_WS(" ", ct.first_name, ct.last_name)),""),ct.email),"")) meta,
@@ -8036,6 +8078,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             ? reportCalendarDisplayMeta((string)($row['starts_at'] ?? ''), $currentUser)
             : [];
         $rowDisplayMeta['record_url'] = reportRecordUrl($base, $row);
+        $rowDisplayMeta['cell_urls'] = array_map(static fn(string $field): string => reportFieldRecordUrl($base, $field, $row), $columns);
         $formattedRow = array_map(static function(string $field) use ($row, $currentUser, $base): string {
             $value = $row[$field] ?? '';
             if ($field === 'latest_workflow_at') { return displayDateTime($value ?: null, $currentUser, false); }
@@ -8113,22 +8156,24 @@ function reportCalendarDisplayMeta(?string $value, array $currentUser): array
     }
 }
 
-function reportRowDetailsHtml(array $headers, array $row): string
+function reportFieldValueHtml(mixed $value, string $url): string
 {
-    $html = '<dl class="report-entry-fields">';
-    foreach ($headers as $index=>$header) {
-        $html .= '<div><dt>' . e((string)$header) . '</dt><dd>' . nl2br(e((string)($row[$index] ?? ''))) . '</dd></div>';
-    }
-    return $html . '</dl>';
+    $text = (string)$value;
+    $html = nl2br(e($text));
+    if ($text === '' || !str_starts_with($url, '/?page=')) return $html;
+    return '<a class="report-field-link" href="' . e($url) . '">' . $html . '</a>';
 }
 
-function reportRecordLinkHtml(array $displayMeta): string
+function reportRowDetailsHtml(array $headers, array $row, array $displayMeta = []): string
 {
-    $url = (string)($displayMeta['record_url'] ?? '');
-    if ($url === '' || !str_starts_with($url, '/?page=')) {
-        return '';
+    $cellUrls = (array)($displayMeta['cell_urls'] ?? []);
+    $fallback = (string)($displayMeta['record_url'] ?? '');
+    $html = '<dl class="report-entry-fields">';
+    foreach ($headers as $index=>$header) {
+        $url = (string)($cellUrls[$index] ?? $fallback);
+        $html .= '<div><dt>' . e((string)$header) . '</dt><dd>' . reportFieldValueHtml($row[$index] ?? '', $url) . '</dd></div>';
     }
-    return '<a class="button report-record-link" href="' . e($url) . '">' . e(tr('reports.open_record')) . '</a>';
+    return $html . '</dl>';
 }
 
 function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string
@@ -8141,13 +8186,16 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
         foreach ($headers as $header) {
             $html .= '<th>' . e((string)$header) . '</th>';
         }
-        $html .= '<th>' . e(tr('common.actions')) . '</th></tr></thead><tbody>';
+        $html .= '</tr></thead><tbody>';
         foreach ($rows as $index=>$row) {
+            $meta = (array)($displayMeta[$index] ?? []);
+            $cellUrls = (array)($meta['cell_urls'] ?? []);
+            $fallback = (string)($meta['record_url'] ?? '');
             $html .= '<tr>';
-            foreach ($row as $value) {
-                $html .= '<td>' . nl2br(e((string)$value)) . '</td>';
+            foreach ($row as $cellIndex=>$value) {
+                $html .= '<td>' . reportFieldValueHtml($value, (string)($cellUrls[$cellIndex] ?? $fallback)) . '</td>';
             }
-            $html .= '<td class="actions">' . reportRecordLinkHtml((array)($displayMeta[$index] ?? [])) . '</td></tr>';
+            $html .= '</tr>';
         }
         return $html . '</tbody></table></div>';
     }
@@ -8161,7 +8209,7 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
         foreach ($groups as $group=>$groupRows) {
             $html .= '<section class="report-calendar-group"><h3>' . e($group) . '</h3><div class="report-entries report-entries--cards">';
             foreach ($groupRows as $entry) {
-                $html .= '<article class="report-entry">' . reportRowDetailsHtml($headers, $entry['row']) . reportRecordLinkHtml($entry['meta']) . '</article>';
+                $html .= '<article class="report-entry">' . reportRowDetailsHtml($headers, $entry['row'], $entry['meta']) . '</article>';
             }
             $html .= '</div></section>';
         }
@@ -8172,9 +8220,10 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
     foreach ($rows as $index=>$row) {
         $html .= '<article class="report-entry">';
         if ($displayType === 'preview') {
-            $html .= '<h3>' . e((string)($row[0] ?? '—')) . '</h3>';
+            $meta = (array)($displayMeta[$index] ?? []);
+            $html .= '<h3>' . reportFieldValueHtml($row[0] ?? '—', (string)($meta['cell_urls'][0] ?? $meta['record_url'] ?? '')) . '</h3>';
         }
-        $html .= reportRowDetailsHtml($headers, $row) . reportRecordLinkHtml((array)($displayMeta[$index] ?? [])) . '</article>';
+        $html .= reportRowDetailsHtml($headers, $row, (array)($displayMeta[$index] ?? [])) . '</article>';
     }
     return $html . '</div>';
 }
@@ -11633,7 +11682,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.16','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.17','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15493,7 +15542,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.16';
+$codeVersion = '2.4.17';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

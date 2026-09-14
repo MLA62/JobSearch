@@ -2,6 +2,11 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.17: `report_fields_test.php` prüft die feldbezogenen Ziele für Firma, Vermittler,
+Job, Bewerbung und Kontakt sowie den Wegfall des separaten Reportbuttons. Der Chromium-Test prüft
+alle sieben Renderer bei Mobil- und Desktopbreite: keine Aktionsspalte, kein separater Button,
+verlinkte nicht leere Feldwerte, unterschiedliche Linkziele und weiterhin sichere Klartextausgabe.
+
 Ergänzung 2.4.16: `job_web_research_test.php` prüft die fill-only-Übernahme der belegten
 BRACK-Alltron-Anschrift, den Erhalt bestehender CRM-Werte, Recruiting-Kontakte, HTTPS-Pflicht,
 Quellenprotokoll und den verpflichtenden Webrecherchepfad vor der Bewerbungstexterstellung.

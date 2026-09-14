@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.16 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.17 ist implementiert und lokal verifiziert.
+
+## Feldbezogene Reportlinks 2.4.17
+
+`reportFieldRecordUrl()` löst jedes angezeigte Feld auf seinen fachlich zugehörigen Datensatz auf.
+In Bewerbungsreports verlinken beispielsweise Firma und Vermittler auf unterschiedliche
+Firmendatensätze, Jobtitel auf die Stelle und Kontaktfelder auf die Kontaktperson; Status-, Kanal-
+und Datumsfelder bleiben mit der Bewerbung verbunden. Entsprechende Beziehungen gelten auch für
+Kontakt-, Dokument-, Kalender- und Stellenreports.
+
+`reportDataset()` speichert die Linkziele positionsgleich als `cell_urls`. `reportFieldValueHtml()`
+escaped den Wert weiterhin vollständig und umschliesst nur nicht leere Werte mit einem geprüften
+internen Link. Tabelle, Liste, Karten, Vorschau und Kalendergruppen verwenden denselben Renderer.
+Die frühere Aktionsspalte und der separate «Datensatz öffnen»-Button entfallen.
 
 ## KI-Webrecherche für fehlende Empfängerdaten 2.4.16
 

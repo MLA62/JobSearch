@@ -82,6 +82,8 @@ reportCheck(preg_match('/function reportViewUrl\(.*?^\}/ms', $source, $viewUrlMa
 eval($viewUrlMatch[0]);
 reportCheck(preg_match('/function reportRecordUrl\(.*?^\}/ms', $source, $recordUrlMatch) === 1, 'Report record links are isolated for regression testing');
 eval($recordUrlMatch[0]);
+reportCheck(preg_match('/function reportFieldRecordUrl\(.*?^\}/ms', $source, $fieldRecordUrlMatch) === 1, 'Report field links are isolated for regression testing');
+eval($fieldRecordUrlMatch[0]);
 reportCheck(reportDisplayType('jobs', 'cards') === 'cards', 'Card view remains available for normal report data');
 reportCheck(reportDisplayType('jobs', 'calendar_month') === 'table', 'Calendar-only view is rejected for non-calendar data');
 reportCheck(reportDisplayType('calendar', 'calendar_month') === 'calendar_month', 'Calendar month view remains available for calendar data');
@@ -140,7 +142,17 @@ reportCheck($recordUrls === [
     'calendar'=>'/?page=calendar&edit_event=6#calendar-entry-form',
 ], 'Every report data source links to its own record editor');
 reportCheck(reportRecordUrl('unknown', ['id'=>9]) === '' && reportRecordUrl('jobs', ['id'=>0]) === '', 'Unknown sources and invalid IDs never produce report links');
-reportCheck(str_contains($source, "\$rowDisplayMeta['record_url'] = reportRecordUrl(\$base, \$row);") && str_contains($source, 'reportRecordLinkHtml((array)($displayMeta[$index] ?? []))'), 'Every rendered result receives its source-record link');
+reportCheck(reportFieldRecordUrl('applications','company',['id'=>9,'company_id'=>31]) === '/?page=companies&edit=31', 'Application company values link to the individual company');
+reportCheck(reportFieldRecordUrl('applications','title',['id'=>9,'job_id'=>41]) === '/?page=jobs&edit=41#new', 'Application job values link to the individual job');
+reportCheck(reportFieldRecordUrl('applications','intermediary_company',['id'=>9,'intermediary_company_id'=>51]) === '/?page=companies&edit=51', 'Intermediary values link to the individual intermediary company');
+reportCheck(reportFieldRecordUrl('applications','primary_contact',['id'=>9,'primary_contact_id'=>61]) === '/?page=contacts&edit_contact=61#contact-editor', 'Application contact values link to the individual contact');
+reportCheck(reportFieldRecordUrl('applications','status',['id'=>9]) === '/?page=applications&edit=9#application-form', 'Application-owned values link to the application');
+reportCheck(reportFieldRecordUrl('contacts','company',['id'=>7,'company_id'=>31]) === '/?page=companies&edit=31', 'Contact company values link to the individual company');
+reportCheck(reportFieldRecordUrl('contacts','job',['id'=>7,'job_id'=>41]) === '/?page=jobs&edit=41#new', 'Contact job values link to the individual job');
+reportCheck(reportFieldRecordUrl('documents','application',['id'=>8,'application_id'=>9]) === '/?page=applications&edit=9#application-form', 'Document application values link to the individual application');
+reportCheck(reportFieldRecordUrl('calendar','contact',['id'=>6,'contact_id'=>61]) === '/?page=contacts&edit_contact=61#contact-editor', 'Calendar contact values link to the individual contact');
+reportCheck(str_contains($source, "\$rowDisplayMeta['cell_urls'] = array_map(") && str_contains($source, 'reportFieldValueHtml($value'), 'Every rendered field receives its corresponding record link');
+reportCheck(!str_contains($source, 'reportRecordLinkHtml((array)($displayMeta[$index] ?? []))'), 'Reports no longer spend a separate column or button on record links');
 foreach (['table','list','cards','preview','calendar_day','calendar_week','calendar_month'] as $displayType) {
     reportCheck(str_contains($source, "'{$displayType}'"), "Report renderer supports {$displayType}");
 }

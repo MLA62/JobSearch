@@ -1,5 +1,5 @@
 {
-  "version": "2.4.16",
+  "version": "2.4.17",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -1175,7 +1175,7 @@
             "Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.",
             "Wähle die Anzeigeart: Tabelle, Liste, Karten oder Vorschau. Für Kalenderdaten stehen zusätzlich Tages-, Wochen- und Monatsgruppen zur Verfügung.",
             "Filtere einen geöffneten Report direkt nach seinen angezeigten Feldern: Text über Enthält, Daten von/bis, Zahlen mit Minimum/Maximum und jede fachlich sichtbare Auswahloption eindeutig über ihren angezeigten Wert.",
-            "Öffne «Anzeigen», wechsle jederzeit direkt zwischen Tabelle und Karten und öffne jeden Treffer über «Datensatz öffnen» im zugehörigen Originaldatensatz. Exportiere den Report bei Bedarf als PDF."
+            "Öffne «Anzeigen» und wechsle jederzeit direkt zwischen Tabelle und Karten. Jeder nicht leere Feldinhalt ist selbst verlinkt: Firmen- und Vermittlerwerte öffnen die jeweilige Firma, Jobwerte den Job, Kontaktwerte den Kontakt und die übrigen Werte den Datensatz der Reportzeile. Eine zusätzliche Aktionsspalte wird nicht verwendet. Exportiere den Report bei Bedarf als PDF."
           ],
           "tips": [
             "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.",
@@ -1193,7 +1193,7 @@
             "Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.",
             "Choisis le mode d’affichage: tableau, liste, cartes ou aperçu. Les données du calendrier proposent aussi des groupes par jour, semaine et mois.",
             "Filtre un rapport ouvert selon ses champs affichés: texte par contenu, dates de/à, nombres par minimum/maximum et chaque option visible sans confondre des états différents.",
-            "Ouvre «Afficher», passe à tout moment du tableau aux cartes et ouvre chaque résultat dans son enregistrement source avec «Ouvrir l’enregistrement». Exporte le rapport en PDF si nécessaire."
+            "Ouvre «Afficher» et passe à tout moment du tableau aux cartes. Chaque valeur non vide est elle-même liée: les valeurs d’entreprise et d’intermédiaire ouvrent l’entreprise concernée, les valeurs d’offre ouvrent l’offre, les valeurs de contact ouvrent le contact et les autres valeurs ouvrent l’enregistrement de la ligne. Aucune colonne d’actions supplémentaire n’est utilisée. Exporte le rapport en PDF si nécessaire."
           ],
           "tips": [
             "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.",
@@ -1211,7 +1211,7 @@
             "Drag the selected columns into order, set filters and save the report; the refreshed view opens immediately.",
             "Choose the display type: table, list, cards or preview. Calendar data also offers day, week and month groups.",
             "Filter an open report by its displayed fields: text by content, dates from/to, numbers by minimum/maximum, and every visible choice independently by its displayed value.",
-            "Open “Show”, switch directly between table and cards at any time, and use “Open record” to open each result in its source record. Export the report to PDF if needed."
+            "Open “Show” and switch directly between table and cards at any time. Every non-empty field value is itself linked: company and intermediary values open that company, job values open the job, contact values open the contact, and other values open the report row’s record. No extra actions column is used. Export the report to PDF if needed."
           ],
           "tips": [
             "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.",
@@ -1229,7 +1229,7 @@
             "Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.",
             "Escolha o modo de exibição: tabela, lista, cartões ou prévia. Os dados do calendário também oferecem grupos por dia, semana e mês.",
             "Filtre um relatório aberto pelos campos exibidos: texto por conteúdo, datas de/até, números por mínimo/máximo e cada opção visível separadamente pelo valor exibido.",
-            "Abra “Mostrar”, alterne diretamente entre tabela e cartões a qualquer momento e use “Abrir registro” para abrir cada resultado no registro original. Exporte o relatório em PDF se necessário."
+            "Abra “Mostrar” e alterne diretamente entre tabela e cartões a qualquer momento. Cada valor não vazio é um link: valores de empresa e intermediário abrem a empresa correspondente, valores de vaga abrem a vaga, valores de contato abrem o contato e os demais valores abrem o registro da linha. Não há coluna de ações adicional. Exporte o relatório em PDF se necessário."
           ],
           "tips": [
             "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.",
@@ -1247,7 +1247,7 @@
             "Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.",
             "Elige el tipo de visualización: tabla, lista, tarjetas o vista previa. Los datos del calendario también ofrecen grupos por día, semana y mes.",
             "Filtra un informe abierto por sus campos mostrados: texto por contenido, fechas desde/hasta, números por mínimo/máximo y cada opción visible por separado mediante su valor mostrado.",
-            "Abre «Mostrar», alterna directamente entre tabla y tarjetas en cualquier momento y usa «Abrir registro» para abrir cada resultado en su registro original. Exporta el informe en PDF si lo necesitas."
+            "Abre «Mostrar» y alterna directamente entre tabla y tarjetas en cualquier momento. Cada valor no vacío es un enlace: los valores de empresa e intermediario abren la empresa correspondiente, los valores de vacante abren la vacante, los valores de contacto abren el contacto y los demás valores abren el registro de la fila. No se usa una columna de acciones adicional. Exporta el informe en PDF si lo necesitas."
           ],
           "tips": [
             "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.",
