@@ -518,8 +518,12 @@ try {
             'de-CH' => 'Job-Room Status', 'fr-CH' => 'Statut Job-Room', 'en-GB' => 'Job-Room status', 'pt-BR' => 'Status do Job-Room', 'es-MX' => 'Estado de Job-Room',
         ],
         'applications.job_room_recorded_result' => [
-            'de-CH' => 'Im Job-Room erfasst – :result', 'fr-CH' => 'Saisi dans Job-Room – :result', 'en-GB' => 'Recorded in Job-Room – :result',
-            'pt-BR' => 'Registrado no Job-Room – :result', 'es-MX' => 'Registrado en Job-Room – :result',
+            'de-CH' => 'Im Job-Room erfasst – {result}', 'fr-CH' => 'Saisi dans Job-Room – {result}', 'en-GB' => 'Recorded in Job-Room – {result}',
+            'pt-BR' => 'Registrado no Job-Room – {result}', 'es-MX' => 'Registrado en Job-Room – {result}',
+        ],
+        'reports.open_record' => [
+            'de-CH' => 'Datensatz öffnen', 'fr-CH' => 'Ouvrir l’enregistrement', 'en-GB' => 'Open record',
+            'pt-BR' => 'Abrir registro', 'es-MX' => 'Abrir registro',
         ],
         'applications.job_room_interview' => [
             'de-CH' => 'Vorstellungsgespräch', 'fr-CH' => 'Entretien d’embauche', 'en-GB' => 'Job interview', 'pt-BR' => 'Entrevista de emprego', 'es-MX' => 'Entrevista de trabajo',
@@ -2002,7 +2006,7 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
         $text = $key;
     }
     foreach ($replace as $name => $value) {
-        $text = str_replace('{' . $name . '}', (string) $value, $text);
+        $text = str_replace(['{' . $name . '}', ':' . $name], (string) $value, $text);
     }
     return $text;
 }
@@ -3913,13 +3917,21 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.0' =>
   array (
+    'de-CH' => 'Die gespeicherten Reports stehen oben. Öffne dort eine bestehende Auswertung oder gehe darunter zum Editor.',
+    'fr-CH' => 'Les rapports enregistrés se trouvent en haut. Ouvre un rapport existant ou utilise l’éditeur en dessous.',
+    'en-GB' => 'Saved reports appear at the top. Open an existing report there or use the editor below.',
+    'pt-BR' => 'Os relatórios salvos aparecem no topo. Abra um relatório existente ali ou use o editor abaixo.',
+    'es-MX' => 'Los informes guardados aparecen arriba. Abre allí un informe existente o usa el editor situado debajo.',
+  ),
+  'help.v2.reports.steps.1' =>
+  array (
     'de-CH' => 'Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.',
     'fr-CH' => 'Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.',
     'en-GB' => 'Select field filters and sorting in column headers; reset them when needed.',
     'pt-BR' => 'Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.',
     'es-MX' => 'Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.',
   ),
-  'help.v2.reports.steps.1' =>
+  'help.v2.reports.steps.2' =>
   array (
     'de-CH' => 'Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.',
     'fr-CH' => 'Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.',
@@ -3927,7 +3939,7 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.',
     'es-MX' => 'Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.',
   ),
-  'help.v2.reports.steps.2' =>
+  'help.v2.reports.steps.3' =>
   array (
     'de-CH' => 'Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.',
     'fr-CH' => 'Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.',
@@ -3935,7 +3947,7 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.',
     'es-MX' => 'Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.',
   ),
-  'help.v2.reports.steps.3' =>
+  'help.v2.reports.steps.4' =>
   array (
     'de-CH' => 'Wähle die Anzeigeart: Tabelle, Liste, Karten oder Vorschau. Für Kalenderdaten stehen zusätzlich Tages-, Wochen- und Monatsgruppen zur Verfügung.',
     'fr-CH' => 'Choisis le mode d’affichage: tableau, liste, cartes ou aperçu. Les données du calendrier proposent aussi des groupes par jour, semaine et mois.',
@@ -3943,13 +3955,21 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Escolha o modo de exibição: tabela, lista, cartões ou prévia. Os dados do calendário também oferecem grupos por dia, semana e mês.',
     'es-MX' => 'Elige el tipo de visualización: tabla, lista, tarjetas o vista previa. Los datos del calendario también ofrecen grupos por día, semana y mes.',
   ),
-  'help.v2.reports.steps.4' =>
+  'help.v2.reports.steps.5' =>
   array (
-    'de-CH' => 'Öffne «Anzeigen», um den Report mit den gewählten Spalten und der gespeicherten Anzeigeart zu sehen, und exportiere ihn bei Bedarf als PDF.',
-    'fr-CH' => 'Ouvre «Afficher» pour voir le rapport avec les colonnes choisies et le mode d’affichage enregistré, puis exporte-le en PDF si nécessaire.',
-    'en-GB' => 'Open “Show” to see the report with the selected columns and saved display type, then export it to PDF if needed.',
-    'pt-BR' => 'Abra “Mostrar” para ver o relatório com as colunas selecionadas e o modo de exibição salvo e exporte-o em PDF se necessário.',
-    'es-MX' => 'Abre «Mostrar» para ver el informe con las columnas elegidas y el tipo de visualización guardado; expórtalo en PDF si lo necesitas.',
+    'de-CH' => 'Filtere einen geöffneten Report direkt nach seinen angezeigten Feldern: Text über Enthält, Daten von/bis, Zahlen mit Minimum/Maximum und Auswahlfelder über ihre vorhandenen Werte.',
+    'fr-CH' => 'Filtre un rapport ouvert selon ses champs affichés: texte par contenu, dates de/à, nombres par minimum/maximum et champs de sélection selon leurs valeurs disponibles.',
+    'en-GB' => 'Filter an open report by its displayed fields: text by content, dates from/to, numbers by minimum/maximum, and choice fields by their available values.',
+    'pt-BR' => 'Filtre um relatório aberto pelos campos exibidos: texto por conteúdo, datas de/até, números por mínimo/máximo e campos de escolha pelos valores disponíveis.',
+    'es-MX' => 'Filtra un informe abierto por sus campos mostrados: texto por contenido, fechas desde/hasta, números por mínimo/máximo y campos de selección por sus valores disponibles.',
+  ),
+  'help.v2.reports.steps.6' =>
+  array (
+    'de-CH' => 'Öffne «Anzeigen», wechsle jederzeit direkt zwischen Tabelle und Karten und öffne jeden Treffer über «Datensatz öffnen» im zugehörigen Originaldatensatz. Exportiere den Report bei Bedarf als PDF.',
+    'fr-CH' => 'Ouvre «Afficher», passe à tout moment du tableau aux cartes et ouvre chaque résultat dans son enregistrement source avec «Ouvrir l’enregistrement». Exporte le rapport en PDF si nécessaire.',
+    'en-GB' => 'Open “Show”, switch directly between table and cards at any time, and use “Open record” to open each result in its source record. Export the report to PDF if needed.',
+    'pt-BR' => 'Abra “Mostrar”, alterne diretamente entre tabela e cartões a qualquer momento e use “Abrir registro” para abrir cada resultado no registro original. Exporte o relatório em PDF se necessário.',
+    'es-MX' => 'Abre «Mostrar», alterna directamente entre tabla y tarjetas en cualquier momento y usa «Abrir registro» para abrir cada resultado en su registro original. Exporta el informe en PDF si lo necesitas.',
   ),
   'help.v2.reports.summary' =>
   array (
@@ -4327,6 +4347,54 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'É possível selecionar no máximo {count} campos de uma vez.',
     'es-MX' => 'Se pueden seleccionar como máximo {count} campos a la vez.',
   ),
+  'reports.filter_from' =>
+  array (
+    'de-CH' => 'Von',
+    'fr-CH' => 'Du',
+    'en-GB' => 'From',
+    'pt-BR' => 'De',
+    'es-MX' => 'Desde',
+  ),
+  'reports.filter_max' =>
+  array (
+    'de-CH' => 'Maximum',
+    'fr-CH' => 'Maximum',
+    'en-GB' => 'Maximum',
+    'pt-BR' => 'Máximo',
+    'es-MX' => 'Máximo',
+  ),
+  'reports.filter_min' =>
+  array (
+    'de-CH' => 'Minimum',
+    'fr-CH' => 'Minimum',
+    'en-GB' => 'Minimum',
+    'pt-BR' => 'Mínimo',
+    'es-MX' => 'Mínimo',
+  ),
+  'reports.filter_to' =>
+  array (
+    'de-CH' => 'Bis',
+    'fr-CH' => 'Au',
+    'en-GB' => 'To',
+    'pt-BR' => 'Até',
+    'es-MX' => 'Hasta',
+  ),
+  'reports.filters' =>
+  array (
+    'de-CH' => 'Resultate filtern',
+    'fr-CH' => 'Filtrer les résultats',
+    'en-GB' => 'Filter results',
+    'pt-BR' => 'Filtrar resultados',
+    'es-MX' => 'Filtrar resultados',
+  ),
+  'reports.open_record' =>
+  array (
+    'de-CH' => 'Datensatz öffnen',
+    'fr-CH' => 'Ouvrir l’enregistrement',
+    'en-GB' => 'Open record',
+    'pt-BR' => 'Abrir registro',
+    'es-MX' => 'Abrir registro',
+  ),
   'sf.with_entries' =>
   array (
     'de-CH' => '{entity}: mit Einträgen',
@@ -4588,7 +4656,7 @@ function helpTopicDefinitions(): array
     array (
       0 => 'reports',
     ),
-    'step_count' => 5,
+    'step_count' => 7,
     'tip_count' => 3,
   ),
   15 =>
@@ -7123,6 +7191,188 @@ function reportDisplayType(string $base, ?string $displayType): string
     return array_key_exists($displayType, reportDisplayOptions($base)) ? $displayType : 'table';
 }
 
+function reportViewDisplayType(string $base, ?string $savedDisplayType, ?string $requestedDisplayType): string
+{
+    $requestedDisplayType = strtolower(trim((string)$requestedDisplayType));
+    if (in_array($requestedDisplayType, ['table', 'cards'], true)) {
+        return $requestedDisplayType;
+    }
+    return reportDisplayType($base, $savedDisplayType);
+}
+
+function reportViewUrl(int $reportId, string $displayType, array $filters = []): string
+{
+    $displayType = in_array($displayType, ['table', 'cards'], true) ? $displayType : 'table';
+    $query = ['page'=>'reports', 'view_report'=>$reportId, 'report_as'=>$displayType];
+    if ($filters) {
+        $query['report_filter'] = $filters;
+    }
+    return '/?' . http_build_query($query) . '#report-view';
+}
+
+function reportViewFilterType(string $field): string
+{
+    if (in_array($field, ['created_at','updated_at','applied_at','latest_workflow_at','next_action_at','starts_at','ends_at','completed_at','published_at','expires_at','fixed_term_start','fixed_term_end','valid_from','valid_until'], true)) {
+        return 'date';
+    }
+    if ($field === 'id' || str_ends_with($field, '_id') || in_array($field, ['employee_count','latitude','longitude','rating','open_logs','file_size','version','workload_min','workload_max','salary_min','salary_max','match_score','salary_expectation'], true)) {
+        return 'number';
+    }
+    if (in_array($field, ['is_intermediary','is_current','all_day','job_room_interview','status','channel','next_action','job_room_result','job_room_registration','workplace_type','engagement_type','contract_term','salary_period','country_code','preferred_language','language_code','scope','type','entry_kind','source_type'], true)) {
+        return 'choice';
+    }
+    return 'text';
+}
+
+function reportViewFilterState(array $columns, mixed $rawFilters): array
+{
+    $rawFilters = is_array($rawFilters) ? $rawFilters : [];
+    $state = [];
+    foreach ($columns as $field) {
+        $field = (string)$field;
+        $raw = isset($rawFilters[$field]) && is_array($rawFilters[$field]) ? $rawFilters[$field] : [];
+        $type = reportViewFilterType($field);
+        if ($type === 'date') {
+            $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($raw['from'] ?? '')) ? (string)$raw['from'] : '';
+            $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)($raw['to'] ?? '')) ? (string)$raw['to'] : '';
+            if ($from !== '' || $to !== '') {
+                $state[$field] = ['from'=>$from, 'to'=>$to];
+            }
+            continue;
+        }
+        if ($type === 'number') {
+            $minimum = is_numeric($raw['min'] ?? null) ? (string)$raw['min'] : '';
+            $maximum = is_numeric($raw['max'] ?? null) ? (string)$raw['max'] : '';
+            if ($minimum !== '' || $maximum !== '') {
+                $state[$field] = ['min'=>$minimum, 'max'=>$maximum];
+            }
+            continue;
+        }
+        $value = trim(substr((string)($raw['value'] ?? ''), 0, 500));
+        if ($value !== '') {
+            $state[$field] = ['value'=>$value];
+        }
+    }
+    return $state;
+}
+
+function reportViewFilterDefinitions(array $columns, array $headers, array $rows, array $displayMeta): array
+{
+    $definitions = [];
+    foreach ($columns as $index=>$field) {
+        $type = reportViewFilterType((string)$field);
+        $definition = ['field'=>(string)$field, 'label'=>(string)($headers[$index] ?? $field), 'type'=>$type, 'options'=>[]];
+        if ($type === 'choice') {
+            foreach ($rows as $rowIndex=>$row) {
+                $raw = (string)($displayMeta[$rowIndex]['filter_values'][$field] ?? '');
+                $label = trim((string)($row[$index] ?? ''));
+                $optionValue = $raw === '' ? '__empty__' : $raw;
+                $definition['options'][$optionValue] = $label !== '' ? $label : '—';
+            }
+            natcasesort($definition['options']);
+        }
+        $definitions[] = $definition;
+    }
+    return $definitions;
+}
+
+function reportViewApplyFilters(array $columns, array $rows, array $displayMeta, array $filters): array
+{
+    if (!$filters) {
+        return [$rows, $displayMeta];
+    }
+    $filteredRows = [];
+    $filteredMeta = [];
+    $lower = static fn(string $value): string => function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value);
+    foreach ($rows as $rowIndex=>$row) {
+        $meta = (array)($displayMeta[$rowIndex] ?? []);
+        $matches = true;
+        foreach ($filters as $field=>$filter) {
+            $columnIndex = array_search((string)$field, $columns, true);
+            if ($columnIndex === false) {
+                continue;
+            }
+            $type = reportViewFilterType((string)$field);
+            $raw = (string)($meta['filter_values'][$field] ?? '');
+            $display = (string)($row[$columnIndex] ?? '');
+            if ($type === 'date') {
+                $date = preg_match('/^\d{4}-\d{2}-\d{2}/', $raw, $match) ? $match[0] : '';
+                if ($date === '' || (($filter['from'] ?? '') !== '' && $date < $filter['from']) || (($filter['to'] ?? '') !== '' && $date > $filter['to'])) {
+                    $matches = false;
+                }
+            } elseif ($type === 'number') {
+                if (!is_numeric($raw) || (($filter['min'] ?? '') !== '' && (float)$raw < (float)$filter['min']) || (($filter['max'] ?? '') !== '' && (float)$raw > (float)$filter['max'])) {
+                    $matches = false;
+                }
+            } elseif ($type === 'choice') {
+                $expected = (string)($filter['value'] ?? '');
+                $matches = $expected === '__empty__' ? $raw === '' : hash_equals($expected, $raw);
+            } else {
+                $needle = $lower((string)($filter['value'] ?? ''));
+                $matches = $needle === '' || str_contains($lower($display), $needle);
+            }
+            if (!$matches) {
+                break;
+            }
+        }
+        if ($matches) {
+            $filteredRows[] = $row;
+            $filteredMeta[] = $meta;
+        }
+    }
+    return [$filteredRows, $filteredMeta];
+}
+
+function reportViewFiltersHtml(int $reportId, string $displayType, array $definitions, array $state): string
+{
+    $html = '<details class="report-view-filters"' . ($state ? ' open' : '') . '><summary>' . e(tr('reports.filters')) . '</summary>';
+    $html .= '<form method="get" class="report-view-filter-form"><input type="hidden" name="page" value="reports"><input type="hidden" name="view_report" value="' . $reportId . '"><input type="hidden" name="report_as" value="' . e($displayType) . '"><div class="report-view-filter-grid">';
+    foreach ($definitions as $definition) {
+        $field = (string)$definition['field'];
+        $label = (string)$definition['label'];
+        $type = (string)$definition['type'];
+        $current = (array)($state[$field] ?? []);
+        $name = 'report_filter[' . $field . ']';
+        $html .= '<fieldset><legend>' . e($label) . '</legend>';
+        if ($type === 'date') {
+            $html .= '<label>' . e(tr('reports.filter_from')) . '<input type="date" name="' . e($name . '[from]') . '" value="' . e((string)($current['from'] ?? '')) . '"></label>';
+            $html .= '<label>' . e(tr('reports.filter_to')) . '<input type="date" name="' . e($name . '[to]') . '" value="' . e((string)($current['to'] ?? '')) . '"></label>';
+        } elseif ($type === 'number') {
+            $html .= '<label>' . e(tr('reports.filter_min')) . '<input type="number" step="any" name="' . e($name . '[min]') . '" value="' . e((string)($current['min'] ?? '')) . '"></label>';
+            $html .= '<label>' . e(tr('reports.filter_max')) . '<input type="number" step="any" name="' . e($name . '[max]') . '" value="' . e((string)($current['max'] ?? '')) . '"></label>';
+        } elseif ($type === 'choice') {
+            $html .= '<label>' . e(tr('sf.filter')) . '<select name="' . e($name . '[value]') . '"><option value="">' . e(tr('common.all')) . '</option>';
+            foreach ((array)$definition['options'] as $value=>$optionLabel) {
+                $selected = (string)($current['value'] ?? '') === (string)$value ? ' selected' : '';
+                $html .= '<option value="' . e((string)$value) . '"' . $selected . '>' . e((string)$optionLabel) . '</option>';
+            }
+            $html .= '</select></label>';
+        } else {
+            $html .= '<label>' . e(tr('sf.filter')) . '<input type="search" name="' . e($name . '[value]') . '" value="' . e((string)($current['value'] ?? '')) . '" placeholder="' . e(tr('sf.contains_placeholder', null, ['field'=>$label])) . '"></label>';
+        }
+        $html .= '</fieldset>';
+    }
+    $html .= '</div><div class="actions"><button class="primary">' . e(tr('sf.apply')) . '</button><a class="button" href="' . e(reportViewUrl($reportId, $displayType)) . '">' . e(tr('sf.reset')) . '</a></div></form></details>';
+    return $html;
+}
+
+function reportRecordUrl(string $base, array $row): string
+{
+    $id = (int)($row['id'] ?? 0);
+    if ($id <= 0) {
+        return '';
+    }
+    return match ($base) {
+        'applications' => '/?page=applications&edit=' . $id . '#application-form',
+        'companies' => '/?page=companies&edit=' . $id,
+        'contacts' => '/?page=contacts&edit_contact=' . $id . '#contact-editor',
+        'documents' => '/?page=documents&edit_document=' . $id . '#document-editor',
+        'calendar' => '/?page=calendar&edit_event=' . $id . '#calendar-entry-form',
+        'jobs' => '/?page=jobs&edit=' . $id . '#new',
+        default => '',
+    };
+}
+
 function reportOpenUrl(array $report): string
 {
     return '/?' . http_build_query(['page'=>'reports', 'view_report'=>(int)($report['id'] ?? 0)]) . '#report-view';
@@ -7766,9 +8016,12 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             $row['status'] = $workflow['status'];
             $row['channel'] = optionLabel(applicationChannelOptions(), $row['channel']);
         }
-        $displayMeta[] = $base === 'calendar'
+        $rowDisplayMeta = $base === 'calendar'
             ? reportCalendarDisplayMeta((string)($row['starts_at'] ?? ''), $currentUser)
             : [];
+        $rowDisplayMeta['record_url'] = reportRecordUrl($base, $row);
+        $rowDisplayMeta['filter_values'] = array_intersect_key($row, array_flip($columns));
+        $displayMeta[] = $rowDisplayMeta;
         $data[] = array_map(static function(string $field) use ($row, $currentUser, $base): string {
             $value = $row[$field] ?? '';
             if ($field === 'latest_workflow_at') { return displayDateTime($value ?: null, $currentUser, false); }
@@ -7846,6 +8099,15 @@ function reportRowDetailsHtml(array $headers, array $row): string
     return $html . '</dl>';
 }
 
+function reportRecordLinkHtml(array $displayMeta): string
+{
+    $url = (string)($displayMeta['record_url'] ?? '');
+    if ($url === '' || !str_starts_with($url, '/?page=')) {
+        return '';
+    }
+    return '<a class="button report-record-link" href="' . e($url) . '">' . e(tr('reports.open_record')) . '</a>';
+}
+
 function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string
 {
     if (!$rows) {
@@ -7856,13 +8118,13 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
         foreach ($headers as $header) {
             $html .= '<th>' . e((string)$header) . '</th>';
         }
-        $html .= '</tr></thead><tbody>';
-        foreach ($rows as $row) {
+        $html .= '<th>' . e(tr('common.actions')) . '</th></tr></thead><tbody>';
+        foreach ($rows as $index=>$row) {
             $html .= '<tr>';
             foreach ($row as $value) {
                 $html .= '<td>' . nl2br(e((string)$value)) . '</td>';
             }
-            $html .= '</tr>';
+            $html .= '<td class="actions">' . reportRecordLinkHtml((array)($displayMeta[$index] ?? [])) . '</td></tr>';
         }
         return $html . '</tbody></table></div>';
     }
@@ -7870,13 +8132,13 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
         $groups = [];
         foreach ($rows as $index=>$row) {
             $group = (string)($displayMeta[$index][$displayType] ?? '—');
-            $groups[$group][] = $row;
+            $groups[$group][] = ['row'=>$row, 'meta'=>(array)($displayMeta[$index] ?? [])];
         }
         $html = '<div class="report-calendar-groups report-calendar-groups--' . e($displayType) . '">';
         foreach ($groups as $group=>$groupRows) {
             $html .= '<section class="report-calendar-group"><h3>' . e($group) . '</h3><div class="report-entries report-entries--cards">';
-            foreach ($groupRows as $row) {
-                $html .= '<article class="report-entry">' . reportRowDetailsHtml($headers, $row) . '</article>';
+            foreach ($groupRows as $entry) {
+                $html .= '<article class="report-entry">' . reportRowDetailsHtml($headers, $entry['row']) . reportRecordLinkHtml($entry['meta']) . '</article>';
             }
             $html .= '</div></section>';
         }
@@ -7884,12 +8146,12 @@ function reportRowsHtml(array $headers, array $rows, string $displayType, array 
     }
     $class = $displayType === 'cards' ? 'cards' : ($displayType === 'preview' ? 'preview' : 'list');
     $html = '<div class="report-entries report-entries--' . e($class) . '">';
-    foreach ($rows as $row) {
+    foreach ($rows as $index=>$row) {
         $html .= '<article class="report-entry">';
         if ($displayType === 'preview') {
             $html .= '<h3>' . e((string)($row[0] ?? '—')) . '</h3>';
         }
-        $html .= reportRowDetailsHtml($headers, $row) . '</article>';
+        $html .= reportRowDetailsHtml($headers, $row) . reportRecordLinkHtml((array)($displayMeta[$index] ?? [])) . '</article>';
     }
     return $html . '</div>';
 }
@@ -11156,7 +11418,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.12','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.13','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15003,7 +15265,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.12';
+$codeVersion = '2.4.13';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -15709,8 +15971,11 @@ startUiTranslationBuffer($appLocale);
             'display_label'=>['label'=>tr('reports.view'), 'choices'=>array_combine(array_values($allReportDisplayOptions), array_values($allReportDisplayOptions))],
             'updated_at'=>['label'=>tr('common.updated')],
         ];
+        $requestedReportDisplayType = in_array((string)($_GET['report_as'] ?? ''), ['table', 'cards'], true)
+            ? (string)$_GET['report_as']
+            : '';
         $reportListSf = sfState('reports', $reportListSfFields, ['sort'=>'updated_at','dir'=>'desc']);
-        $reportListPreserve = ['page'=>'reports', 'edit_report'=>$editReportId ?: '', 'view_report'=>$viewReportId ?: ''];
+        $reportListPreserve = ['page'=>'reports', 'edit_report'=>$editReportId ?: '', 'view_report'=>$viewReportId ?: '', 'report_as'=>$requestedReportDisplayType];
         $reports = sfApplyRows($reports, $reportListSf, $reportListSfFields);
         $reportBase = (string)($editReport['base_entity'] ?? 'jobs');
         $reportDisplayOptions = reportDisplayOptions($reportBase);
@@ -15733,10 +15998,20 @@ startUiTranslationBuffer($appLocale);
         $viewReportData = [];
         $viewReportMeta = [];
         $viewReportDisplayType = 'table';
+        $viewReportColumns = [];
+        $viewReportFilterDefinitions = [];
+        $viewReportFilters = [];
         if ($viewReport) {
             $viewReportSettings = loadReportSettings($db, (int)$viewReport['id'], (string)$viewReport['base_entity']);
             [$viewReportHeaders, $viewReportData, $viewReportMeta] = reportDataset($db, userId(), $viewReport, $viewReportSettings, $currentUser);
-            $viewReportDisplayType = reportDisplayType((string)$viewReport['base_entity'], $viewReport['display_type'] ?? null);
+            $viewReportDisplayType = reportViewDisplayType((string)$viewReport['base_entity'], $viewReport['display_type'] ?? null, $requestedReportDisplayType);
+            $viewReportColumns = reportSelectedColumns((string)$viewReport['base_entity'], (array)$viewReportSettings['columns']);
+            if (!$viewReportColumns) {
+                $viewReportColumns = reportDefaultColumns((string)$viewReport['base_entity']);
+            }
+            $viewReportFilterDefinitions = reportViewFilterDefinitions($viewReportColumns, $viewReportHeaders, $viewReportData, $viewReportMeta);
+            $viewReportFilters = reportViewFilterState($viewReportColumns, $_GET['report_filter'] ?? []);
+            [$viewReportData, $viewReportMeta] = reportViewApplyFilters($viewReportColumns, $viewReportData, $viewReportMeta, $viewReportFilters);
         }
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h1><?= e(tr('reports.title')) ?></h1></div><span><?= e(tr('reports.count', null, ['count' => (string) count($reports)])) ?></span></div>
@@ -15834,11 +16109,12 @@ startUiTranslationBuffer($appLocale);
                 })();</script>
                 <div class="actions export-actions"><?= sfToolbar('reports', $reportListSf, $reportListPreserve, $reportListSfFields) ?><a class="button primary" href="/?page=job_room_helper"><?= e(tr('job_room_helper.title')) ?></a><a class="button" href="/?page=export_pdf&type=rav"><?= e(tr('reports.application_overview_pdf')) ?></a><a class="button" href="/?page=export_csv&type=jobs"><?= e(tr('nav.jobs')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=jobs"><?= e(tr('nav.jobs')) ?> PDF</a><a class="button" href="/?page=export_csv&type=applications"><?= e(tr('nav.applications')) ?> CSV</a><a class="button" href="/?page=export_pdf&type=applications"><?= e(tr('nav.applications')) ?> PDF</a><a class="button" href="/?page=export_csv&type=audit"><?= e(tr('audit.title')) ?> CSV</a></div>
             </section>
-            <section class="panel table-wrap"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= nl2br(e(richTextPlain((string)$report['description']))) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
+            <section class="panel table-wrap report-saved-panel"><h2><?= e(tr('reports.saved')) ?></h2><table><thead><tr><?= sfHeader('reports','name',tr('common.name'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','base_label',tr('reports.base'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','display_label',tr('reports.view'),$reportListSf,$reportListPreserve) ?><?= sfHeader('reports','updated_at',tr('common.updated'),$reportListSf,$reportListPreserve) ?><th><?= e(tr('common.actions')) ?></th></tr></thead><tbody><?php foreach($reports as $report): ?><tr class="<?= $editReport && (int)$editReport['id']===(int)$report['id'] ? 'is-selected' : '' ?>"><td><strong><?= e($report['name']) ?></strong><small><?= nl2br(e(richTextPlain((string)$report['description']))) ?></small></td><td><?= e($report['base_label']) ?></td><td><?= e($report['display_label']) ?></td><td><?= e(displayDateTime($report['updated_at'], $currentUser)) ?></td><td class="actions"><a href="<?= e(reportOpenUrl($report)) ?>"><?= e(tr('common.show')) ?></a><a href="/?page=reports&edit_report=<?= (int)$report['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a href="/?page=export_pdf&type=report&report_id=<?= (int)$report['id'] ?>">PDF</a><form method="post" onsubmit="return confirm('<?= e(tr('reports.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="report_id" value="<?= (int)$report['id'] ?>"><button name="action" value="delete_report"><?= e(tr('common.delete')) ?></button></form></td></tr><?php endforeach; ?><?php if(!$reports): ?><tr><td colspan="5" class="empty"><?= e(tr('reports.empty')) ?></td></tr><?php endif; ?></tbody></table></section>
         </div>
         <?php if($viewReport): ?>
             <section class="panel" id="report-view" data-report-display-type="<?= e($viewReportDisplayType) ?>">
-                <div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h2><?= e((string)$viewReport['name']) ?></h2><p><?= nl2br(e(richTextPlain((string)$viewReport['description']))) ?></p></div><div class="actions"><a class="button" href="/?page=reports&edit_report=<?= (int)$viewReport['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a class="button primary" href="/?page=export_pdf&type=report&report_id=<?= (int)$viewReport['id'] ?>">PDF</a></div></div>
+                <div class="section-head"><div><p class="eyebrow"><?= e(tr('nav.reporting')) ?></p><h2><?= e((string)$viewReport['name']) ?></h2><p><?= nl2br(e(richTextPlain((string)$viewReport['description']))) ?></p></div><div class="actions report-view-switcher" aria-label="<?= e(tr('reports.view')) ?>"><a data-report-view-option="table" class="button <?= $viewReportDisplayType === 'table' ? 'primary' : '' ?>" aria-pressed="<?= $viewReportDisplayType === 'table' ? 'true' : 'false' ?>" href="<?= e(reportViewUrl((int)$viewReport['id'], 'table', $viewReportFilters)) ?>"><?= e(tr('common.table')) ?></a><a data-report-view-option="cards" class="button <?= $viewReportDisplayType === 'cards' ? 'primary' : '' ?>" aria-pressed="<?= $viewReportDisplayType === 'cards' ? 'true' : 'false' ?>" href="<?= e(reportViewUrl((int)$viewReport['id'], 'cards', $viewReportFilters)) ?>"><?= e(tr('common.cards')) ?></a><a class="button" href="/?page=reports&edit_report=<?= (int)$viewReport['id'] ?>#report-editor"><?= e(tr('common.edit')) ?></a><a class="button" href="/?page=export_pdf&type=report&report_id=<?= (int)$viewReport['id'] ?>">PDF</a></div></div>
+                <?= reportViewFiltersHtml((int)$viewReport['id'], $viewReportDisplayType, $viewReportFilterDefinitions, $viewReportFilters) ?>
                 <?= reportRowsHtml($viewReportHeaders, $viewReportData, $viewReportDisplayType, $viewReportMeta) ?>
             </section>
         <?php endif; ?>

@@ -1,6 +1,26 @@
 # Programmdokumentation
 
-Stand: 2026-09-12. Version 2.4.12 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.13 ist implementiert und für das Deployment vorbereitet.
+
+## Umschaltbare und verlinkte Reports 2.4.13
+
+Jeder geöffnete Report bietet unabhängig von der gespeicherten Voreinstellung die Schalter
+«Tabelle» und «Karten». Die Auswahl wirkt nur auf die aktuelle Anzeige und verändert den
+gespeicherten Report nicht. Tabelle, Karten, Liste, Vorschau sowie Kalendergruppen erhalten für
+jeden Treffer einen sicheren internen Link zum Editor des ursprünglichen Jobs, der Bewerbung, Firma,
+Kontaktperson, des Dokuments oder Kalendereintrags. `reportRecordUrl()` erzeugt diese Links aus der
+serverseitig gelesenen ID. Zusätzlich ersetzt `tr()` sowohl aktuelle `{result}`- als auch ältere
+`:result`-Platzhalter, sodass keine technische Schablone in den Job-Room-Status gelangt.
+Die visuelle Reihenfolge innerhalb des Reportbereichs setzt «Gespeicherte Reports» vor den Editor,
+damit vorhandene Auswertungen ohne vorgängiges Scrollen erreichbar sind.
+
+Jeder geöffnete Report erzeugt seine Filter ausschließlich aus den tatsächlich gewählten Spalten.
+Datumsfelder erhalten Von/Bis, numerische Felder Minimum/Maximum, Status- und andere Auswahlfelder
+eine Liste der vorhandenen Werte und Textfelder eine Enthält-Suche. `reportViewFilterState()` verwirft
+unbekannte Felder und ungültige Werte. `reportViewApplyFilters()` verknüpft alle aktiven Kriterien mit
+UND und filtert Ergebnisdaten und deren Metadaten gemeinsam. Dadurch bleiben die Links zum
+Originaldatensatz auch nach der Filterung korrekt zugeordnet. `reportViewUrl()` trägt aktive Filter
+beim Wechsel zwischen Tabelle und Karten weiter.
 
 ## Beziehungsfilter der Firmenspalte Links 2.4.12
 

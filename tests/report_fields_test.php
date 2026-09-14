@@ -13,8 +13,15 @@ function reportCheck(bool $condition, string $message): void
 
 function tr(string $key, ?string $locale = null, array $replace = []): string
 {
+    $key = match ($key) {
+        'applications.job_room_recorded_result' => 'Im Job-Room erfasst – {result}',
+        'job_room_helper.result.open' => 'Noch offen',
+        'job_room_helper.result.hired' => 'Anstellung',
+        'job_room_helper.result.rejected' => 'Absage',
+        default => $key,
+    };
     foreach ($replace as $name => $value) {
-        $key = str_replace(':' . $name, (string)$value, $key);
+        $key = str_replace([':' . $name, '{' . $name . '}'], (string)$value, $key);
     }
     return $key;
 }
@@ -69,9 +76,71 @@ reportCheck(preg_match('/function reportDisplayOptions\(.*?^\}/ms', $source, $di
 eval($displayOptionsMatch[0]);
 reportCheck(preg_match('/function reportDisplayType\(.*?^\}/ms', $source, $displayTypeMatch) === 1, 'Report display validation is isolated for regression testing');
 eval($displayTypeMatch[0]);
+reportCheck(preg_match('/function reportViewDisplayType\(.*?^\}/ms', $source, $viewDisplayTypeMatch) === 1, 'Report view override is isolated for regression testing');
+eval($viewDisplayTypeMatch[0]);
+reportCheck(preg_match('/function reportViewUrl\(.*?^\}/ms', $source, $viewUrlMatch) === 1, 'Report view links are isolated for regression testing');
+eval($viewUrlMatch[0]);
+reportCheck(preg_match('/function reportRecordUrl\(.*?^\}/ms', $source, $recordUrlMatch) === 1, 'Report record links are isolated for regression testing');
+eval($recordUrlMatch[0]);
 reportCheck(reportDisplayType('jobs', 'cards') === 'cards', 'Card view remains available for normal report data');
 reportCheck(reportDisplayType('jobs', 'calendar_month') === 'table', 'Calendar-only view is rejected for non-calendar data');
 reportCheck(reportDisplayType('calendar', 'calendar_month') === 'calendar_month', 'Calendar month view remains available for calendar data');
+reportCheck(reportViewDisplayType('applications', 'list', 'table') === 'table' && reportViewDisplayType('applications', 'list', 'cards') === 'cards', 'Every opened report can switch directly between table and cards');
+reportCheck(reportViewDisplayType('applications', 'list', 'invalid') === 'list', 'An invalid view override falls back to the saved display type');
+reportCheck(reportViewUrl(73, 'cards') === '/?page=reports&view_report=73&report_as=cards#report-view', 'The cards switch keeps the selected report');
+reportCheck(str_contains(reportViewUrl(73, 'cards', ['status'=>['value'=>'sent']]), 'report_filter%5Bstatus%5D%5Bvalue%5D=sent'), 'The table and cards switches preserve active report filters');
+reportCheck(str_contains($source, 'data-report-view-option="table"') && str_contains($source, 'data-report-view-option="cards"'), 'The opened report displays both view switches');
+reportCheck(str_contains($source, 'class="panel table-wrap report-saved-panel"') && str_contains((string)file_get_contents(__DIR__ . '/../public/assets/app.css'), '.reports-layout > .report-saved-panel { order: -1; }'), 'Saved reports are displayed above the report editor');
+
+foreach (['reportViewFilterType','reportViewFilterState','reportViewFilterDefinitions','reportViewApplyFilters'] as $functionName) {
+    reportCheck(preg_match('/function ' . $functionName . '\(.*?^\}/ms', $source, $filterFunctionMatch) === 1, "{$functionName} is isolated for regression testing");
+    eval($filterFunctionMatch[0]);
+}
+reportCheck(reportViewFilterType('applied_at') === 'date' && reportViewFilterType('match_score') === 'number' && reportViewFilterType('status') === 'choice' && reportViewFilterType('title') === 'text', 'Report filters adapt to date, number, choice, and text fields');
+$filterColumns = ['applied_at','match_score','status','title'];
+$filterState = reportViewFilterState($filterColumns, [
+    'applied_at'=>['from'=>'2026-09-02','to'=>'2026-09-30'],
+    'match_score'=>['min'=>'70','max'=>'90'],
+    'status'=>['value'=>'sent'],
+    'title'=>['value'=>'sales'],
+    'unknown'=>['value'=>'ignored'],
+]);
+reportCheck(array_keys($filterState) === $filterColumns && !isset($filterState['unknown']), 'Only filters for fields displayed by the report are accepted');
+$filterRows = [
+    ['03.09.2026','85','Gesendet','Senior Sales Manager'],
+    ['01.09.2026','92','Gesendet','Sales Director'],
+    ['04.09.2026','80','Entwurf','Sales Engineer'],
+];
+$filterMeta = [
+    ['record_url'=>'/?page=applications&edit=1','filter_values'=>['applied_at'=>'2026-09-03 10:00:00','match_score'=>'85','status'=>'sent','title'=>'Senior Sales Manager']],
+    ['record_url'=>'/?page=applications&edit=2','filter_values'=>['applied_at'=>'2026-09-01 10:00:00','match_score'=>'92','status'=>'sent','title'=>'Sales Director']],
+    ['record_url'=>'/?page=applications&edit=3','filter_values'=>['applied_at'=>'2026-09-04 10:00:00','match_score'=>'80','status'=>'draft','title'=>'Sales Engineer']],
+];
+[$filteredRows, $filteredMeta] = reportViewApplyFilters($filterColumns, $filterRows, $filterMeta, $filterState);
+reportCheck(count($filteredRows) === 1 && $filteredRows[0][3] === 'Senior Sales Manager', 'All active field-specific filters are combined correctly');
+reportCheck(($filteredMeta[0]['record_url'] ?? '') === '/?page=applications&edit=1', 'Filtering keeps source-record links aligned with their result');
+$filterDefinitions = reportViewFilterDefinitions($filterColumns, ['Datum','Match','Status','Job'], $filterRows, $filterMeta);
+reportCheck(array_column($filterDefinitions, 'type') === ['date','number','choice','text'], 'The opened report renders the suitable control for each selected field');
+reportCheck(($filterDefinitions[2]['options']['sent'] ?? '') === 'Gesendet' && ($filterDefinitions[2]['options']['draft'] ?? '') === 'Entwurf', 'Choice filters use the values actually available in the report');
+reportCheck(str_contains($source, 'reportViewFiltersHtml((int)$viewReport[\'id\']') && str_contains($source, 'reportViewApplyFilters($viewReportColumns'), 'Opened reports apply and display their field-specific filters');
+$recordUrls = [
+    'jobs'=>reportRecordUrl('jobs', ['id'=>1]),
+    'applications'=>reportRecordUrl('applications', ['id'=>2]),
+    'companies'=>reportRecordUrl('companies', ['id'=>3]),
+    'contacts'=>reportRecordUrl('contacts', ['id'=>4]),
+    'documents'=>reportRecordUrl('documents', ['id'=>5]),
+    'calendar'=>reportRecordUrl('calendar', ['id'=>6]),
+];
+reportCheck($recordUrls === [
+    'jobs'=>'/?page=jobs&edit=1#new',
+    'applications'=>'/?page=applications&edit=2#application-form',
+    'companies'=>'/?page=companies&edit=3',
+    'contacts'=>'/?page=contacts&edit_contact=4#contact-editor',
+    'documents'=>'/?page=documents&edit_document=5#document-editor',
+    'calendar'=>'/?page=calendar&edit_event=6#calendar-entry-form',
+], 'Every report data source links to its own record editor');
+reportCheck(reportRecordUrl('unknown', ['id'=>9]) === '' && reportRecordUrl('jobs', ['id'=>0]) === '', 'Unknown sources and invalid IDs never produce report links');
+reportCheck(str_contains($source, "\$rowDisplayMeta['record_url'] = reportRecordUrl(\$base, \$row);") && str_contains($source, 'reportRecordLinkHtml((array)($displayMeta[$index] ?? []))'), 'Every rendered result receives its source-record link');
 foreach (['table','list','cards','preview','calendar_day','calendar_week','calendar_month'] as $displayType) {
     reportCheck(str_contains($source, "'{$displayType}'"), "Report renderer supports {$displayType}");
 }
@@ -80,11 +149,12 @@ reportCheck(preg_match('/function jobRoomApplicationResult\(.*?^\}/ms', $source,
 eval($jobRoomResultMatch[0]);
 reportCheck(jobRoomApplicationResult('open', 'sent', 'not_recorded') === 'applications.job_room_not_recorded', 'An application not recorded in Job-Room is not reported as open');
 reportCheck(jobRoomApplicationResult('open', 'sent', 'unknown') === 'applications.job_room_not_recorded', 'An unconfirmed Job-Room registration is not reported as open');
-reportCheck(jobRoomApplicationResult('open', 'sent', 'recorded') === 'job_room_helper.result.open', 'Open is shown only after confirmed Job-Room registration');
+reportCheck(jobRoomApplicationResult('open', 'sent', 'recorded') === 'Noch offen', 'Open is shown only after confirmed Job-Room registration');
 reportCheck(preg_match('/function jobRoomApplicationStatus\(.*?^\}/ms', $source, $jobRoomStatusMatch) === 1, 'Combined Job-Room status formatter is isolated for regression testing');
 eval($jobRoomStatusMatch[0]);
 reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', null) === 'applications.job_room_not_recorded', 'A Job-Room status without an application date is not reported as recorded');
-reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00') === 'applications.job_room_recorded_result', 'A confirmed registration with an application date uses the explicit combined status');
+reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00') === 'Im Job-Room erfasst – Noch offen', 'A confirmed registration replaces the result placeholder with the localized result');
+reportCheck(!str_contains(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00'), ':result'), 'No raw result placeholder reaches the report');
 reportCheck(str_contains($source, "job_room_result'=>tr('applications.job_room_status')") && str_contains($source, "job_room_registration'=>tr('applications.job_room_registration')"), 'Job-Room report columns have user-facing labels instead of technical DB labels');
 reportCheck(str_contains($source, "\$row['applied_at'] ?? null") && str_contains($source, "\$row['job_room_registration'] ?? null"), 'Report status uses both the application date and the actual registration state');
 

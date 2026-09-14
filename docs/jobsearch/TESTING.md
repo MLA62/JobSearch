@@ -1,6 +1,15 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-12. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+
+Ergänzung 2.4.13: `report_fields_test.php` prüft Tabelle/Karten-Umschaltung, ungültige Overrides,
+alle sechs Datensatz-Routen und die vollständige Ersetzung des Job-Room-Ergebnisplatzhalters.
+Zusätzlich werden Text-, Datums-, Zahlen- und Auswahlfilter, ihre gemeinsame Wirkung, die Begrenzung
+auf sichtbare Reportspalten sowie die positionsgleiche Weitergabe der Datensatzlinks geprüft.
+`report_display_visual_test.cjs` prüft bei Mobil- und Desktopbreite alle Report-Renderer, je einen
+Datensatzlink pro Ergebnis, die typgerechten Filterelemente, eine echte Statusfilterung und die
+Umschaltung mit erhaltenem Filter. Der Vertragstest
+prüft zusätzlich die vorrangige Darstellung der gespeicherten Reports.
 
 Ergänzung 2.4.12: `table_layout_test.php` prüft die sechs Beziehungsfilter, ihre UND-Verknüpfung und
 den Ausschluss dynamischer SQL-Bindewerte. `company_address_visual_test.cjs` öffnet den Links-Filter

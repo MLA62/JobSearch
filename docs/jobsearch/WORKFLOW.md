@@ -1,6 +1,16 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 12.09.2026. Aktuelles Verhalten für Release 2.4.12.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.13.
+
+Ergänzung 2.4.13: Die gespeicherte Report-Anzeigeart bleibt die Voreinstellung. `report_as=table`
+oder `report_as=cards` schaltet die geöffnete Ansicht ohne Datenbankänderung um; ungültige Werte
+fallen auf die gespeicherte Anzeigeart zurück. `reportRecordUrl()` bildet jede Datenbasis anhand der
+internen ID auf ihren eigenen Editor ab. Der sichtbare Link wird in allen Report-Renderern ergänzt.
+`reportViewFilterType()` bestimmt je angezeigtem Feld Text-, Datums-, Zahlen- oder Auswahlfilter.
+Der Server akzeptiert ausschließlich Filter der gespeicherten Reportspalten, kombiniert sie mit UND
+und hält die zugehörigen Zeilenmetadaten und Datensatzlinks positionsgleich. Aktive Filter werden beim
+Umschalten zwischen Tabelle und Karten in der URL mitgeführt.
+Die Übersetzung ersetzt sowohl `{name}`- als auch ältere `:name`-Platzhalter.
 
 Ergänzung 2.4.12: Der Spaltenfilter «Links» verwendet geprüfte Auswahlwerte statt einer Texteingabe.
 Für Jobs, Bewerbungen und Kontakte kann jeweils Vorhandensein oder Nichtvorhandensein verlangt werden.

@@ -1,6 +1,6 @@
 {
-  "version": "2.4.12",
-  "reviewed": "2026-09-11",
+  "version": "2.4.13",
+  "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -1164,11 +1164,13 @@
           "title": "Listen, Filter und Auswertungen",
           "summary": "Listen und gespeicherte Reports zeigen unterschiedliche Ausschnitte deiner Daten.",
           "steps": [
+            "Die gespeicherten Reports stehen oben. Öffne dort eine bestehende Auswertung oder gehe darunter zum Editor.",
             "Wähle im Spaltenkopf Feldfilter und Sortierung; setze sie bei Bedarf zurück.",
             "Wähle eine Datenbasis und danach bis zu zwölf gleichzeitig benötigte Datenbankfelder als Reportspalten.",
             "Ordne die gewählten Spalten am Griff per Drag-and-drop, lege Filter fest und speichere den Report; danach wird sofort die aktualisierte Ansicht geladen.",
             "Wähle die Anzeigeart: Tabelle, Liste, Karten oder Vorschau. Für Kalenderdaten stehen zusätzlich Tages-, Wochen- und Monatsgruppen zur Verfügung.",
-            "Öffne «Anzeigen», um den Report mit den gewählten Spalten und der gespeicherten Anzeigeart zu sehen, und exportiere ihn bei Bedarf als PDF."
+            "Filtere einen geöffneten Report direkt nach seinen angezeigten Feldern: Text über Enthält, Daten von/bis, Zahlen mit Minimum/Maximum und Auswahlfelder über ihre vorhandenen Werte.",
+            "Öffne «Anzeigen», wechsle jederzeit direkt zwischen Tabelle und Karten und öffne jeden Treffer über «Datensatz öffnen» im zugehörigen Originaldatensatz. Exportiere den Report bei Bedarf als PDF."
           ],
           "tips": [
             "Alle fachlich auswertbaren Felder sowie IDs und lesbare Beziehungen stehen zur Wahl. Interne Mandanten-, Lösch- und Dateipfadfelder werden aus Sicherheitsgründen nicht angeboten.",
@@ -1180,11 +1182,13 @@
           "title": "Listes, filtres et rapports",
           "summary": "Les listes et rapports enregistrés présentent différentes vues de tes données.",
           "steps": [
+            "Les rapports enregistrés se trouvent en haut. Ouvre un rapport existant ou utilise l’éditeur en dessous.",
             "Choisis filtre et tri dans l’en-tête de colonne; réinitialise-les si nécessaire.",
             "Choisis une source de données, puis jusqu’à douze champs de base de données simultanés comme colonnes du rapport.",
             "Réorganise les colonnes choisies par glisser-déposer, définis les filtres et enregistre le rapport; la vue actualisée s’ouvre immédiatement.",
             "Choisis le mode d’affichage: tableau, liste, cartes ou aperçu. Les données du calendrier proposent aussi des groupes par jour, semaine et mois.",
-            "Ouvre «Afficher» pour voir le rapport avec les colonnes choisies et le mode d’affichage enregistré, puis exporte-le en PDF si nécessaire."
+            "Filtre un rapport ouvert selon ses champs affichés: texte par contenu, dates de/à, nombres par minimum/maximum et champs de sélection selon leurs valeurs disponibles.",
+            "Ouvre «Afficher», passe à tout moment du tableau aux cartes et ouvre chaque résultat dans son enregistrement source avec «Ouvrir l’enregistrement». Exporte le rapport en PDF si nécessaire."
           ],
           "tips": [
             "Tous les champs métier exploitables, les identifiants et les relations lisibles sont proposés. Les champs internes de locataire, de suppression et de chemin de fichier sont exclus pour des raisons de sécurité.",
@@ -1196,11 +1200,13 @@
           "title": "Lists, filters and reports",
           "summary": "Lists and saved reports provide different views of your data.",
           "steps": [
+            "Saved reports appear at the top. Open an existing report there or use the editor below.",
             "Select field filters and sorting in column headers; reset them when needed.",
             "Choose a data source and then up to twelve database fields at once as report columns.",
             "Drag the selected columns into order, set filters and save the report; the refreshed view opens immediately.",
             "Choose the display type: table, list, cards or preview. Calendar data also offers day, week and month groups.",
-            "Open “Show” to see the report with the selected columns and saved display type, then export it to PDF if needed."
+            "Filter an open report by its displayed fields: text by content, dates from/to, numbers by minimum/maximum, and choice fields by their available values.",
+            "Open “Show”, switch directly between table and cards at any time, and use “Open record” to open each result in its source record. Export the report to PDF if needed."
           ],
           "tips": [
             "All reportable business fields, IDs and readable relations are available. Internal tenant, deletion and file-path fields are excluded for security.",
@@ -1212,11 +1218,13 @@
           "title": "Listas, filtros e relatórios",
           "summary": "Listas e relatórios salvos mostram diferentes recortes dos dados.",
           "steps": [
+            "Os relatórios salvos aparecem no topo. Abra um relatório existente ali ou use o editor abaixo.",
             "Escolha filtros e ordenação no cabeçalho da coluna; redefina quando necessário.",
             "Escolha uma base de dados e até doze campos simultâneos do banco de dados como colunas do relatório.",
             "Ordene as colunas selecionadas por arrastar e soltar, defina os filtros e salve o relatório; a visualização atualizada abre imediatamente.",
             "Escolha o modo de exibição: tabela, lista, cartões ou prévia. Os dados do calendário também oferecem grupos por dia, semana e mês.",
-            "Abra “Mostrar” para ver o relatório com as colunas selecionadas e o modo de exibição salvo e exporte-o em PDF se necessário."
+            "Filtre um relatório aberto pelos campos exibidos: texto por conteúdo, datas de/até, números por mínimo/máximo e campos de escolha pelos valores disponíveis.",
+            "Abra “Mostrar”, alterne diretamente entre tabela e cartões a qualquer momento e use “Abrir registro” para abrir cada resultado no registro original. Exporte o relatório em PDF se necessário."
           ],
           "tips": [
             "Todos os campos de negócio reportáveis, IDs e relações legíveis estão disponíveis. Campos internos de locatário, exclusão e caminho de arquivo são omitidos por segurança.",
@@ -1228,11 +1236,13 @@
           "title": "Listas, filtros e informes",
           "summary": "Las listas e informes guardados presentan distintas vistas de tus datos.",
           "steps": [
+            "Los informes guardados aparecen arriba. Abre allí un informe existente o usa el editor situado debajo.",
             "Elige filtros y orden en el encabezado de columna; restablécelos si hace falta.",
             "Elige una base de datos y hasta doce campos simultáneos de la base como columnas del informe.",
             "Ordena las columnas elegidas mediante arrastrar y soltar, define los filtros y guarda el informe; la vista actualizada se abre inmediatamente.",
             "Elige el tipo de visualización: tabla, lista, tarjetas o vista previa. Los datos del calendario también ofrecen grupos por día, semana y mes.",
-            "Abre «Mostrar» para ver el informe con las columnas elegidas y el tipo de visualización guardado; expórtalo en PDF si lo necesitas."
+            "Filtra un informe abierto por sus campos mostrados: texto por contenido, fechas desde/hasta, números por mínimo/máximo y campos de selección por sus valores disponibles.",
+            "Abre «Mostrar», alterna directamente entre tabla y tarjetas en cualquier momento y usa «Abrir registro» para abrir cada resultado en su registro original. Exporta el informe en PDF si lo necesitas."
           ],
           "tips": [
             "Están disponibles todos los campos de negocio aptos para informes, los identificadores y las relaciones legibles. Los campos internos de inquilino, eliminación y ruta de archivo se excluyen por seguridad.",
@@ -1993,6 +2003,48 @@
     }
   ],
   "ui": {
+    "reports.filters": {
+      "de-CH": "Resultate filtern",
+      "fr-CH": "Filtrer les résultats",
+      "en-GB": "Filter results",
+      "pt-BR": "Filtrar resultados",
+      "es-MX": "Filtrar resultados"
+    },
+    "reports.filter_from": {
+      "de-CH": "Von",
+      "fr-CH": "Du",
+      "en-GB": "From",
+      "pt-BR": "De",
+      "es-MX": "Desde"
+    },
+    "reports.filter_to": {
+      "de-CH": "Bis",
+      "fr-CH": "Au",
+      "en-GB": "To",
+      "pt-BR": "Até",
+      "es-MX": "Hasta"
+    },
+    "reports.filter_min": {
+      "de-CH": "Minimum",
+      "fr-CH": "Minimum",
+      "en-GB": "Minimum",
+      "pt-BR": "Mínimo",
+      "es-MX": "Mínimo"
+    },
+    "reports.filter_max": {
+      "de-CH": "Maximum",
+      "fr-CH": "Maximum",
+      "en-GB": "Maximum",
+      "pt-BR": "Máximo",
+      "es-MX": "Máximo"
+    },
+    "reports.open_record": {
+      "de-CH": "Datensatz öffnen",
+      "fr-CH": "Ouvrir l’enregistrement",
+      "en-GB": "Open record",
+      "pt-BR": "Abrir registro",
+      "es-MX": "Abrir registro"
+    },
     "sf.with_entries": {
       "de-CH": "{entity}: mit Einträgen",
       "fr-CH": "{entity}: avec entrées",

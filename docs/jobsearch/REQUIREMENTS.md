@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 12.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.12.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.13.
+
+Ergänzung 2.4.13: Jeder geöffnete Report muss unabhängig von seiner gespeicherten Voreinstellung
+direkt zwischen Tabellen- und Kartenansicht umschaltbar sein. Jeder Datensatz muss in Tabelle,
+Karten, Liste, Vorschau und Kalendergruppen einen sicheren internen Link zum zugehörigen Original-
+datensatz besitzen. Die Liste «Gespeicherte Reports» steht oberhalb des Report-Editors.
+Geöffnete Reports müssen jedes angezeigte Feld passend zu dessen Datentyp filtern können: Textsuche,
+Datumsbereich, Zahlenbereich oder Auswahl aus vorhandenen Werten. Mehrere Filter wirken gemeinsam und
+bleiben beim Wechsel zwischen Tabelle und Karten erhalten.
+Übersetzungsplatzhalter dürfen nie unverarbeitet ausgegeben werden.
 
 Ergänzung 2.4.12: Der Filter der Firmenspalte «Links» muss Jobs, Bewerbungen und Kontakte getrennt
 nach «mit Einträgen» oder «ohne Einträge» filtern können. Mehrere gewählte Kriterien gelten

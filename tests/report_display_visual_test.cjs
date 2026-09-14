@@ -23,15 +23,42 @@ const expected = {
     page.on('pageerror', error => errors.push(error.message));
     for (const width of [390, 1366]) {
       await page.setViewportSize({ width, height: 900 });
+      await page.goto(`${base}/tests/report_display_fixture.php?layout=1`);
+      const savedTop = await page.locator('[data-layout-saved]').evaluate(node => node.getBoundingClientRect().top);
+      const editorTop = await page.locator('[data-layout-editor]').evaluate(node => node.getBoundingClientRect().top);
+      assert.equal(savedTop < editorTop, true, `saved reports precede editor at ${width}px`);
       for (const [type, selector] of Object.entries(expected)) {
         await page.goto(`${base}/tests/report_display_fixture.php?type=${type}`);
         assert.equal(await page.locator('#report-view').getAttribute('data-report-display-type'), type);
         assert.equal(await page.locator(selector).count() > 0, true, `${type} renderer visible`);
+        assert.deepEqual(await page.locator('[data-report-view-option]').allTextContents(), ['Tabelle', 'Karten']);
+        assert.equal(await page.locator('.report-view-filters').count(), 1, `${type} exposes report filters`);
+        assert.equal(await page.locator('.report-view-filter-grid input[type="date"]').count(), 2, `${type} exposes date range filters`);
+        assert.equal(await page.locator('.report-view-filter-grid input[type="number"]').count(), 2, `${type} exposes number range filters`);
+        assert.equal(await page.locator('.report-view-filter-grid select').count(), 1, `${type} exposes choice filters`);
+        assert.equal(await page.locator('.report-view-filter-grid input[type="search"]').count(), 1, `${type} exposes text filters`);
+        assert.equal(await page.locator('.report-record-link').count(), 2, `${type} exposes every source record`);
+        assert.deepEqual(await page.locator('.report-record-link').evaluateAll(nodes => nodes.map(node => new URL(node.href).pathname + new URL(node.href).search + new URL(node.href).hash)), [
+          '/?page=jobs&edit=11#new', '/?page=jobs&edit=12#new',
+        ]);
         assert.equal(await page.locator('#report-view').innerText().then(text => text.includes('<script>')), true, `${type} unsafe markup shown only as text`);
         assert.equal(await page.locator('script').count(), 0, `${type} did not execute data as HTML`);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true, `${type} ${width}px has no page overflow`);
         if (width === 390) await page.screenshot({ path: path.join(output, `${type}.png`) });
       }
+      await page.goto(`${base}/tests/report_display_fixture.php?type=cards`);
+      await page.locator('.report-view-filters > summary').click();
+      await page.locator('.report-view-filter-grid fieldset').nth(2).locator('select').selectOption('sent');
+      await page.locator('.report-view-filter-form button.primary').click();
+      assert.equal(await page.locator('#report-view').getAttribute('data-report-display-type'), 'cards', 'filtering preserves card view');
+      assert.equal(await page.locator('.report-record-link').count(), 1, 'choice filter reduces results');
+      assert.equal(new URL(page.url()).searchParams.get('report_filter[status][value]'), 'sent', 'active filter is represented in the URL');
+      await page.locator('[data-report-view-option="table"]').click();
+      assert.equal(await page.locator('#report-view').getAttribute('data-report-display-type'), 'table');
+      assert.equal(await page.locator('.report-record-link').count(), 1, 'switching to table preserves active filters');
+      await page.locator('[data-report-view-option="cards"]').click();
+      assert.equal(await page.locator('#report-view').getAttribute('data-report-display-type'), 'cards');
+      assert.equal(await page.locator('.report-record-link').count(), 1, 'switching back to cards preserves active filters');
     }
     assert.deepEqual(errors, []);
     console.log('PASS all report display types at mobile and desktop widths');
