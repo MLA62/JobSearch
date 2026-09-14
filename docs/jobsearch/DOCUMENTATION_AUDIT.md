@@ -1,6 +1,21 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.17 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.19 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.19
+
+- `¶` wandelt sämtliche markierten Zeilen beziehungsweise Blöcke in echte `<p>`-Absätze um; der
+  direkt folgende Button `↵` verbindet markierte Absätze mit `<br>` wie Shift+Enter.
+- Der produktive Editorcode wurde in Chromium in beide Richtungen bedient. Sichtbarer Inhalt und
+  übertragener Textarea-Wert sind identisch; Fettformatierung bleibt erhalten.
+- Die enthaltene 2.4.18-Korrektur bindet die Analyse an den gewählten Job, korrigiert eine belegte
+  Firmenzuordnung ohne Überschreiben der alten Firma und setzt die Bewerbung bei Analyse- oder
+  Empfängerrecherchefehlern mit vorhandenen Daten beziehungsweise lokalen Entwürfen fort.
+- Alle 39 PHP-Testdateien, 4'021 Hilfeprüfungen, 1'374 Hilfe-Seeds, 88 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle neun Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `91f6265f4848ac199d54522f48a13eb9f6f9f4ab0455293d4ace1d4e76d2e044` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.19 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.17
 

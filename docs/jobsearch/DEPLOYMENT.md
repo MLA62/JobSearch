@@ -1,6 +1,19 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.17 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.19 ist produktiv verifiziert.
+
+Quell-Commit: `accc18d2eaa3e2da8ca2a0eeca66e714aabb0fdd`.
+Produktiver `index.php`-SHA-256 (2.4.19): `91f6265f4848ac199d54522f48a13eb9f6f9f4ab0455293d4ace1d4e76d2e044`, 1'295'485 Bytes, Modus 0644.
+TOTP-Approval: `caae2adf58c69c0cc5a6d38e790fc330` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.19 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_125524_798c113d_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und Datenbank blieben unverändert.
+Version 2.4.19 ergänzt die markierungsweite Absatz-/Shift+Enter-Konvertierung. Die enthaltene
+Version 2.4.18 verhindert zusätzlich, dass Firmenabweichungen oder optionale Analysefehler eine
+ausdrücklich angeforderte Bewerbung abbrechen.
+
+## Vorheriges produktives Release 2.4.17
 
 Quell-Commit: `3edbe39ba3c48aa87473b7078715d413f9034c11`.
 Produktiver `index.php`-SHA-256 (2.4.17): `8bb99b3f4ef602d9efdfe611fb4261ad4c32d79d1431ae2330d87e3b4d76ae4c`, 1'288'787 Bytes, Modus 0644.
