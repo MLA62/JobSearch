@@ -371,6 +371,9 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function reportRowDetailsHtml(array $headers, array $row, array $displayMeta = []): string`
 - `function reportRowsHtml(array $headers, array $rows, string $displayType, array $displayMeta = []): string`
 - `function calendarViewOptions(): array`
+- `function calendarAgendaSfFields(): array`
+- `function calendarViewHeadline(string $view, DateTimeImmutable $anchor, DateTimeImmutable $rangeStart, DateTimeImmutable $rangeEnd): string`
+- `function calendarPdfRows(array $events, array $currentUser): array`
 - `function calendarAnchorDate(array $user): DateTimeImmutable`
 - `function calendarRange(string $view, DateTimeImmutable $anchor): array`
 - `function calendarEventRows(mysqli $db, int $userId, DateTimeImmutable $start, DateTimeImmutable $end): array`

@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.22.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.23.
+
+Ergänzung 2.4.23: Der PDF-Button in der oberen Kalendernavigation exportiert den Zeitraum der
+gewählten Ansicht (Agenda, Tag, Arbeitswoche, Woche oder Monat). Bei der Agenda werden die aktuelle
+Filterung und Sortierung aus derselben Sitzung auf die PDF-Zeilen angewandt. Der ICS-Export bleibt
+unverändert separat verfügbar.
 
 Ergänzung 2.4.22: Der fachliche Workflow bleibt unverändert. Beim ersten Request eines Releases
 werden notwendige Schema- und Inhaltsprüfungen einmalig unter Datenbanksperren ausgeführt. Alle

@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.22 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.23 ist implementiert und lokal verifiziert.
+
+## Kalender-PDF 2.4.23
+
+`export_pdf&type=calendar` validiert `view`, übernimmt das mitgegebene Ankerdatum und berechnet den
+Zeitraum über dieselbe `calendarRange()`-Funktion wie die Bildschirmansicht. `calendarEventRows()`
+liefert damit denselben Terminbestand. Für die Agenda verwendet der Export zusätzlich
+`calendar_agenda` aus dem bestehenden Sortier-/Filterzustand. `calendarPdfRows()` bildet die
+Resultate auf Zeit, Ereignis, Typ, Status und Bezug ab; die vorhandene PDF-Ausgabe bereinigt
+Steuerzeichen und erzeugt keine aktiven HTML-Inhalte.
+
+Die Schaltfläche steht in der oberen Kalendernavigation unmittelbar rechts neben `ICS`. Ihr Link
+enthält die aktuelle Ansicht und das aktuelle Datum. Die bestehenden Kalender- und
+ICS-Funktionen bleiben unverändert.
 
 ## Schneller Laufzeitstart 2.4.22
 

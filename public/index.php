@@ -61,7 +61,7 @@ try {
     exit('Database connection failed.');
 }
 
-$bootstrapSchemaKey = 'runtime_schema_2_4_22';
+$bootstrapSchemaKey = 'runtime_schema_2_4_23';
 $bootstrapSchemaRequired = true;
 $bootstrapSchemaReady = true;
 $bootstrapSchemaLockHeld = false;
@@ -3204,11 +3204,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.calendar.steps.2' =>
   array (
-    'de-CH' => 'Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Export.',
-    'fr-CH' => 'Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export.',
-    'en-GB' => 'Edit, reschedule or complete the existing appointment; use ICS to export.',
-    'pt-BR' => 'Edite, reagende ou conclua o compromisso existente; use ICS para exportar.',
-    'es-MX' => 'Edita, reprograma o completa la cita existente; usa ICS para exportar.',
+    'de-CH' => 'Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Kalenderexport oder PDF für die aktuell gewählte Ansicht.',
+    'fr-CH' => 'Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export calendrier ou PDF pour la vue actuellement sélectionnée.',
+    'en-GB' => 'Edit, reschedule or complete the existing appointment; use ICS for calendar export or PDF for the currently selected view.',
+    'pt-BR' => 'Edite, reagende ou conclua o compromisso existente; use ICS para exportar o calendário ou PDF para a vista atualmente selecionada.',
+    'es-MX' => 'Edita, reprograma o completa la cita existente; usa ICS para exportar el calendario o PDF para la vista seleccionada.',
   ),
   'help.v2.calendar.summary' =>
   array (
@@ -8288,6 +8288,40 @@ function calendarViewOptions(): array
     return ['agenda'=>tr('calendar.view.agenda'),'day'=>tr('calendar.view.day'),'workweek'=>tr('calendar.view.workweek'),'week'=>tr('calendar.view.week'),'month'=>tr('calendar.view.month')];
 }
 
+function calendarAgendaSfFields(): array
+{
+    $statusLabels = calendarStatusOptions();
+    return [
+        'starts_at'=>['label'=>tr('common.time')],
+        'title'=>['label'=>tr('calendar.event')],
+        'type'=>['label'=>tr('calendar.type')],
+        'status'=>['label'=>tr('common.status'), 'choices'=>array_combine(array_values($statusLabels), array_values($statusLabels))],
+        'meta'=>['label'=>tr('common.reference')],
+    ];
+}
+
+function calendarViewHeadline(string $view, DateTimeImmutable $anchor, DateTimeImmutable $rangeStart, DateTimeImmutable $rangeEnd): string
+{
+    $weekNo = $anchor->format('W');
+    return match ($view) {
+        'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
+        'workweek', 'week' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
+        'month' => $anchor->format('m.Y'),
+        default => $rangeStart->format('d.m.Y') . ' - ' . $rangeEnd->format('d.m.Y'),
+    };
+}
+
+function calendarPdfRows(array $events, array $currentUser): array
+{
+    return array_map(static fn(array $event): array => [
+        displayDateTime((string)($event['starts_at'] ?? ''), $currentUser),
+        (string)($event['title'] ?? ''),
+        (string)($event['type'] ?? ''),
+        (string)($event['status'] ?? ''),
+        (string)($event['meta'] ?? ''),
+    ], $events);
+}
+
 function calendarAnchorDate(array $user): DateTimeImmutable
 {
     $timezone = new DateTimeZone((string) ($user['timezone'] ?? 'Europe/Zurich'));
@@ -11828,7 +11862,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.22','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.23','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12749,7 +12783,7 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
     return (string) ob_get_clean();
 }
 
-$runtimeMaintenanceKey = 'runtime_maintenance_2_4_22';
+$runtimeMaintenanceKey = 'runtime_maintenance_2_4_23';
 try {
     if (!dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$runtimeMaintenanceKey])) {
         $maintenanceLock = dbOne($db, "SELECT GET_LOCK('jema-runtime-maintenance', 5) acquired");
@@ -15706,7 +15740,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.22';
+$codeVersion = '2.4.23';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -16003,6 +16037,25 @@ if ($page === 'export_pdf') {
             ];
         }
         pdfTextResponse('Bewerbungsuebersicht-' . date('Y-m-d') . '.pdf', $applicationOverviewTitle, $ravSections);
+    }
+    if ($type === 'calendar') {
+        $calendarViews = calendarViewOptions();
+        $calendarView = array_key_exists((string)($_GET['view'] ?? 'agenda'), $calendarViews) ? (string)($_GET['view'] ?? 'agenda') : 'agenda';
+        $anchor = calendarAnchorDate($currentUser);
+        [$rangeStart, $rangeEnd] = calendarRange($calendarView, $anchor);
+        $calendarEvents = calendarEventRows($db, userId(), $rangeStart, $rangeEnd);
+        if ($calendarView === 'agenda') {
+            $calendarSfFields = calendarAgendaSfFields();
+            $calendarSf = sfState('calendar_agenda', $calendarSfFields, ['sort'=>'starts_at','dir'=>'asc']);
+            $calendarEvents = sfApplyRows($calendarEvents, $calendarSf, $calendarSfFields);
+        }
+        $headline = calendarViewHeadline($calendarView, $anchor, $rangeStart, $rangeEnd);
+        pdfResponse(
+            'kalender-' . $calendarView . '-' . $anchor->format('Y-m-d') . '.pdf',
+            tr('calendar.title') . ' · ' . $headline,
+            [tr('common.time'), tr('calendar.event'), tr('calendar.type'), tr('common.status'), tr('common.reference')],
+            calendarPdfRows($calendarEvents, $currentUser)
+        );
     }
     if ($type === 'applications') {
         $applicationStatuses = applicationStatusOptions();
@@ -16635,14 +16688,7 @@ startUiTranslationBuffer($appLocale);
             syncCalendarAutomatically($db, $config, userId(), $currentUser ?? []);
         }
         $calendarEvents = calendarEventRows($db, userId(), $rangeStart, $rangeEnd);
-        $calendarStatusLabels = calendarStatusOptions();
-        $calendarSfFields = [
-            'starts_at'=>['label'=>tr('common.time')],
-            'title'=>['label'=>tr('calendar.event')],
-            'type'=>['label'=>tr('calendar.type')],
-            'status'=>['label'=>tr('common.status'), 'choices'=>array_combine(array_values($calendarStatusLabels), array_values($calendarStatusLabels))],
-            'meta'=>['label'=>tr('common.reference')],
-        ];
+        $calendarSfFields = calendarAgendaSfFields();
         $calendarSf = sfState('calendar_agenda', $calendarSfFields, ['sort'=>'starts_at','dir'=>'asc']);
         $calendarPreserve = ['page'=>'calendar', 'view'=>'agenda', 'date'=>$anchor->format('Y-m-d')];
         if ($calendarView === 'agenda') {
@@ -16683,13 +16729,7 @@ startUiTranslationBuffer($appLocale);
         $newEntryUrl = static fn(string $dateTime): string => '/?page=calendar&view=' . urlencode($calendarView) . '&date=' . urlencode(substr($dateTime, 0, 10)) . '&new_start=' . urlencode($dateTime) . '#calendar-entry-form';
         $editCalendarEvent = isset($_GET['edit_event']) ? calendarLocalEvent($db, userId(), (int) $_GET['edit_event']) : null;
         $icsUrl = '/?page=export_ics&view=' . urlencode($calendarView) . '&date=' . urlencode($anchor->format('Y-m-d'));
-        $headline = match($calendarView) {
-            'day' => $anchor->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
-            'workweek' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
-            'week' => $rangeStart->format('d.m.') . ' - ' . $rangeEnd->format('d.m.Y') . ' · ' . tr('calendar.week_number_short') . ' ' . $weekNo,
-            'month' => $anchor->format('m.Y'),
-            default => $rangeStart->format('d.m.Y') . ' - ' . $rangeEnd->format('d.m.Y'),
-        };
+        $headline = calendarViewHeadline($calendarView, $anchor, $rangeStart, $rangeEnd);
         $renderEvent = static function(array $entry, bool $showTime = true) use ($isDayEntry): string {
             $time = date('H:i', strtotime((string)$entry['starts_at']));
             $title = (!$showTime || $isDayEntry($entry)) ? (string)$entry['title'] : $time . ' ' . (string)$entry['title'];
@@ -16713,7 +16753,7 @@ startUiTranslationBuffer($appLocale);
         $_SESSION['calendar_requests'][$eventRequestId] = null;
         ?>
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('calendar.section')) ?></p><h1><?= e(tr('calendar.title')) ?></h1></div><span><?= e($headline) ?> · <?= e(tr('common.entries_count', null, ['count' => (string) count($calendarEvents)])) ?></span></div>
-        <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
+        <div class="calendar-toolbar"><div class="actions"><a class="button" href="<?= e($viewUrl($calendarView, $prevDate)) ?>"><?= e(tr('calendar.previous')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, (new DateTimeImmutable('today'))->format('Y-m-d'))) ?>"><?= e(tr('calendar.today')) ?></a><a class="button" href="<?= e($viewUrl($calendarView, $nextDate)) ?>"><?= e(tr('calendar.next')) ?></a><a class="button" href="<?= e($icsUrl) ?>">ICS</a><a class="button" href="/?page=export_pdf&amp;type=calendar&amp;view=<?= e($calendarView) ?>&amp;date=<?= e($anchor->format('Y-m-d')) ?>">PDF</a></div><form method="get" class="actions"><input type="hidden" name="page" value="calendar"><input type="hidden" name="date" value="<?= e($anchor->format('Y-m-d')) ?>"><select name="view" onchange="this.form.submit()"><?php foreach($calendarViews as $value=>$label): ?><option value="<?= e($value) ?>" <?= $calendarView===$value?'selected':'' ?>><?= e($label) ?></option><?php endforeach; ?></select></form></div>
         <?php $calendarToday = (new DateTimeImmutable('today'))->format('Y-m-d'); ?>
         <section class="panel calendar-panel matrix-first">
         <?php if(in_array($calendarView, ['day','workweek','week'], true) && ($outsideTimeEvents['before'] || $outsideTimeEvents['after'])): ?>

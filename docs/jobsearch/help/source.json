@@ -1,5 +1,5 @@
 {
-  "version": "2.4.22",
+  "version": "2.4.23",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -940,7 +940,7 @@
           "steps": [
             "Wähle Agenda, Tag, Arbeitswoche, Woche oder Monat; Heute führt zum aktuellen Datum.",
             "Erfasse Nachfassen oder jedes einzelne Gespräch mit Datum und Uhrzeit, optional mit Bewerbung.",
-            "Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Export."
+            "Bearbeite, verschiebe oder schliesse den bestehenden Termin ab; nutze ICS für den Kalenderexport oder PDF für die aktuell gewählte Ansicht."
           ],
           "tips": [
             "Heute ist in Monat und Wochenansichten grün markiert. Entwurf, Bereit, Bewerbung senden und Antwort pendent erzeugen keine Termine; Versand und Ergebnisse erscheinen als kurze Nachweise."
@@ -952,7 +952,7 @@
           "steps": [
             "Choisis agenda, jour, semaine ouvrée, semaine ou mois; Aujourd’hui revient à la date actuelle.",
             "Saisis chaque relance ou entretien avec date et heure et, si nécessaire, une candidature.",
-            "Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export."
+            "Modifie, déplace ou termine le rendez-vous existant; utilise ICS pour l’export calendrier ou PDF pour la vue actuellement sélectionnée."
           ],
           "tips": [
             "Aujourd’hui est marqué en vert dans les vues mensuelle et hebdomadaires. Préparation et attente de réponse ne créent pas de rendez-vous; envoi et résultats sont de brèves traces."
@@ -964,7 +964,7 @@
           "steps": [
             "Choose agenda, day, workweek, week or month; Today returns to the current date.",
             "Enter each follow-up or interview with date and time, optionally linked to an application.",
-            "Edit, reschedule or complete the existing appointment; use ICS to export."
+            "Edit, reschedule or complete the existing appointment; use ICS for calendar export or PDF for the currently selected view."
           ],
           "tips": [
             "Today is green in month and weekly views. Draft, Ready, sending tasks and waiting for a reply do not create appointments; submission and outcomes appear as short evidence entries."
@@ -976,7 +976,7 @@
           "steps": [
             "Escolha agenda, dia, semana útil, semana ou mês; Hoje retorna à data atual.",
             "Cadastre cada acompanhamento ou entrevista com data e hora, vinculando uma candidatura se necessário.",
-            "Edite, reagende ou conclua o compromisso existente; use ICS para exportar."
+            "Edite, reagende ou conclua o compromisso existente; use ICS para exportar o calendário ou PDF para a vista atualmente selecionada."
           ],
           "tips": [
             "Hoje aparece em verde no mês e nas semanas. Preparação e espera por resposta não criam compromissos; envio e resultados aparecem como registros breves."
@@ -988,7 +988,7 @@
           "steps": [
             "Elige agenda, día, semana laboral, semana o mes; Hoy vuelve a la fecha actual.",
             "Registra cada seguimiento o entrevista con fecha y hora, vinculando una solicitud si hace falta.",
-            "Edita, reprograma o completa la cita existente; usa ICS para exportar."
+            "Edita, reprograma o completa la cita existente; usa ICS para exportar el calendario o PDF para la vista seleccionada."
           ],
           "tips": [
             "Hoy aparece en verde en el mes y las semanas. Preparación y espera de respuesta no crean citas; envío y resultados aparecen como registros breves."

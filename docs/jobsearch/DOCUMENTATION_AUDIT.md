@@ -1,6 +1,16 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.22 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und lokal verifiziert.
+
+## Prüfstand 2.4.23
+
+- Die obere Kalendernavigation enthält direkt neben `ICS` einen PDF-Button.
+- Der PDF-Export verwendet Ansicht und Ankerdatum der sichtbaren Kalenderseite. In der Agenda gelten
+  zusätzlich die aktiven Feldfilter und die aktuelle Sortierung.
+- Die Ausgabe enthält die fünf fachlichen Spalten Zeit, Ereignis, Typ, Status und Bezug.
+- Alle 42 PHP-Testdateien, 4'032 Hilfeprüfungen, 1'379 Hilfeseeds, 92 Markdown-Dateien/61 lokale
+  Links, beide Generatorprüfungen und alle zehn Chromium-Testdateien sind erfolgreich.
+- Produktive Freigabe und Live-Nachweis stehen noch aus.
 
 ## Prüfstand 2.4.22
 

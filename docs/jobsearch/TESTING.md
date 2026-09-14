@@ -2,6 +2,10 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.23: `calendar_pdf_test.php` sichert Position und Parameter des PDF-Buttons, die
+Verwendung des sichtbaren Kalenderzeitraums, die Übernahme der Agenda-Filter und -Sortierung sowie
+die verlustfreie Abbildung der fünf sichtbaren Exportspalten.
+
 Ergänzung 2.4.22: `runtime_performance_test.php` sichert die beiden Releasemarker, die
 Nebenläufigkeitssperren, den ausschliesslich einmaligen Portal-Seed, die gültige Zerlegung
 mehrzeiliger Rollen und Orte sowie das Laden der Profileinstellungen vor dem manuellen Speichern.

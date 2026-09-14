@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.22.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.23.
+
+Ergänzung 2.4.23: In der oberen Kalendernavigation steht direkt neben dem ICS-Export ein
+PDF-Export zur Verfügung. Er übernimmt die aktuell gewählte Kalenderansicht und das Ankerdatum.
+In der Agenda müssen zusätzlich die aktiven Feldfilter und die Sortierung gelten. Das PDF enthält
+Zeit, Ereignis, Typ, Status und Bezug aller Resultate des sichtbaren Zeitraums.
 
 Ergänzung 2.4.22: Normale Seitenaufrufe dürfen keine vollständigen Schema-, Seed- oder
 Migrationsläufe ausführen. Solche Arbeiten laufen höchstens einmal pro Release, sind gegen parallele
