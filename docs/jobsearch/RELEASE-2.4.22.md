@@ -24,3 +24,13 @@ Betriebsunterbrechung.
 PHP-Syntax, der neue Laufzeit-Performancevertrag, alle 41 PHP- und zehn Chromium-Testdateien,
 die Hilfe- und Referenzgeneratoren, 91 Markdown-Dateien mit 61 lokalen Verweisen sowie
 `git diff --check` wurden vor dem Deployment erfolgreich ausgeführt.
+
+## Deployment-Nachweis
+
+- Externe Freigabe: `ca7adda05026203024a383f57ea64204`
+- Produktiver SHA-256: `1d454558b88227cba876c2c7f6f5ced007ab48265123c1516274d977a7e59eb7`
+- Sicherung der Vorgängerversion:
+  `approval.lauber.online/storage/file_backups/20260914_150129_c41f3127_public_html_jobs.jema.business_index.php`
+- Live: HTTP 200, Version 2.4.22, vollständige Sicherheitsheader und keine neuen PHP-Logeinträge.
+- Antwortzeit nach Initialisierung: 156–184 ms, Mittelwert 168 ms; rund 79 % unter dem Vorhermittel.
+- Das Deployment erfolgte ohne Betriebsunterbruch und ohne pauschale Datenbankreorganisation.

@@ -1,9 +1,8 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.22 ist implementiert, dokumentiert und lokal vollständig geprüft;
-die produktive Freigabe folgt über den extern genehmigten cPanel-Ablauf.
+Stand: 2026-09-14. Version 2.4.22 ist implementiert, dokumentiert und produktiv verifiziert.
 
-## Prüfstand 2.4.22 – lokal
+## Prüfstand 2.4.22
 
 - Wiederkehrende Schema-, Index-, Übersetzungs- und Seed-Prüfungen sind durch je Release eindeutige
   Migrationsmarker und Datenbanklocks aus normalen Seitenaufrufen entfernt.
@@ -13,8 +12,13 @@ die produktive Freigabe folgt über den extern genehmigten cPanel-Ablauf.
 - Alle 41 PHP-Testdateien, 91 Markdown-Dateien/61 lokale Links, beide Generatorprüfungen sowie alle
   zehn Chromium-Testdateien sind erfolgreich. Die produktive Login-Vorhermessung lag bei acht
   Aufrufen zwischen 400 und 1'738 ms, durchschnittlich bei 804 ms.
-- Die produktive Dateigleichheit, Nachhermessung und Fehlerlogkontrolle werden erst nach der externen
-  Freigabe als Live-Nachweis ergänzt.
+- Nach TOTP-Freigabe `ca7adda05026203024a383f57ea64204` sind lokale und produktive
+  `index.php` mit SHA-256 `1d454558b88227cba876c2c7f6f5ced007ab48265123c1516274d977a7e59eb7`
+  bytegleich. HTTP 200, Version 2.4.22 und die Sicherheitsheader sind bestätigt; seit dem Deployment
+  entstand kein neuer PHP-Logeintrag.
+- Acht Nachhermessungen lagen zwischen 156 und 184 ms, durchschnittlich bei 168 ms. Gegenüber dem
+  Vorhermittel von 804 ms entspricht dies rund 79 % kürzerer Antwortzeit. Es gab keinen
+  Betriebsunterbruch und keine pauschale Tabellenreorganisation.
 
 ## Prüfstand 2.4.21
 

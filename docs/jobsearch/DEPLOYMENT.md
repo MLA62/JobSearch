@@ -1,10 +1,24 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.21 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.22 ist produktiv verifiziert.
+
+Quell-Commit: `8b0e5b714d500793c502f374540adb2eb2a60e83`.
+Produktiver `index.php`-SHA-256 (2.4.22): `1d454558b88227cba876c2c7f6f5ced007ab48265123c1516274d977a7e59eb7`, 1'309'910 Bytes, Modus 0644.
+TOTP-Approval: `ca7adda05026203024a383f57ea64204` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.22 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_150129_c41f3127_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets und Speicherdateien blieben unverändert. Der erste
+Seitenaufruf führte die bestehenden idempotenten Schema-/Seed-Routinen aus und schrieb die Marker
+`runtime_schema_2_4_22` und `runtime_maintenance_2_4_22`; eine pauschale Tabellenreorganisation
+erfolgte nicht. Nach dem einmaligen Initialaufruf lagen acht Login-Antworten zwischen 156 und 184 ms,
+im Mittel bei 168 ms statt zuvor 804 ms. Seit dem Deployment entstand kein neuer PHP-Logeintrag.
+
+## Vorheriges produktives Release 2.4.21
 
 Quell-Commit: `594f5e4e234a5aba0bff49da85164da85760ab4f`.
 Produktiver `index.php`-SHA-256 (2.4.21): `a051e36860d5aea218920749cb82fa3cbce8607331664a860939fe6a90709a51`, 1'306'877 Bytes, Modus 0644.
-TOTP-Approval: `d36df39777e6e8f022ffaa70327e72c7` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.21 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+TOTP-Approval: `d36df39777e6e8f022ffaa70327e72c7` (ausgeführt 2026-09-14).
 
 Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
 `approval.lauber.online/storage/file_backups/20260914_143342_e70d967a_public_html_jobs.jema.business_index.php`
