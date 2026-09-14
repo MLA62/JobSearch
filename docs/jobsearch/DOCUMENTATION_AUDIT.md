@@ -1,7 +1,7 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.24 ist implementiert, dokumentiert und lokal verifiziert.
-Das produktive Deployment und die angemeldete fachliche Abnahme sind bis zur externen Freigabe offen.
+Stand: 2026-09-15. Version 2.4.24 ist implementiert, dokumentiert, lokal verifiziert und produktiv
+bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
 
 ## Prüfstand 2.4.24
 
@@ -13,9 +13,19 @@ Das produktive Deployment und die angemeldete fachliche Abnahme sind bis zur ext
 - Alle 44 ausführbaren PHP-Testdateien, 4'043 Hilfeprüfungen, 1'384 Hilfeseeds,
   93 Markdown-Dateien/61 lokale Links, beide Generatorprüfungen und alle elf Chromium-Testdateien
   sind erfolgreich.
-- Die produktive Datenbankwirkung ist noch nicht ausgeführt: Beim ersten Aufruf ergänzt die
-  idempotente Migration `user_documents.is_application_relevant` mit Vorgabe 0. Bestehende
-  Dokumente, Dateien und Bewerbungszuordnungen bleiben unverändert.
+- Nach TOTP-Freigabe `9f82e2f3d97d8cfacad0f2d59eac75fe` sind lokale und produktive
+  `index.php` mit SHA-256 `027423c2e8939de7c1483de448aac3827b32700e396fc8f22136fdabfe5b41d5`
+  sowie `assets/app.css` mit SHA-256
+  `4dbb17e913bac9862e8de9e5212dca36053058122b31820a68bf8598893e24be` bytegleich. HTTP 200,
+  Version 2.4.24 und die Sicherheitsheader sind bestätigt.
+- Beim ersten öffentlichen Aufruf wurde kein Fehler der idempotenten Migration
+  `user_documents.is_application_relevant` protokolliert. Die Vorgabe 0 verhindert eine
+  automatische Markierung bestehender Dokumente; Dateien und Bewerbungszuordnungen werden nicht
+  verändert.
+- Das einzige im cPanel-Connector konfigurierte Datenbankprofil verweist nicht auf die produktive
+  JeMa-Jobs-Datenbank. Die direkte SQL-Abnahme und eine verifizierte JeMa-Jobs-Datenbanksicherung
+  waren deshalb über den Connector nicht möglich; dies ist in `DEPLOYMENT.md` ausdrücklich
+  dokumentiert und muss vor der nächsten Schemaänderung korrigiert werden.
 
 ## Prüfstand 2.4.23
 

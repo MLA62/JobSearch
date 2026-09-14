@@ -1,6 +1,32 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.23 ist produktiv verifiziert.
+Stand: 2026-09-15. Release 2.4.24 ist produktiv verifiziert.
+
+Quell-Commit: `44d8dfee0ef3535434804052faac5b6c61980f19`.
+Produktiver `index.php`-SHA-256 (2.4.24): `027423c2e8939de7c1483de448aac3827b32700e396fc8f22136fdabfe5b41d5`, 1'315'024 Bytes, Modus 0644.
+Produktiver `assets/app.css`-SHA-256 (2.4.24): `4dbb17e913bac9862e8de9e5212dca36053058122b31820a68bf8598893e24be`, 53'733 Bytes, Modus 0644.
+TOTP-Approval: `9f82e2f3d97d8cfacad0f2d59eac75fe` (ausgeführt 2026-09-15). Die öffentliche
+Seite liefert HTTP 200 und weist Version 2.4.24 sowie HSTS, CSP, `nosniff`, `DENY` und
+`no-referrer` aus. Lokale und produktive Dateien sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php` und `assets/app.css`. Die Vorgängerdateien wurden
+unter `approval.lauber.online/storage/file_backups/20260914_220046_07fc26fb_public_html_jobs.jema.business_index.php`
+und `approval.lauber.online/storage/file_backups/20260914_220046_ed98173e_public_html_jobs.jema.business_assets_app.css`
+gesichert. Die idempotente Laufzeitmigration ergänzt
+`user_documents.is_application_relevant TINYINT(1) NOT NULL DEFAULT 0`; vorhandene Dokumente
+werden damit nicht automatisch markiert. Der erste öffentliche Aufruf protokollierte keinen
+Schema-Migrationsfehler.
+
+Der zuerst vorgeschlagene Upload unter Approval `37369d7e78ebd1c6ac887491035715b0` konnte den
+lokalen Windows-Pfad auf dem Connector-Host nicht lesen und veränderte keine Produktionsdatei. Das
+Paket wurde deshalb für die erfolgreiche Freigabe direkt als Uploadinhalt übertragen. Die vorab
+ausgeführte Datenbanksicherung `b6a6cc7c5f5e88fcfb7f395edb3b4864` betraf das einzige im Connector
+konfigurierte Profil; die anschließende Prüfung zeigte, dass dieses Profil nicht auf die JeMa-Jobs-
+Datenbank verweist. Dieses Artefakt ist daher ausdrücklich kein JeMa-Jobs-Datenbankbackup. Für
+künftige Schemaänderungen muss im Connector zuerst ein Profil der JeMa-Jobs-Datenbank eingerichtet
+und read-only verifiziert werden.
+
+## Vorheriges produktives Release 2.4.23
 
 Quell-Commit: `a2c8cfcaa0d2ce02a7d8f007f4d06692a83888f8`.
 Produktiver `index.php`-SHA-256 (2.4.23): `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`, 1'312'019 Bytes, Modus 0644.
