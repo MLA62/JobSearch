@@ -1,6 +1,24 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.15 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.17 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.17
+
+- Reportresultate besitzen keine separate Aktionsspalte und keinen separaten Datensatz-Button mehr.
+- Jeder nicht leere Feldinhalt ist selbst verlinkt. Firmen-, Vermittler-, Job-, Kontakt- und
+  Beziehungsfelder öffnen den jeweils individuellen Bezugsdatensatz; übrige Werte öffnen den
+  Datensatz der Reportzeile.
+- Die Feldlinks gelten einheitlich für Tabelle, Liste, Karten, Vorschau sowie Tages-, Wochen- und
+  Monatskalender. Alle dynamischen Inhalte bleiben vor dem Verlinken HTML-escaped.
+- Die enthaltene Rechercheerweiterung aus 2.4.16 analysiert Originalinserate über die KI-API,
+  recherchiert fehlende Firmenadress- und Kontaktdaten im öffentlichen Internet, prüft die
+  zitierten Quellen serverseitig erneut und ergänzt ausschließlich belegte Leerstellen.
+- Alle 39 PHP-Testdateien, 4'027 Hilfeprüfungen, 1'379 Hilfe-Seeds, 86 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle acht Chromium-Testdateien bei Mobil- und Desktopbreite sind
+  erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `8bb99b3f4ef602d9efdfe611fb4261ad4c32d79d1431ae2330d87e3b4d76ae4c` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.17 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.15
 
