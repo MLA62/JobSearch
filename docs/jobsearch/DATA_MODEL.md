@@ -304,6 +304,7 @@ CREATE TABLE user_documents (
     valid_until DATE NULL,
     version SMALLINT UNSIGNED NOT NULL DEFAULT 1,
     is_current TINYINT(1) NOT NULL DEFAULT 1,
+    is_application_relevant TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
@@ -1357,6 +1358,13 @@ CREATE TABLE IF NOT EXISTS admin_ai_memory (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
+## 18_document_application_relevance.sql
+
+```sql
+ALTER TABLE user_documents
+    ADD COLUMN is_application_relevant TINYINT(1) NOT NULL DEFAULT 0 AFTER is_current;
+```
+
 ## Zusaetzliche Runtime-DDL
 
 Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PHP-Notation und gegebenenfalls Interpolation sind vor einer manuellen Ausfuehrung auf SQL aufzuloesen.
@@ -1815,6 +1823,10 @@ ensureColumn($db, 'user_smtp_settings', 'imap_encryption', "`imap_encryption` EN
 
 ```php
 ensureColumn($db, 'user_smtp_settings', 'imap_sent_folder', '`imap_sent_folder` VARCHAR(255) NULL', 'imap_encryption');
+```
+
+```php
+ensureColumn($db, 'user_documents', 'is_application_relevant', '`is_application_relevant` TINYINT(1) NOT NULL DEFAULT 0', 'is_current');
 ```
 
 ```php

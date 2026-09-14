@@ -1,6 +1,21 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.24 ist implementiert, dokumentiert und lokal verifiziert.
+Das produktive Deployment und die angemeldete fachliche Abnahme sind bis zur externen Freigabe offen.
+
+## Prüfstand 2.4.24
+
+- Profildokumente besitzen ein standardmässig deaktiviertes Ankreuzfeld `Bewerbungsrelevant`.
+- Upload, Metadatenänderung und Versionswechsel speichern beziehungsweise übernehmen das Kennzeichen.
+- Die Bewerbungsmaske schlägt nur eigene, aktuelle, nicht gelöschte und gekennzeichnete
+  Profildokumente vor. Bereits zugeordnete Unterlagen bleiben davon unabhängig erhalten.
+- Dokumentreports und der Admin-KI-Datenvertrag enthalten das neue Feld.
+- Alle 44 ausführbaren PHP-Testdateien, 4'043 Hilfeprüfungen, 1'384 Hilfeseeds,
+  93 Markdown-Dateien/61 lokale Links, beide Generatorprüfungen und alle elf Chromium-Testdateien
+  sind erfolgreich.
+- Die produktive Datenbankwirkung ist noch nicht ausgeführt: Beim ersten Aufruf ergänzt die
+  idempotente Migration `user_documents.is_application_relevant` mit Vorgabe 0. Bestehende
+  Dokumente, Dateien und Bewerbungszuordnungen bleiben unverändert.
 
 ## Prüfstand 2.4.23
 

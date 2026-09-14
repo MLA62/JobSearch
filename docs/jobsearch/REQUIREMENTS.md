@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.23.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.24.
+
+Ergänzung 2.4.24: Profildokumente besitzen das Ankreuzfeld `Bewerbungsrelevant`. Es ist bei
+neuen Dokumenten standardmässig deaktiviert. Nur aktuelle, nicht gelöschte und ausdrücklich
+gekennzeichnete Profildokumente werden in Bewerbungen als hinzufügbare Dokumente vorgeschlagen.
+Bereits einer Bewerbung zugeordnete Dokumente bleiben unabhängig von einer späteren Deaktivierung
+sichtbar und zugeordnet. Beim Ersetzen einer Datei übernimmt das Formular das Kennzeichen der
+gewählten aktuellen Version; der Benutzer kann es vor dem Speichern ändern.
 
 Ergänzung 2.4.23: In der oberen Kalendernavigation steht direkt neben dem ICS-Export ein
 PDF-Export zur Verfügung. Er übernimmt die aktuell gewählte Kalenderansicht und das Ankerdatum.

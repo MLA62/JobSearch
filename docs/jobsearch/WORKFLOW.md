@@ -1,6 +1,13 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.23.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.24.
+
+Ergänzung 2.4.24: Das Dokumentformular speichert `is_application_relevant` als ausdrücklichen
+Boolean mit Vorgabe 0. Bei einer neuen Version transportiert der Versionswähler das Kennzeichen
+der aktuellen Version in das Ankreuzfeld. Die Bewerbungsmaske liest für den Vorschlagsbereich nur
+eigene Profildokumente mit `is_current=1`, `is_application_relevant=1` und ohne Löschzeitpunkt.
+Die tatsächlich zugeordneten Unterlagen werden weiterhin separat aus `application_documents`
+gelesen, sodass das Ausschalten des Vorschlagskennzeichens keine bestehende Zuordnung entfernt.
 
 Ergänzung 2.4.23: Der PDF-Button in der oberen Kalendernavigation exportiert den Zeitraum der
 gewählten Ansicht (Agenda, Tag, Arbeitswoche, Woche oder Monat). Bei der Agenda werden die aktuelle

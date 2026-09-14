@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 14.09.2026. Version 2.4.23 ergänzt den PDF-Export der aktuell gewählten Kalenderansicht.
-Release-Dokumentation: [Release 2.4.23](docs/jobsearch/RELEASE-2.4.23.md).
+Stand: 14.09.2026. Version 2.4.24 kennzeichnet auswählbare Bewerbungsdokumente ausdrücklich.
+Release-Dokumentation: [Release 2.4.24](docs/jobsearch/RELEASE-2.4.24.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

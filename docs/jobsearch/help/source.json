@@ -1,5 +1,5 @@
 {
-  "version": "2.4.23",
+  "version": "2.4.24",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -263,8 +263,9 @@
             "Bearbeite Metadaten oder ersetze die Datei als neue Version.",
             "Ordne benötigte Unterlagen einer Bewerbung zu und prüfe sie vor Download oder Versand."
           ],
-          "tips": [
-            "Die Dokumentsprache ist unabhängig von der App-Sprache. Eine Zuordnung ist noch kein Versand.",
+        "tips": [
+          "Aktiviere Bewerbungsrelevant nur für Stammdokumente, die in Bewerbungen zur Auswahl stehen sollen. Neue Dokumente sind standardmässig nicht aktiviert; eine neue Version übernimmt das Kennzeichen der gewählten aktuellen Version.",
+          "Die Dokumentsprache ist unabhängig von der App-Sprache. Eine Zuordnung ist noch kein Versand.",
             "Wähle für einen Dateiersatz zuerst das bestehende aktuelle Dokument unter Neue Version von. Titel, Typ, Sprache, Beschreibung und Gültigkeitsdaten werden übernommen; die neue Datei erhält automatisch die nächste Versionsnummer. Erst nach erfolgreicher Datei- und Datenbankspeicherung wird die bisherige Version als nicht aktuell markiert."
           ]
         },
@@ -276,8 +277,9 @@
             "Modifie les métadonnées ou remplace le fichier par une nouvelle version.",
             "Associe les pièces nécessaires à une candidature et vérifie-les avant téléchargement ou envoi."
           ],
-          "tips": [
-            "La langue du document est indépendante de celle de l’application. Associer un fichier ne l’envoie pas.",
+        "tips": [
+          "Active Pertinent pour les candidatures uniquement pour les documents de base qui doivent être proposés dans les candidatures. Les nouveaux documents sont désactivés par défaut; une nouvelle version reprend le réglage de la version actuelle sélectionnée.",
+          "La langue du document est indépendante de celle de l’application. Associer un fichier ne l’envoie pas.",
             "Pour remplacer un fichier, sélectionne d’abord le document actuel sous Nouvelle version de. Le titre, le type, la langue, la description et les dates de validité sont repris; le nouveau fichier reçoit automatiquement le numéro de version suivant. L’ancienne version n’est marquée comme non actuelle qu’après l’enregistrement réussi du fichier et de la base de données."
           ]
         },
@@ -289,8 +291,9 @@
             "Edit metadata or replace the file with a new version.",
             "Assign required files to an application and inspect them before downloading or sending."
           ],
-          "tips": [
-            "Document language is independent of app language. Assigning a file does not send it.",
+        "tips": [
+          "Enable Relevant to applications only for master documents that should be offered in applications. New documents are disabled by default; a new version inherits the setting of the selected current version.",
+          "Document language is independent of app language. Assigning a file does not send it.",
             "To replace a file, first select the current document under New version of. Title, type, language, description and validity dates are carried over; the new file automatically receives the next version number. The previous version is marked non-current only after both file and database storage succeed."
           ]
         },
@@ -302,8 +305,9 @@
             "Edite os metadados ou substitua o arquivo por uma nova versão.",
             "Associe os arquivos necessários à candidatura e confira-os antes de baixar ou enviar."
           ],
-          "tips": [
-            "O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia.",
+        "tips": [
+          "Ative Relevante para candidaturas somente nos documentos gerais que devem ser oferecidos nas candidaturas. Novos documentos ficam desativados por padrão; uma nova versão herda a configuração da versão atual selecionada.",
+          "O idioma do documento independe do idioma do aplicativo. Associar um arquivo não o envia.",
             "Para substituir um arquivo, selecione primeiro o documento atual em Nova versão de. Título, tipo, idioma, descrição e datas de validade são preenchidos; o novo arquivo recebe automaticamente o próximo número de versão. A versão anterior só deixa de ser atual após o arquivo e o banco de dados serem salvos com sucesso."
           ]
         },
@@ -315,8 +319,9 @@
             "Edita los metadatos o reemplaza el archivo con una nueva versión.",
             "Asocia los archivos necesarios a la solicitud y revísalos antes de descargarlos o enviarlos."
           ],
-          "tips": [
-            "El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía.",
+        "tips": [
+          "Activa Relevante para candidaturas solo en los documentos generales que deben ofrecerse en las solicitudes. Los documentos nuevos están desactivados de forma predeterminada; una versión nueva hereda la configuración de la versión actual seleccionada.",
+          "El idioma del documento es independiente del idioma de la aplicación. Asociarlo no lo envía.",
             "Para sustituir un archivo, selecciona primero el documento actual en Nueva versión de. Se recuperan título, tipo, idioma, descripción y fechas de validez; el archivo nuevo recibe automáticamente el siguiente número de versión. La versión anterior solo deja de ser actual cuando se guardan correctamente el archivo y la base de datos."
           ]
         }

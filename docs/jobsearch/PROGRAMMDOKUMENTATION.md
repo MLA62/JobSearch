@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.23 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.24 ist implementiert und lokal verifiziert.
+
+## Bewerbungsrelevante Dokumente 2.4.24
+
+`user_documents.is_application_relevant` ist ein nicht-nullbares Boolean-Feld mit Vorgabe 0.
+Das Profildokumentformular zeigt es als Ankreuzfeld. Upload und Metadatenänderung speichern den
+Wert mandantenbegrenzt; der Versionswähler übernimmt ihn zusammen mit den übrigen Metadaten in
+eine neue Dokumentversion.
+
+Die Dokumentauswahl einer Bewerbung zeigt nur eigene, aktuelle, nicht gelöschte Profildokumente
+mit aktivem Kennzeichen. Das Kennzeichen ist eine Vorschlagsregel und keine Zuordnung: Bereits in
+`application_documents` verknüpfte Unterlagen bleiben in der Bewerbung sichtbar, bis sie dort
+ausdrücklich entfernt werden. Reports und der freigegebene Admin-KI-Feldvertrag kennen das neue
+Feld ebenfalls.
 
 ## Kalender-PDF 2.4.23
 

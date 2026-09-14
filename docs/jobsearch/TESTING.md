@@ -2,6 +2,13 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.24: `document_application_relevance_test.php` prüft Schema-Vorgabe und
+Laufzeitmigration, das standardmässig leere Ankreuzfeld, Upload und Metadatenänderung, die
+Übernahme bei einer neuen Version, den mandanten- und löschsicheren Vorschlagsfilter sowie den
+unabhängigen Erhalt bereits zugeordneter Bewerbungsdokumente. Report- und Admin-KI-Feldverträge
+werden ebenfalls geprüft. `document_application_relevance_visual_test.cjs` führt den produktiven
+Versionswähler in Chromium aus und kontrolliert Vorgabe, Übernahme und Rückkehr zum leeren Formular.
+
 Ergänzung 2.4.23: `calendar_pdf_test.php` sichert Position und Parameter des PDF-Buttons, die
 Verwendung des sichtbaren Kalenderzeitraums, die Übernahme der Agenda-Filter und -Sortierung sowie
 die verlustfreie Abbildung der fünf sichtbaren Exportspalten.

@@ -683,6 +683,13 @@ input[type="date"] {
     overflow-wrap: anywhere;
 }
 
+.check-row {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    gap: 8px;
+}
+
 .button,
 button {
     display: inline-flex;

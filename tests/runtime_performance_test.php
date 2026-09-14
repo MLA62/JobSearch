@@ -11,11 +11,11 @@ function performanceCheck(bool $condition, string $message): void
     echo "PASS {$message}\n";
 }
 
-performanceCheck(str_contains($source, "runtime_schema_2_4_23"), 'Runtime schema work has a release marker');
+performanceCheck(str_contains($source, "runtime_schema_2_4_24"), 'Runtime schema work has a release marker');
 performanceCheck(str_contains($source, "GET_LOCK('jema-runtime-schema', 5)"), 'Runtime schema work is concurrency protected');
 performanceCheck(str_contains($source, 'if ($bootstrapSchemaRequired) {'), 'Schema checks are conditional');
 performanceCheck(str_contains($source, 'INSERT IGNORE INTO app_migrations (migration_key)'), 'Successful schema work stores its marker');
-performanceCheck(str_contains($source, "runtime_maintenance_2_4_23"), 'Seed and data migrations have a combined release marker');
+performanceCheck(str_contains($source, "runtime_maintenance_2_4_24"), 'Seed and data migrations have a combined release marker');
 performanceCheck(str_contains($source, "GET_LOCK('jema-runtime-maintenance', 5)"), 'Release maintenance is concurrency protected');
 performanceCheck(substr_count($source, 'seedJobPlatforms($db);') === 1, 'Job platform seeds run only inside release schema work');
 performanceCheck(!str_contains($source, "preg_split('/[\\R,;]+/u'"), 'Invalid newline character-class expressions are absent');
