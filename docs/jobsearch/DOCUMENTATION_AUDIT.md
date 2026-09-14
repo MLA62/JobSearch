@@ -1,6 +1,22 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.20 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.21 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.21
+
+- Bewerbungstexte dürfen fehlende, unlesbare oder unvollständige Unterlagen, Daten, Erfahrungen,
+  Kompetenzen oder Nachweise nicht gegenüber Arbeitgebenden thematisieren.
+- Gesprächsfloskeln, die fehlende Substanz lediglich auf ein späteres persönliches Gespräch
+  verschieben, werden in Deutsch, Englisch, Französisch, Spanisch und Portugiesisch erkannt.
+- Ein ungültiges KI-Ergebnis löst einen strengeren zweiten KI-Lauf aus. Verbleibende problematische
+  Sätze werden entfernt; ist der Rest zu kurz, wird ein sachlicher lokaler Entwurf eingesetzt.
+- Dieselbe Qualitätsprüfung repariert auch bereits gespeicherte problematische Begleit-E-Mails und
+  Motivationsschreiben beim Öffnen der Bewerbung.
+- Alle 40 PHP-Testdateien, 90 Markdown-Dateien/61 lokale Links, beide Generatorprüfungen sowie alle
+  zehn Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `a051e36860d5aea218920749cb82fa3cbce8607331664a860939fe6a90709a51` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.21 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.20
 

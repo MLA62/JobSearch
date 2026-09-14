@@ -1,6 +1,19 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.20 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.21 ist produktiv verifiziert.
+
+Quell-Commit: `594f5e4e234a5aba0bff49da85164da85760ab4f`.
+Produktiver `index.php`-SHA-256 (2.4.21): `a051e36860d5aea218920749cb82fa3cbce8607331664a860939fe6a90709a51`, 1'306'877 Bytes, Modus 0644.
+TOTP-Approval: `d36df39777e6e8f022ffaa70327e72c7` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.21 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_143342_e70d967a_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und Datenbank blieben unverändert.
+Version 2.4.21 verhindert selbstschädigende Aussagen über fehlende oder unlesbare Unterlagen sowie
+inhaltlich ausweichende Gesprächsfloskeln in KI-generierten Bewerbungstexten. Ungültige KI-Texte
+werden automatisch erneut erzeugt und vor Speicherung nochmals bereinigt oder sicher ersetzt.
+
+## Vorheriges produktives Release 2.4.20
 
 Quell-Commit: `ca65e8cc755439e60a48fbe6b19737d85d6ce1f3`.
 Produktiver `index.php`-SHA-256 (2.4.20): `901b452d217c7d6e92d85b7f0315ef2dc6387c90de2f2ef886c5949df37c3a9f`, 1'299'261 Bytes, Modus 0644.
