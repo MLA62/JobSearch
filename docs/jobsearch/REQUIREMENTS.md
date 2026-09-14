@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.17.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.18.
+
+Ergänzung 2.4.18: Der ausdrückliche Auftrag «Bewerbung vorbereiten» darf nicht wegen einer
+widersprüchlichen Firmenzuordnung oder einer vorübergehend fehlgeschlagenen Inserat-, KI- oder
+Empfängerrecherche verweigert werden. Die gewählte Stelle bleibt der Zieljob. Erkennt die geprüfte
+Originalausschreibung eine abweichende Arbeitgeberfirma, wird die Stelle dieser Firma zugeordnet;
+die bisherige Firma und deren Daten werden nicht überschrieben. Nicht mehr zur Arbeitgeber- oder
+Vermittlerfirma gehörende alte Kontakte dürfen nicht in den Empfängerblock gelangen. Scheitert eine
+optionale Anreicherung, werden Bewerbung und bearbeitbare Texte mit den vorhandenen Daten erstellt.
+Nur eine tatsächlich gelöschte oder nicht dem Benutzer gehörende Stelle darf den Vorgang stoppen.
 
 Ergänzung 2.4.17: Reportresultate dürfen keine separate Aktionsspalte und keinen separaten
 «Datensatz öffnen»-Button verbrauchen. Jeder nicht leere Feldinhalt muss selbst auf den fachlich

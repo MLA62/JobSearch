@@ -54,4 +54,6 @@ if (applicationRecipientCandidatePriority($jobContact,$application)!==2) throw n
 if (applicationRecipientCandidatePriority($applicationContact,$application)!==1) throw new RuntimeException('Application-linked contact priority is wrong.');
 $application['primary_contact_id']=5;
 if (applicationRecipientCandidatePriority($primaryContact,$application)!==0) throw new RuntimeException('Primary contact priority is wrong.');
+$staleContact = ['id'=>5,'company_id'=>80,'application_id'=>40,'job_id'=>50,'position'=>'HR','department'=>''];
+if (applicationRecipientCandidatePriority($staleContact,$application)!==99) throw new RuntimeException('A contact from a previously linked unrelated company remained eligible.');
 echo "PASS existing contacts are ranked primary, application, job, HR and company-wide\n";

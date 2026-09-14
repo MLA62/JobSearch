@@ -68,6 +68,10 @@ function dbOne(mysqli $db,string $sql,string $types='',array $params=[]): ?array
                 && (($params[2]!=='' && $row['email']===$params[3]) || ($params[4]!=='' && $row['first_name']===$params[5] && $row['last_name']===$params[6] && ($params[7]==='' || trim($row['email']??'')==='')))) return $row;
         }
     } elseif (str_contains($sql,'FROM jobs')) {
+        if (str_contains($sql,'id=?') && count($params)===2) {
+            foreach ($db->jobs as $row) if ($row['owner_user_id']===$params[0] && $row['id']===$params[1]) return $row;
+            return null;
+        }
         foreach ($db->jobs as $row) {
             $raw=json_decode($row['raw_import_data']??'{}',true);
             if ($row['owner_user_id']===$params[0] && (in_array($row['source_url'],[$params[1],$params[2]],true) || ($raw['original_url']??'')===$params[3])) return $row;
@@ -122,8 +126,17 @@ $same=importStoreDraft($db,7,$verified);
 helpAssert($same['job_id']===$jobId && count($db->jobs)===1,'Same original through another portal reuses existing job');
 helpAssert($db->jobs[$jobId]['title']===$draft['title'] && $db->jobs[$jobId]['description']===$draft['description'],'Existing populated original fields preserved');
 $replacement=$draft; $replacement['company']='Correct Employer SA';
-try { importStoreDraft($db,7,$replacement); throw new RuntimeException('Expected conflict'); }
-catch (RuntimeException $error) { helpAssert(str_contains($error->getMessage(),'anderen Firma'),'Conflicting employer is not silently overwritten'); }
+$reassigned=importStoreDraft($db,7,$replacement);
+helpAssert($reassigned['job_id']===$jobId && count($db->jobs)===1,'Verified employer correction keeps the existing job');
+helpAssert($db->jobs[$jobId]['company_id']!==$firmId && $db->companies[$firmId]['name']==='Original Employer SA','Verified employer correction reassigns the job without modifying the old company');
+$targeted=$draft;
+$targeted['company']='Final Employer SA';
+$targeted['source_url']='https://redirected.example.test/new-location';
+$targeted['original_url']='https://original.example.test/new-location';
+$targeted['target_job_id']=$jobId;
+$targetedResult=importStoreDraft($db,7,$targeted);
+helpAssert($targetedResult['job_id']===$jobId && count($db->jobs)===1,'Application preparation refreshes the explicitly selected job despite changed source URLs');
+helpAssert($db->companies[$firmId]['name']==='Original Employer SA','Targeted reassignment never overwrites the previously linked company');
 $other=importStoreDraft($db,8,$draft);
 helpAssert($other['job_id']!==$jobId && $other['company_id']!==$firmId,'Other user has separate job and company');
 $before=[$db->companies,$db->contacts,$db->jobs];

@@ -2,6 +2,14 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.18: `job_import_storage_test.php` reproduziert den bisherigen Firmenkonflikt und
+prüft, dass der bestehende Zieljob der verifizierten Firma zugeordnet wird, ohne die bisherige Firma
+zu verändern oder einen zweiten Job anzulegen. Ein weiterer Fall erzwingt geänderte Quell-URLs und
+bestätigt die Bindung an `target_job_id`. `application_ai_texts_test.php` stellt sicher, dass ein
+Analysefehler vor der Bewerbungsspeicherung keinen Redirect und keine Verweigerungsmeldung mehr
+auslöst. `application_recipient_block_test.php` schliesst einen veralteten Kontakt einer früheren,
+nicht mehr beteiligten Firma aus.
+
 Ergänzung 2.4.17: `report_fields_test.php` prüft die feldbezogenen Ziele für Firma, Vermittler,
 Job, Bewerbung und Kontakt sowie den Wegfall des separaten Reportbuttons. Der Chromium-Test prüft
 alle sieben Renderer bei Mobil- und Desktopbreite: keine Aktionsspalte, kein separater Button,

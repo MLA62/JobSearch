@@ -1,5 +1,5 @@
 {
-  "version": "2.4.17",
+  "version": "2.4.18",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -689,7 +689,7 @@
           "title": "Bewerbungsworkflow",
           "summary": "Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche → Zusage oder Absage.",
           "steps": [
-            "Beim Vorbereiten analysiert die App die Originalausschreibung erneut über die KI-API, ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten und legt danach eine neue Bewerbung an oder öffnet die bereits aktive Bewerbung. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.",
+            "Beim Vorbereiten legt die App die neue Bewerbung immer an oder öffnet die bereits aktive Bewerbung. Zuvor analysiert sie die Originalausschreibung erneut über die KI-API und ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten. Eine verifiziert abweichende Arbeitgeberfirma korrigiert die Zuordnung des gewählten Jobs, ohne die bisherige Firma zu überschreiben. Ist die Analyse vorübergehend nicht möglich, wird die Bewerbung mit den vorhandenen Angaben und bearbeitbaren Entwürfen fortgesetzt. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.",
             "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion werden die vorhandenen Texte gemäß dieser Instruktion überarbeitet; bei leerem Instruktionsfeld erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten. Die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
             "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
@@ -707,7 +707,7 @@
           "title": "Parcours de candidature",
           "summary": "Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens → Acceptation ou refus.",
           "steps": [
-            "Lors de la préparation, l’application réanalyse l’annonce originale via l’API d’IA, complète les données vérifiées de l’entreprise, de l’adresse, du contact et du poste, puis crée ou ouvre la candidature active.",
+            "Lors de la préparation, l’application crée toujours la nouvelle candidature ou ouvre la candidature active. Elle réanalyse auparavant l’annonce originale via l’API d’IA et complète les données vérifiées. Si l’employeur vérifié diffère, l’offre choisie est réaffectée sans écraser l’ancienne entreprise. Si l’analyse est momentanément indisponible, la candidature continue avec les données existantes et des brouillons modifiables.",
             "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, les textes existants sont révisés conformément à celle-ci; si le champ est vide, l’IA recrée entièrement les trois textes à partir des données de candidature disponibles. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
             "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
@@ -725,7 +725,7 @@
           "title": "Application workflow",
           "summary": "Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or rejected.",
           "steps": [
-            "When preparing, the app reanalyses the original advertisement through the AI API, fills verified company, address, contact and job data, then creates a new application or opens the active one.",
+            "When preparing, the app always creates the new application or opens the active one. It first reanalyses the original advertisement through the AI API and fills verified data. If the verified employer differs, the selected job is reassigned without overwriting the previous company. If analysis is temporarily unavailable, preparation continues with existing data and editable drafts.",
             "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, the existing texts are revised according to it; if the instruction field is empty, AI recreates all three texts from scratch using the available application data. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
             "Record each interview as a separate appointment and document acceptance or rejection."
@@ -743,7 +743,7 @@
           "title": "Fluxo de candidatura",
           "summary": "Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas → Aceita ou recusada.",
           "steps": [
-            "Ao preparar, o aplicativo reanalisa o anúncio original pela API de IA, completa dados verificados da empresa, endereço, contato e vaga e depois cria ou abre a candidatura ativa.",
+            "Ao preparar, o aplicativo sempre cria a nova candidatura ou abre a candidatura ativa. Antes, ele reanalisa o anúncio original pela API de IA e completa os dados verificados. Se o empregador verificado for diferente, a vaga selecionada é reatribuída sem sobrescrever a empresa anterior. Se a análise estiver temporariamente indisponível, a preparação continua com os dados existentes e rascunhos editáveis.",
             "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, os textos existentes são revisados de acordo com ela; se o campo estiver vazio, a IA recria os três textos do zero usando os dados disponíveis da candidatura. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
             "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
@@ -761,7 +761,7 @@
           "title": "Proceso de solicitud",
           "summary": "Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → Aceptada o rechazada.",
           "steps": [
-            "Al preparar, la aplicación vuelve a analizar el anuncio original mediante la API de IA, completa datos verificados de empresa, dirección, contacto y vacante y después crea o abre la solicitud activa.",
+            "Al preparar, la aplicación siempre crea la nueva solicitud o abre la solicitud activa. Antes vuelve a analizar el anuncio original mediante la API de IA y completa los datos verificados. Si el empleador verificado es distinto, reasigna la vacante seleccionada sin sobrescribir la empresa anterior. Si el análisis no está disponible temporalmente, la preparación continúa con los datos existentes y borradores editables.",
             "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, los textos existentes se revisan según ella; si el campo está vacío, la IA vuelve a crear los tres textos desde cero usando los datos disponibles de la solicitud. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
             "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
@@ -2546,13 +2546,6 @@
       "en-GB": "The application could not be created in the database. No application data was changed. Error reference: {reference}.",
       "pt-BR": "A candidatura não pôde ser criada no banco de dados. Nenhum dado da candidatura foi alterado. Referência do erro: {reference}.",
       "es-MX": "La solicitud no pudo crearse en la base de datos. No se modificaron datos de la solicitud. Referencia del error: {reference}."
-    },
-    "applications.prepare_analysis_failed": {
-      "de-CH": "Die Originalausschreibung konnte nicht vollständig mit der KI analysiert werden. Die Bewerbung wurde nicht verändert. Ursache: {reason} Fehlerreferenz: {reference}.",
-      "fr-CH": "L’annonce originale n’a pas pu être entièrement analysée par l’IA. La candidature n’a pas été modifiée. Cause : {reason} Référence d’erreur : {reference}.",
-      "en-GB": "The original advertisement could not be fully analysed by AI. The application was not changed. Cause: {reason} Error reference: {reference}.",
-      "pt-BR": "O anúncio original não pôde ser analisado integralmente pela IA. A candidatura não foi alterada. Motivo: {reason} Referência do erro: {reference}.",
-      "es-MX": "El anuncio original no pudo analizarse completamente con IA. La solicitud no se modificó. Motivo: {reason} Referencia del error: {reference}."
     },
     "applications.prepare_texts_failed": {
       "de-CH": "Die Bewerbung wurde angelegt, aber die Texte konnten nicht vorbereitet werden. Der Datensatz ist geöffnet und kann manuell bearbeitet werden. Fehlerreferenz: {reference}.",

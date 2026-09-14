@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.17.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.18.
+
+Ergänzung 2.4.18: `start_application` bindet die erneute Inseratanalyse mit `target_job_id` an die
+ausdrücklich gewählte Stelle. `importStoreDraft()` aktualisiert dadurch genau diesen eigenen Job und
+korrigiert eine verifiziert abweichende Firmenzuordnung, statt einen zweiten Job anzulegen oder den
+Vorgang zurückzurollen. Die zuvor verknüpfte Firma bleibt unverändert. Inserat- und Empfängerrecherche
+sind Anreicherungen: Fehler werden mit Referenz protokolliert, verhindern aber weder die atomare
+Bewerbungsanlage noch die anschliessende KI- beziehungsweise lokale Textvorbereitung. Die
+Empfängerauflösung ignoriert Kontakte ausserhalb der aktuellen Arbeitgeber- und Vermittlerfirma.
 
 Ergänzung 2.4.17: `reportFieldRecordUrl()` bestimmt für jede sichtbare Reportspalte das konkrete
 Linkziel. Beziehungsfelder verwenden ihre eigene Fremd-ID; alle übrigen Felder verwenden die ID des

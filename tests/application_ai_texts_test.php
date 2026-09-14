@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.17'=>"\$codeVersion = '2.4.17'",
+    'version 2.4.18'=>"\$codeVersion = '2.4.18'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -38,6 +38,8 @@ $checks=[
     'missing recipient research'=>'function applicationEnsureRecipientData(',
     'recipient research before existing text return'=>'applicationEnsureRecipientData($config,$db,$userId,$applicationId);',
     'web research fallback'=>'jobWebResearchResponse($config,$userId,$draft,$missing)',
+    'selected job remains refresh target'=>"\$analysed['target_job_id']=\$jobId;",
+    'recipient enrichment cannot block text preparation'=>'Application recipient enrichment continued with existing data',
 ];
 foreach($checks as $label=>$needle){
     if(!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);
@@ -46,4 +48,12 @@ foreach($checks as $label=>$needle){
 if(str_contains($source,"\$applicationEdit['cover_letter_text'] ?: \$coverLetterPrompt")) {
     throw new RuntimeException('Legacy external prompt must not be placed in the cover-letter field.');
 }
+$startApplicationStart=strpos($source,"if (\$action === 'start_application')");
+$applicationWriteStart=strpos($source,'$db->begin_transaction();',$startApplicationStart);
+if($startApplicationStart===false || $applicationWriteStart===false) throw new RuntimeException('Application preparation block not found.');
+$analysisBlock=substr($source,$startApplicationStart,$applicationWriteStart-$startApplicationStart);
+if(str_contains($analysisBlock,'redirectAiFetch(') || str_contains($analysisBlock,'prepare_analysis_failed')) {
+    throw new RuntimeException('Advertisement analysis can still refuse an explicitly requested application.');
+}
+echo "PASS advertisement analysis failure continues with the requested application\n";
 echo "Application AI text checks passed.\n";

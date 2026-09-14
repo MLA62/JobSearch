@@ -2315,14 +2315,6 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Visualização filtrada',
     'es-MX' => 'Vista filtrada',
   ),
-  'applications.prepare_analysis_failed' =>
-  array (
-    'de-CH' => 'Die Originalausschreibung konnte nicht vollständig mit der KI analysiert werden. Die Bewerbung wurde nicht verändert. Ursache: {reason} Fehlerreferenz: {reference}.',
-    'fr-CH' => 'L’annonce originale n’a pas pu être entièrement analysée par l’IA. La candidature n’a pas été modifiée. Cause : {reason} Référence d’erreur : {reference}.',
-    'en-GB' => 'The original advertisement could not be fully analysed by AI. The application was not changed. Cause: {reason} Error reference: {reference}.',
-    'pt-BR' => 'O anúncio original não pôde ser analisado integralmente pela IA. A candidatura não foi alterada. Motivo: {reason} Referência do erro: {reference}.',
-    'es-MX' => 'El anuncio original no pudo analizarse completamente con IA. La solicitud no se modificó. Motivo: {reason} Referencia del error: {reference}.',
-  ),
   'applications.prepare_storage_failed' =>
   array (
     'de-CH' => 'Die Bewerbung konnte nicht in der Datenbank angelegt werden. Es wurden keine Bewerbungsdaten geändert. Fehlerreferenz: {reference}.',
@@ -2989,11 +2981,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.0' =>
   array (
-    'de-CH' => 'Beim Vorbereiten analysiert die App die Originalausschreibung erneut über die KI-API, ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten und legt danach eine neue Bewerbung an oder öffnet die bereits aktive Bewerbung. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.',
-    'fr-CH' => 'Lors de la préparation, l’application réanalyse l’annonce originale via l’API d’IA, complète les données vérifiées de l’entreprise, de l’adresse, du contact et du poste, puis crée ou ouvre la candidature active.',
-    'en-GB' => 'When preparing, the app reanalyses the original advertisement through the AI API, fills verified company, address, contact and job data, then creates a new application or opens the active one.',
-    'pt-BR' => 'Ao preparar, o aplicativo reanalisa o anúncio original pela API de IA, completa dados verificados da empresa, endereço, contato e vaga e depois cria ou abre a candidatura ativa.',
-    'es-MX' => 'Al preparar, la aplicación vuelve a analizar el anuncio original mediante la API de IA, completa datos verificados de empresa, dirección, contacto y vacante y después crea o abre la solicitud activa.',
+    'de-CH' => 'Beim Vorbereiten legt die App die neue Bewerbung immer an oder öffnet die bereits aktive Bewerbung. Zuvor analysiert sie die Originalausschreibung erneut über die KI-API und ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten. Eine verifiziert abweichende Arbeitgeberfirma korrigiert die Zuordnung des gewählten Jobs, ohne die bisherige Firma zu überschreiben. Ist die Analyse vorübergehend nicht möglich, wird die Bewerbung mit den vorhandenen Angaben und bearbeitbaren Entwürfen fortgesetzt. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.',
+    'fr-CH' => 'Lors de la préparation, l’application crée toujours la nouvelle candidature ou ouvre la candidature active. Elle réanalyse auparavant l’annonce originale via l’API d’IA et complète les données vérifiées. Si l’employeur vérifié diffère, l’offre choisie est réaffectée sans écraser l’ancienne entreprise. Si l’analyse est momentanément indisponible, la candidature continue avec les données existantes et des brouillons modifiables.',
+    'en-GB' => 'When preparing, the app always creates the new application or opens the active one. It first reanalyses the original advertisement through the AI API and fills verified data. If the verified employer differs, the selected job is reassigned without overwriting the previous company. If analysis is temporarily unavailable, preparation continues with existing data and editable drafts.',
+    'pt-BR' => 'Ao preparar, o aplicativo sempre cria a nova candidatura ou abre a candidatura ativa. Antes, ele reanalisa o anúncio original pela API de IA e completa os dados verificados. Se o empregador verificado for diferente, a vaga selecionada é reatribuída sem sobrescrever a empresa anterior. Se a análise estiver temporariamente indisponível, a preparação continua com os dados existentes e rascunhos editáveis.',
+    'es-MX' => 'Al preparar, la aplicación siempre crea la nueva solicitud o abre la solicitud activa. Antes vuelve a analizar el anuncio original mediante la API de IA y completa los datos verificados. Si el empleador verificado es distinto, reasigna la vacante seleccionada sin sobrescribir la empresa anterior. Si el análisis no está disponible temporalmente, la preparación continúa con los datos existentes y borradores editables.',
   ),
   'help.v2.applications.steps.1' =>
   array (
@@ -9514,16 +9506,17 @@ function applicationRecipientCandidatePriority(array $contact, array $applicatio
 {
     $contactId = (int) ($contact['id'] ?? 0);
     $primaryId = (int) ($application['primary_contact_id'] ?? 0);
+    $companyId = (int) ($contact['company_id'] ?? 0);
+    $employerId = (int) ($application['company_id'] ?? 0);
+    $intermediaryId = (int) ($application['intermediary_company_id'] ?? 0);
+    if ($companyId !== $employerId && ($intermediaryId <= 0 || $companyId !== $intermediaryId)) return 99;
     if ($primaryId > 0 && $contactId === $primaryId) return 0;
     if ((int) ($contact['application_id'] ?? 0) === (int) ($application['id'] ?? 0)) return 1;
     if ((int) ($contact['job_id'] ?? 0) === (int) ($application['job_id'] ?? 0)) return 2;
     $role = strtolower(trim((string) ($contact['position'] ?? '') . ' ' . (string) ($contact['department'] ?? '')));
     $recruiting = preg_match('/\b(hr|human resources|human resource|recruit|talent|personal|personnel)\b/u', $role) === 1;
-    $companyId = (int) ($contact['company_id'] ?? 0);
-    $intermediaryId = (int) ($application['intermediary_company_id'] ?? 0);
     if ($intermediaryId > 0 && $companyId === $intermediaryId) return $recruiting ? 3 : 5;
-    if ($companyId === (int) ($application['company_id'] ?? 0)) return $recruiting ? 4 : 6;
-    return 7;
+    return $recruiting ? 4 : 6;
 }
 
 function applicationRecipientForApplication(mysqli $db, int $userId, int $applicationId): array
@@ -9541,6 +9534,7 @@ function applicationRecipientForApplication(mysqli $db, int $userId, int $applic
         WHERE c.owner_user_id=? AND c.deleted_at IS NULL AND
         (c.id=? OR c.application_id=? OR c.job_id=? OR c.company_id=? OR (? > 0 AND c.company_id=?))',
         'iiiiiii', [$userId, (int)($application['primary_contact_id'] ?? 0), $applicationId, (int)$application['job_id'], (int)$application['company_id'], (int)($application['intermediary_company_id'] ?? 0), (int)($application['intermediary_company_id'] ?? 0)]);
+    $contacts = array_values(array_filter($contacts, static fn(array $contact): bool => applicationRecipientCandidatePriority($contact, $application) < 99));
     usort($contacts, static function (array $left, array $right) use ($application): int {
         $priority = applicationRecipientCandidatePriority($left, $application) <=> applicationRecipientCandidatePriority($right, $application);
         return $priority !== 0 ? $priority : ((int)($right['id'] ?? 0) <=> (int)($left['id'] ?? 0));
@@ -9835,7 +9829,11 @@ function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, 
 
 function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser): array
 {
-    applicationEnsureRecipientData($config,$db,$userId,$applicationId);
+    try {
+        applicationEnsureRecipientData($config,$db,$userId,$applicationId);
+    } catch (Throwable $exception) {
+        error_log('Application recipient enrichment continued with existing data for application '.$applicationId.': '.$exception->getMessage());
+    }
     $current=dbOne($db,'SELECT email_subject, SUBSTRING(email_body,1,65535) email_body, SUBSTRING(cover_letter_text,1,65535) cover_letter_text FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL','ii',[$applicationId,$userId]);
     if (!$current) throw new RuntimeException('Bewerbung nicht gefunden.');
     $missing=[]; foreach (['email_subject','email_body','cover_letter_text'] as $field) $missing[$field]=trim((string)($current[$field] ?? ''))==='';
@@ -10290,15 +10288,21 @@ function importStoreDraft(mysqli $db, int $uid, array $draft): array
     $sourceUrl=trim((string)($draft['source_url'] ?? ''));
     $location=trim((string)($draft['location'] ?? $draft['location_text'] ?? ''));
     $description=trim((string)($draft['description'] ?? ''));
+    $targetJobId=max(0,(int)($draft['target_job_id'] ?? 0));
     if ($title==='' || $companyName==='' || $description==='' || $sourceUrl==='') throw new RuntimeException('Die Originalausschreibung enthält keine vollständigen Importdaten.');
     $db->begin_transaction();
     try {
         $originalUrl=(string)($draft['original_url'] ?? $sourceUrl);
-        $existing=dbOne($db,'SELECT id, company_id, title, location_text, description, raw_import_data FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL AND (source_url=? OR source_url=? OR JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(raw_import_data),raw_import_data,"{}"),"$.original_url"))=?) LIMIT 1','isss',[$uid,$sourceUrl,$originalUrl,$originalUrl]);
+        if ($targetJobId > 0) {
+            $existing=dbOne($db,'SELECT id, company_id, title, location_text, description, raw_import_data FROM jobs WHERE owner_user_id=? AND id=? AND deleted_at IS NULL LIMIT 1','ii',[$uid,$targetJobId]);
+            if (!$existing) throw new RuntimeException('Die ausgewählte Stelle ist nicht mehr verfügbar.');
+        } else {
+            $existing=dbOne($db,'SELECT id, company_id, title, location_text, description, raw_import_data FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL AND (source_url=? OR source_url=? OR JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(raw_import_data),raw_import_data,"{}"),"$.original_url"))=?) LIMIT 1','isss',[$uid,$sourceUrl,$originalUrl,$originalUrl]);
+        }
         $companyId=importUpsertCompany($db,$uid,$companyName,(array)($draft['company_details'] ?? []));
+        $previousCompanyId=(int)($existing['company_id'] ?? 0);
         if ($existing) {
             $jobId=(int)$existing['id'];
-            if ((int)$existing['company_id']!==$companyId) throw new RuntimeException('Die bestehende Stelle gehört zu einer anderen Firma. Die Zuordnung muss geprüft werden; es wurden keine Daten überschrieben.');
             $stmt=$db->prepare('UPDATE jobs SET company_id=?, title=IF(TRIM(title)="",?,title), location_text=IF(COALESCE(TRIM(location_text),"")="",?,location_text), description=IF(COALESCE(TRIM(description),"")="",?,description) WHERE id=? AND owner_user_id=? AND deleted_at IS NULL');
             $stmt->bind_param('isssii',$companyId,$title,$location,$description,$jobId,$uid);
         } else {
@@ -10334,6 +10338,7 @@ function importStoreDraft(mysqli $db, int $uid, array $draft): array
         }
         audit($db,$uid,$existing ? 'update' : 'create','job',$jobId,$existing,[
             'source'=>'original_ad_import','company_id'=>$companyId,'title'=>$title,
+            'previous_company_id'=>$previousCompanyId ?: null,'company_reassigned'=>$previousCompanyId > 0 && $previousCompanyId !== $companyId,
             'source_url'=>$sourceUrl,'original_url'=>$draft['original_url'] ?? $sourceUrl,
             'source_chain'=>$draft['source_chain'] ?? [],'company_source_url'=>$draft['company_source_url'] ?? null,
         ]);
@@ -11682,7 +11687,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.17','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.18','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -14813,13 +14818,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $analysisDiagnostic=[];
                 $analysed=verifiedJobImport($config,$uid,(string)$job['source_url'],importSearchCriteria($db,$uid),$analysisDiagnostic,true);
+                $analysed['target_job_id']=$jobId;
                 $refreshed=importStoreDraft($db,$uid,$analysed);
                 if ((int)($refreshed['job_id'] ?? 0) !== $jobId) throw new RuntimeException('Die analysierte Originalausschreibung konnte dem ausgewählten Job nicht eindeutig zugeordnet werden.');
             } catch (Throwable $exception) {
                 $reference = strtoupper(bin2hex(random_bytes(4)));
-                error_log('Application job analysis failed [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
-                flash(tr('applications.prepare_analysis_failed', null, ['reason' => mb_substr($exception->getMessage(),0,240), 'reference' => $reference]), 'danger');
-                redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
+                error_log('Application job analysis continued with existing data [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
             }
         }
         try {
@@ -15542,7 +15546,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.17';
+$codeVersion = '2.4.18';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

@@ -1,6 +1,22 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.17 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.18 ist implementiert und lokal verifiziert.
+
+## Unbedingte Bewerbungsvorbereitung 2.4.18
+
+Die erneute Inseratanalyse vor `start_application` bleibt aktiv, ist aber kein Abbruchkriterium mehr.
+Der Handler übergibt `target_job_id`, sodass `importStoreDraft()` die Analyse immer auf den vom
+Benutzer gewählten eigenen Job anwendet. Eine abweichende, verifizierte Arbeitgeberfirma ändert
+ausschliesslich `jobs.company_id`; der bisherige Firmendatensatz wird weder überschrieben noch
+gelöscht. Auditdaten halten alte und neue Firmen-ID sowie die Neuzuordnung fest.
+
+Scheitert der Abruf, die strukturierte KI-Analyse, die Webrecherche oder eine andere optionale
+Anreicherung, wird der konkrete Fehler nur serverseitig referenzierbar protokolliert. Die Anwendung
+legt die Bewerbung trotzdem atomar an beziehungsweise öffnet die bestehende und erstellt danach mit
+den verfügbaren Angaben KI-Texte oder lokale bearbeitbare Grundentwürfe. Auch eine fehlgeschlagene
+Empfängerrecherche blockiert `initializeApplicationTexts()` nicht. Nach einer Firmenkorrektur werden
+alte Kontakte ausserhalb der aktuellen Arbeitgeber- und Vermittlerfirma aus der Empfängerwahl
+ausgeschlossen.
 
 ## Feldbezogene Reportlinks 2.4.17
 
