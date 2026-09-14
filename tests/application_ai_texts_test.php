@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.13'=>"\$codeVersion = '2.4.13'",
+    'version 2.4.14'=>"\$codeVersion = '2.4.14'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -26,6 +26,9 @@ $checks=[
     'empty instruction regeneration contract'=>'create all three texts completely anew',
     'empty instruction excludes current texts'=>"'current_texts'=>\$regenerate ? null : \$currentTexts",
     'no automatic sending'=>'Nichts wird automatisch versendet.',
+    'recipient block guaranteed after AI'=>'applicationCoverLetterWithRecipientBlock(',
+    'known primary contact loaded'=>'applicationRecipientBlockForApplication(',
+    'AI must begin with recipient block'=>'cover_letter_text must start with the exact recipient address block',
 ];
 foreach($checks as $label=>$needle){
     if(!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);

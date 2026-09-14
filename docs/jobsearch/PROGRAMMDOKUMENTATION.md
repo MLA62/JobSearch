@@ -1,6 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.13 ist implementiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.14 ist implementiert und lokal vollständig verifiziert.
+
+## Eindeutige Reportfilter und Empfängerblock 2.4.14
+
+`reportDataset()` erzeugt zunächst die formatierte Ergebniszeile. Für Auswahlfelder übernimmt es
+anschliessend genau diesen sichtbaren Fachwert als Filterwert; Datums- und Zahlenfelder behalten
+ihren maschinenlesbaren Rohwert. Damit können fachlich verschiedene Anzeigen wie «Noch nicht im
+Job-Room erfasst» und «Im Job-Room erfasst – Noch offen» nicht mehr über einen gemeinsamen internen
+Code zusammenfallen. Die gemeinsame Filterengine bleibt für alle sechs Report-Datenbasen identisch.
+
+`applicationRecipientBlockForApplication()` liest Arbeitgeber beziehungsweise die Firma des
+zugeordneten Primärkontakts mandantengeprüft. `applicationCoverLetterWithRecipientBlock()` verlangt
+den Empfängerblock am Anfang des Motivationsschreibens, ergänzt ihn nach jeder KI-Antwort und
+verhindert eine Dublette, wenn der korrekte Block bereits am Anfang steht. Dieselbe Absicherung gilt
+für lokale Ausfallentwürfe. Ohne bekannte Kontaktperson wird kein Name oder Platzhalter erfunden.
 
 ## Umschaltbare und verlinkte Reports 2.4.13
 

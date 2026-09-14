@@ -1,6 +1,17 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.13 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.14 ist implementiert, dokumentiert und lokal vollständig verifiziert.
+
+## Prüfstand 2.4.14
+
+- Auswahlfilter unterscheiden alle tatsächlich sichtbaren Fachwerte; die beiden Job-Room-Zustände
+  «noch nicht erfasst» und «erfasst – noch offen» wurden als getrennte Browserfälle geprüft.
+- Von, Bis, Datumsbereich, Minimum, Maximum, Zahlenbereich, Textsuche, Leerwert, jede verfügbare
+  Auswahloption und eine UND-Kombination wurden einzeln geprüft.
+- Der Empfängerblock mit Firma, bekanntem Kontakt, Strasse und PLZ/Ort steht nach KI- und lokalem
+  Ausfallentwurf zwingend am Anfang; Voranstellen, Nichtduplizieren und fehlender Kontakt sind geprüft.
+- Alle 38 PHP-Testdateien, 4'010 Hilfeprüfungen, 1'369 Hilfe-Seeds, 83 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle sechs Chromium-Testdateien sind erfolgreich.
 
 ## Prüfstand 2.4.13
 

@@ -2,6 +2,13 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.14: `report_filters_test.php` prüft Von, Bis, Datumsbereich, Minimum, Maximum,
+Zahlenbereich, Textsuche, jede semantische Auswahloption einschließlich Leerwert, kombinierte
+Filter sowie ungültige Eingaben. Der Chromium-Test wählt jede verfügbare Job-Room-Option einzeln
+und prüft die erhaltene Karten-/Tabellenansicht. `application_recipient_block_test.php` verifiziert
+den Vierzeiler Firma/Kontakt/Strasse/PLZ Ort, das zwingende Voranstellen, die Dublettenvermeidung
+und den Fall ohne bekannte Kontaktperson.
+
 Ergänzung 2.4.13: `report_fields_test.php` prüft Tabelle/Karten-Umschaltung, ungültige Overrides,
 alle sechs Datensatz-Routen und die vollständige Ersetzung des Job-Room-Ergebnisplatzhalters.
 Zusätzlich werden Text-, Datums-, Zahlen- und Auswahlfilter, ihre gemeinsame Wirkung, die Begrenzung

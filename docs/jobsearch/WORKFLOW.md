@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.13.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.14.
+
+Ergänzung 2.4.14: Auswahlfilter verwenden den fertig formatierten, sichtbaren Fachwert. Dadurch
+bleiben insbesondere «Noch nicht im Job-Room erfasst» und «Im Job-Room erfasst – Noch offen» trotz
+eines möglichen gemeinsamen Rohwerts getrennt. Datums- und Zahlenfilter verwenden weiterhin die
+unformatierten Werte; Textfilter vergleichen den sichtbaren Text. Der KI-Entwurf und der lokale
+Ausfallentwurf erhalten den Empfängerblock aus der Bewerbung. Ein bekannter Primärkontakt wird
+zwischen Firmenname und Firmenanschrift gesetzt; eine abschliessende Serverprüfung ergänzt einen
+vom Modell ausgelassenen Block, ohne einen vorhandenen Block zu duplizieren.
 
 Ergänzung 2.4.13: Die gespeicherte Report-Anzeigeart bleibt die Voreinstellung. `report_as=table`
 oder `report_as=cards` schaltet die geöffnete Ansicht ohne Datenbankänderung um; ungültige Werte

@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.13.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.14.
+
+Ergänzung 2.4.14: Auswahlfilter geöffneter Reports müssen jeden sichtbaren fachlichen Wert
+eindeutig behandeln. Unterschiedliche Anzeigen dürfen auch dann nicht gemeinsam gefiltert werden,
+wenn sie intern denselben Rohwert verwenden. Datum, Zahl, Text und jede vorhandene Auswahloption
+müssen einzeln und kombiniert funktionieren. Ist einer Bewerbung eine Kontaktperson zugeordnet,
+muss das KI-generierte Motivationsschreiben mit Firma, Kontaktperson, Strasse und PLZ/Ort beginnen.
+Die App stellt diesen Empfängerblock nach jeder KI-Antwort serverseitig sicher.
 
 Ergänzung 2.4.13: Jeder geöffnete Report muss unabhängig von seiner gespeicherten Voreinstellung
 direkt zwischen Tabellen- und Kartenansicht umschaltbar sein. Jeder Datensatz muss in Tabelle,

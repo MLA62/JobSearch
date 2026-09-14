@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 14.09.2026. Version 2.4.13 ergänzt feldabhängige Reportfilter, den direkten Tabelle/Karten-Umschalter, Links zu allen Report-Datensätzen und eine sichere Platzhalterkorrektur.
-Release-Dokumentation: [Release 2.4.13](docs/jobsearch/RELEASE-2.4.13.md).
+Stand: 14.09.2026. Version 2.4.14 trennt semantische Report-Filterwerte zuverlässig und garantiert den bekannten Bewerbungskontakt im Empfängerblock des Motivationsschreibens.
+Release-Dokumentation: [Release 2.4.14](docs/jobsearch/RELEASE-2.4.14.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

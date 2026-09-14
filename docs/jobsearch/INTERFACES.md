@@ -435,7 +435,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationNextActionLabel(?string $nextAction): string`
 - `function applicationStatusSequence(): array`
 - `function applicationTerminalStatuses(): array`
+- `function applicationRecipientBlockLines(array $company, ?array $contact = null, bool $placeholders = true): array`
 - `function applicationRecipientBlock(array $company, ?array $contact = null): string`
+- `function applicationRecipientBlockForApplication(mysqli $db, int $userId, int $applicationId): string`
+- `function applicationCoverLetterWithRecipientBlock(string $coverLetter, string $recipientBlock): string`
 - `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string`
 - `function applicationFallbackTexts(mysqli $db, int $userId, int $applicationId, array $currentUser): array`
 - `function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array`
