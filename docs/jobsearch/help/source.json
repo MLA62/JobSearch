@@ -1,5 +1,5 @@
 {
-  "version": "2.4.20",
+  "version": "2.4.21",
   "reviewed": "2026-09-14",
   "locales": [
     "de-CH",
@@ -700,7 +700,8 @@
           "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
             "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Markiere mehrere Zeilen oder Absätze: ¶ wandelt sie in echte Absätze um; der direkt folgende ↵-Button verbindet sie mit weichen Umbrüchen wie Shift+Enter. Inline-Formatierungen bleiben erhalten. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
           "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch.",
-          "Für den Empfänger verwendet die App vorhandene Primär-, Bewerbungs-, Job- und Firmenkontakte in dieser Priorität. Fehlen Anschrift oder Recruiting-Kontakt, startet sie vor der Texterstellung die belegpflichtige KI-Webrecherche. Auch bereits gefüllte Schreiben werden beim Öffnen auf den vollständigen Adressblock geprüft; eckige Ergänzungsplatzhalter werden nie ausgegeben."
+          "Für den Empfänger verwendet die App vorhandene Primär-, Bewerbungs-, Job- und Firmenkontakte in dieser Priorität. Fehlen Anschrift oder Recruiting-Kontakt, startet sie vor der Texterstellung die belegpflichtige KI-Webrecherche. Auch bereits gefüllte Schreiben werden beim Öffnen auf den vollständigen Adressblock geprüft; eckige Ergänzungsplatzhalter werden nie ausgegeben.",
+          "Bewerbungstexte erwähnen niemals fehlende oder unlesbare Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen und verschieben fehlende Aussagen nicht auf ein späteres Gespräch. Ein solcher KI-Rücklauf wird neu erzeugt und vor dem Speichern zusätzlich technisch bereinigt."
           ]
         },
         "fr-CH": {
@@ -718,7 +719,8 @@
           "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
             "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Sélectionnez plusieurs lignes ou paragraphes : ¶ les convertit en paragraphes réels et le bouton ↵ juste à côté les relie par des sauts de ligne souples comme Maj+Entrée. La mise en forme en ligne est conservée. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
           "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée.",
-          "Le destinataire est choisi parmi les contacts principal, de candidature, d’offre puis d’entreprise. Si l’adresse ou le contact de recrutement manque, la recherche Web IA avec preuves démarre avant la rédaction. Les lettres existantes sont aussi contrôlées lors de leur ouverture et aucun espace réservé entre crochets n’est affiché."
+          "Le destinataire est choisi parmi les contacts principal, de candidature, d’offre puis d’entreprise. Si l’adresse ou le contact de recrutement manque, la recherche Web IA avec preuves démarre avant la rédaction. Les lettres existantes sont aussi contrôlées lors de leur ouverture et aucun espace réservé entre crochets n’est affiché.",
+          "Les textes de candidature ne mentionnent jamais des documents, CV, expériences ou qualifications manquants ou illisibles et ne reportent pas leur contenu à un entretien ultérieur. Une telle réponse IA est régénérée puis contrôlée techniquement avant l’enregistrement."
           ]
         },
         "en-GB": {
@@ -736,7 +738,8 @@
           "The Sent at field accepts the stored timestamp, including seconds.",
             "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. Select several lines or paragraphs: ¶ converts them to real paragraphs and the adjacent ↵ button joins them with soft line breaks like Shift+Enter. Inline formatting is retained. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.",
           "Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response.",
-          "The recipient is resolved from primary, application-linked, job-linked and company contacts in that order. If the address or recruiting contact is missing, evidenced AI web research runs before drafting. Existing letters are checked when opened as well, and bracketed completion placeholders are never shown."
+          "The recipient is resolved from primary, application-linked, job-linked and company contacts in that order. If the address or recruiting contact is missing, evidenced AI web research runs before drafting. Existing letters are checked when opened as well, and bracketed completion placeholders are never shown.",
+          "Application texts never mention missing or unreadable documents, CVs, experience or qualifications and never defer missing substance to a later interview. Such an AI response is regenerated and technically checked again before saving."
           ]
         },
         "pt-BR": {
@@ -754,7 +757,8 @@
           "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
             "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. Selecione várias linhas ou parágrafos: ¶ converte em parágrafos reais e o botão ↵ ao lado une com quebras suaves como Shift+Enter. A formatação inline é preservada. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
           "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada.",
-          "O destinatário é resolvido entre contato principal, da candidatura, da vaga e da empresa, nessa ordem. Se faltar endereço ou contato de recrutamento, a pesquisa web por IA com evidências roda antes da redação. Cartas existentes também são verificadas ao abrir e nenhum marcador entre colchetes é exibido."
+          "O destinatário é resolvido entre contato principal, da candidatura, da vaga e da empresa, nessa ordem. Se faltar endereço ou contato de recrutamento, a pesquisa web por IA com evidências roda antes da redação. Cartas existentes também são verificadas ao abrir e nenhum marcador entre colchetes é exibido.",
+          "Os textos de candidatura nunca mencionam documentos, currículos, experiências ou qualificações ausentes ou ilegíveis e não adiam conteúdo para uma entrevista posterior. Essa resposta da IA é recriada e verificada tecnicamente antes de ser salva."
           ]
         },
         "es-MX": {
@@ -772,7 +776,8 @@
           "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
             "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Selecciona varias líneas o párrafos: ¶ los convierte en párrafos reales y el botón ↵ contiguo los une con saltos suaves como Mayús+Intro. Se conserva el formato en línea. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
           "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios.",
-          "El destinatario se resuelve entre contacto principal, de la solicitud, de la vacante y de la empresa, en ese orden. Si falta la dirección o el contacto de reclutamiento, se ejecuta primero la búsqueda web por IA con pruebas. Las cartas existentes también se comprueban al abrir y nunca se muestran marcadores entre corchetes."
+          "El destinatario se resuelve entre contacto principal, de la solicitud, de la vacante y de la empresa, en ese orden. Si falta la dirección o el contacto de reclutamiento, se ejecuta primero la búsqueda web por IA con pruebas. Las cartas existentes también se comprueban al abrir y nunca se muestran marcadores entre corchetes.",
+          "Los textos de candidatura nunca mencionan documentos, currículos, experiencia o cualificaciones ausentes o ilegibles ni aplazan el contenido a una entrevista posterior. Esa respuesta de la IA se vuelve a generar y se comprueba técnicamente antes de guardarla."
           ]
         }
       }

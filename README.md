@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 14.09.2026. Version 2.4.20 erhält beim Einfügen formatierter Treffer in den Schnellimport sämtliche hinterlegten HTTPS-Linkziele.
-Release-Dokumentation: [Release 2.4.20](docs/jobsearch/RELEASE-2.4.20.md).
+Stand: 14.09.2026. Version 2.4.21 verhindert selbstschädigende Meta-Aussagen und Gesprächsfloskeln in KI-generierten Bewerbungstexten.
+Release-Dokumentation: [Release 2.4.21](docs/jobsearch/RELEASE-2.4.21.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

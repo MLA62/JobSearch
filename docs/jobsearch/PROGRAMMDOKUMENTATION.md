@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.20 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.21 ist implementiert und lokal verifiziert.
+
+## Schutz vor selbstschädigenden Bewerbungstexten 2.4.21
+
+`applicationPrompt()` übermittelt leere Kontextabschnitte ohne Formulierungen wie «kein lesbarer
+Lebenslauf». Der Systemauftrag verbietet Hinweise auf fehlende oder unlesbare Quellen ebenso wie
+das Verschieben inhaltlicher Aussagen auf ein Interview. Nach jeder strukturierten KI-Antwort
+prüft `applicationTextHasDisqualifyingLanguage()` Begleit-E-Mail und Motivationsschreiben anhand
+sprachübergreifender Muster. Beim ersten Treffer wird die Generierung mit verschärfter Anweisung
+wiederholt. Ein verbleibender Treffer wird satzweise entfernt; positive Sätze bleiben erhalten.
+Inhaltsleere Resttexte, etwa ein reiner Adressblock, werden durch ebenfalls floskelfreie lokale
+Entwürfe ersetzt. Beim Öffnen einer
+Bewerbung durchläuft auch vorhandener Inhalt dieselbe Sperre und wird bei einer Änderung gespeichert.
 
 ## Linktreuer Schnellimport aus der Zwischenablage 2.4.20
 

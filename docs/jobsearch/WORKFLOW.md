@@ -1,6 +1,15 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.20.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.21.
+
+Ergänzung 2.4.21: Der Bewerbungstext-Prompt enthält keine negativen Hinweise auf fehlende
+Profil-, CV-, Kontakt-, Dokument- oder Verlaufsdaten mehr. `applicationTextHasDisqualifyingLanguage()`
+prüft Begleit-E-Mail und Motivationsschreiben sprachübergreifend auf solche Meta-Aussagen und auf
+Floskeln, die Inhalt auf ein späteres Gespräch verschieben. Der erste Treffer löst einen
+verbindlichen KI-Wiederholungsversuch aus. Danach entfernt
+`applicationTextWithoutDisqualifyingLanguage()` nur die beanstandeten Sätze; würde ein Feld dadurch
+leer, wird ein positiver lokaler Entwurf eingesetzt. Dieselbe Bereinigung repariert bereits
+gespeicherte Texte beim Öffnen einer Bewerbung.
 
 Ergänzung 2.4.20: Das Schnellimportfeld wertet beim Einfügen neben `text/plain` auch die
 `text/html`- und `text/uri-list`-Anteile der Zwischenablage aus. Sichere HTTP-/HTTPS-Ziele von `<a href>` werden direkt

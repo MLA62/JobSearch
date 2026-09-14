@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.20'=>"\$codeVersion = '2.4.20'",
+    'version 2.4.21'=>"\$codeVersion = '2.4.21'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -40,6 +40,12 @@ $checks=[
     'web research fallback'=>'jobWebResearchResponse($config,$userId,$draft,$missing)',
     'selected job remains refresh target'=>"\$analysed['target_job_id']=\$jobId;",
     'recipient enrichment cannot block text preparation'=>'Application recipient enrichment continued with existing data',
+    'no-data disclosure is prohibited'=>'Never mention the availability, readability, completeness or absence of source data',
+    'interview deferral is prohibited'=>'Never compensate for missing substance by deferring an explanation',
+    'AI quality retry'=>'Your previous result contained forbidden applicant-undermining meta language',
+    'final AI output quality gate'=>'applicationTextWithoutDisqualifyingLanguage((string)$texts[$field])',
+    'stored legacy text quality repair'=>'$qualityChanged=false;',
+    'initial drafts are generated anew'=>"applicationAiTexts(\$config,\$db,\$userId,\$applicationId,\$currentUser,'',\$drafts)",
 ];
 foreach($checks as $label=>$needle){
     if(!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);
@@ -47,6 +53,9 @@ foreach($checks as $label=>$needle){
 }
 if(str_contains($source,"\$applicationEdit['cover_letter_text'] ?: \$coverLetterPrompt")) {
     throw new RuntimeException('Legacy external prompt must not be placed in the cover-letter field.');
+}
+foreach (['kein lesbarer aktueller Lebenslauf vorhanden','keine Kontakte erfasst','keine Dokumente zugeordnet','keine Kontaktaktivitäten erfasst'] as $forbiddenContext) {
+    if(str_contains($source,$forbiddenContext)) throw new RuntimeException('Applicant prompt still exposes missing context: '.$forbiddenContext);
 }
 $startApplicationStart=strpos($source,"if (\$action === 'start_application')");
 $applicationWriteStart=strpos($source,'$db->begin_transaction();',$startApplicationStart);

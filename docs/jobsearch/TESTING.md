@@ -2,6 +2,14 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.21: `application_text_quality_test.php` verwendet den konkret gemeldeten deutschen
+Fehltext und entsprechende englische, französische, spanische und portugiesische Varianten. Der
+Test verlangt, dass Meta-Aussage und Gesprächsverschiebung entfernt werden, ein positiver
+Nachbarsatz unverändert erhalten bleibt, ein reiner Adressblock nicht als vollständiges Schreiben
+gilt und kein lokaler Rückfalltext diese Floskeln enthält.
+`application_ai_texts_test.php` sichert zusätzlich Promptverbot, automatischen Wiederholungsversuch,
+letzte Ausgabesperre, Reparatur bestehender Texte und vollständige Neugenerierung initialer Entwürfe.
+
 Ergänzung 2.4.20: `import_clipboard_visual_test.cjs` führt den produktiven Paste-Handler in Chromium
 mit zwei lediglich beschriftet sichtbaren Links aus. Der Test verlangt beide vollständigen HTTPS-
 Ziele genau einmal, behält vorhandenen Feldinhalt und weist ein `javascript:`-Ziel zurück.

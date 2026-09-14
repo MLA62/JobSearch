@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.20.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.21.
+
+Ergänzung 2.4.21: KI-generierte Begleit-E-Mails und Motivationsschreiben dürfen weder fehlende,
+unlesbare oder unvollständige Daten, Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen
+gegenüber dem Arbeitgeber offenlegen noch fehlende Substanz auf ein späteres Gespräch oder
+Interview verschieben. Nicht belegte Aussagen werden still weggelassen. Die Regel gilt für alle
+unterstützten Sprachen, initiale Entwürfe, KI-Überarbeitungen und lokale Rückfalltexte. Ein
+unzulässiger KI-Rücklauf wird automatisch neu erzeugt; verbleibende unzulässige Sätze werden vor
+dem Speichern technisch entfernt. Bereits gespeicherte betroffene Texte werden beim Öffnen der
+Bewerbung bereinigt, ohne positive belegte Aussagen zu löschen.
 
 Ergänzung 2.4.20: Werden formatierte Suchresultate, HTML-Inhalte oder sichtbare Linktexte aus einer
 Webseite in den Schnellimport eingefügt, müssen die hinter den Links gespeicherten HTTP-/HTTPS-Ziele
