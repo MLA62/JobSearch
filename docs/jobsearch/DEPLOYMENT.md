@@ -1,6 +1,17 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-12. Release 2.4.12 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.13 ist produktiv verifiziert.
+
+Quell-Commit: `0cceb9a898ee725d9dd2e243ca5e64b9ab8c36d7`.
+Produktiver `index.php`-SHA-256 (2.4.13): `188256e68f1cda724d7be0273607ca7f5e6ee431f0cb0d2238a04212bc423733`, 1'263'764 Bytes, Modus 0644.
+Produktiver `assets/app.css`-SHA-256 (2.4.13): `86862c695efd3f3b0ea47dcf29298cb07f0ae42bb7884f9a5985f72a65d206ee`, 53'640 Bytes, Modus 0644.
+TOTP-Approval: `b1b2c5790cf3708e1b641144bdea36ab` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.13 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive Dateien sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php` und `assets/app.css`; beide Vorgängerdateien wurden
+durch den Deployment-Ablauf gesichert. `.htaccess`, `config.php`, übrige Assets, Speicherdateien und
+Datenbank blieben unverändert. Das Release hat keine Schema- oder Datenwirkung.
+
+## Vorheriges produktives Release 2.4.12
 
 Quell-Commit: `e402823a19fd10c148e89bf54a35427c2498e7fe`.
 Produktiver `index.php`-SHA-256 (2.4.12): `4631f68e8210a0f7e71c7c717388d90f3060b917c3862fc1006f8b642e8a6d26`, 1'248'245 Bytes, Modus 0644.

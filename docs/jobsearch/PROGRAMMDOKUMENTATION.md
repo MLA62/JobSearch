@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.13 ist implementiert und für das Deployment vorbereitet.
+Stand: 2026-09-14. Version 2.4.13 ist implementiert und produktiv verifiziert.
 
 ## Umschaltbare und verlinkte Reports 2.4.13
 

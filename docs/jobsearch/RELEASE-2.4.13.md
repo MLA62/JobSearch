@@ -26,6 +26,14 @@ Markdown-Dateien und 61 lokale Links geprüft.
 
 ## Deployment
 
-Das Deployment ersetzt ausschließlich `public_html/jobs.jema.business/index.php` und
-`public_html/jobs.jema.business/assets/app.css`. Produktive Hashes und HTTP-Prüfung werden nach der
-externen TOTP-Freigabe ergänzt.
+TOTP-Approval `b1b2c5790cf3708e1b641144bdea36ab` wurde am 14.09.2026 ausgeführt. Das Deployment
+ersetzte ausschließlich `public_html/jobs.jema.business/index.php` und
+`public_html/jobs.jema.business/assets/app.css`; Sicherungen beider Vorgängerdateien wurden erstellt.
+Die produktiven Dateien sind mit dem Quell-Commit `0cceb9a898ee725d9dd2e243ca5e64b9ab8c36d7`
+bytegleich:
+
+- `index.php`: `188256e68f1cda724d7be0273607ca7f5e6ee431f0cb0d2238a04212bc423733`
+- `assets/app.css`: `86862c695efd3f3b0ea47dcf29298cb07f0ae42bb7884f9a5985f72a65d206ee`
+
+Die öffentliche Seite liefert HTTP 200, zeigt Version 2.4.13 und liefert HSTS, CSP, `nosniff`,
+`DENY` sowie `no-referrer`.

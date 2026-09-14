@@ -1,6 +1,19 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-12. Version 2.4.12 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.13 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.13
+
+- «Gespeicherte Reports» steht oberhalb des Editors; geöffnete Reports lassen sich direkt zwischen
+  Tabelle und Karten umschalten.
+- Text-, Datums-, Zahlen- und Auswahlfilter entstehen aus den sichtbaren Reportfeldern, kombinieren
+  sich korrekt und bleiben beim Ansichtswechsel erhalten.
+- Jeder Treffer aller Report-Renderer verlinkt auf seinen ursprünglichen Datensatz; der technische
+  Job-Room-Ergebnisplatzhalter wird vollständig ersetzt.
+- Alle 36 PHP-Testdateien, 4'010 Hilfeprüfungen, 1'369 Hilfe-Seeds, 82 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle acht Chromium-Testdateien sind erfolgreich.
+- Lokale und produktive `index.php` sowie `assets/app.css` sind bytegleich. Die öffentliche Seite
+  liefert HTTP 200, Version 2.4.13 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.12
 
