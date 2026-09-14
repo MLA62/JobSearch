@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.21.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.22.
+
+Ergänzung 2.4.22: Der fachliche Workflow bleibt unverändert. Beim ersten Request eines Releases
+werden notwendige Schema- und Inhaltsprüfungen einmalig unter Datenbanksperren ausgeführt. Alle
+weiteren Aufrufe verwenden die gespeicherten Releasemarker. Das Speichern und Verwenden
+mehrzeiliger Rollen und Orte arbeitet ohne PHP-Warnungen; manuell gespeicherte Suchkriterien laden
+die zugehörigen Profileinstellungen vor der Ableitung.
 
 Ergänzung 2.4.21: Der Bewerbungstext-Prompt enthält keine negativen Hinweise auf fehlende
 Profil-, CV-, Kontakt-, Dokument- oder Verlaufsdaten mehr. `applicationTextHasDisqualifyingLanguage()`

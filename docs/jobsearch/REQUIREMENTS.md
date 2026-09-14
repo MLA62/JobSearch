@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.21.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.22.
+
+Ergänzung 2.4.22: Normale Seitenaufrufe dürfen keine vollständigen Schema-, Seed- oder
+Migrationsläufe ausführen. Solche Arbeiten laufen höchstens einmal pro Release, sind gegen parallele
+Ausführung gesperrt und werden erst nach erfolgreichem Abschluss markiert. Stellenportal-Seeds
+dürfen nicht beim blossen Anzeigen einer Seite geschrieben werden. Fehlerhafte Suchkriterien dürfen
+weder wiederkehrende PHP-Warnungen noch Fatal Errors erzeugen.
 
 Ergänzung 2.4.21: KI-generierte Begleit-E-Mails und Motivationsschreiben dürfen weder fehlende,
 unlesbare oder unvollständige Daten, Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen

@@ -1362,6 +1362,13 @@ CREATE TABLE IF NOT EXISTS admin_ai_memory (
 Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PHP-Notation und gegebenenfalls Interpolation sind vor einer manuellen Ausfuehrung auf SQL aufzuloesen.
 
 ```php
+"CREATE TABLE IF NOT EXISTS app_migrations (
+            migration_key VARCHAR(100) NOT NULL PRIMARY KEY,
+            applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+```
+
+```php
 "CREATE TABLE IF NOT EXISTS auth_rate_limits (
         bucket_key CHAR(64) PRIMARY KEY,
         scope VARCHAR(32) NOT NULL,

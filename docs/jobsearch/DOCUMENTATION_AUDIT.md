@@ -1,6 +1,20 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.21 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.22 ist implementiert, dokumentiert und lokal vollständig geprüft;
+die produktive Freigabe folgt über den extern genehmigten cPanel-Ablauf.
+
+## Prüfstand 2.4.22 – lokal
+
+- Wiederkehrende Schema-, Index-, Übersetzungs- und Seed-Prüfungen sind durch je Release eindeutige
+  Migrationsmarker und Datenbanklocks aus normalen Seitenaufrufen entfernt.
+- Der Stellenportal-Seed läuft ausschliesslich während der einmaligen Releaseinitialisierung.
+- Zwei ungültige reguläre Ausdrücke für mehrzeilige Rollen und Orte sowie ein nicht geladenes
+  Benutzerprofil beim Speichern manueller Suchkriterien sind korrigiert.
+- Alle 41 PHP-Testdateien, 91 Markdown-Dateien/61 lokale Links, beide Generatorprüfungen sowie alle
+  zehn Chromium-Testdateien sind erfolgreich. Die produktive Login-Vorhermessung lag bei acht
+  Aufrufen zwischen 400 und 1'738 ms, durchschnittlich bei 804 ms.
+- Die produktive Dateigleichheit, Nachhermessung und Fehlerlogkontrolle werden erst nach der externen
+  Freigabe als Live-Nachweis ergänzt.
 
 ## Prüfstand 2.4.21
 

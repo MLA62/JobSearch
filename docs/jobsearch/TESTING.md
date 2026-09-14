@@ -2,6 +2,12 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.22: `runtime_performance_test.php` sichert die beiden Releasemarker, die
+Nebenläufigkeitssperren, den ausschliesslich einmaligen Portal-Seed, die gültige Zerlegung
+mehrzeiliger Rollen und Orte sowie das Laden der Profileinstellungen vor dem manuellen Speichern.
+Der Produktionsvergleich der öffentlichen Loginseite vor dem Release ergab bei acht Aufrufen
+400 bis 1'738 ms, durchschnittlich 804 ms; dieser Wert dient als Vorher-Messung.
+
 Ergänzung 2.4.21: `application_text_quality_test.php` verwendet den konkret gemeldeten deutschen
 Fehltext und entsprechende englische, französische, spanische und portugiesische Varianten. Der
 Test verlangt, dass Meta-Aussage und Gesprächsverschiebung entfernt werden, ein positiver

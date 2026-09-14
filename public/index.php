@@ -61,6 +61,42 @@ try {
     exit('Database connection failed.');
 }
 
+$bootstrapSchemaKey = 'runtime_schema_2_4_22';
+$bootstrapSchemaRequired = true;
+$bootstrapSchemaReady = true;
+$bootstrapSchemaLockHeld = false;
+$bootstrapMarkerExists = static function (mysqli $database, string $key): bool {
+    $statement = $database->prepare('SELECT migration_key FROM app_migrations WHERE migration_key=? LIMIT 1');
+    $statement->bind_param('s', $key);
+    $statement->execute();
+    $statement->bind_result($foundKey);
+    return $statement->fetch() === true;
+};
+try {
+    try {
+        $bootstrapSchemaRequired = !$bootstrapMarkerExists($db, $bootstrapSchemaKey);
+    } catch (Throwable) {
+        $db->query("CREATE TABLE IF NOT EXISTS app_migrations (
+            migration_key VARCHAR(100) NOT NULL PRIMARY KEY,
+            applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $bootstrapSchemaRequired = true;
+    }
+    if ($bootstrapSchemaRequired) {
+        $lockRow = $db->query("SELECT GET_LOCK('jema-runtime-schema', 5)")->fetch_row();
+        $bootstrapSchemaLockHeld = (int)($lockRow[0] ?? 0) === 1;
+        if (!$bootstrapSchemaLockHeld) {
+            throw new RuntimeException('Runtime schema lock unavailable.');
+        }
+        $bootstrapSchemaRequired = !$bootstrapMarkerExists($db, $bootstrapSchemaKey);
+    }
+} catch (Throwable $exception) {
+    error_log('Runtime schema marker unavailable: ' . $exception->getMessage());
+    $bootstrapSchemaRequired = false;
+    $bootstrapSchemaReady = false;
+}
+
+if ($bootstrapSchemaRequired) {
 try {
     $db->query("CREATE TABLE IF NOT EXISTS auth_rate_limits (
         bucket_key CHAR(64) PRIMARY KEY,
@@ -74,6 +110,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 } catch (Throwable $exception) {
     error_log('Authentication rate-limit schema unavailable: ' . $exception->getMessage());
+    $bootstrapSchemaReady = false;
 }
 
 try {
@@ -1299,6 +1336,7 @@ try {
     }
 } catch (Throwable $exception) {
     error_log('Locale migration failed: ' . $exception->getMessage());
+    $bootstrapSchemaReady = false;
 }
 
 try {
@@ -1320,6 +1358,7 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 } catch (Throwable $exception) {
     // Optionale Laufzeit-Telemetrie darf die App nicht blockieren.
+}
 }
 
 function ensureColumn(mysqli $db, string $table, string $column, string $definition, ?string $after = null): void
@@ -1386,6 +1425,7 @@ function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, a
     $db->query("ALTER TABLE `{$escapedTable}` ADD UNIQUE KEY `" . str_replace('`', '``', $index) . "` ({$columnSql})");
 }
 
+if ($bootstrapSchemaRequired) {
 try {
     ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_company_id` BIGINT UNSIGNED NULL', 'job_id');
     ensureColumn($db, 'applications', 'primary_contact_id', '`primary_contact_id` BIGINT UNSIGNED NULL', 'intermediary_company_id');
@@ -1586,6 +1626,21 @@ try {
 
 } catch (Throwable $exception) {
     error_log('Online application schema check failed: ' . $exception->getMessage());
+    $bootstrapSchemaReady = false;
+}
+try {
+    if ($bootstrapSchemaReady) {
+        $statement = $db->prepare('INSERT IGNORE INTO app_migrations (migration_key) VALUES (?)');
+        $statement->bind_param('s', $bootstrapSchemaKey);
+        $statement->execute();
+    }
+} catch (Throwable $exception) {
+    error_log('Runtime schema marker could not be stored: ' . $exception->getMessage());
+} finally {
+    if ($bootstrapSchemaLockHeld) {
+        try { $db->query("SELECT RELEASE_LOCK('jema-runtime-schema')"); } catch (Throwable) {}
+    }
+}
 }
 
 function e(?string $value): string
@@ -11169,14 +11224,14 @@ function seedJobPlatforms(mysqli $db): void
 
 function jobPreferenceQuery(array $preference): string
 {
-    $roles = preg_split('/[\R,;]+/u', (string)($preference['desired_roles'] ?? '')) ?: [];
+    $roles = preg_split('/(?:\R|[,;])+/u', (string)($preference['desired_roles'] ?? '')) ?: [];
     $terms = array_values(array_unique(array_filter(array_map('trim', $roles))));
     return trim(implode(', ', $terms));
 }
 
 function jobPreferenceLocation(array $preference, array $currentUser): string
 {
-    $locations = preg_split('/[\R,;]+/u', (string)($preference['desired_locations'] ?? '')) ?: [];
+    $locations = preg_split('/(?:\R|[,;])+/u', (string)($preference['desired_locations'] ?? '')) ?: [];
     $locations = array_values(array_unique(array_filter(array_map('trim', $locations))));
     if ($locations) {
         return implode(' | ', $locations);
@@ -11773,7 +11828,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.21','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.22','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12694,11 +12749,29 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
     return (string) ob_get_clean();
 }
 
-try { seedReviewedHelp($db); } catch (Throwable $error) { error_log('Help content update failed: '.$error->getMessage()); }
-try { applySecurityDataMigration230($db, $config); }
-catch (Throwable $error) { error_log('Security migration 2.3.0 failed: ' . $error->getMessage()); }
-try { applyAdminAiMemoryMigration235($db); }
-catch (Throwable $error) { error_log('Admin AI memory migration 2.3.5 failed: ' . $error->getMessage()); }
+$runtimeMaintenanceKey = 'runtime_maintenance_2_4_22';
+try {
+    if (!dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$runtimeMaintenanceKey])) {
+        $maintenanceLock = dbOne($db, "SELECT GET_LOCK('jema-runtime-maintenance', 5) acquired");
+        if ((int)($maintenanceLock['acquired'] ?? 0) !== 1) {
+            throw new RuntimeException('Runtime maintenance lock unavailable.');
+        }
+        try {
+            if (!dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$runtimeMaintenanceKey])) {
+                seedReviewedHelp($db);
+                applySecurityDataMigration230($db, $config);
+                applyAdminAiMemoryMigration235($db);
+                $statement = $db->prepare('INSERT INTO app_migrations (migration_key) VALUES (?)');
+                $statement->bind_param('s', $runtimeMaintenanceKey);
+                $statement->execute();
+            }
+        } finally {
+            $db->query("SELECT RELEASE_LOCK('jema-runtime-maintenance')");
+        }
+    }
+} catch (Throwable $error) {
+    error_log('Runtime maintenance failed: ' . $error->getMessage());
+}
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 if ($page === 'pendents') { redirect('/?page=calendar&view=agenda'); }
 $action = (string) ($_POST['action'] ?? '');
@@ -13804,6 +13877,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'save_platform_search_criteria') {
+        $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
         $query = trim((string) ($_POST['search_query'] ?? ''));
         $location = trim((string) ($_POST['search_location'] ?? ''));
         $total = min(100, max(1, (int) ($_POST['total_count'] ?? 15)));
@@ -15632,7 +15706,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.21';
+$codeVersion = '2.4.22';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -16723,7 +16797,6 @@ startUiTranslationBuffer($appLocale);
             http_response_code(403);
             exit('Forbidden');
         }
-        seedJobPlatforms($db);
         $platformEditId = (int)($_GET['edit_platform'] ?? 0);
         $platformEdit = $platformEditId > 0 ? dbOne($db, 'SELECT * FROM job_platforms WHERE id=? AND deleted_at IS NULL', 'i', [$platformEditId]) : null;
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE deleted_at IS NULL ORDER BY sort_order, name');
@@ -17110,7 +17183,6 @@ startUiTranslationBuffer($appLocale);
         </script>
     <?php elseif ($page === 'job_platform_search'): ?>
         <?php
-        seedJobPlatforms($db);
         $preference = dbOne($db, 'SELECT * FROM user_preferences WHERE user_id=? AND is_active=1 ORDER BY id LIMIT 1', 'i', [userId()]) ?: [];
         // Der eigentliche Suchbegriff stammt ausschliesslich aus den gewünschten Rollen.
         $platformRows = dbAll($db, 'SELECT * FROM job_platforms WHERE is_active=1 AND deleted_at IS NULL ORDER BY sort_order, name');

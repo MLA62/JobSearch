@@ -1,6 +1,23 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.21 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.22 ist implementiert und lokal verifiziert.
+
+## Schneller Laufzeitstart 2.4.22
+
+Schemaabgleich und statische Übersetzungsdaten werden einmal pro Release unter dem Marker
+`runtime_schema_2_4_22` ausgeführt. `GET_LOCK()` serialisiert den einmaligen Lauf; erst ein
+vollständiger Lauf setzt den Marker. Normale Requests prüfen danach nur noch diesen Primärschlüssel,
+statt 18 Tabellen-, 48 Spalten- und weitere Index-/Seed-Prüfungen auszuführen.
+
+Hilfe-, Sicherheits- und KI-Speichermigrationen besitzen mit `runtime_maintenance_2_4_22` einen
+zweiten gemeinsamen Marker und laufen ebenfalls nur einmal pro Release. Seiten für Stellenportale
+schreiben die statischen Portal-Seeds nicht mehr bei jedem Öffnen. Die beiden ungültigen
+Zeilenumbruch-Regulärausdrücke wurden korrigiert; das Speichern manueller Suchkriterien lädt sein
+Profil vor der Verwendung und kann dadurch keinen `TypeError` mehr auslösen.
+
+Eine pauschale Tabellenreorganisation gehört nicht zum Requestpfad. Bei der derzeit etwa 10,6 MiB
+grossen Produktionsdatenbank wird sie nur nach separater Fragmentierungs- und `EXPLAIN`-Prüfung
+mit Datenbanksicherung vorgenommen.
 
 ## Schutz vor selbstschädigenden Bewerbungstexten 2.4.21
 
