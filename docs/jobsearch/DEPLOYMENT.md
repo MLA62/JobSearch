@@ -1,18 +1,28 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.22 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.23 ist produktiv verifiziert.
+
+Quell-Commit: `a2c8cfcaa0d2ce02a7d8f007f4d06692a83888f8`.
+Produktiver `index.php`-SHA-256 (2.4.23): `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`, 1'312'019 Bytes, Modus 0644.
+TOTP-Approval: `327bf2ead428cd293695f24e11ba4a1a` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.23 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_155041_99d71b62_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und fachliche Daten blieben
+unverändert. Version 2.4.23 ergänzt den PDF-Export der aktuellen Kalenderansicht; das produktive
+Fehlerprotokoll blieb beim Deployment unverändert.
+
+## Vorheriges produktives Release 2.4.22
 
 Quell-Commit: `8b0e5b714d500793c502f374540adb2eb2a60e83`.
 Produktiver `index.php`-SHA-256 (2.4.22): `1d454558b88227cba876c2c7f6f5ced007ab48265123c1516274d977a7e59eb7`, 1'309'910 Bytes, Modus 0644.
-TOTP-Approval: `ca7adda05026203024a383f57ea64204` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.22 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+TOTP-Approval: `ca7adda05026203024a383f57ea64204` (ausgeführt 2026-09-14).
 
 Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
 `approval.lauber.online/storage/file_backups/20260914_150129_c41f3127_public_html_jobs.jema.business_index.php`
-gesichert. `.htaccess`, `config.php`, Assets und Speicherdateien blieben unverändert. Der erste
-Seitenaufruf führte die bestehenden idempotenten Schema-/Seed-Routinen aus und schrieb die Marker
-`runtime_schema_2_4_22` und `runtime_maintenance_2_4_22`; eine pauschale Tabellenreorganisation
-erfolgte nicht. Nach dem einmaligen Initialaufruf lagen acht Login-Antworten zwischen 156 und 184 ms,
-im Mittel bei 168 ms statt zuvor 804 ms. Seit dem Deployment entstand kein neuer PHP-Logeintrag.
+gesichert. Der erste Seitenaufruf schrieb die Marker `runtime_schema_2_4_22` und
+`runtime_maintenance_2_4_22`. Nach dem einmaligen Initialaufruf lagen acht Login-Antworten zwischen
+156 und 184 ms, im Mittel bei 168 ms statt zuvor 804 ms.
 
 ## Vorheriges produktives Release 2.4.21
 

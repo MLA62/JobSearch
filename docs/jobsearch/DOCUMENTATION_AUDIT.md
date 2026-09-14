@@ -1,6 +1,6 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und produktiv verifiziert.
 
 ## Prüfstand 2.4.23
 
@@ -10,7 +10,10 @@ Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und lokal veri
 - Die Ausgabe enthält die fünf fachlichen Spalten Zeit, Ereignis, Typ, Status und Bezug.
 - Alle 42 PHP-Testdateien, 4'032 Hilfeprüfungen, 1'379 Hilfeseeds, 92 Markdown-Dateien/61 lokale
   Links, beide Generatorprüfungen und alle zehn Chromium-Testdateien sind erfolgreich.
-- Produktive Freigabe und Live-Nachweis stehen noch aus.
+- Nach TOTP-Freigabe `327bf2ead428cd293695f24e11ba4a1a` sind lokale und produktive
+  `index.php` mit SHA-256 `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`
+  bytegleich. HTTP 200, Version 2.4.23 und die Sicherheitsheader sind bestätigt; das produktive
+  Fehlerprotokoll blieb unverändert. Es gab keinen Betriebsunterbruch und keine Datenbankänderung.
 
 ## Prüfstand 2.4.22
 

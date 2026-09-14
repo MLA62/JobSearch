@@ -23,4 +23,11 @@ ausgeführt.
 
 ## Deployment-Nachweis
 
-Wird nach der produktiven Freigabe ergänzt.
+- Quell-Commit: `a2c8cfcaa0d2ce02a7d8f007f4d06692a83888f8`
+- Externe Freigabe: `327bf2ead428cd293695f24e11ba4a1a`
+- Produktiver SHA-256: `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`
+- Produktive Dateigrösse: 1'312'019 Bytes, Modus 0644
+- Sicherung der Vorgängerversion:
+  `approval.lauber.online/storage/file_backups/20260914_155041_99d71b62_public_html_jobs.jema.business_index.php`
+- Die öffentliche Seite liefert HTTP 200 und Version 2.4.23 sowie HSTS, CSP, `nosniff`, `DENY`
+  und `no-referrer`. Das produktive Fehlerprotokoll blieb unverändert.
