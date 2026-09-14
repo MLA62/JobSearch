@@ -4,13 +4,18 @@ Stand: 2026-09-14. Release 2.4.23 ist produktiv verifiziert.
 
 Quell-Commit: `a2c8cfcaa0d2ce02a7d8f007f4d06692a83888f8`.
 Produktiver `index.php`-SHA-256 (2.4.23): `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`, 1'312'019 Bytes, Modus 0644.
-TOTP-Approval: `327bf2ead428cd293695f24e11ba4a1a` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.23 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+TOTP-Approvals: `327bf2ead428cd293695f24e11ba4a1a` und die auf Benutzerwunsch identisch
+wiederholte Freigabe `6f0c035d215cba080f3e973f1c53bfa5` (ausgeführt 2026-09-14). Die öffentliche
+Seite liefert HTTP 200 und weist Version 2.4.23 sowie HSTS, CSP, `nosniff`, `DENY` und
+`no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
 
 Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
 `approval.lauber.online/storage/file_backups/20260914_155041_99d71b62_public_html_jobs.jema.business_index.php`
 gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und fachliche Daten blieben
 unverändert. Version 2.4.23 ergänzt den PDF-Export der aktuellen Kalenderansicht; das produktive
-Fehlerprotokoll blieb beim Deployment unverändert.
+Fehlerprotokoll blieb beim Deployment unverändert. Die identische zweite Bereitstellung sicherte
+den vorherigen Stand zusätzlich unter
+`approval.lauber.online/storage/file_backups/20260914_190200_d2ad3764_public_html_jobs.jema.business_index.php`.
 
 ## Vorheriges produktives Release 2.4.22
 

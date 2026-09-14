@@ -14,6 +14,8 @@ Stand: 2026-09-14. Version 2.4.23 ist implementiert, dokumentiert und produktiv 
   `index.php` mit SHA-256 `577e059c1814114d45dcad98a0702a2104e156a131a0dce2f5dabec157a2fc02`
   bytegleich. HTTP 200, Version 2.4.23 und die Sicherheitsheader sind bestätigt; das produktive
   Fehlerprotokoll blieb unverändert. Es gab keinen Betriebsunterbruch und keine Datenbankänderung.
+- Die auf Benutzerwunsch wiederholte, inhaltsgleiche Freigabe `6f0c035d215cba080f3e973f1c53bfa5`
+  bestätigte denselben Hash und denselben öffentlichen Prüfstand erneut.
 
 ## Prüfstand 2.4.22
 
