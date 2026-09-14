@@ -1,6 +1,18 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-14. Version 2.4.19 ist implementiert, dokumentiert und produktiv verifiziert.
+Stand: 2026-09-14. Version 2.4.20 ist implementiert, dokumentiert und produktiv verifiziert.
+
+## Prüfstand 2.4.20
+
+- Der Schnellimport übernimmt bei formatiert eingefügten Webseiteninhalten neben dem sichtbaren
+  Linktext auch jedes eindeutige sichere HTTP-/HTTPS-Linkziel aus `text/html` und `text/uri-list`.
+- Vorhandener Feldinhalt und die Einfügeposition bleiben erhalten; unsichere Protokolle wie
+  `javascript:` werden verworfen. Der produktive Paste-Handler wurde dafür direkt in Chromium geprüft.
+- Alle 39 PHP-Testdateien, 4'021 Hilfeprüfungen, 1'374 Hilfe-Seeds, 89 Markdown-Dateien/61 lokale
+  Links, beide Generatoren sowie alle zehn Chromium-Testdateien sind erfolgreich.
+- Produktive und lokale `index.php` sind mit SHA-256
+  `901b452d217c7d6e92d85b7f0315ef2dc6387c90de2f2ef886c5949df37c3a9f` bytegleich. Die öffentliche
+  Seite liefert HTTP 200, Version 2.4.20 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
 
 ## Prüfstand 2.4.19
 

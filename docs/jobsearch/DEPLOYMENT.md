@@ -1,10 +1,22 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-14. Release 2.4.19 ist produktiv verifiziert.
+Stand: 2026-09-14. Release 2.4.20 ist produktiv verifiziert.
+
+Quell-Commit: `ca65e8cc755439e60a48fbe6b19737d85d6ce1f3`.
+Produktiver `index.php`-SHA-256 (2.4.20): `901b452d217c7d6e92d85b7f0315ef2dc6387c90de2f2ef886c5949df37c3a9f`, 1'299'261 Bytes, Modus 0644.
+TOTP-Approval: `c35a66d0a6c2f6d571ee4081581a2f39` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.20 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+
+Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
+`approval.lauber.online/storage/file_backups/20260914_132505_822545a6_public_html_jobs.jema.business_index.php`
+gesichert. `.htaccess`, `config.php`, Assets, Speicherdateien und Datenbank blieben unverändert.
+Version 2.4.20 erhält beim Einfügen formatierter Webseiteninhalte in den Schnellimport die sicheren
+HTTP-/HTTPS-Linkziele aus den HTML- und URI-Listen-Kanälen der Zwischenablage.
+
+## Vorheriges produktives Release 2.4.19
 
 Quell-Commit: `accc18d2eaa3e2da8ca2a0eeca66e714aabb0fdd`.
 Produktiver `index.php`-SHA-256 (2.4.19): `91f6265f4848ac199d54522f48a13eb9f6f9f4ab0455293d4ace1d4e76d2e044`, 1'295'485 Bytes, Modus 0644.
-TOTP-Approval: `caae2adf58c69c0cc5a6d38e790fc330` (ausgeführt 2026-09-14). Die öffentliche Seite liefert HTTP 200 und weist Version 2.4.19 sowie HSTS, CSP, `nosniff`, `DENY` und `no-referrer` aus. Lokale und produktive `index.php` sind bytegleich.
+TOTP-Approval: `caae2adf58c69c0cc5a6d38e790fc330` (ausgeführt 2026-09-14).
 
 Das Release ersetzte ausschließlich `index.php`; die Vorgängerdatei wurde unter
 `approval.lauber.online/storage/file_backups/20260914_125524_798c113d_public_html_jobs.jema.business_index.php`
