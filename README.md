@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 14.09.2026. Version 2.4.15 analysiert jede Originalausschreibung beim Vorbereiten erneut per KI und übernimmt vorhandene Kontakte aus Bewerbung, Job oder Firma zuverlässig in den Empfängerblock.
-Release-Dokumentation: [Release 2.4.15](docs/jobsearch/RELEASE-2.4.15.md).
+Stand: 14.09.2026. Version 2.4.16 ergänzt bei fehlender Firmenanschrift oder fehlendem Recruiting-Kontakt die KI-Inseratanalyse um eine öffentliche Webrecherche mit erneuter Prüfung der zitierten Originalquelle.
+Release-Dokumentation: [Release 2.4.16](docs/jobsearch/RELEASE-2.4.16.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

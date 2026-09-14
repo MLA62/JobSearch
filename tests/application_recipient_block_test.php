@@ -39,6 +39,8 @@ echo "PASS recipient block is enforced at the beginning, not merely somewhere in
 $withoutContact = implode("\n", applicationRecipientBlockLines($data, null, false));
 if (str_contains($withoutContact, 'Patrick Wenger') || str_contains($withoutContact, '[')) throw new RuntimeException('Unknown contact produced a person or placeholder.');
 echo "PASS unknown contact is neither invented nor represented by a placeholder\n";
+if (str_contains(applicationRecipientBlock($data,null),'[')) throw new RuntimeException('Application prompt still emits address placeholders.');
+echo "PASS application prompts never emit address placeholders\n";
 
 $application = ['id'=>40,'job_id'=>50,'primary_contact_id'=>0,'company_id'=>60,'intermediary_company_id'=>70];
 $companyContact = ['id'=>1,'company_id'=>60,'application_id'=>0,'job_id'=>0,'position'=>'Sales','department'=>''];

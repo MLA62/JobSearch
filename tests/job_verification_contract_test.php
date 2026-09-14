@@ -15,7 +15,8 @@ function curl_exec(object $handle): string {
     return json_encode(['status'=>'completed','output'=>[['content'=>[['type'=>'output_text','text'=>json_encode($GLOBALS['response'],JSON_THROW_ON_ERROR)]]]]],JSON_THROW_ON_ERROR);
 }
 function importFromUrl(string $url,array &$diagnostic=[],bool $manualImport=false): array {
-    return ['title'=>'Sales Manager','company'=>'Fixture SA','description'=>'Sales Manager in Bern.','company_details'=>[],
+    return ['title'=>'Sales Manager','company'=>'Fixture SA','description'=>'Sales Manager in Bern.','company_details'=>['address_line1'=>'Testweg 1','postal_code'=>'3000','city'=>'Bern'],
+        'contacts'=>[['first_name'=>'Ada','last_name'=>'Test','email'=>'ada@example.test']],
         'research_sources'=>[['id'=>'original','text'=>'Sales Manager in Bern.']], 'original_url'=>$url,'availability'=>['reason'=>'future_validThrough']];
 }
 $criteria=['query'=>'Sales Manager','location'=>'Bern','display_locale'=>'de-CH'];

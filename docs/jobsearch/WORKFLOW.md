@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.15.
+Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.16.
+
+Ergänzung 2.4.16: `verifiedJobImport()` führt nach der strukturierten Inseratanalyse eine zweite
+Responses-API-Anfrage mit Websuche aus, sobald Strasse, PLZ, Ort oder ein Recruiting-Kontakt fehlen.
+`jobWebResearchResponse()` lässt nur belegte Felder aus öffentlichen HTTPS-Quellen zu und lädt jede
+zitierte Seite anschliessend selbst. Nur ein tatsächlich auf der Seite gefundener Kurzbeleg gelangt
+zu `applyJobWebResearch()`. `importUpsertCompany()` und `importDraftContacts()` ergänzen die belegten
+Werte fill-only. `initializeApplicationTexts()` wiederholt diese Empfängerrecherche auch für eine
+bereits bestehende Bewerbung, bevor der Adressblock erzeugt oder korrigiert wird.
 
 Ergänzung 2.4.15: Vor dem Anlegen oder Öffnen einer Bewerbung wird das Originalinserat erneut
 gelesen und zwingend über die strukturierte KI-Analyse geführt. Die belegten Ergebnisse ergänzen

@@ -1,6 +1,23 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.15 ist implementiert und lokal verifiziert.
+Stand: 2026-09-14. Version 2.4.16 ist implementiert und lokal verifiziert.
+
+## KI-Webrecherche für fehlende Empfängerdaten 2.4.16
+
+Die ursprüngliche strukturierte Inseratanalyse bleibt der erste Schritt. Sind danach
+`address_line1`, `postal_code`, `city` oder ein Recruiting-Kontakt leer, ruft
+`jobWebResearchResponse()` die Responses API mit dem Werkzeug `web_search` auf. Das Schema trennt
+Firmen- und Kontaktfelder, verlangt pro Wert eine exakte Textstelle und die dazugehörige öffentliche
+HTTPS-Quelle und beschränkt Kontakte auf belegte Recruiting-/HR-Personen beziehungsweise die
+ausdrücklich im Inserat genannte Kontaktperson.
+
+Die Modellantwort allein ist kein Speicherbeleg. Die App lädt bis zu zwölf zitierte Seiten mit der
+bestehenden SSRF-geschützten Abruffunktion und übernimmt nur Fakten, deren Kurzbeleg im abgerufenen
+Seitentext vorkommt. `applyJobWebResearch()` verwirft nicht erlaubte Felder, unsichere Quellen und
+ungültige Werte. Die anschliessenden Upserts verändern ausschliesslich leere Felder.
+`applicationEnsureRecipientData()` aktiviert denselben Ablauf vor der Texterstellung bestehender
+Bewerbungen. Der endgültige Empfängerblock verwendet vorhandene Kontakte und gibt niemals technische
+Ergänzungsplatzhalter aus.
 
 ## KI-Neuanalyse und effektiver Bewerbungskontakt 2.4.15
 

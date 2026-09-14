@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.15'=>"\$codeVersion = '2.4.15'",
+    'version 2.4.16'=>"\$codeVersion = '2.4.16'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -35,6 +35,9 @@ $checks=[
     'application view always enforces recipient'=>'if ($applicationEdit) {',
     'AI must begin with recipient block'=>'cover_letter_text must start with the exact recipient address block',
     'job advertisement analysed before preparation'=>'$analysed=verifiedJobImport(',
+    'missing recipient research'=>'function applicationEnsureRecipientData(',
+    'recipient research before existing text return'=>'applicationEnsureRecipientData($config,$db,$userId,$applicationId);',
+    'web research fallback'=>'jobWebResearchResponse($config,$userId,$draft,$missing)',
 ];
 foreach($checks as $label=>$needle){
     if(!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);

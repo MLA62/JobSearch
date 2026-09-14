@@ -444,6 +444,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string`
 - `function applicationFallbackTexts(mysqli $db, int $userId, int $applicationId, array $currentUser): array`
 - `function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array`
+- `function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, int $applicationId): bool`
 - `function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser): array`
 - `function matchJob(array $job): array`
 - `function repairMojibake(string $value): string`
@@ -522,6 +523,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applyJobEvidence(array $draft, array $response, array $criteria): array`
 - `function jobStructuredResponse(array $config, int $uid, string $instructions, array $input, array $schema): array`
 - `function jobVerificationChecks(array $criteria, mixed $checks): array`
+- `function jobWebResearchResponse(array $config, int $uid, array $draft, array $missing): array`
+- `function applyJobWebResearch(array $draft, array $response): array`
 - `function verifiedJobImport(array $config, int $uid, string $url, array $criteria, array &$diagnostic = [], bool $manualImport = false): array`
 - `function importSearchCriteria(mysqli $db, int $uid): array`
 - `function openAiJobSearch(array $config, int $userId, array $criteria): array`

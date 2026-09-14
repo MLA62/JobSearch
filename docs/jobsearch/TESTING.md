@@ -2,6 +2,12 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.16: `job_web_research_test.php` prüft die fill-only-Übernahme der belegten
+BRACK-Alltron-Anschrift, den Erhalt bestehender CRM-Werte, Recruiting-Kontakte, HTTPS-Pflicht,
+Quellenprotokoll und den verpflichtenden Webrecherchepfad vor der Bewerbungstexterstellung.
+`application_recipient_block_test.php` stellt zusätzlich sicher, dass unbekannte Adressbestandteile
+keine eckigen Platzhalter im KI-Prompt oder Motivationsschreiben erzeugen.
+
 Ergänzung 2.4.15: `application_recipient_block_test.php` prüft zusätzlich die Prioritäten für
 Primär-, Bewerbungs-, Job-, HR- und Firmenkontakte sowie den Austausch eines alten unvollständigen
 Adressblocks. `application_ai_texts_test.php` kontrolliert die zentrale Kontaktauflösung, die Prüfung

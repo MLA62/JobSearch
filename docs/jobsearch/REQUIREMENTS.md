@@ -1,6 +1,14 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.15.
+Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.16.
+
+Ergänzung 2.4.16: Fehlen nach der strukturierten KI-Analyse einer Originalausschreibung
+Firmenanschrift oder Recruiting-Kontakt, muss die App selbstständig eine zweite KI-Recherche im
+öffentlichen Internet ausführen. Bevor ein Wert gespeichert wird, ruft die App die von der KI
+zitierte HTTPS-Seite selbst ab und bestätigt den angegebenen Textbeleg. Bevorzugt werden offizielle
+Unternehmens-, Karriere-, Impressums- und Registerseiten. Bestehende CRM-Werte dürfen nicht
+überschrieben werden. Das Öffnen oder Vorbereiten einer bestehenden Bewerbung muss dieselbe
+Ergänzung auslösen; Empfängerblöcke dürfen keine eckigen Platzhalter enthalten.
 
 Ergänzung 2.4.15: Jede Originalausschreibung wird beim Import und unmittelbar vor der
 Bewerbungsvorbereitung über die KI-API analysiert. Belegte Firmen-, Adress-, Kontakt- und Jobdaten
