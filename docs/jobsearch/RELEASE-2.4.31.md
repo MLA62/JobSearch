@@ -47,10 +47,19 @@ bewusstem Auslösen Entwürfe in der Bewerbung und versendet nichts.
   bei 1'336'548 Bytes. Git-Arbeitsbaum nach Commit sauber.
 - Die Sicherung des produktiven 2.4.30-Standes unter
   `public_html/jobs.jema.business/index.php.bak-20260918-1359-2.4.30`
-  wurde mit Approval `65df3987f0ab448543e539e02bf48110` vorgeschlagen.
-  Status: `pending`; noch keine produktive Änderung. Nach Freigabe erst
-  Sicherung ausführen und Hash prüfen, danach den separaten Upload
-  vorschlagen und freigegeben ausführen. Live-Hash und Funktionsprüfung
-  stehen noch aus.
-- Die fachliche Abnahme eines neu generierten Schreibens mit echten CVs ist
-  getrennt vom Quelltest zu dokumentieren.
+  wurde mit Approval `65df3987f0ab448543e539e02bf48110` ausgeführt.
+  Die Sicherung hat 1'335'612 Bytes, Modus `0644` und denselben SHA-256
+  `8696f609b0f554f23476e37171db1095f6bc1091ff3fd7e2bbcf7828dfa9a7fc`
+  wie der vorherige Live-Stand.
+- Der separate Upload von 2.4.31 wurde mit Approval
+  `9095bcb0c4802f31782e0a65d3c3af85` ausgeführt. Die produktive Datei
+  hat 1'336'548 Bytes, Modus `0644` und SHA-256
+  `8cdda21ff582c1b8522b9ac685252ec4abc638a8ce06f84540ab1f0b30dead95`;
+  das ist exakt der lokale Quellstand.
+- Öffentliche HTTPS-Prüfung: HTTP 200, Version 2.4.31 im Footer, HSTS und
+  Content-Security-Policy vorhanden. Die angemeldete Bewerbungsansicht
+  zeigte nach Neuladen ebenfalls Version 2.4.31 und den KI-Auslöser.
+- Keine produktiven Bewerbungsdaten verändert. Ein echter KI-Lauf wurde
+  nicht ausgelöst, weil er vorhandene Bewerbungstexte überschreiben könnte;
+  die fachliche Abnahme eines neu generierten Schreibens mit echten CVs
+  bleibt daher separat.
