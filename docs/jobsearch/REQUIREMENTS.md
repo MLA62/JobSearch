@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.29.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.30.
+
+Ergänzung 2.4.30: Die KI zur Erstellung und Überarbeitung des Motivationsschreibens
+liest ohne zusätzliche Anweisung alle aktuellen, nicht gelöschten Lebensläufe aus
+den eigenen Stammdaten als vollständige Dateien und berücksichtigt die belegten,
+stellenrelevanten Erfahrungen. Korrigierter Lebenslauftext hat bei Widersprüchen
+Vorrang. Alte Versionen und fremde Dokumente dürfen nicht in den KI-Kontext
+gelangen. Kann ein vorhandener Lebenslauf nicht sicher gelesen werden, darf die
+App keine erfolgreiche KI-Erstellung behaupten. Es findet kein automatischer
+Bewerbungsversand statt.
 
 Ergänzung 2.4.29: «Noch nicht im Job-Room erfasst» muss im geöffneten
 Bewerbungsreport immer als unabhängiger Filterwert anwählbar sein, auch wenn

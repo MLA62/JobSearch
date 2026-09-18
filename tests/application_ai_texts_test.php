@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.29'=>"\$codeVersion = '2.4.29'",
+    'version 2.4.30'=>"\$codeVersion = '2.4.30'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'local failure-safe drafts'=>'function applicationFallbackTexts(',
@@ -12,9 +12,9 @@ $checks=[
     'per-user safety identifier'=>"hash('sha256','jema-application-texts:'.\$userId)",
     'strict structured output'=>"'name'=>'application_texts','strict'=>true",
     'three output fields'=>"'required'=>['email_subject','email_body','cover_letter_text']",
-    'current CV content'=>"dt.code='cv'",
-    'corrected or extracted CV text'=>"NULLIF(txt.corrected_text,''),NULLIF(txt.extracted_text,''),NULLIF(txt.ocr_text,'')",
-    'current CV only'=>"d.is_current=1",
+    'all current CV source rows'=>'function applicationCvSourceRows(',
+    'complete CV file input'=>'function applicationCvInputParts(',
+    'all CVs attached to AI request'=>'array_push($inputParts, ...applicationCvInputParts($cvRows, $userId, storageRoot()))',
     'manual AI action'=>"\$action === 'revise_application_texts_ai'",
     'two-line instruction'=>'name="ai_text_instruction" rows="2"',
     'instruction length bound'=>'maxlength="2000"',

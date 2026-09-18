@@ -2,6 +2,13 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.30: `application_cv_context_test.php` prüft die Übernahme aller
+aktuellen eigenen Stammdaten-CVs als vollständige Dateieingaben, den Vorrang
+korrigierter Texte und die Sperre für fremde Speicherpfade. Zusätzlich sind
+`application_ai_texts_test.php`, PHP-Syntax, Hilfe- und Referenzgeneratoren zu
+prüfen. Ein produktiver angemeldeter KI-Lauf mit einem eigenen CV ist für die
+fachliche Abnahme erforderlich und wird nicht durch Quelltests ersetzt.
+
 Ergänzung 2.4.29: `report_filters_test.php` sichert alle sechs atomaren
 Job-Room-Optionen auch dann ab, wenn die Daten ausschliesslich erfasste Fälle
 enthalten. Der Chromium-Test prüft die weiterhin sichtbare Option «Noch nicht

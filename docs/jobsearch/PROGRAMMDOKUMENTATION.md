@@ -1,6 +1,21 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.29 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.30 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Automatischer Zugriff auf Stammdaten-Lebensläufe 2.4.30
+
+`applicationCvSourceRows()` lädt mandantenbegrenzt alle aktuellen, nicht
+gelöschten Profil-Dokumente vom Typ `cv`; die Beschränkung auf die erste
+Version entfällt. `applicationCvInputParts()` löst die Originaldateien nur
+innerhalb des Dokumentverzeichnisses des effektiven Benutzers auf und baut
+für PDF, DOC, DOCX und TXT `input_file`-Teile, für Bilder `input_image`-Teile.
+Korrigierter Text wird zusätzlich vollständig und mit Vorrang übermittelt.
+Die ursprüngliche 24.000-Zeichen-Kürzung ist entfernt. Überschreiten alle
+Dateien zusammen 50 MiB oder ist eine vorhandene Datei nicht lesbar, wird
+der KI-Aufruf abgebrochen statt einen vermeintlich CV-gestützten Entwurf
+als erfolgreich auszugeben. Die erste Vorbereitung kann weiterhin einen
+als solchen gekennzeichneten lokalen Grundentwurf erzeugen. Keine Migration,
+keine automatische Änderung bestehender Bewerbungen und kein Versand.
 
 ## Dauerhaft verfügbare Job-Room-Filterwerte 2.4.29
 

@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.29.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.30.
+
+Ergänzung 2.4.30: Sowohl die erste KI-Textvorbereitung als auch der spätere
+Button «Texte mit KI erstellen/anpassen» übergeben alle aktuellen eigenen
+Stammdaten-Lebensläufe direkt als Datei an die Responses API. Die Dokumente
+müssen nicht manuell an die Bewerbung angehängt werden. Ein vorhandener
+korrigierter Text wird zusätzlich als vorrangige Quelle übergeben. Ohne
+Lebenslauf läuft die bisherige kontextbasierte Erstellung weiter; bei einer
+unlesbaren vorhandenen CV-Datei wird der KI-Pfad als fehlgeschlagen behandelt.
 
 Ergänzung 2.4.29: Der Job-Room-Statusfilter enthält alle atomaren Optionen
 unabhängig von den gerade vorhandenen Reportzeilen. Nur «Noch nicht im
