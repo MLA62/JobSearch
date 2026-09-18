@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 14.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.24.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.25.
+
+Ergänzung 2.4.25: Der Job-Room-Helper zeigt nur datierte Bewerbungen, die noch nicht als
+`recorded` markiert sind. Strasse, Hausnummer, Postleitzahl und Ort müssen in dieser
+Reihenfolge getrennt angezeigt und kopiert werden können. Bei Status `rejected` ist ein
+mehrzeiliger Absagegrund von 1 bis 249 Zeichen obligatorisch, auch bei Statuswechseln
+ausserhalb des Bewerbungsformulars. Das Feld erscheint oberhalb der Karten nur bei
+Absage und ist im Helper ebenfalls kopierbar.
 
 Ergänzung 2.4.24: Profildokumente besitzen das Ankreuzfeld `Bewerbungsrelevant`. Es ist bei
 neuen Dokumenten standardmässig deaktiviert. Nur aktuelle, nicht gelöschte und ausdrücklich

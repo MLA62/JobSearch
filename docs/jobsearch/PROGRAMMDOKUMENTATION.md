@@ -1,6 +1,23 @@
 # Programmdokumentation
 
-Stand: 2026-09-14. Version 2.4.24 ist implementiert und lokal verifiziert.
+Stand: 2026-09-18. Version 2.4.25 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Job-Room-Helper und Absagegrund 2.4.25
+
+`jobRoomHelperRows()` filtert auf datierte, nicht gelöschte Bewerbungen mit
+`job_room_registration <> 'recorded'`; die Monatsauswahl verwendet denselben
+Erfassungsfilter. `jobRoomStreetParts()` trennt eine erkennbare Hausnummer vom
+Strassenfeld. Nicht eindeutig trennbare Adressen bleiben unverändert im Strassenfeld,
+statt eine Nummer zu erfinden. Der Helper zeigt Strasse, Hausnummer, Postleitzahl und
+Ort separat und in dieser Reihenfolge. Für abgesagte Bewerbungen erscheint zusätzlich
+der kopierbare Absagegrund.
+
+`applications.rejection_reason` ist `VARCHAR(249) NULL`; bei Status `rejected`
+erzwingen die aktiven Status-Schreibpfade einen nichtleeren Wert mit höchstens 249
+Zeichen. Bei anderem Status wird das Feld im Bewerbungsformular ausgeblendet. Die
+manuelle Statusänderung, das Kontakt-/E-Mail-Protokoll und der Admin-KI-Upsert sind
+abgesichert. Bestehende Absagen ohne Grund werden nicht automatisch mit einem
+erfundenen Grund nachgefüllt.
 
 ## Bewerbungsrelevante Dokumente 2.4.24
 

@@ -181,6 +181,7 @@ textarea { line-height: 1.5; }
 .table-wrap .layout-table .layout-actions a,
 .table-wrap .layout-table .layout-actions button { overflow-wrap: normal; word-break: normal; }
 .application-editor [hidden] { display: none !important; }
+.mail-activity [hidden] { display: none !important; }
 .application-editor .three:has([data-sent-date]) { max-width: 920px; }
 .application-editor .three:has([data-sent-date][hidden]) { grid-template-columns: repeat(2,minmax(0,1fr)); max-width: 610px; }
 .calendar-panel .time-day-head.is-today { background: #006b54; color: #fff; box-shadow: inset 0 -3px #004d3c; }

@@ -61,7 +61,7 @@ try {
     exit('Database connection failed.');
 }
 
-$bootstrapSchemaKey = 'runtime_schema_2_4_24';
+$bootstrapSchemaKey = 'runtime_schema_2_4_25';
 $bootstrapSchemaRequired = true;
 $bootstrapSchemaReady = true;
 $bootstrapSchemaLockHeld = false;
@@ -580,6 +580,30 @@ try {
         ],
         'job_room_helper.field.result' => [
             'de-CH' => 'Ergebnis der Bewerbung', 'fr-CH' => 'Résultat de la candidature', 'en-GB' => 'Application outcome', 'pt-BR' => 'Resultado da candidatura', 'es-MX' => 'Resultado de la postulación',
+        ],
+        'job_room_helper.field.house_number' => [
+            'de-CH' => 'Hausnummer', 'fr-CH' => 'Numéro', 'en-GB' => 'House number', 'pt-BR' => 'Número', 'es-MX' => 'Número',
+        ],
+        'job_room_helper.field.street' => [
+            'de-CH' => 'Strasse', 'fr-CH' => 'Rue', 'en-GB' => 'Street', 'pt-BR' => 'Rua', 'es-MX' => 'Calle',
+        ],
+        'job_room_helper.field.postal_code' => [
+            'de-CH' => 'Postleitzahl', 'fr-CH' => 'Code postal', 'en-GB' => 'Postal code', 'pt-BR' => 'Código postal', 'es-MX' => 'Código postal',
+        ],
+        'job_room_helper.field.city' => [
+            'de-CH' => 'Ort', 'fr-CH' => 'Localité', 'en-GB' => 'City', 'pt-BR' => 'Cidade', 'es-MX' => 'Ciudad',
+        ],
+        'job_room_helper.field.po_box' => [
+            'de-CH' => 'Adresszusatz / Postfach', 'fr-CH' => 'Complément / case postale', 'en-GB' => 'Address addition / PO box', 'pt-BR' => 'Complemento / caixa postal', 'es-MX' => 'Complemento / apartado postal',
+        ],
+        'applications.rejection_reason' => [
+            'de-CH' => 'Absagegrund', 'fr-CH' => 'Motif du refus', 'en-GB' => 'Reason for rejection', 'pt-BR' => 'Motivo da recusa', 'es-MX' => 'Motivo del rechazo',
+        ],
+        'applications.rejection_reason_required' => [
+            'de-CH' => 'Bei einer Absage ist der Absagegrund erforderlich.', 'fr-CH' => 'Le motif du refus est obligatoire.', 'en-GB' => 'A reason for rejection is required.', 'pt-BR' => 'O motivo da recusa é obrigatório.', 'es-MX' => 'El motivo del rechazo es obligatorio.',
+        ],
+        'applications.rejection_reason_too_long' => [
+            'de-CH' => 'Der Absagegrund darf höchstens 249 Zeichen enthalten.', 'fr-CH' => 'Le motif du refus ne doit pas dépasser 249 caractères.', 'en-GB' => 'The reason for rejection must not exceed 249 characters.', 'pt-BR' => 'O motivo da recusa deve ter no máximo 249 caracteres.', 'es-MX' => 'El motivo del rechazo no debe superar los 249 caracteres.',
         ],
         'job_room_helper.result.open' => [
             'de-CH' => 'Noch offen', 'fr-CH' => 'Encore ouvert', 'en-GB' => 'Still open', 'pt-BR' => 'Ainda em aberto', 'es-MX' => 'Aún abierto',
@@ -1433,6 +1457,7 @@ if ($bootstrapSchemaRequired) {
 try {
     ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_company_id` BIGINT UNSIGNED NULL', 'job_id');
     ensureColumn($db, 'applications', 'primary_contact_id', '`primary_contact_id` BIGINT UNSIGNED NULL', 'intermediary_company_id');
+    ensureColumn($db, 'applications', 'rejection_reason', '`rejection_reason` VARCHAR(249) NULL', 'status');
     ensureColumn($db, 'applications', 'application_url', '`application_url` VARCHAR(1000) NULL', 'channel');
     ensureColumn($db, 'applications', 'portal_account', '`portal_account` VARCHAR(254) NULL', 'application_url');
     ensureColumn($db, 'applications', 'reference_number', '`reference_number` VARCHAR(120) NULL', 'portal_account');
@@ -3065,11 +3090,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.3' =>
   array (
-    'de-CH' => 'Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis.',
-    'fr-CH' => 'Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus.',
-    'en-GB' => 'Record each interview as a separate appointment and document acceptance or rejection.',
-    'pt-BR' => 'Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa.',
-    'es-MX' => 'Registra cada entrevista como cita independiente y documenta la aceptación o rechazo.',
+    'de-CH' => 'Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten.',
+    'fr-CH' => 'Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes.',
+    'en-GB' => 'Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards.',
+    'pt-BR' => 'Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões.',
+    'es-MX' => 'Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas.',
   ),
   'help.v2.applications.summary' =>
   array (
@@ -3673,11 +3698,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.jobroom.tips.0' =>
   array (
-    'de-CH' => 'Die Job-Room-Hilfe zeigt nur Bewerbungen mit einem tatsächlichen Bewerbungsdatum. Fehlt es, ergänze es zuerst in der Bewerbung.',
-    'fr-CH' => 'L’aide Job-Room affiche uniquement les candidatures ayant une date de candidature réelle. Si elle manque, complète-la d’abord dans la candidature.',
-    'en-GB' => 'The Job-Room helper shows only applications with an actual application date. If it is missing, add it to the application first.',
-    'pt-BR' => 'A ajuda do Job-Room mostra apenas candidaturas com uma data de candidatura real. Se estiver ausente, preencha-a primeiro na candidatura.',
-    'es-MX' => 'La ayuda de Job-Room muestra solo solicitudes con una fecha de solicitud real. Si falta, añádela primero en la solicitud.',
+    'de-CH' => 'Die Job-Room-Hilfe zeigt nur Bewerbungen mit Bewerbungsdatum, die noch nicht als im Job-Room erfasst markiert sind. Fehlt das Datum, ergänze es zuerst in der Bewerbung.',
+    'fr-CH' => 'L’aide Job-Room affiche uniquement les candidatures datées qui ne sont pas encore marquées comme saisies dans Job-Room. Si la date manque, complète-la dans la candidature.',
+    'en-GB' => 'The Job-Room helper shows only dated applications not yet marked as recorded in Job-Room. If the date is missing, add it to the application first.',
+    'pt-BR' => 'A ajuda do Job-Room mostra apenas candidaturas com data que ainda não foram marcadas como registradas no Job-Room. Se faltar a data, preencha-a na candidatura.',
+    'es-MX' => 'La ayuda de Job-Room muestra solo solicitudes fechadas que todavía no están marcadas como registradas. Si falta la fecha, añádela a la solicitud.',
   ),
   'help.v2.jobroom.tips.1' =>
   array (
@@ -3694,6 +3719,14 @@ function helpTranslationSeeds(): array
     'en-GB' => 'The Job-Room result says ‘open’ only after registration is confirmed; beforehand it says the application has not yet been recorded.',
     'pt-BR' => 'O resultado do Job-Room mostra ‘aberto’ somente após a confirmação do registro; antes disso informa que a candidatura ainda não foi registrada.',
     'es-MX' => 'El resultado de Job-Room muestra ‘abierto’ solo después de confirmar el registro; antes indica que la solicitud todavía no está registrada.',
+  ),
+  'help.v2.jobroom.tips.3' =>
+  array (
+    'de-CH' => 'Strasse, Hausnummer, Postleitzahl und Ort lassen sich in dieser Reihenfolge einzeln kopieren. Bei einer Absage ist auch der Absagegrund kopierbar.',
+    'fr-CH' => 'Rue, numéro, code postal et localité se copient séparément dans cet ordre. Le motif du refus est également copiable.',
+    'en-GB' => 'Street, house number, postal code and city can be copied individually in that order. The rejection reason is also copyable.',
+    'pt-BR' => 'Rua, número, código postal e cidade podem ser copiados separadamente nessa ordem. O motivo da recusa também pode ser copiado.',
+    'es-MX' => 'Calle, número, código postal y ciudad se copian por separado y en ese orden. También se puede copiar el motivo del rechazo.',
   ),
   'help.v2.jobroom.title' =>
   array (
@@ -4726,7 +4759,7 @@ function helpTopicDefinitions(): array
       1 => 'applications',
     ),
     'step_count' => 3,
-    'tip_count' => 3,
+    'tip_count' => 4,
   ),
   14 =>
   array (
@@ -5306,7 +5339,7 @@ function adminAiPlatformContext(mysqli $db, int $userId, string $instruction): a
         'companies' => adminAiContextRows($db, 'SELECT id, name, legal_name, website, email, phone, industry, address_line1, postal_code, city, region, country_code, notes FROM companies WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 100', 'i', [$userId], 800),
         'contacts' => adminAiContextRows($db, 'SELECT id, company_id, application_id, job_id, first_name, last_name, position, department, email, phone, mobile, linkedin_url, preferred_language FROM contacts WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 120', 'i', [$userId], 400),
         'jobs' => adminAiContextRows($db, 'SELECT id, company_id, source_id, external_id, title, location_text, status, match_score, source_url, published_at, expires_at, SUBSTRING(description,1,1200) description FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 120', 'i', [$userId], 1200),
-        'applications' => adminAiContextRows($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, applied_at, channel, reference_number, next_action, next_action_at FROM applications WHERE user_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 120', 'i', [$userId], 400),
+        'applications' => adminAiContextRows($db, 'SELECT id, job_id, intermediary_company_id, primary_contact_id, status, rejection_reason, applied_at, channel, reference_number, next_action, next_action_at FROM applications WHERE user_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 120', 'i', [$userId], 400),
         'documents' => adminAiContextRows($db, 'SELECT d.id, dt.code document_type, d.language_code, d.scope, d.application_id, d.job_id, d.title, d.original_filename, d.valid_from, d.valid_until, d.version, d.is_current FROM user_documents d JOIN document_types dt ON dt.id=d.document_type_id WHERE d.user_id=? AND d.deleted_at IS NULL ORDER BY d.id DESC LIMIT 120', 'i', [$userId], 400),
     ];
     return [
@@ -5641,7 +5674,7 @@ function adminAiTableDefinitions(): array
         'job_questions' => ['owner'=>'owner_user_id','fields'=>['job_id','question_text','answer_text','sort_order'],'required'=>['job_id','question_text'],'match'=>['id']],
         'contacts' => ['owner'=>'owner_user_id','fields'=>['company_id','application_id','job_id','first_name','last_name','position','department','email','phone','mobile','linkedin_url','preferred_language','notes'],'required'=>['company_id','first_name','last_name'],'match'=>['id','email']],
         'contact_logs' => ['owner'=>'owner_user_id','fields'=>['contact_id','company_id','application_id','job_id','channel','direction','status','subject','body','occurred_at','follow_up_at','outcome'],'required'=>['contact_id','company_id','channel','occurred_at'],'match'=>['id','subject']],
-        'applications' => ['owner'=>'user_id','fields'=>['job_id','intermediary_company_id','primary_contact_id','status','applied_at','channel','application_url','portal_account','reference_number','online_notes','cover_letter_text','email_subject','email_body','salary_expectation','salary_currency','next_action','next_action_at','notes','job_room_result','job_room_interview'],'required'=>['job_id'],'match'=>['id','job_id','reference_number']],
+        'applications' => ['owner'=>'user_id','fields'=>['job_id','intermediary_company_id','primary_contact_id','status','rejection_reason','applied_at','channel','application_url','portal_account','reference_number','online_notes','cover_letter_text','email_subject','email_body','salary_expectation','salary_currency','next_action','next_action_at','notes','job_room_result','job_room_interview'],'required'=>['job_id'],'match'=>['id','job_id','reference_number']],
         'user_documents' => ['owner'=>'user_id','fields'=>['document_type_id','language_code','scope','application_id','job_id','title','description','original_filename','storage_path','mime_type','file_size','sha256','valid_from','valid_until','version','is_current','is_application_relevant'],'required'=>['document_type_id','title','original_filename','storage_path','mime_type','file_size','sha256'],'match'=>['id','sha256','original_filename']],
         'application_status_history' => ['owner'=>'changed_by','fields'=>['application_id','old_status','new_status','comment','changed_at'],'required'=>['application_id','new_status'],'match'=>['id']],
         'tags' => ['owner'=>'owner_user_id','fields'=>['name','color'],'required'=>['name'],'match'=>['id','name']],
@@ -5818,6 +5851,16 @@ function adminAiTableUpsert(mysqli $db, int $uid, array $operation, array $globa
         $existing = dbOne($db, "SELECT " . (!empty($definition['has_id']) || !array_key_exists('has_id', $definition) ? 'id' : '1 AS record_exists') . " FROM `$table` WHERE `$ownerField`=? AND `$matchField`=?" . (in_array('deleted_at', array_column((array)dbAll($db, "SHOW COLUMNS FROM `$table`"), 'Field'), true) ? ' AND deleted_at IS NULL' : '') . ' LIMIT 1', 'is', [$uid, $matchValue]);
     }
     $id = (int)($existing['id'] ?? 0); $hasExisting = is_array($existing); $created = false; $updated = false;
+    if ($table === 'applications') {
+        $previous = $hasExisting ? dbOne($db, 'SELECT status, rejection_reason FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL', 'ii', [$id, $uid]) : null;
+        $effectiveStatus = (string)($fields['status'] ?? $previous['status'] ?? 'draft');
+        $effectiveReason = (string)($fields['rejection_reason'] ?? $previous['rejection_reason'] ?? '');
+        if ($effectiveStatus === 'rejected') {
+            $fields['rejection_reason'] = applicationRejectionReason($effectiveStatus, $effectiveReason);
+        } elseif (array_key_exists('rejection_reason', $fields) && (preg_match_all('/./us', $effectiveReason) ?: 0) > 249) {
+            throw new InvalidArgumentException(tr('applications.rejection_reason_too_long'));
+        }
+    }
     if ($hasExisting) {
         foreach ($fields as $field => $value) {
             if ($value === '') continue;
@@ -7536,7 +7579,7 @@ function reportFieldOptions(string $base): array
             'company_id'=>tr('companies.company').' ID', 'company'=>tr('companies.company'),
             'intermediary_company_id'=>tr('companies.intermediary').' ID', 'intermediary_company'=>tr('companies.intermediary'),
             'primary_contact_id'=>tr('contacts.contact').' ID', 'primary_contact'=>tr('contacts.contact'),
-            'status'=>tr('common.status'), 'applied_at'=>tr('applications.sent_at'), 'channel'=>tr('applications.channel'),
+            'status'=>tr('common.status'), 'rejection_reason'=>tr('applications.rejection_reason'), 'applied_at'=>tr('applications.sent_at'), 'channel'=>tr('applications.channel'),
             'application_url'=>tr('applications.online_url'), 'portal_account'=>tr('applications.portal_account'),
             'reference_number'=>tr('applications.reference_number'), 'online_notes'=>$db('online_notes'),
             'cover_letter_text'=>$db('cover_letter_text'), 'email_subject'=>$db('email_subject'), 'email_body'=>$db('email_body'),
@@ -7899,7 +7942,7 @@ function jobRoomCountryLabel(?string $countryCode): string
 
 function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, ?string $monthEnd = null): array
 {
-    $where = 'a.user_id=? AND a.deleted_at IS NULL AND a.applied_at IS NOT NULL';
+    $where = "a.user_id=? AND a.deleted_at IS NULL AND a.applied_at IS NOT NULL AND a.job_room_registration <> 'recorded'";
     $types = 'i';
     $values = [$userId];
     if ($monthStart !== null && $monthEnd !== null) {
@@ -7910,7 +7953,7 @@ function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, 
     }
     return dbAll(
         $db,
-        'SELECT a.id application_id, a.status application_status, a.job_room_result, a.job_room_interview, a.job_room_registration, a.channel, a.applied_at, a.application_url, a.reference_number,
+        'SELECT a.id application_id, a.status application_status, a.rejection_reason, a.job_room_result, a.job_room_interview, a.job_room_registration, a.channel, a.applied_at, a.application_url, a.reference_number,
                 j.id job_id, j.title job_title, j.source_url, j.employment_type, j.workload_min, j.workload_max,
                 c.id company_id, c.name company_name, c.is_intermediary, c.email company_email, c.phone company_phone,
                 c.address_line1, c.address_line2, c.postal_code, c.city, c.country_code,
@@ -7927,19 +7970,49 @@ function jobRoomHelperRows(mysqli $db, int $userId, ?string $monthStart = null, 
     );
 }
 
+function jobRoomStreetParts(string $addressLine): array
+{
+    $addressLine = trim($addressLine);
+    if (preg_match('/^(.+?)\s+(\d+[a-zA-Z]?(?:\s*[-\/]\s*\d+[a-zA-Z]?)?)$/u', $addressLine, $matches)) {
+        return [trim($matches[1]), preg_replace('/\s+/u', '', $matches[2])];
+    }
+    if (preg_match('/^(\d+[a-zA-Z]?(?:\s*[-\/]\s*\d+[a-zA-Z]?)?)\s+(.+)$/u', $addressLine, $matches)) {
+        return [trim($matches[2]), preg_replace('/\s+/u', '', $matches[1])];
+    }
+    return [$addressLine, ''];
+}
+
+function applicationRejectionReason(string $status, ?string $reason): ?string
+{
+    if ($status !== 'rejected') {
+        return null;
+    }
+    $reason = trim((string)$reason);
+    if ($reason === '') {
+        throw new InvalidArgumentException(tr('applications.rejection_reason_required'));
+    }
+    $length = preg_match_all('/./us', $reason);
+    if ($length === false || $length > 249) {
+        throw new InvalidArgumentException(tr('applications.rejection_reason_too_long'));
+    }
+    return $reason;
+}
+
 function jobRoomHelperFields(array $row, array $currentUser): array
 {
     $contactName = trim((string)($row['contact_first_name'] ?? '') . ' ' . (string)($row['contact_last_name'] ?? ''));
-    $postalCity = trim(trim((string)($row['postal_code'] ?? '') . ' ' . (string)($row['city'] ?? '')));
+    [$street, $houseNumber] = jobRoomStreetParts((string)($row['address_line1'] ?? ''));
     $onlineLink = trim((string)($row['application_url'] ?? '')) ?: trim((string)($row['source_url'] ?? ''));
-    return [
+    $fields = [
         'job_room_helper.field.date' => !empty($row['applied_at']) ? displayDateTime((string)$row['applied_at'], $currentUser, false) : '',
         'job_room_helper.field.method' => jobRoomApplicationMethod($row['channel'] ?? null),
         'job_room_helper.field.company' => jobRoomCompanyName($row),
-        'job_room_helper.field.street' => trim((string)($row['address_line1'] ?? '')),
+        'job_room_helper.field.street' => $street,
+        'job_room_helper.field.house_number' => $houseNumber,
+        'job_room_helper.field.postal_code' => trim((string)($row['postal_code'] ?? '')),
+        'job_room_helper.field.city' => trim((string)($row['city'] ?? '')),
         'job_room_helper.field.po_box' => trim((string)($row['address_line2'] ?? '')),
         'job_room_helper.field.country' => jobRoomCountryLabel($row['country_code'] ?? null),
-        'job_room_helper.field.postal_city' => $postalCity,
         'job_room_helper.field.contact_person' => $contactName,
         'job_room_helper.field.email' => trim((string)($row['contact_email'] ?? '')) ?: trim((string)($row['company_email'] ?? '')),
         'job_room_helper.field.phone' => trim((string)($row['contact_phone'] ?? '')) ?: (trim((string)($row['contact_mobile'] ?? '')) ?: trim((string)($row['company_phone'] ?? ''))),
@@ -7950,6 +8023,10 @@ function jobRoomHelperFields(array $row, array $currentUser): array
         'job_room_helper.field.interview' => !empty($row['job_room_interview']) ? tr('job_room_helper.value.yes') : tr('job_room_helper.value.no'),
         'job_room_helper.field.result' => jobRoomApplicationResult($row['job_room_result'] ?? null, $row['application_status'] ?? null, $row['job_room_registration'] ?? null),
     ];
+    if (($row['application_status'] ?? '') === 'rejected') {
+        $fields['applications.rejection_reason'] = trim((string)($row['rejection_reason'] ?? ''));
+    }
+    return $fields;
 }
 
 function calendarEventTypeOptions(): array
@@ -8047,7 +8124,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
         'applications' => dbAll($db, 'SELECT ' . applicationWorkflowDateSql('a') . ' latest_workflow_at,
             a.id, a.job_id, j.title, j.company_id, c.name company, c.is_intermediary company_is_intermediary, a.intermediary_company_id,
             ic.name intermediary_company, a.primary_contact_id,
-            TRIM(CONCAT_WS(" ", pc.first_name, pc.last_name)) primary_contact, pc.email primary_contact_email, a.status, a.applied_at,
+            TRIM(CONCAT_WS(" ", pc.first_name, pc.last_name)) primary_contact, pc.email primary_contact_email, a.status, a.rejection_reason, a.applied_at,
             a.channel, a.application_url, a.portal_account, a.reference_number, a.online_notes,
             a.cover_letter_text, a.email_subject, a.email_body, a.salary_expectation, a.salary_currency,
             a.next_action, a.next_action_at, a.notes, a.job_room_result, a.job_room_interview,
@@ -11876,7 +11953,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.24','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.25','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -12761,13 +12838,14 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
             <div class="three">
                 <label><?= e(tr('companies.company')) ?><select name="mail_company_id"><option value="0"><?= e(tr('common.not_selected')) ?></option><?php foreach($companies as $company): ?><option value="<?= (int)$company['id'] ?>" <?= (int)$company['id']===$selectedCompanyId?'selected':'' ?>><?= e($company['name']) ?></option><?php endforeach; ?></select></label>
                 <label><?= e(tr('contacts.contact')) ?><select name="mail_contact_id"><option value="0"><?= e(tr('mail_activity.auto_contact')) ?></option><?php foreach($contacts as $contact): ?><option value="<?= (int)$contact['id'] ?>" data-company-id="<?= (int)$contact['company_id'] ?>" <?= (int)$contact['id']===$selectedContactId?'selected':'' ?>><?= e(trim((string)$contact['last_name'].' '.(string)$contact['first_name'])) ?> · <?= e((string)$contact['company_name']) ?></option><?php endforeach; ?></select></label>
-                <label><?= e(tr('applications.application')) ?><select name="mail_application_id"><option value="0"><?= e(tr('common.not_selected')) ?></option><?php foreach($applications as $application): ?><option value="<?= (int)$application['id'] ?>" data-company-id="<?= (int)$application['company_id'] ?>" data-contact-id="<?= (int)($application['primary_contact_id'] ?? 0) ?>" <?= (int)$application['id']===$selectedApplicationId?'selected':'' ?>><?= e($application['title'].' · '.$application['company_name']) ?></option><?php endforeach; ?></select></label>
+                <label><?= e(tr('applications.application')) ?><select name="mail_application_id"><option value="0"><?= e(tr('common.not_selected')) ?></option><?php foreach($applications as $application): ?><option value="<?= (int)$application['id'] ?>" data-company-id="<?= (int)$application['company_id'] ?>" data-contact-id="<?= (int)($application['primary_contact_id'] ?? 0) ?>" data-status="<?= e((string)$application['status']) ?>" <?= (int)$application['id']===$selectedApplicationId?'selected':'' ?>><?= e($application['title'].' · '.$application['company_name']) ?></option><?php endforeach; ?></select></label>
             </div>
             <div class="three">
                 <label><?= e(tr('applications.channel')) ?><select name="mail_channel"><?php foreach($channels as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
                 <label><?= e(tr('contact_log.direction')) ?><select name="mail_direction"><option value="incoming"><?= e(tr('contact_log.direction.incoming')) ?></option><option value="outgoing"><?= e(tr('contact_log.direction.outgoing')) ?></option><option value="internal"><?= e(tr('contact_log.direction.internal')) ?></option></select></label>
                 <label><?= e(tr('mail_activity.application_status')) ?><select name="mail_application_status"><option value=""><?= e(tr('mail_activity.status_no_change')) ?></option><?php foreach(applicationStatusOptions(false) as $value=>$label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></label>
             </div>
+            <label data-mail-rejection-reason hidden><?= e(tr('applications.rejection_reason')) ?><textarea name="mail_rejection_reason" rows="3" maxlength="249"></textarea></label>
             <label><?= e(tr('contact_log.occurred_at')) ?><input type="datetime-local" name="mail_occurred_at" value="<?= e($occurred) ?>" required></label>
             <label><?= e(tr('contact_log.subject')) ?><input name="mail_subject" required></label>
             <label><?= e(tr('mail_activity.mail_text')) ?><textarea name="mail_body" rows="7" required></textarea></label>
@@ -12782,10 +12860,22 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
         const company = root.querySelector('[name="mail_company_id"]');
         const contact = root.querySelector('[name="mail_contact_id"]');
         const application = root.querySelector('[name="mail_application_id"]');
+        const mailStatus = root.querySelector('[name="mail_application_status"]');
+        const rejectionField = root.querySelector('[data-mail-rejection-reason]');
+        const rejectionInput = rejectionField?.querySelector('textarea');
+        const syncRejectionField = () => {
+            const selectedApplication = application?.options[application.selectedIndex];
+            const rejected = mailStatus?.value === 'rejected' && application?.value !== '0' && selectedApplication?.dataset.status !== 'rejected';
+            if (rejectionField) rejectionField.hidden = !rejected;
+            if (rejectionInput) rejectionInput.required = rejected;
+        };
+        mailStatus?.addEventListener('change', syncRejectionField);
+        syncRejectionField();
         application?.addEventListener('change', () => {
             const selected = application.options[application.selectedIndex];
             if (selected?.dataset.companyId && company) company.value = selected.dataset.companyId;
             if (selected?.dataset.contactId && selected.dataset.contactId !== '0' && contact) contact.value = selected.dataset.contactId;
+            syncRejectionField();
         });
         contact?.addEventListener('change', () => {
             const selected = contact.options[contact.selectedIndex];
@@ -12797,7 +12887,7 @@ function mailActivityFormHtml(mysqli $db, int $userId, array $currentUser, strin
     return (string) ob_get_clean();
 }
 
-$runtimeMaintenanceKey = 'runtime_maintenance_2_4_24';
+$runtimeMaintenanceKey = 'runtime_maintenance_2_4_25';
 try {
     if (!dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$runtimeMaintenanceKey])) {
         $maintenanceLock = dbOne($db, "SELECT GET_LOCK('jema-runtime-maintenance', 5) acquired");
@@ -15339,6 +15429,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $companyId = $companyId > 0 ? $companyId : (int) $application['company_id'];
             $contactId = $contactId > 0 ? $contactId : (int) ($application['primary_contact_id'] ?? 0);
         }
+        $newStatus = trim((string) ($_POST['mail_application_status'] ?? ''));
+        $mailRejectionReason = null;
+        if ($application && $newStatus === 'rejected' && $newStatus !== (string)$application['status']) {
+            try {
+                $mailRejectionReason = applicationRejectionReason($newStatus, (string)($_POST['mail_rejection_reason'] ?? ''));
+            } catch (InvalidArgumentException $exception) {
+                flash($exception->getMessage(), 'danger');
+                redirect($returnTo . '#mail-activity');
+            }
+        }
         $contact = $contactId > 0 ? dbOne($db, 'SELECT id, company_id, job_id, application_id, first_name, last_name FROM contacts WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$contactId, $uid]) : null;
         if ($contact) {
             $companyId = (int) $contact['company_id'];
@@ -15398,7 +15498,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect($returnTo . '#mail-activity');
         }
         syncContactLogFollowUp($db, $uid, $logId);
-        $newStatus = trim((string) ($_POST['mail_application_status'] ?? ''));
         if ($application && $newStatus !== '' && array_key_exists($newStatus, applicationStatusOptions(false)) && $newStatus !== (string) $application['status']) {
             $appliedAt = null;
             $nextAction = null;
@@ -15408,12 +15507,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nextAction = null;
                 $nextActionAt = null;
             }
-            $stmt = $db->prepare('UPDATE applications SET status=?, applied_at=COALESCE(applied_at, ?), next_action=?, next_action_at=? WHERE id=? AND user_id=?');
-            $stmt->bind_param('ssssii', $newStatus, $appliedAt, $nextAction, $nextActionAt, $logApplicationId, $uid);
+            $stmt = $db->prepare('UPDATE applications SET status=?, rejection_reason=?, applied_at=COALESCE(applied_at, ?), next_action=?, next_action_at=? WHERE id=? AND user_id=?');
+            $stmt->bind_param('sssssii', $newStatus, $mailRejectionReason, $appliedAt, $nextAction, $nextActionAt, $logApplicationId, $uid);
             $stmt->execute();
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
             $oldStatus = (string) $application['status'];
-            $comment = tr('mail_activity.status_changed_by_mail');
+            $comment = $mailRejectionReason !== null ? $mailRejectionReason : tr('mail_activity.status_changed_by_mail');
             $history->bind_param('iisss', $logApplicationId, $uid, $oldStatus, $newStatus, $comment);
             $history->execute();
         }
@@ -15460,6 +15559,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowedStatuses = array_unique(array_merge(applicationStatusSequence(), [(string)$old['status']]));
         $allowedChannels = ['email','portal','website','mail','referral','other'];
         $status = in_array($_POST['status'] ?? '', $allowedStatuses, true) ? (string) $_POST['status'] : (string)$old['status'];
+        try {
+            $rejectionReason = applicationRejectionReason($status, (string)($_POST['rejection_reason'] ?? ''));
+        } catch (InvalidArgumentException $exception) {
+            $db->rollback();
+            if ($isAutosave) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(422);
+                echo json_encode(['ok'=>false,'message'=>$exception->getMessage()], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            flash($exception->getMessage(), 'danger');
+            redirect('/?page=applications&edit=' . $id . '#application-form');
+        }
         $channel = in_array($_POST['channel'] ?? '', $allowedChannels, true) ? (string) $_POST['channel'] : null;
         $appliedAt = trim((string) ($_POST['applied_at'] ?? '')) ?: null;
         $nextAction = $old['next_action'];
@@ -15530,16 +15642,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         // Retained legacy fields are only changed by the reviewed migration.
-        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=?, job_room_result=?, job_room_interview=? WHERE id=? AND user_id=?');
+        $stmt = $db->prepare('UPDATE applications SET intermediary_company_id=NULLIF(?,0), primary_contact_id=NULLIF(?,0), status=?, rejection_reason=?, channel=?, applied_at=?, next_action=?, next_action_at=?, application_url=?, portal_account=?, reference_number=?, online_notes=?, email_subject=?, email_body=?, cover_letter_text=?, notes=?, job_room_result=?, job_room_interview=? WHERE id=? AND user_id=?');
         $uid = userId();
-        $applicationUpdateTypes = 'ii' . str_repeat('s', 14) . 'iii';
-        $stmt->bind_param($applicationUpdateTypes, $intermediaryCompanyId, $primaryContactId, $status, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $jobRoomResult, $jobRoomInterview, $id, $uid);
+        $applicationUpdateTypes = 'ii' . str_repeat('s', 15) . 'iii';
+        $stmt->bind_param($applicationUpdateTypes, $intermediaryCompanyId, $primaryContactId, $status, $rejectionReason, $channel, $appliedAt, $nextAction, $nextActionAt, $applicationUrl, $portalAccount, $referenceNumber, $onlineNotes, $emailSubject, $emailBody, $coverLetter, $notes, $jobRoomResult, $jobRoomInterview, $id, $uid);
         $stmt->execute();
         if ($jobRoomRegistration !== null) {
             cascadeExec($db, 'UPDATE applications SET job_room_registration=? WHERE id=? AND user_id=?', 'sii', [$jobRoomRegistration, $id, $uid]);
         }
         if ($statusChanged) {
-            $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: null;
+            $comment = trim((string) ($_POST['status_comment'] ?? '')) ?: $rejectionReason;
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
             $history->bind_param('iisss', $id, $uid, $old['status'], $status, $comment);
             $history->execute();
@@ -15756,7 +15868,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.24';
+$codeVersion = '2.4.25';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -16630,7 +16742,7 @@ startUiTranslationBuffer($appLocale);
         <?php endif; ?>
     <?php elseif ($page === 'job_room_helper'): ?>
         <?php
-        $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(applied_at, "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL AND applied_at IS NOT NULL ORDER BY month_key DESC', 'i', [userId()]), 'month_key');
+        $availableJobRoomMonths = array_column(dbAll($db, 'SELECT DISTINCT DATE_FORMAT(applied_at, "%Y-%m") month_key FROM applications WHERE user_id=? AND deleted_at IS NULL AND applied_at IS NOT NULL AND job_room_registration <> "recorded" ORDER BY month_key DESC', 'i', [userId()]), 'month_key');
         $currentJobRoomMonth = (new DateTimeImmutable('first day of this month'))->format('Y-m');
         if (!in_array($currentJobRoomMonth, $availableJobRoomMonths, true)) {
             array_unshift($availableJobRoomMonths, $currentJobRoomMonth);
@@ -17535,6 +17647,7 @@ startUiTranslationBuffer($appLocale);
                     <label><?= e(tr('applications.channel')) ?><select name="channel"><option value=""><?= e(tr('common.not_selected')) ?></option><?php foreach($channels as $v=>$l): ?><option value="<?= e($v) ?>" <?= $applicationEdit['channel']===$v?'selected':'' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
                     <label data-sent-date <?= in_array($applicationEdit['status'], ['draft','ready'], true) ? 'hidden' : '' ?>><?= e(tr('applications.sent_at')) ?><input type="datetime-local" step="1" name="applied_at" value="<?= e(applicationWorkflowView($applicationEdit)['sent_at'] ? date('Y-m-d\TH:i:s', strtotime($applicationEdit['applied_at'])) : '') ?>"></label>
                 </div>
+                <label data-application-rejection-reason <?= $applicationEdit['status']==='rejected' ? '' : 'hidden' ?>><?= e(tr('applications.rejection_reason')) ?><textarea name="rejection_reason" rows="3" maxlength="249" <?= $applicationEdit['status']==='rejected' ? 'required' : '' ?>><?= e($applicationEdit['rejection_reason'] ?? '') ?></textarea></label>
                 <?php $registration = dbOne($db, 'SELECT job_room_registration FROM applications WHERE id=? AND user_id=?', 'ii', [(int)$applicationEdit['id'], userId()])['job_room_registration'] ?? 'unknown'; ?>
                 <div class="job-room-compact" role="group" aria-label="<?= e(tr('applications.job_room_status')) ?>">
                     <input type="hidden" name="job_room_registration" value="<?= e($registration) ?>">
@@ -17591,6 +17704,16 @@ startUiTranslationBuffer($appLocale);
                 let savedRevision = 0;
                 let requestRunning = false;
                 let manualSubmit = false;
+                const applicationStatus = form.querySelector('[name="status"]');
+                const rejectionField = form.querySelector('[data-application-rejection-reason]');
+                const rejectionInput = rejectionField?.querySelector('textarea');
+                const syncRejectionField = () => {
+                    const rejected = applicationStatus?.value === 'rejected';
+                    if (rejectionField) rejectionField.hidden = !rejected;
+                    if (rejectionInput) rejectionInput.required = rejected;
+                };
+                applicationStatus?.addEventListener('change', syncRejectionField);
+                syncRejectionField();
 
                 const setState = state => {
                     if (!status || !statusText) return;
@@ -17600,6 +17723,7 @@ startUiTranslationBuffer($appLocale);
 
                 const save = async () => {
                     if (requestRunning || manualSubmit || revision === savedRevision) return;
+                    if (applicationStatus?.value === 'rejected' && !rejectionInput?.value.trim()) return;
                     requestRunning = true;
                     const requestedRevision = revision;
                     setState('saving');

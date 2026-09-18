@@ -509,6 +509,7 @@ CREATE TABLE applications (
     intermediary_company_id BIGINT UNSIGNED NULL,
     primary_contact_id BIGINT UNSIGNED NULL,
     status ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft',
+    rejection_reason VARCHAR(249) NULL,
     applied_at DATETIME NULL,
     channel ENUM('email','portal','website','mail','referral','other') NULL,
     application_url VARCHAR(1000) NULL,

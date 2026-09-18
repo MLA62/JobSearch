@@ -43,5 +43,5 @@ check(str_contains($source, 'JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.
 check(str_contains($source, "if(\$appCompanyFilter>0){ \$appSql.=' AND j.company_id=?';"), 'Company application link filters the same direct relation as its count');
 check(str_contains($source, "if ($" . "action === 'apply_workflow_migration')"), 'Migration requires explicit reviewed action');
 check(str_contains($source, "a.user_id=? AND a.deleted_at IS NULL AND a.applied_at IS NOT NULL"), 'Job-Room excludes applications without an application date');
-check(str_contains($source, 'DATE_FORMAT(applied_at, "%Y-%m") month_key') && str_contains($source, 'deleted_at IS NULL AND applied_at IS NOT NULL ORDER BY month_key DESC'), 'Job-Room month filter is based only on actual application dates');
+check(str_contains($source, 'DATE_FORMAT(applied_at, "%Y-%m") month_key') && str_contains($source, 'deleted_at IS NULL AND applied_at IS NOT NULL AND job_room_registration <> "recorded" ORDER BY month_key DESC'), 'Job-Room month filter includes only dated, unrecorded applications');
 echo "All table layout checks passed.\n";

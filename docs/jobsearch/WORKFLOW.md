@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 14.09.2026. Aktuelles Verhalten für Release 2.4.24.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.25.
+
+Ergänzung 2.4.25: Der Helper schliesst bereits im Job-Room erfasste Bewerbungen aus,
+auch in der Monatsauswahl. Adresse und Absagegrund sind einzeln kopierbar. Ein
+Statuswechsel zu `rejected` verlangt einen Absagegrund mit höchstens 249 Zeichen;
+Formular, Kontakt-/E-Mail-Protokoll und Admin-KI-Schreibweg prüfen dies serverseitig.
 
 Ergänzung 2.4.24: Das Dokumentformular speichert `is_application_relevant` als ausdrücklichen
 Boolean mit Vorgabe 0. Bei einer neuen Version transportiert der Versionswähler das Kennzeichen

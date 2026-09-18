@@ -535,6 +535,7 @@ CREATE TABLE applications (
     intermediary_company_id BIGINT UNSIGNED NULL,
     primary_contact_id BIGINT UNSIGNED NULL,
     status ENUM('draft','ready','sent','confirmed','interview','assessment','offer','accepted','rejected','withdrawn','closed') NOT NULL DEFAULT 'draft',
+    rejection_reason VARCHAR(249) NULL,
     applied_at DATETIME NULL,
     channel ENUM('email','portal','website','mail','referral','other') NULL,
     application_url VARCHAR(1000) NULL,
@@ -1365,6 +1366,13 @@ ALTER TABLE user_documents
     ADD COLUMN is_application_relevant TINYINT(1) NOT NULL DEFAULT 0 AFTER is_current;
 ```
 
+## 19_application_rejection_reason.sql
+
+```sql
+ALTER TABLE applications
+    ADD COLUMN rejection_reason VARCHAR(249) NULL AFTER status;
+```
+
 ## Zusaetzliche Runtime-DDL
 
 Originale PHP-Stringliterale; nur statische DDL, keine produktiven Daten. Die PHP-Notation und gegebenenfalls Interpolation sind vor einer manuellen Ausfuehrung auf SQL aufzuloesen.
@@ -1643,6 +1651,10 @@ ensureColumn($db, 'applications', 'intermediary_company_id', '`intermediary_comp
 
 ```php
 ensureColumn($db, 'applications', 'primary_contact_id', '`primary_contact_id` BIGINT UNSIGNED NULL', 'intermediary_company_id');
+```
+
+```php
+ensureColumn($db, 'applications', 'rejection_reason', '`rejection_reason` VARCHAR(249) NULL', 'status');
 ```
 
 ```php

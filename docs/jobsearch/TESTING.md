@@ -2,6 +2,11 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.25: `job_room_rejection_reason_test.php` prüft den Helper-Filter einschließlich
+Monatsauswahl, die Reihenfolge und Trennung der Adressfelder, den kopierbaren
+Absagegrund, die 249-Zeichen-Pflicht und alle drei Status-Schreibwege. Zusätzlich
+werden PHP-Syntax, Hilfegenerierung und Referenzgenerierung geprüft.
+
 Ergänzung 2.4.24: `document_application_relevance_test.php` prüft Schema-Vorgabe und
 Laufzeitmigration, das standardmässig leere Ankreuzfeld, Upload und Metadatenänderung, die
 Übernahme bei einer neuen Version, den mandanten- und löschsicheren Vorschlagsfilter sowie den

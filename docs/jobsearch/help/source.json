@@ -1,6 +1,6 @@
 {
-  "version": "2.4.24",
-  "reviewed": "2026-09-14",
+  "version": "2.4.25",
+  "reviewed": "2026-09-18",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -697,7 +697,7 @@
             "Beim Vorbereiten legt die App die neue Bewerbung immer an oder öffnet die bereits aktive Bewerbung. Zuvor analysiert sie die Originalausschreibung erneut über die KI-API und ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten. Eine verifiziert abweichende Arbeitgeberfirma korrigiert die Zuordnung des gewählten Jobs, ohne die bisherige Firma zu überschreiben. Ist die Analyse vorübergehend nicht möglich, wird die Bewerbung mit den vorhandenen Angaben und bearbeitbaren Entwürfen fortgesetzt. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.",
             "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion werden die vorhandenen Texte gemäß dieser Instruktion überarbeitet; bei leerem Instruktionsfeld erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten. Die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
-            "Erfasse jedes Bewerbungsgespräch als eigenen Termin; dokumentiere die Zusage oder Absage als Ergebnis."
+            "Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten."
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
@@ -716,7 +716,7 @@
             "Lors de la préparation, l’application crée toujours la nouvelle candidature ou ouvre la candidature active. Elle réanalyse auparavant l’annonce originale via l’API d’IA et complète les données vérifiées. Si l’employeur vérifié diffère, l’offre choisie est réaffectée sans écraser l’ancienne entreprise. Si l’analyse est momentanément indisponible, la candidature continue avec les données existantes et des brouillons modifiables.",
             "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, les textes existants sont révisés conformément à celle-ci; si le champ est vide, l’IA recrée entièrement les trois textes à partir des données de candidature disponibles. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
-            "Enregistre chaque entretien comme rendez-vous distinct; documente ensuite l’acceptation ou le refus."
+            "Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes."
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
@@ -735,7 +735,7 @@
             "When preparing, the app always creates the new application or opens the active one. It first reanalyses the original advertisement through the AI API and fills verified data. If the verified employer differs, the selected job is reassigned without overwriting the previous company. If analysis is temporarily unavailable, preparation continues with existing data and editable drafts.",
             "Edit the three texts directly or click Create/adjust texts with AI: with an instruction, the existing texts are revised according to it; if the instruction field is empty, AI recreates all three texts from scratch using the available application data. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
-            "Record each interview as a separate appointment and document acceptance or rejection."
+            "Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards."
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
@@ -754,7 +754,7 @@
             "Ao preparar, o aplicativo sempre cria a nova candidatura ou abre a candidatura ativa. Antes, ele reanalisa o anúncio original pela API de IA e completa os dados verificados. Se o empregador verificado for diferente, a vaga selecionada é reatribuída sem sobrescrever a empresa anterior. Se a análise estiver temporariamente indisponível, a preparação continua com os dados existentes e rascunhos editáveis.",
             "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, os textos existentes são revisados de acordo com ela; se o campo estiver vazio, a IA recria os três textos do zero usando os dados disponíveis da candidatura. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
-            "Cadastre cada entrevista como compromisso separado e registre a aceitação ou recusa."
+            "Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões."
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
@@ -773,7 +773,7 @@
             "Al preparar, la aplicación siempre crea la nueva solicitud o abre la solicitud activa. Antes vuelve a analizar el anuncio original mediante la API de IA y completa los datos verificados. Si el empleador verificado es distinto, reasigna la vacante seleccionada sin sobrescribir la empresa anterior. Si el análisis no está disponible temporalmente, la preparación continúa con los datos existentes y borradores editables.",
             "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, los textos existentes se revisan según ella; si el campo está vacío, la IA vuelve a crear los tres textos desde cero usando los datos disponibles de la solicitud. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
-            "Registra cada entrevista como cita independiente y documenta la aceptación o rechazo."
+            "Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas."
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
@@ -1102,9 +1102,10 @@
             "Danach sind Vorstellungsgespräch und das Ergebnis Noch offen, Anstellung oder Absage sichtbar."
           ],
           "tips": [
-            "Die Job-Room-Hilfe zeigt nur Bewerbungen mit einem tatsächlichen Bewerbungsdatum. Fehlt es, ergänze es zuerst in der Bewerbung.",
+            "Die Job-Room-Hilfe zeigt nur Bewerbungen mit Bewerbungsdatum, die noch nicht als im Job-Room erfasst markiert sind. Fehlt das Datum, ergänze es zuerst in der Bewerbung.",
             "Das Ankreuzen bestätigt deine Erfassung; es übermittelt nichts automatisch an Job-Room. Ein Gespräch ist keine Anstellung.",
-            "Das Feld Job-Room-Resultat zeigt „Noch offen“ erst nach bestätigter Erfassung; vorher steht dort „Noch nicht im Job-Room erfasst“."
+            "Das Feld Job-Room-Resultat zeigt „Noch offen“ erst nach bestätigter Erfassung; vorher steht dort „Noch nicht im Job-Room erfasst“.",
+            "Strasse, Hausnummer, Postleitzahl und Ort lassen sich in dieser Reihenfolge einzeln kopieren. Bei einer Absage ist auch der Absagegrund kopierbar."
           ]
         },
         "fr-CH": {
@@ -1116,9 +1117,10 @@
             "Les champs entretien et résultat ouvert, embauche ou refus deviennent alors visibles."
           ],
           "tips": [
-            "L’aide Job-Room affiche uniquement les candidatures ayant une date de candidature réelle. Si elle manque, complète-la d’abord dans la candidature.",
+            "L’aide Job-Room affiche uniquement les candidatures datées qui ne sont pas encore marquées comme saisies dans Job-Room. Si la date manque, complète-la dans la candidature.",
             "La case confirme ta saisie; elle n’envoie rien automatiquement à Job-Room. Un entretien n’est pas une embauche.",
-            "Le résultat Job-Room n’indique « ouvert » qu’après confirmation de la saisie; auparavant il indique que la candidature n’est pas encore saisie."
+            "Le résultat Job-Room n’indique « ouvert » qu’après confirmation de la saisie; auparavant il indique que la candidature n’est pas encore saisie.",
+            "Rue, numéro, code postal et localité se copient séparément dans cet ordre. Le motif du refus est également copiable."
           ]
         },
         "en-GB": {
@@ -1130,9 +1132,10 @@
             "Interview and the outcome open, hired or rejected then become visible."
           ],
           "tips": [
-            "The Job-Room helper shows only applications with an actual application date. If it is missing, add it to the application first.",
+            "The Job-Room helper shows only dated applications not yet marked as recorded in Job-Room. If the date is missing, add it to the application first.",
             "The checkbox confirms your entry; it does not transmit anything automatically to Job-Room. An interview is not employment.",
-            "The Job-Room result says ‘open’ only after registration is confirmed; beforehand it says the application has not yet been recorded."
+            "The Job-Room result says ‘open’ only after registration is confirmed; beforehand it says the application has not yet been recorded.",
+            "Street, house number, postal code and city can be copied individually in that order. The rejection reason is also copyable."
           ]
         },
         "pt-BR": {
@@ -1144,9 +1147,10 @@
             "Os campos de entrevista e resultado aberto, contratado ou recusado ficam visíveis."
           ],
           "tips": [
-            "A ajuda do Job-Room mostra apenas candidaturas com uma data de candidatura real. Se estiver ausente, preencha-a primeiro na candidatura.",
+            "A ajuda do Job-Room mostra apenas candidaturas com data que ainda não foram marcadas como registradas no Job-Room. Se faltar a data, preencha-a na candidatura.",
             "A caixa confirma seu registro; não transmite dados automaticamente ao Job-Room. Entrevista não significa contratação.",
-            "O resultado do Job-Room mostra ‘aberto’ somente após a confirmação do registro; antes disso informa que a candidatura ainda não foi registrada."
+            "O resultado do Job-Room mostra ‘aberto’ somente após a confirmação do registro; antes disso informa que a candidatura ainda não foi registrada.",
+            "Rua, número, código postal e cidade podem ser copiados separadamente nessa ordem. O motivo da recusa também pode ser copiado."
           ]
         },
         "es-MX": {
@@ -1158,9 +1162,10 @@
             "Entonces aparecen entrevista y resultado abierto, contratación o rechazo."
           ],
           "tips": [
-            "La ayuda de Job-Room muestra solo solicitudes con una fecha de solicitud real. Si falta, añádela primero en la solicitud.",
+            "La ayuda de Job-Room muestra solo solicitudes fechadas que todavía no están marcadas como registradas. Si falta la fecha, añádela a la solicitud.",
             "La casilla confirma tu registro; no transmite nada automáticamente a Job-Room. Una entrevista no significa contratación.",
-            "El resultado de Job-Room muestra ‘abierto’ solo después de confirmar el registro; antes indica que la solicitud todavía no está registrada."
+            "El resultado de Job-Room muestra ‘abierto’ solo después de confirmar el registro; antes indica que la solicitud todavía no está registrada.",
+            "Calle, número, código postal y ciudad se copian por separado y en ese orden. También se puede copiar el motivo del rechazo."
           ]
         }
       }
