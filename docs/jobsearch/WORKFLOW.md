@@ -1,6 +1,13 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.28.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.29.
+
+Ergänzung 2.4.29: Der Job-Room-Statusfilter enthält alle atomaren Optionen
+unabhängig von den gerade vorhandenen Reportzeilen. Nur «Noch nicht im
+Job-Room erfasst» wählen, um alle unregistrierten Bewerbungen innerhalb der
+gespeicherten Report-Grundauswahl zu sehen. Ohne Treffer bleibt der Filter
+sichtbar und die Ergebnismenge leer. Die übrigen Auswahlfelder verwenden
+weiterhin die Werte der Reportzeilen.
 
 Ergänzung 2.4.28: Die sichtbare Job-Room-Statusspalte darf mehrere Eigenschaften
 in einem Text darstellen; der Filter verwendet dagegen eigene Werte für

@@ -2,6 +2,11 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.29: `report_filters_test.php` sichert alle sechs atomaren
+Job-Room-Optionen auch dann ab, wenn die Daten ausschliesslich erfasste Fälle
+enthalten. Der Chromium-Test prüft die weiterhin sichtbare Option «Noch nicht
+im Job-Room erfasst» und ein korrekt leeres Ergebnis bei null Treffern.
+
 Ergänzung 2.4.28: `report_filters_test.php` und `report_fields_test.php` prüfen
 atomare Erfassungs-, Resultat- und Gesprächswerte sowie Cleeven-artige offene
 Bewerbungen mit Gespräch; `report_display_visual_test.cjs` kontrolliert die

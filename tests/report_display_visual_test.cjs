@@ -35,7 +35,7 @@ const expected = {
         assert.equal(await page.locator('.report-view-filters').count(), 1, `${type} exposes report filters`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="date"]').count(), 2, `${type} exposes date range filters`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="number"]').count(), 2, `${type} exposes number range filters`);
-        assert.equal(await page.locator('.report-view-choice-options input[type="checkbox"]').count(), 6, `${type} exposes atomic multi-choice values`);
+        assert.equal(await page.locator('.report-view-choice-options input[type="checkbox"]').count(), 7, `${type} exposes all atomic multi-choice values, including absent states`);
         assert.equal(await page.locator('.report-view-choice-hint').textContent(), 'Mehrere Werte wählen (ODER); keine Auswahl = alle', `${type} shows translated guidance`);
         assert.equal(await page.locator('.report-view-choice-options').textContent().then(text => text.includes('Noch offen · Vorstellungsgespräch')), false, `${type} does not offer combined states`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="search"]').count(), 1, `${type} exposes text filters`);
@@ -58,6 +58,12 @@ const expected = {
           if (width === 390) await page.screenshot({ path: path.join(output, 'cards-filters.png') });
         }
       }
+      await page.goto(`${base}/tests/report_display_fixture.php?type=cards&without_unrecorded=1`);
+      await page.locator('.report-view-filters > summary').click();
+      assert.equal(await page.locator('input[name="report_filter[job_room_result][values][]"][value="not_recorded"]').count(), 1, 'unrecorded option remains visible without matching rows');
+      await page.goto(`${base}/tests/report_display_fixture.php?type=cards&without_unrecorded=1&report_filter[job_room_result][values][]=not_recorded`);
+      assert.equal(await page.locator('article.report-entry').count(), 0, 'unrecorded selection correctly yields zero matches when no matching application exists');
+      assert.equal(await page.locator('.report-view-choice-options input[value="not_recorded"]:checked').count(), 1, 'absent Job-Room state remains selectable and checked');
       const choices = [['not_recorded', 1], ['recorded', 3], ['result:open', 2], ['interview', 1], ['result:rejected', 1], ['__empty__', 1]];
       for (const [choice, count] of choices) {
         await page.goto(`${base}/tests/report_display_fixture.php?type=cards`);

@@ -1,6 +1,17 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.28 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.29 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Dauerhaft verfügbare Job-Room-Filterwerte 2.4.29
+
+`reportViewFilterDefinitions()` erzeugt für `job_room_result` zunächst die
+sechs unabhängigen Optionen `not_recorded`, `recorded`, `result:open`,
+`result:hired`, `result:rejected` und `interview`, unabhängig davon, welche
+Werte in den aktuell geladenen Reportzeilen vorkommen. Die dynamische
+Ergänzung der Werte anderer Auswahlfelder und der bestehende Filtervergleich
+bleiben unverändert. Ein nicht vorhandener Zustand ist wählbar und ergibt
+null Treffer; die Grundauswahl des gespeicherten Reports wird nicht erweitert.
+Keine Migration oder Datensatzänderung.
 
 ## Atomare Job-Room-Filterwerte und Übersetzungsfallback 2.4.28
 

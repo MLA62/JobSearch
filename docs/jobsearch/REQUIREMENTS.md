@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.28.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.29.
+
+Ergänzung 2.4.29: «Noch nicht im Job-Room erfasst» muss im geöffneten
+Bewerbungsreport immer als unabhängiger Filterwert anwählbar sein, auch wenn
+der aktuelle Report keine solche Zeile enthält. Ausgewählt ohne weiteren
+Job-Room-Wert zeigt er ausschliesslich nicht erfasste Bewerbungen; bei
+fehlenden Treffern eine leere Ergebnismenge. Der gespeicherte Report bleibt
+unverändert.
 
 Ergänzung 2.4.28: Der Job-Room-Filter bietet unabhängige Werte für Erfassung,
 Resultat und Vorstellungsgespräch, keine zusammengesetzten Anzeigetexte. «Noch offen»

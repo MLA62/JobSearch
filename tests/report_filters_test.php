@@ -2,6 +2,17 @@
 declare(strict_types=1);
 
 $source = file_get_contents(__DIR__ . '/../public/index.php');
+function tr(string $key): string
+{
+    return [
+        'applications.job_room_not_recorded'=>'Noch nicht im Job-Room erfasst',
+        'applications.job_room_recorded'=>'Im Job-Room erfasst',
+        'applications.job_room_interview'=>'Vorstellungsgespräch',
+        'job_room_helper.result.open'=>'Noch offen',
+        'job_room_helper.result.hired'=>'Anstellung',
+        'job_room_helper.result.rejected'=>'Absage',
+    ][$key] ?? $key;
+}
 $start = strpos($source, 'function reportViewFilterType(');
 $end = strpos($source, 'function reportViewFiltersHtml(', $start);
 if ($start === false || $end === false) throw new RuntimeException('Report filter engine not found.');
@@ -32,7 +43,7 @@ $meta = [
 
 $definitions = reportViewFilterDefinitions($columns, $headers, $rows, $meta);
 $choice = $definitions[2]['options'];
-if (array_keys($choice) !== ['result:rejected','recorded','not_recorded','result:open','__empty__']) {
+if (array_keys($choice) !== ['result:rejected','result:hired','recorded','not_recorded','result:open','interview','__empty__']) {
     throw new RuntimeException('Semantic choice options are incomplete or unstable: ' . json_encode($choice, JSON_UNESCAPED_UNICODE));
 }
 echo "PASS Job-Room options are independent values, not displayed combinations\n";
@@ -43,7 +54,9 @@ $interviewMeta = [
     ['filter_values'=>['applied_at'=>'2026-09-15 08:00:00','match_score'=>'60','job_room_result'=>['recorded','result:open','interview'],'title'=>$interviewRows[1][3],'id'=>'5'], 'filter_labels'=>['job_room_result'=>['recorded'=>'Im Job-Room erfasst','result:open'=>'Noch offen','interview'=>'Vorstellungsgespräch']]],
 ];
 $interviewChoices = reportViewFilterDefinitions($columns, $headers, $interviewRows, $interviewMeta)[2]['options'];
-if (array_keys($interviewChoices) !== ['recorded','result:open','interview']) throw new RuntimeException('The interview must be a separate value rather than a combined option.');
+if (array_keys($interviewChoices) !== ['result:rejected','result:hired','recorded','not_recorded','result:open','interview']) throw new RuntimeException('All atomic choices must remain available even when absent from report rows.');
+if ($interviewChoices['not_recorded'] !== 'Noch nicht im Job-Room erfasst') throw new RuntimeException('The unrecorded choice needs its localized label.');
+expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>'not_recorded']], [], 'unrecorded choice is selectable with zero matching rows');
 expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[1][2]]], ['5'], 'interview and open filter');
 expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[0][2]]], ['2'], 'open without interview filter');
 expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>'result:open']], ['2','5'], 'open includes interview-open without selecting a combination');

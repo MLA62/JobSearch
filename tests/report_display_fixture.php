@@ -25,6 +25,12 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
         'common.all' => 'Alle',
         'common.table' => 'Tabelle',
         'common.cards' => 'Karten',
+        'applications.job_room_not_recorded' => 'Noch nicht im Job-Room erfasst',
+        'applications.job_room_recorded' => 'Im Job-Room erfasst',
+        'applications.job_room_interview' => 'Vorstellungsgespräch',
+        'job_room_helper.result.open' => 'Noch offen',
+        'job_room_helper.result.hired' => 'Anstellung',
+        'job_room_helper.result.rejected' => 'Absage',
         default => $key,
     };
 }
@@ -62,6 +68,10 @@ $meta = [
     ['calendar_day'=>'—', 'calendar_week'=>'—', 'calendar_month'=>'—', 'record_url'=>'/?page=applications&edit=104#application-form', 'cell_urls'=>['/?page=applications&edit=104#application-form','/?page=applications&edit=104#application-form','/?page=applications&edit=104#application-form','/?page=jobs&edit=14#new'], 'filter_values'=>['applied_at'=>'','match_score'=>'','job_room_result'=>'','title'=>'Noch unvollständig']],
     ['calendar_day'=>'14.09.2026', 'calendar_week'=>'38 / 2026', 'calendar_month'=>'09/2026', 'record_url'=>'/?page=applications&edit=105#application-form', 'cell_urls'=>['/?page=applications&edit=105#application-form','/?page=applications&edit=105#application-form','/?page=applications&edit=105#application-form','/?page=jobs&edit=15#new'], 'filter_values'=>['applied_at'=>'2026-09-14 10:00:00','match_score'=>'75','job_room_result'=>['recorded','result:open','interview'],'title'=>'Sales Gespräch'], 'filter_labels'=>['job_room_result'=>['recorded'=>'Im Job-Room erfasst','result:open'=>'Noch offen','interview'=>'Vorstellungsgespräch']]],
 ];
+if (isset($_GET['without_unrecorded'])) {
+    array_shift($rows);
+    array_shift($meta);
+}
 $definitions = reportViewFilterDefinitions($columns, $headers, $rows, $meta);
 $filters = reportViewFilterState($columns, $_GET['report_filter'] ?? []);
 [$rows, $meta] = reportViewApplyFilters($columns, $rows, $meta, $filters);
