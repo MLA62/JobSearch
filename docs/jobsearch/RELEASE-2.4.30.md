@@ -43,8 +43,11 @@ vorherigen produktiven Datei.
   `8696f609b0f554f23476e37171db1095f6bc1091ff3fd7e2bbcf7828dfa9a7fc`,
   1'335'612 Bytes, Modus `0644`.
 - Öffentliche Seite: HTTP 200, Footer Version 2.4.30, HSTS und CSP.
-- Angemeldete fachliche Abnahme ist noch offen: Die bestehende Browser-Sitzung
-  war beim Neuladen abgelaufen. Der Benutzer wurde um eigene Neuanmeldung
-  gebeten; ein produktiver KI-Lauf mit einem echten CV wurde noch nicht
-  behauptet oder ausgelöst.
+- Nach erneuter Anmeldung wurde Version 2.4.30 in der laufenden App geprüft.
+  In den Stammdaten sind vier aktuelle Lebensläufe sichtbar; die
+  KI-Textfunktion ist in der Bewerbungsansicht erreichbar. Die vorhandenen
+  16 Bewerbungen sind bereits gesendet, abgesagt oder im Gespräch. Ein
+  produktiver KI-Lauf wurde deshalb nicht bloss zu Testzwecken ausgelöst:
+  Er würde gespeicherte Bewerbungstexte überschreiben. Die fachliche
+  Abnahme einer neu generierten Bewerbung mit echten Lebensläufen bleibt offen.
 - DB-Effekt beim Deployment: keine Migration, keine Bestandsdatenänderung.
