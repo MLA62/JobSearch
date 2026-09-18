@@ -1,6 +1,15 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.30.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.31.
+
+Ergänzung 2.4.31: Unmittelbar vor jedem KI-Aufruf werden die aktuellen,
+eigenen Lebensläufe vom Metadatentyp `cv` neu geladen. Pro eingetragener
+Dokumentsprache wird nur der nach `updated_at`, bei Gleichstand nach ID
+neueste berücksichtigt. Mehrere unterschiedlich betitelte CV-Reihen derselben
+Sprache werden somit nicht gemeinsam an die KI übergeben. Die vollständige
+Datei und gegebenenfalls der korrigierte Text des ausgewählten CV werden
+frisch gelesen. Vorhandene Bewerbungstexte ändern sich nicht allein durch
+eine CV-Aktualisierung, sondern erst bei einem ausgelösten KI-Lauf.
 
 Ergänzung 2.4.30: Sowohl die erste KI-Textvorbereitung als auch der spätere
 Button «Texte mit KI erstellen/anpassen» übergeben alle aktuellen eigenen

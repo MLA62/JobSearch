@@ -2,6 +2,15 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.31: `application_cv_context_test.php` prüft die Auswahl genau
+eines aktuellen CV je Metadatensprache nach `updated_at`, die ID-Regel bei
+Gleichstand, den Vorrang des Modifikationsdatums vor Titel/Versionsnummer
+und die erneute Auswahl nach einer späteren Änderung. Alle 46 PHP-Tests,
+PHP-Syntax und beide Dokumentationsgeneratoren sind auszuführen. Die
+angemeldete Live-Ansicht soll den aus den Metadaten erwarteten CV je Sprache
+bestätigen; ein produktiver KI-Lauf darf vorhandene Bewerbungstexte nicht
+bloss zu Testzwecken überschreiben.
+
 Ergänzung 2.4.30: `application_cv_context_test.php` prüft die Übernahme aller
 aktuellen eigenen Stammdaten-CVs als vollständige Dateieingaben, den Vorrang
 korrigierter Texte und die Sperre für fremde Speicherpfade. Zusätzlich sind

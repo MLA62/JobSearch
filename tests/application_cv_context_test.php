@@ -2,6 +2,10 @@
 declare(strict_types=1);
 
 $source = file_get_contents(__DIR__ . '/../public/index.php');
+$selectorStart = strpos($source, 'function applicationLatestCvRowsByLanguage(');
+$selectorEnd = strpos($source, 'function applicationCvSourceRows(', $selectorStart);
+if ($selectorStart === false || $selectorEnd === false) throw new RuntimeException('Latest-CV selector not found.');
+eval(substr($source, $selectorStart, $selectorEnd - $selectorStart));
 $start = strpos($source, 'function applicationCvInputParts(');
 $end = strpos($source, 'function applicationPrompt(', $start);
 if ($start === false || $end === false) throw new RuntimeException('CV input builder not found.');
@@ -10,10 +14,25 @@ eval(substr($source, $start, $end - $start));
 $queryStart = strpos($source, 'function applicationCvSourceRows(');
 $queryEnd = strpos($source, 'function applicationCvInputParts(', $queryStart);
 $query = substr($source, $queryStart, $queryEnd - $queryStart);
-foreach (["d.user_id=?", "d.scope='profile'", 'd.is_current=1', 'd.deleted_at IS NULL', "dt.code='cv'"] as $required) {
+foreach (["d.user_id=?", "d.scope='profile'", 'd.is_current=1', 'd.deleted_at IS NULL', "dt.code='cv'", 'd.updated_at', 'return applicationLatestCvRowsByLanguage($rows)'] as $required) {
     if (!str_contains($query, $required)) throw new RuntimeException('CV source query lacks ' . $required);
 }
 if (str_contains($query, 'LIMIT 1')) throw new RuntimeException('Only one CV would be available.');
+if (!str_contains($source, '$cvRows = applicationCvSourceRows($db, $userId);')) throw new RuntimeException('CVs are not loaded afresh for each AI request.');
+
+$inventory = [
+    ['id'=>11, 'language_code'=>'de-CH', 'version'=>8, 'updated_at'=>'2026-09-10 12:00:00'],
+    ['id'=>12, 'language_code'=>'en-GB', 'version'=>3, 'updated_at'=>'2026-09-12 12:00:00'],
+    ['id'=>13, 'language_code'=>'en-GB', 'version'=>1, 'updated_at'=>'2026-09-14 12:00:00'],
+    ['id'=>14, 'language_code'=>'de-CH', 'version'=>1, 'updated_at'=>'2026-09-15 12:00:00'],
+    ['id'=>15, 'language_code'=>'fr-CH', 'version'=>2, 'updated_at'=>'2026-09-11 12:00:00'],
+    ['id'=>16, 'language_code'=>'EN_gb', 'version'=>1, 'updated_at'=>'2026-09-14 12:00:00'],
+];
+$selected = applicationLatestCvRowsByLanguage($inventory);
+if (array_column($selected, 'id') !== [14, 16, 15]) throw new RuntimeException('Latest CV per metadata language must win by modification date, then ID, not version or title.');
+$inventory[] = ['id'=>17, 'language_code'=>'fr-CH', 'version'=>1, 'updated_at'=>'2026-09-16 12:00:00'];
+if (array_column(applicationLatestCvRowsByLanguage($inventory), 'id') !== [17, 14, 16]) throw new RuntimeException('A later CV modification is not reflected on a subsequent selection.');
+if (applicationLatestCvRowsByLanguage([]) !== []) throw new RuntimeException('Empty CV inventory must remain empty.');
 
 $publicRoot = sys_get_temp_dir() . '/jema-cv-test-' . bin2hex(random_bytes(8));
 $documentRoot = $publicRoot . '/storage/documents';
@@ -53,7 +72,7 @@ try {
     if (!str_contains($source, "'input'=>[['role'=>'user','content'=>\$inputParts]]")) {
         throw new RuntimeException('Responses input does not include the CV parts.');
     }
-    echo "PASS all current master-data CV files and corrected text reach the AI request; foreign files are blocked\n";
+    echo "PASS latest current master-data CV per language is selected afresh; full files and corrected text reach AI; foreign files are blocked\n";
 } finally {
     unlink($ownerRoot . '/one.pdf');
     unlink($ownerRoot . '/two.docx');

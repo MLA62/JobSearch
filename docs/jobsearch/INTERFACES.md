@@ -452,6 +452,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationTextHasDisqualifyingLanguage(string $value): bool`
 - `function applicationTextHasMinimumSubstance(string $value, int $minimumWords): bool`
 - `function applicationTextWithoutDisqualifyingLanguage(string $value): string`
+- `function applicationLatestCvRowsByLanguage(array $rows): array`
 - `function applicationCvSourceRows(mysqli $db, int $userId): array`
 - `function applicationCvInputParts(array $cvRows, int $userId, string $documentRoot): array`
 - `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string`

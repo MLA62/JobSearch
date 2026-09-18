@@ -1,6 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.30 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.31 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Jüngster Lebenslauf je Sprache bei jedem KI-Aufruf 2.4.31
+
+`applicationCvSourceRows()` lädt bei jeder Erstellung oder Überarbeitung die
+aktuellen, nicht gelöschten Profil-Dokumente des eigenen Benutzers vom
+Metadatentyp `cv` samt `updated_at`. `applicationLatestCvRowsByLanguage()`
+sortiert nach dem Änderungszeitpunkt absteigend, bei Gleichstand nach der
+Dokument-ID, und behält je normalisiertem `language_code` genau einen CV.
+Erst danach werden die ausgewählten Originaldateien und korrigierten Texte
+gelesen und an die KI übergeben. Titel, Dateiname und Versionsnummer
+bestimmen die Sprachgruppe nicht. Eine unzutreffend gepflegte Dokumentsprache
+führt folglich zur fachlich falschen Auswahl; die Anwendung korrigiert
+Metadaten nicht anhand des Dateinamens. Keine Migration, Bestandsänderung
+oder automatische Neugenerierung gespeicherter Bewerbungen.
 
 ## Automatischer Zugriff auf Stammdaten-Lebensläufe 2.4.30
 

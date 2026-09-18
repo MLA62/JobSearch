@@ -1,5 +1,5 @@
 {
-  "version": "2.4.30",
+  "version": "2.4.31",
   "reviewed": "2026-09-18",
   "locales": [
     "de-CH",
@@ -873,7 +873,7 @@
           "steps": [
             "Prüfe im Profil SMTP, Absender und Signatur; teste mit einer bewusst gewählten Testnachricht.",
             "Prüfe vor dem Bewerbungsversand Empfänger, Betreff, Text und sämtliche Anhänge.",
-            "Bei der KI-Erstellung des Motivationsschreibens werden alle aktuellen Lebensläufe aus den Stammdaten automatisch als vollständige Dateien berücksichtigt; du musst sie nicht eigens anhängen oder in der Anweisung erwähnen. Korrigierter Lebenslauftext hat Vorrang.",
+            "Bei jeder KI-Erstellung oder Überarbeitung wird der zuletzt geänderte aktuelle Lebenslauf pro eingetragener Dokumentsprache frisch aus den Stammdaten geladen und als vollständige Datei berücksichtigt. Du musst ihn nicht anhängen oder erwähnen. Korrigierter Lebenslauftext hat Vorrang.",
             "Ist ein Bewerbungskontakt zugeordnet, beginnt das KI-Motivationsschreiben automatisch mit Firma, Kontakt, Strasse Nr. und PLZ Ort."
           ],
           "tips": [
@@ -886,7 +886,7 @@
           "steps": [
             "Vérifie SMTP, expéditeur et signature dans le profil; teste avec un message volontairement choisi.",
             "Avant l’envoi, contrôle destinataire, objet, texte et toutes les pièces jointes.",
-            "Pour créer la lettre de motivation avec l’IA, tous les CV actuels enregistrés dans les données de base sont pris en compte automatiquement comme fichiers complets, sans devoir les joindre ni les mentionner. Le texte corrigé d’un CV a priorité.",
+            "À chaque création ou révision par l’IA, le CV actuel modifié le plus récemment pour chaque langue de document est rechargé depuis les données de base comme fichier complet. Il n’est pas nécessaire de le joindre ou de le mentionner. Le texte corrigé du CV a priorité.",
             "Si un contact est attribué à la candidature, la lettre générée commence automatiquement par l’entreprise, le contact, la rue et le numéro, le NPA et la localité."
           ],
           "tips": [
@@ -899,7 +899,7 @@
           "steps": [
             "Check SMTP, sender and signature in your profile; test with a deliberately chosen test message.",
             "Before sending an application, verify recipient, subject, text and every attachment.",
-            "When AI creates a cover letter, it automatically considers every current CV stored in master data as a complete file; you need not attach or mention them. Corrected CV text takes precedence.",
+            "For every AI creation or revision, the most recently modified current CV for each recorded document language is freshly loaded from master data as a complete file. You need not attach or mention it. Corrected CV text takes precedence.",
             "When an application contact is assigned, the generated cover letter automatically starts with company, contact, street and number, postcode and town."
           ],
           "tips": [
@@ -912,7 +912,7 @@
           "steps": [
             "Confira SMTP, remetente e assinatura no perfil; teste com uma mensagem escolhida conscientemente.",
             "Antes de enviar a candidatura, confira destinatário, assunto, texto e todos os anexos.",
-            "Ao criar a carta com IA, todos os currículos atuais dos dados principais são considerados automaticamente como arquivos completos, sem necessidade de anexá-los ou mencioná-los. O texto corrigido do currículo tem prioridade.",
+            "A cada criação ou revisão por IA, o currículo atual modificado mais recentemente em cada idioma registrado é recarregado dos dados principais como arquivo completo. Não é preciso anexá-lo nem mencioná-lo. O texto corrigido tem prioridade.",
             "Quando há um contato atribuído à candidatura, a carta gerada começa automaticamente com empresa, contato, rua e número, CEP e cidade."
           ],
           "tips": [
@@ -925,7 +925,7 @@
           "steps": [
             "Revisa SMTP, remitente y firma en el perfil; prueba con un mensaje elegido conscientemente.",
             "Antes de enviar la solicitud, comprueba destinatario, asunto, texto y todos los adjuntos.",
-            "Al crear la carta con IA, todos los currículos actuales de los datos maestros se consideran automáticamente como archivos completos, sin tener que adjuntarlos ni mencionarlos. El texto corregido del currículo tiene prioridad.",
+            "En cada creación o revisión con IA se vuelve a cargar de los datos maestros el currículo actual modificado más recientemente por cada idioma registrado, como archivo completo. No tienes que adjuntarlo ni mencionarlo. El texto corregido tiene prioridad.",
             "Cuando hay un contacto asignado a la candidatura, la carta generada comienza automáticamente con empresa, contacto, calle y número, código postal y localidad."
           ],
           "tips": [

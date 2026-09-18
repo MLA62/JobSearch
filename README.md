@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 18.09.2026. Version 2.4.25 begrenzt den Job-Room-Helper auf noch nicht erfasste Bewerbungen, trennt Adressfelder und verlangt bei Absagen einen Absagegrund.
-Release-Dokumentation: [Release 2.4.25](docs/jobsearch/RELEASE-2.4.25.md).
+Stand: 18.09.2026. Version 2.4.31 wählt für KI-Bewerbungstexte bei jedem Aufruf den zuletzt geänderten aktuellen Lebenslauf je eingetragener Dokumentsprache.
+Release-Dokumentation: [Release 2.4.31](docs/jobsearch/RELEASE-2.4.31.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

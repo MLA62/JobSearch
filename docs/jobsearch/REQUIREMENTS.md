@@ -1,6 +1,15 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.30.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.31.
+
+Ergänzung 2.4.31: Für jede in den Metadaten eingetragene Dokumentsprache
+berücksichtigt die KI bei Erstellung und Überarbeitung der Bewerbungstexte
+genau den aktuellen, nicht gelöschten Stammdaten-Lebenslauf mit dem jüngsten
+`updated_at` (bei Gleichstand die höhere Dokument-ID). Die Auswahl wird bei
+jedem KI-Aufruf erneut aus der Datenbank ermittelt; Titel und Versionsnummer
+sind keine sprachübergreifenden Auswahlkriterien. Eine spätere Änderung oder
+neue Version wird beim nächsten Aufruf berücksichtigt. Die hinterlegte
+Dokumentsprache ist massgeblich, nicht die Sprache im Dateinamen.
 
 Ergänzung 2.4.30: Die KI zur Erstellung und Überarbeitung des Motivationsschreibens
 liest ohne zusätzliche Anweisung alle aktuellen, nicht gelöschten Lebensläufe aus
