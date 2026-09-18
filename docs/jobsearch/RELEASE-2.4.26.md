@@ -37,6 +37,8 @@ Report. Die neue Darstellung nutzt das bereits geladene Feld
   «Bewerbungsgespräche» und den Job-Room-Status
   «Im Job-Room erfasst – Noch offen · Vorstellungsgespräch». Dasselbe Ergebnis
   erscheint in der Kartenansicht; anschließend wurde zur Tabellenansicht
-  zurückgekehrt. Die Fußzeile zeigt Version 2.4.26.
+  zurückgekehrt. Der aufgeklappte Reportfilter bietet «Noch offen» und
+  «Noch offen · Vorstellungsgespräch» als getrennte Auswahlwerte an. Die
+  Fußzeile zeigt Version 2.4.26.
 - DB-Effekt: keine Migration und keine Datenänderung. Die produktive
   Bewerbungsmaske zeigte vor der Änderung bereits beide gesetzten Job-Room-Felder.
