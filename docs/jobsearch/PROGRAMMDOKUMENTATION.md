@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.25 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.26 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Kombinierter Job-Room-Status in Reports 2.4.26
+
+`reportDataset()` lädt `job_room_interview` bereits zusammen mit `job_room_result`,
+`job_room_registration` und `applied_at`. Die Formatierung des Reportfelds
+`job_room_result` übergibt das Gesprächskennzeichen an `jobRoomApplicationStatus()`.
+Bei bestätigter Erfassung und vorhandenem Bewerbungsdatum wird
+«Vorstellungsgespräch» zusätzlich zum Resultat ausgegeben, etwa
+«Im Job-Room erfasst – Noch offen · Vorstellungsgespräch». Der lokale
+Bewerbungsstatus wird weiterhin als eigenes Feld formatiert. Da die Reportfilter
+den sichtbaren Wert verwenden, bleiben Kombinationen mit und ohne Gespräch
+getrennt auswählbar. Keine Datenbankmigration oder Bestandsdatenänderung.
 
 ## Job-Room-Helper und Absagegrund 2.4.25
 

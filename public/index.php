@@ -4114,11 +4114,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.tips.2' =>
   array (
-    'de-CH' => 'Der Job-Room-Status unterscheidet eindeutig zwischen «noch nicht erfasst» und «erfasst – Resultat …». Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst.',
-    'fr-CH' => 'Le statut Job-Room distingue clairement «pas encore saisi» de «saisi – résultat …». Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room.',
-    'en-GB' => 'The Job-Room status clearly distinguishes “not yet recorded” from “recorded – result …”. Without an application date, an application is not considered recorded in Job-Room.',
-    'pt-BR' => 'O status do Job-Room distingue claramente “ainda não registrado” de “registrado – resultado …”. Sem uma data de candidatura, a candidatura não é considerada registrada no Job-Room.',
-    'es-MX' => 'El estado de Job-Room distingue claramente entre “todavía no registrado” y “registrado – resultado …”. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room.',
+    'de-CH' => 'Der Job-Room-Status unterscheidet «noch nicht erfasst» von «erfasst – Resultat …» und zeigt ein vorhandenes «Vorstellungsgespräch» zusätzlich zum Resultat. Der lokale Bewerbungsstatus bleibt getrennt. Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst.',
+    'fr-CH' => 'Le statut Job-Room distingue «pas encore saisi» de «saisi – résultat …» et affiche aussi un entretien éventuel sans remplacer le résultat. Le statut local de candidature reste séparé. Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room.',
+    'en-GB' => 'The Job-Room status distinguishes “not yet recorded” from “recorded – result …” and also shows an interview when present without replacing the result. The local application status remains separate. Without an application date, an application is not considered recorded in Job-Room.',
+    'pt-BR' => 'O status do Job-Room distingue “ainda não registrado” de “registrado – resultado …” e também mostra uma entrevista quando houver, sem substituir o resultado. O status local da candidatura permanece separado. Sem data de candidatura, ela não é considerada registrada no Job-Room.',
+    'es-MX' => 'El estado de Job-Room distingue entre “todavía no registrado” y “registrado – resultado …” y muestra además una entrevista cuando exista, sin sustituir el resultado. El estado local de la candidatura permanece separado. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room.',
   ),
   'help.v2.reports.title' =>
   array (
@@ -7897,14 +7897,15 @@ function jobRoomApplicationResult(?string $result, ?string $applicationStatus, ?
     };
 }
 
-function jobRoomApplicationStatus(?string $result, ?string $applicationStatus, ?string $registration, ?string $appliedAt): string
+function jobRoomApplicationStatus(?string $result, ?string $applicationStatus, ?string $registration, ?string $appliedAt, bool $hasInterview = false): string
 {
     if ($registration !== 'recorded' || trim((string) $appliedAt) === '') {
         return tr('applications.job_room_not_recorded');
     }
-    return tr('applications.job_room_recorded_result', null, [
+    $status = tr('applications.job_room_recorded_result', null, [
         'result' => jobRoomApplicationResult($result, $applicationStatus, $registration),
     ]);
+    return $hasInterview ? $status . ' · ' . tr('applications.job_room_interview') : $status;
 }
 
 function jobRoomWorkloadLabel(array $row): string
@@ -8258,7 +8259,7 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
             if ($base === 'applications' && $field === 'channel') { return optionLabel(applicationChannelOptions(), $value); }
             if ($base === 'applications' && $field === 'next_action') { return optionLabel(applicationNextActionOptions(), $value); }
             if ($base === 'applications' && $field === 'job_room_result') {
-                return jobRoomApplicationStatus((string)$value, $row['status'] ?? null, $row['job_room_registration'] ?? null, $row['applied_at'] ?? null);
+                return jobRoomApplicationStatus((string)$value, $row['status'] ?? null, $row['job_room_registration'] ?? null, $row['applied_at'] ?? null, !empty($row['job_room_interview']));
             }
             if ($base === 'applications' && $field === 'job_room_registration') {
                 return optionLabel(['unknown'=>tr('applications.job_room_unknown'),'not_recorded'=>tr('applications.job_room_not_recorded'),'recorded'=>tr('applications.job_room_recorded')], $value);
@@ -11953,7 +11954,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.25','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.26','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15868,7 +15869,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.25';
+$codeVersion = '2.4.26';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

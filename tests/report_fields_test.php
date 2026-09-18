@@ -15,6 +15,7 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
 {
     $key = match ($key) {
         'applications.job_room_recorded_result' => 'Im Job-Room erfasst – {result}',
+        'applications.job_room_interview' => 'Vorstellungsgespräch',
         'job_room_helper.result.open' => 'Noch offen',
         'job_room_helper.result.hired' => 'Anstellung',
         'job_room_helper.result.rejected' => 'Absage',
@@ -166,9 +167,14 @@ reportCheck(preg_match('/function jobRoomApplicationStatus\(.*?^\}/ms', $source,
 eval($jobRoomStatusMatch[0]);
 reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', null) === 'applications.job_room_not_recorded', 'A Job-Room status without an application date is not reported as recorded');
 reportCheck(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00') === 'Im Job-Room erfasst – Noch offen', 'A confirmed registration replaces the result placeholder with the localized result');
+reportCheck(jobRoomApplicationStatus('open', 'interview', 'recorded', '2026-09-11 10:30:00', true) === 'Im Job-Room erfasst – Noch offen · Vorstellungsgespräch', 'An open Job-Room result and an interview are both visible in the report');
+reportCheck(jobRoomApplicationStatus('hired', 'interview', 'recorded', '2026-09-11 10:30:00', true) === 'Im Job-Room erfasst – Anstellung · Vorstellungsgespräch', 'An interview does not replace a different Job-Room result');
+reportCheck(jobRoomApplicationStatus('open', 'interview', 'not_recorded', '2026-09-11 10:30:00', true) === 'applications.job_room_not_recorded', 'An interview alone does not claim a Job-Room registration');
+reportCheck(jobRoomApplicationStatus('open', 'interview', 'recorded', null, true) === 'applications.job_room_not_recorded', 'An interview without an application date does not claim a Job-Room registration');
 reportCheck(!str_contains(jobRoomApplicationStatus('open', 'sent', 'recorded', '2026-09-11 10:30:00'), ':result'), 'No raw result placeholder reaches the report');
 reportCheck(str_contains($source, "job_room_result'=>tr('applications.job_room_status')") && str_contains($source, "job_room_registration'=>tr('applications.job_room_registration')"), 'Job-Room report columns have user-facing labels instead of technical DB labels');
 reportCheck(str_contains($source, "\$row['applied_at'] ?? null") && str_contains($source, "\$row['job_room_registration'] ?? null"), 'Report status uses both the application date and the actual registration state');
+reportCheck(str_contains($source, "!empty(\$row['job_room_interview'])"), 'Report status uses the stored Job-Room interview flag');
 
 $optionStart = strpos($source, 'function reportFieldOptions(string $base): array');
 $optionEnd = strpos($source, 'function reportDefaultColumns(string $base): array', $optionStart);

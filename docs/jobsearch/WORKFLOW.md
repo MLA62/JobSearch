@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.25.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.26.
+
+Ergänzung 2.4.26: Der Reportstatus kombiniert bestätigte Job-Room-Erfassung,
+Job-Room-Resultat und gegebenenfalls das eigenständige Kennzeichen
+«Vorstellungsgespräch». Ein offenes Resultat wird durch das Gespräch nicht ersetzt.
+Die Reportfilter verwenden den vollständig angezeigten Wert; der lokale Status
+«Bewerbungsgespräche» bleibt davon getrennt.
 
 Ergänzung 2.4.25: Der Helper schliesst bereits im Job-Room erfasste Bewerbungen aus,
 auch in der Monatsauswahl. Adresse und Absagegrund sind einzeln kopierbar. Ein

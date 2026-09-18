@@ -37,6 +37,16 @@ if (array_keys($choice) !== ['Im Job-Room erfasst – Absage','Im Job-Room erfas
 }
 echo "PASS every semantic choice option is independently addressable\n";
 
+$interviewRows = [$rows[1], ['15.09.2026','60','Im Job-Room erfasst – Noch offen · Vorstellungsgespräch','Beta Gespräch','5']];
+$interviewMeta = [
+    $meta[1],
+    ['filter_values'=>['applied_at'=>'2026-09-15 08:00:00','match_score'=>'60','job_room_result'=>$interviewRows[1][2],'title'=>$interviewRows[1][3],'id'=>'5']],
+];
+$interviewChoices = reportViewFilterDefinitions($columns, $headers, $interviewRows, $interviewMeta)[2]['options'];
+if (count($interviewChoices) !== 2) throw new RuntimeException('Open and interview-open Job-Room states must remain separate filter options.');
+expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[1][2]]], ['5'], 'interview and open filter');
+expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[0][2]]], ['2'], 'open without interview filter');
+
 expectIds($columns,$rows,$meta,['applied_at'=>['from'=>'2026-09-15']],['2','3'],'date from');
 expectIds($columns,$rows,$meta,['applied_at'=>['to'=>'2026-09-15']],['1','2'],'date to');
 expectIds($columns,$rows,$meta,['applied_at'=>['from'=>'2026-09-10','to'=>'2026-09-20']],['2'],'date range');

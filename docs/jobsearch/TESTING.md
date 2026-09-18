@@ -2,6 +2,11 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.26: `report_fields_test.php` prüft offenes Job-Room-Resultat
+mit/ohne Vorstellungsgespräch, abweichende Resultate und die Sperre bei fehlender
+Erfassung oder fehlendem Bewerbungsdatum. `report_filters_test.php` prüft,
+dass die beiden offen-Varianten getrennte Filteroptionen und Treffer ergeben.
+
 Ergänzung 2.4.25: `job_room_rejection_reason_test.php` prüft den Helper-Filter einschließlich
 Monatsauswahl, die Reihenfolge und Trennung der Adressfelder, den kopierbaren
 Absagegrund, die 249-Zeichen-Pflicht und alle drei Status-Schreibwege. Zusätzlich

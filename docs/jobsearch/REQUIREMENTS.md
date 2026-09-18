@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.25.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.26.
+
+Ergänzung 2.4.26: Der gespeicherte Report «Job-Room Bewerbungen» zeigt im Feld
+«Job-Room Status» bei bestätigter Erfassung und Bewerbungsdatum neben dem Resultat
+auch ein gesetztes «Vorstellungsgespräch». «Noch offen» und «Vorstellungsgespräch»
+sind gleichzeitig sichtbar und unabhängig filterbar; der lokale Bewerbungsstatus
+bleibt ein separates Feld.
 
 Ergänzung 2.4.25: Der Job-Room-Helper zeigt nur datierte Bewerbungen, die noch nicht als
 `recorded` markiert sind. Strasse, Hausnummer, Postleitzahl und Ort müssen in dieser
