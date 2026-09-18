@@ -1,6 +1,21 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.27 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.28 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Atomare Job-Room-Filterwerte und Übersetzungsfallback 2.4.28
+
+`reportJobRoomFilterOptions()` leitet aus Erfassungszustand, Bewerbungsdatum,
+Resultat und Gesprächskennzeichen unabhängige, sprachneutrale Filterwerte ab.
+`reportDataset()` liefert diese Werte zusätzlich zum unverändert kombinierten
+Anzeigetext und ihren übersetzten Labels. `reportViewFilterDefinitions()` sammelt
+die einzelnen Werte; `reportViewApplyFilters()` trifft eine Zeile bei mindestens
+einem gewählten Wert im Feld. Ein alter URL-Wert mit komplettem Anzeigetext wird
+weiterhin exakt verglichen. Die übrigen Auswahlfelder bleiben unverändert.
+
+Wenn `dbUiText()` eine neue Beschriftung noch nicht enthält, verwendet `tr()`
+den generierten fünfsprachigen Hilfekatalog vor dem letzten Rückfall auf den
+Schlüssel. Ein bereits freigegebener Datenbanktext hat weiterhin Vorrang.
+Keine Datenbankmigration oder Bestandsdatenänderung.
 
 ## Mehrfachauswahl in Reportfiltern 2.4.27
 

@@ -35,7 +35,9 @@ const expected = {
         assert.equal(await page.locator('.report-view-filters').count(), 1, `${type} exposes report filters`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="date"]').count(), 2, `${type} exposes date range filters`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="number"]').count(), 2, `${type} exposes number range filters`);
-        assert.equal(await page.locator('.report-view-choice-options input[type="checkbox"]').count(), 5, `${type} exposes multi-choice filters`);
+        assert.equal(await page.locator('.report-view-choice-options input[type="checkbox"]').count(), 6, `${type} exposes atomic multi-choice values`);
+        assert.equal(await page.locator('.report-view-choice-hint').textContent(), 'Mehrere Werte wählen (ODER); keine Auswahl = alle', `${type} shows translated guidance`);
+        assert.equal(await page.locator('.report-view-choice-options').textContent().then(text => text.includes('Noch offen · Vorstellungsgespräch')), false, `${type} does not offer combined states`);
         assert.equal(await page.locator('.report-view-filter-grid input[type="search"]').count(), 1, `${type} exposes text filters`);
         assert.equal(await page.locator('.report-record-link').count(), 0, `${type} has no separate record button`);
         assert.equal(await page.locator('.report-field-link').count() >= 13, true, `${type} links every non-empty field value`);
@@ -56,28 +58,28 @@ const expected = {
           if (width === 390) await page.screenshot({ path: path.join(output, 'cards-filters.png') });
         }
       }
-      const choices = ['Noch nicht im Job-Room erfasst', 'Im Job-Room erfasst – Noch offen', 'Im Job-Room erfasst – Noch offen · Vorstellungsgespräch', 'Im Job-Room erfasst – Absage', '__empty__'];
-      for (const choice of choices) {
+      const choices = [['not_recorded', 1], ['recorded', 3], ['result:open', 2], ['interview', 1], ['result:rejected', 1], ['__empty__', 1]];
+      for (const [choice, count] of choices) {
         await page.goto(`${base}/tests/report_display_fixture.php?type=cards`);
         await page.locator('.report-view-filters > summary').click();
         await page.locator(`input[name="report_filter[job_room_result][values][]"][value="${choice}"]`).check();
         await page.locator('.report-view-filter-form button.primary').click();
         assert.equal(await page.locator('#report-view').getAttribute('data-report-display-type'), 'cards', 'filtering preserves card view');
-        assert.equal(await page.locator('article.report-entry').count(), 1, `choice ${choice} returns exactly its semantic row`);
+        assert.equal(await page.locator('article.report-entry').count(), count, `value ${choice} includes every matching row`);
         assert.deepEqual(new URL(page.url()).searchParams.getAll('report_filter[job_room_result][values][]'), [choice], 'active filter is represented in the URL');
       }
       await page.goto(`${base}/tests/report_display_fixture.php?type=cards`);
       await page.locator('.report-view-filters > summary').click();
-      for (const choice of ['Im Job-Room erfasst – Noch offen', 'Im Job-Room erfasst – Noch offen · Vorstellungsgespräch']) {
+      for (const choice of ['result:open', 'result:rejected']) {
         await page.locator(`input[name="report_filter[job_room_result][values][]"][value="${choice}"]`).check();
       }
       await page.locator('.report-view-filter-form button.primary').click();
-      assert.equal(await page.locator('article.report-entry').count(), 2, 'both open variants match with OR');
+      assert.equal(await page.locator('article.report-entry').count(), 3, 'open or rejected values match with OR, including interview-open');
       assert.equal(await page.locator('.report-view-choice-options input:checked').count(), 2, 'multiple selections remain checked');
       await page.locator('[data-report-view-option="table"]').click();
-      assert.equal(await page.locator('tbody tr').count(), 2, 'both selections survive switching to table');
+      assert.equal(await page.locator('tbody tr').count(), 3, 'both selections survive switching to table');
       await page.locator('[data-report-view-option="cards"]').click();
-      assert.equal(await page.locator('article.report-entry').count(), 2, 'both selections survive switching back to cards');
+      assert.equal(await page.locator('article.report-entry').count(), 3, 'both selections survive switching back to cards');
       const fieldCases = [
         ['input[name="report_filter[applied_at][from]"]', '2026-09-12', 3, 'date from'],
         ['input[name="report_filter[applied_at][to]"]', '2026-09-11', 1, 'date to'],

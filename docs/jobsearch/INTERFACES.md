@@ -320,6 +320,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function reportViewDisplayType(string $base, ?string $savedDisplayType, ?string $requestedDisplayType): string`
 - `function reportViewUrl(int $reportId, string $displayType, array $filters = []): string`
 - `function reportViewFilterType(string $field): string`
+- `function reportJobRoomFilterOptions(array $row): array`
 - `function reportViewFilterState(array $columns, mixed $rawFilters): array`
 - `function reportViewFilterDefinitions(array $columns, array $headers, array $rows, array $displayMeta): array`
 - `function reportViewApplyFilters(array $columns, array $rows, array $displayMeta, array $filters): array`

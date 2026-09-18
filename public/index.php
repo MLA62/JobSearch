@@ -2088,7 +2088,8 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
     $locale = normalizeLocale($locale ?? ((string) ($appLocale ?? '') !== '' ? (string) $appLocale : currentLocale(is_array($currentUser ?? null) ? $currentUser : null)));
     $text = dbUiText($key, $locale);
     if ($text === null) {
-        $text = $key;
+        $catalog = helpTranslationSeeds();
+        $text = $catalog[$key][$locale] ?? $catalog[$key]['de-CH'] ?? $key;
     }
     foreach ($replace as $name => $value) {
         $text = str_replace(['{' . $name . '}', ':' . $name], (string) $value, $text);
@@ -4114,11 +4115,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.tips.2' =>
   array (
-    'de-CH' => 'Der Job-Room-Status unterscheidet «noch nicht erfasst» von «erfasst – Resultat …» und zeigt ein vorhandenes «Vorstellungsgespräch» zusätzlich zum Resultat. Der lokale Bewerbungsstatus bleibt getrennt. Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst.',
-    'fr-CH' => 'Le statut Job-Room distingue «pas encore saisi» de «saisi – résultat …» et affiche aussi un entretien éventuel sans remplacer le résultat. Le statut local de candidature reste séparé. Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room.',
-    'en-GB' => 'The Job-Room status distinguishes “not yet recorded” from “recorded – result …” and also shows an interview when present without replacing the result. The local application status remains separate. Without an application date, an application is not considered recorded in Job-Room.',
-    'pt-BR' => 'O status do Job-Room distingue “ainda não registrado” de “registrado – resultado …” e também mostra uma entrevista quando houver, sem substituir o resultado. O status local da candidatura permanece separado. Sem data de candidatura, ela não é considerada registrada no Job-Room.',
-    'es-MX' => 'El estado de Job-Room distingue entre “todavía no registrado” y “registrado – resultado …” y muestra además una entrevista cuando exista, sin sustituir el resultado. El estado local de la candidatura permanece separado. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room.',
+    'de-CH' => 'Der Job-Room-Status unterscheidet «noch nicht erfasst» von «erfasst – Resultat …» und zeigt ein vorhandenes «Vorstellungsgespräch» zusätzlich zum Resultat. Im Filter wählst du einzelne Werte wie «Noch offen» oder «Vorstellungsgespräch», nicht zusammengesetzte Statusvarianten. «Noch offen» umfasst auch offene Bewerbungen mit Vorstellungsgespräch. Der lokale Bewerbungsstatus bleibt getrennt. Ohne Bewerbungsdatum gilt eine Bewerbung nicht als im Job-Room erfasst.',
+    'fr-CH' => 'Le statut Job-Room distingue «pas encore saisi» de «saisi – résultat …» et affiche aussi un entretien éventuel sans remplacer le résultat. Le filtre propose des valeurs distinctes comme «Encore ouvert» et «Entretien d’embauche», pas des combinaisons. «Encore ouvert» inclut les candidatures ouvertes avec entretien. Le statut local de candidature reste séparé. Sans date de candidature, une candidature n’est pas considérée comme saisie dans Job-Room.',
+    'en-GB' => 'The Job-Room status distinguishes “not yet recorded” from “recorded – result …” and also shows an interview when present without replacing the result. The filter offers individual values such as “Still open” and “Job interview”, not combinations. “Still open” includes open applications with an interview. The local application status remains separate. Without an application date, an application is not considered recorded in Job-Room.',
+    'pt-BR' => 'O status do Job-Room distingue “ainda não registrado” de “registrado – resultado …” e também mostra uma entrevista quando houver, sem substituir o resultado. O filtro oferece valores separados, como “Ainda em aberto” e “Entrevista de emprego”, não combinações. “Ainda em aberto” inclui candidaturas abertas com entrevista. O status local da candidatura permanece separado. Sem data de candidatura, ela não é considerada registrada no Job-Room.',
+    'es-MX' => 'El estado de Job-Room distingue entre “todavía no registrado” y “registrado – resultado …” y muestra además una entrevista cuando exista, sin sustituir el resultado. El filtro ofrece valores individuales como “Aún abierto” y “Entrevista de trabajo”, no combinaciones. “Aún abierto” incluye las candidaturas abiertas con entrevista. El estado local de la candidatura permanece separado. Sin fecha de solicitud, la candidatura no se considera registrada en Job-Room.',
   ),
   'help.v2.reports.title' =>
   array (
@@ -7359,6 +7360,29 @@ function reportViewFilterType(string $field): string
     return 'text';
 }
 
+function reportJobRoomFilterOptions(array $row): array
+{
+    if (($row['job_room_registration'] ?? '') !== 'recorded' || trim((string)($row['applied_at'] ?? '')) === '') {
+        return ['not_recorded'=>tr('applications.job_room_not_recorded')];
+    }
+    $result = (string)($row['job_room_result'] ?? '');
+    if (!in_array($result, ['open','hired','rejected'], true)) {
+        $result = match ((string)($row['status'] ?? '')) {
+            'offer', 'accepted' => 'hired',
+            'rejected', 'withdrawn', 'closed' => 'rejected',
+            default => 'open',
+        };
+    }
+    $options = [
+        'recorded'=>tr('applications.job_room_recorded'),
+        'result:' . $result=>jobRoomApplicationResult($result, (string)($row['status'] ?? ''), 'recorded'),
+    ];
+    if (!empty($row['job_room_interview'])) {
+        $options['interview'] = tr('applications.job_room_interview');
+    }
+    return $options;
+}
+
 function reportViewFilterState(array $columns, mixed $rawFilters): array
 {
     $rawFilters = is_array($rawFilters) ? $rawFilters : [];
@@ -7420,7 +7444,16 @@ function reportViewFilterDefinitions(array $columns, array $headers, array $rows
         $definition = ['field'=>(string)$field, 'label'=>(string)($headers[$index] ?? $field), 'type'=>$type, 'options'=>[]];
         if ($type === 'choice') {
             foreach ($rows as $rowIndex=>$row) {
-                $raw = (string)($displayMeta[$rowIndex]['filter_values'][$field] ?? '');
+                $raw = $displayMeta[$rowIndex]['filter_values'][$field] ?? '';
+                if (is_array($raw)) {
+                    foreach ($raw as $value) {
+                        $value = (string)$value;
+                        $label = (string)($displayMeta[$rowIndex]['filter_labels'][$field][$value] ?? $value);
+                        $definition['options'][$value] = $label;
+                    }
+                    continue;
+                }
+                $raw = (string)$raw;
                 $label = trim((string)($row[$index] ?? ''));
                 $optionValue = $raw === '' ? '__empty__' : $raw;
                 $definition['options'][$optionValue] = $label !== '' ? $label : '—';
@@ -7449,7 +7482,8 @@ function reportViewApplyFilters(array $columns, array $rows, array $displayMeta,
                 continue;
             }
             $type = reportViewFilterType((string)$field);
-            $raw = (string)($meta['filter_values'][$field] ?? '');
+            $rawValue = $meta['filter_values'][$field] ?? '';
+            $raw = is_array($rawValue) ? '' : (string)$rawValue;
             $display = (string)($row[$columnIndex] ?? '');
             if ($type === 'date') {
                 $date = preg_match('/^\d{4}-\d{2}-\d{2}/', $raw, $match) ? $match[0] : '';
@@ -7462,7 +7496,12 @@ function reportViewApplyFilters(array $columns, array $rows, array $displayMeta,
                 }
             } elseif ($type === 'choice') {
                 $values = (array)($filter['values'] ?? []);
-                $matches = in_array($raw === '' ? '__empty__' : $raw, $values, true);
+                $available = is_array($rawValue) ? array_map('strval', $rawValue) : [$raw === '' ? '__empty__' : $raw];
+                $matches = (bool)array_intersect($available, $values);
+                // Previously shared links used the complete displayed status as one value.
+                if (!$matches && is_array($rawValue) && $field === 'job_room_result') {
+                    $matches = in_array($display, $values, true);
+                }
             } else {
                 $needle = $lower((string)($filter['value'] ?? ''));
                 $matches = $needle === '' || str_contains($lower($display), $needle);
@@ -8303,6 +8342,12 @@ function reportDataset(mysqli $db, int $userId, array $report, array $settings, 
         }, $columns);
         $filterValues = [];
         foreach ($columns as $index=>$field) {
+            if ($base === 'applications' && $field === 'job_room_result') {
+                $choices = reportJobRoomFilterOptions($row);
+                $filterValues[$field] = array_keys($choices);
+                $rowDisplayMeta['filter_labels'][$field] = $choices;
+                continue;
+            }
             $filterValues[$field] = reportViewFilterType((string)$field) === 'choice'
                 ? trim((string)($formattedRow[$index] ?? ''))
                 : (string)($row[$field] ?? '');
@@ -11984,7 +12029,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.27','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.28','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15899,7 +15944,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.27';
+$codeVersion = '2.4.28';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

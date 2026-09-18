@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.27.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.28.
+
+Ergänzung 2.4.28: Die sichtbare Job-Room-Statusspalte darf mehrere Eigenschaften
+in einem Text darstellen; der Filter verwendet dagegen eigene Werte für
+«Im Job-Room erfasst», «Noch offen», «Anstellung», «Absage» und
+«Vorstellungsgespräch» sowie «Noch nicht im Job-Room erfasst».
+Eine Zeile mit «Noch offen · Vorstellungsgespräch» wird durch jeden dieser
+beiden Werte einzeln getroffen. Bereits geteilter Einzelauswahl-Link mit
+vollständigem Anzeigetext wird weiterhin exakt ausgewertet.
 
 Ergänzung 2.4.27: Im geöffneten Report sind Auswahlfilter Ankreuzlisten. Mehrere
 Werte in einem Feld liefern die Vereinigung der Treffer; weitere Feldfilter

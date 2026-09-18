@@ -2,6 +2,15 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.28: `report_filters_test.php` und `report_fields_test.php` prüfen
+atomare Erfassungs-, Resultat- und Gesprächswerte sowie Cleeven-artige offene
+Bewerbungen mit Gespräch; `report_display_visual_test.cjs` kontrolliert die
+separaten Häkchen, «Noch offen» inklusive Gespräch und den Ansichtswechsel.
+`report_translation_test.php` prüft den tatsächlichen `tr()`-Fallback auf den
+generierten Katalog bei fehlendem DB-Eintrag in fünf Sprachen beziehungsweise
+den Vorrang eines vorhandenen DB-Textes. Die produktive, angemeldete Reportseite
+wird nach Bereitstellung auf Beschriftungen und Treffer geprüft.
+
 Ergänzung 2.4.27: `report_filters_test.php` prüft die ODER-Verknüpfung von
 Mehrfachwerten, UND mit anderen Feldern, leere Auswahlwerte, Deduplizierung
 und alte Einzelauswahl-Links. `report_display_visual_test.cjs` prüft die

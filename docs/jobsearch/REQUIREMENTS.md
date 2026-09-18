@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.27.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.28.
+
+Ergänzung 2.4.28: Der Job-Room-Filter bietet unabhängige Werte für Erfassung,
+Resultat und Vorstellungsgespräch, keine zusammengesetzten Anzeigetexte. «Noch offen»
+schliesst auch offene Bewerbungen mit Vorstellungsgespräch ein; «Vorstellungsgespräch»
+kann unabhängig davon gewählt werden. Mehrere Werte gelten als ODER. Neue
+Beschriftungen dürfen auch bei fehlendem Datenbank-Katalogeintrag nicht als
+technische Übersetzungsschlüssel erscheinen.
 
 Ergänzung 2.4.27: Auswahlfelder im geöffneten Report müssen mehrere ankreuzbare
 Werte erlauben. Mehrere Werte desselben Feldes gelten als ODER, verschiedene
