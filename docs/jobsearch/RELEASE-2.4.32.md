@@ -26,7 +26,20 @@ DOM, PHP-Syntaxprüfung und Generator-Checks für Hilfe und Referenz bestanden.
 Artefakt `public/index.php`: 1’347’741 Bytes, SHA-256
 `4bd386e99e968726d1ed39af6fd5ce1b9d7663f4773efe438969d4a51bd59bff`.
 
-Commit und produktive Bereitstellung werden nach der externen cPanel-Freigabe
-separat protokolliert. Ein echter KI-Qualitätstest auf einer produktiven
-Bewerbung ist von der blossen Versions-/Loginprüfung getrennt und darf
-bestehende Texte nicht unbeabsichtigt überschreiben.
+Quell-Commit `817552e` wurde auf
+`origin/feature/jema-jobs-ki-2.1.0` übertragen.
+
+Produktiv am 18.09.2026: Die bisherige Datei (`2.4.31`, 1’336’548 Bytes,
+SHA-256 `8cdda21ff582c1b8522b9ac685252ec4abc638a8ce06f84540ab1f0b30dead95`)
+wurde als `index.php.bak-20260918-2.4.31-pre-2.4.32` gesichert. Der Hash der
+Sicherung stimmt mit dem Ausgangszustand überein. Die neue Datei wurde über
+den freigegebenen cPanel-Connector eingespielt; produktive Grösse, SHA-256
+und Berechtigung `0644` stimmen mit dem lokalen Artefakt überein. Die
+öffentliche HTTPS-Anmeldeseite antwortet mit HTTP 200 und zeigt `2.4.32`.
+
+Ein authentifizierter KI-Qualitätstest auf einer produktiven Bewerbung ist
+noch offen: Der separat gestartete Prüf-Tab besitzt keine angemeldete Sitzung.
+Bestehende Bewerbungstexte wurden für die Prüfung nicht verändert. Ein
+unauthentifizierter Direktaufruf einer geschützten Bewerbungs-URL gibt nur den
+Seitenkopf aus; dieser vorbestehende Auth-Redirect-Mangel ist nicht Teil
+dieses Releases.
