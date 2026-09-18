@@ -1,5 +1,5 @@
 {
-  "version": "2.4.32",
+  "version": "2.4.33",
   "reviewed": "2026-09-18",
   "locales": [
     "de-CH",
@@ -701,7 +701,7 @@
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
-            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf und bleibt während der Verarbeitung offen. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
+            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf. Eine zusätzliche Zeile nennt den gestarteten Auftrag und aktualisiert die tatsächliche Laufzeit jede Sekunde; unbekannte interne KI-Schritte werden nicht vorgetäuscht. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
           "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
             "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Markiere mehrere Zeilen oder Absätze: ¶ wandelt sie in echte Absätze um; der direkt folgende ↵-Button verbindet sie mit weichen Umbrüchen wie Shift+Enter. Inline-Formatierungen bleiben erhalten. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
           "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch.",
@@ -721,7 +721,7 @@
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
-            "La fenêtre Traitement en cours apparaît avant l’appel IA et reste ouverte pendant le traitement. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
+            "La fenêtre Traitement en cours apparaît avant l’appel IA. Une ligne supplémentaire indique la tâche lancée et actualise la durée réelle chaque seconde, sans inventer d’étapes internes. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
           "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
             "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Sélectionnez plusieurs lignes ou paragraphes : ¶ les convertit en paragraphes réels et le bouton ↵ juste à côté les relie par des sauts de ligne souples comme Maj+Entrée. La mise en forme en ligne est conservée. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
           "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée.",
@@ -741,7 +741,7 @@
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
-            "The In progress window appears before the AI request and remains open during processing. Abort ends the browser request and leaves the current page open.",
+            "The In progress window appears before the AI request. An extra line names the active task and updates the actual elapsed time every second without inventing hidden AI steps. Abort ends the browser request and leaves the current page open.",
           "The Sent at field accepts the stored timestamp, including seconds.",
             "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. Select several lines or paragraphs: ¶ converts them to real paragraphs and the adjacent ↵ button joins them with soft line breaks like Shift+Enter. Inline formatting is retained. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.",
           "Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response.",
@@ -761,7 +761,7 @@
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
-            "A janela Em andamento aparece antes da chamada de IA e permanece aberta durante o processamento. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
+            "A janela Em andamento aparece antes da chamada de IA. Uma linha adicional mostra a tarefa iniciada e atualiza o tempo decorrido a cada segundo, sem inventar etapas internas. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
           "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
             "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. Selecione várias linhas ou parágrafos: ¶ converte em parágrafos reais e o botão ↵ ao lado une com quebras suaves como Shift+Enter. A formatação inline é preservada. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
           "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada.",
@@ -781,7 +781,7 @@
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
-            "La ventana En curso aparece antes de la llamada a la IA y permanece abierta durante el proceso. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
+            "La ventana En curso aparece antes de la llamada a la IA. Una línea adicional indica la tarea iniciada y actualiza cada segundo el tiempo transcurrido real, sin inventar pasos internos. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
           "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
             "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Selecciona varias líneas o párrafos: ¶ los convierte en párrafos reales y el botón ↵ contiguo los une con saltos suaves como Mayús+Intro. Se conserva el formato en línea. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
           "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios.",
@@ -882,7 +882,8 @@
             "Ist ein Bewerbungskontakt zugeordnet, beginnt das KI-Motivationsschreiben automatisch mit Firma, Kontakt, Strasse Nr. und PLZ Ort."
           ],
           "tips": [
-            "„E-Mail / Antwort erfassen“ protokolliert eine Nachricht, versendet sie aber nicht. Das Erfassen erzeugt keinen automatischen Nachfasstermin."
+            "„E-Mail / Antwort erfassen“ protokolliert eine Nachricht, versendet sie aber nicht. Das Erfassen erzeugt keinen automatischen Nachfasstermin.",
+            "Die KI belegt im Hintergrund mindestens zwei konkrete Verbindungen zwischen Inserat und den aktuellen Lebensläufen. Allgemeine oder unvollständige Entwürfe werden überarbeitet; scheitert die Prüfung, bleiben bestehende Texte unverändert statt durch Standardfloskeln ersetzt zu werden. Prüfe den endgültigen Text vor dem Versand."
           ]
         },
         "fr-CH": {
@@ -895,7 +896,8 @@
             "Si un contact est attribué à la candidature, la lettre générée commence automatiquement par l’entreprise, le contact, la rue et le numéro, le NPA et la localité."
           ],
           "tips": [
-            "La saisie d’un e-mail ou d’une réponse consigne un message sans l’envoyer. Elle ne crée pas automatiquement de relance."
+            "La saisie d’un e-mail ou d’une réponse consigne un message sans l’envoyer. Elle ne crée pas automatiquement de relance.",
+            "L’IA relie en interne au moins deux exigences concrètes de l’annonce aux CV actuels. Un brouillon générique ou incomplet est révisé; si le contrôle échoue, les textes existants restent inchangés au lieu d’être remplacés par des formules types. Vérifie le résultat avant l’envoi."
           ]
         },
         "en-GB": {
@@ -908,7 +910,8 @@
             "When an application contact is assigned, the generated cover letter automatically starts with company, contact, street and number, postcode and town."
           ],
           "tips": [
-            "Recording an email or reply logs a message without sending it. Recording does not automatically schedule a follow-up."
+            "Recording an email or reply logs a message without sending it. Recording does not automatically schedule a follow-up.",
+            "AI internally links at least two specific job requirements to the current CVs. Generic or incomplete drafts are revised; if checks still fail, existing text remains unchanged rather than being replaced by stock phrases. Review the final text before sending."
           ]
         },
         "pt-BR": {
@@ -921,7 +924,8 @@
             "Quando há um contato atribuído à candidatura, a carta gerada começa automaticamente com empresa, contato, rua e número, CEP e cidade."
           ],
           "tips": [
-            "Registrar um e-mail ou resposta não envia a mensagem. O registro não agenda acompanhamento automaticamente."
+            "Registrar um e-mail ou resposta não envia a mensagem. O registro não agenda acompanhamento automaticamente.",
+            "A IA relaciona internamente pelo menos duas exigências concretas da vaga aos currículos atuais. Rascunhos genéricos ou incompletos são revisados; se a verificação falhar, os textos existentes permanecem inalterados em vez de serem substituídos por frases prontas. Revise antes de enviar."
           ]
         },
         "es-MX": {
@@ -934,7 +938,8 @@
             "Cuando hay un contacto asignado a la candidatura, la carta generada comienza automáticamente con empresa, contacto, calle y número, código postal y localidad."
           ],
           "tips": [
-            "Registrar un correo o respuesta no envía el mensaje. El registro no programa un seguimiento automático."
+            "Registrar un correo o respuesta no envía el mensaje. El registro no programa un seguimiento automático.",
+            "La IA vincula internamente al menos dos requisitos concretos del puesto con los currículos actuales. Los borradores genéricos o incompletos se revisan; si falla la comprobación, los textos existentes no se sustituyen por frases hechas. Revisa el resultado antes de enviarlo."
           ]
         }
       }
@@ -2564,6 +2569,48 @@
       "en-GB": "Artificial intelligence is processing the request. This may take a moment.",
       "pt-BR": "A inteligência artificial está processando a solicitação. Isso pode levar algum tempo.",
       "es-MX": "La inteligencia artificial está procesando la solicitud. Esto puede tardar un momento."
+    },
+    "ai.work_elapsed": {
+      "de-CH": "Laufzeit:",
+      "fr-CH": "Durée :",
+      "en-GB": "Elapsed:",
+      "pt-BR": "Tempo decorrido:",
+      "es-MX": "Tiempo transcurrido:"
+    },
+    "ai.work_prepare_application": {
+      "de-CH": "Stelle und Bewerbung werden mit KI vorbereitet",
+      "fr-CH": "L’offre et la candidature sont préparées avec l’IA",
+      "en-GB": "AI is preparing the job and application",
+      "pt-BR": "A IA está preparando a vaga e a candidatura",
+      "es-MX": "La IA prepara la vacante y la solicitud"
+    },
+    "ai.work_revise_texts": {
+      "de-CH": "Lebensläufe und Bewerbungstexte werden mit KI verarbeitet",
+      "fr-CH": "Les CV et les textes de candidature sont traités avec l’IA",
+      "en-GB": "AI is processing CVs and application texts",
+      "pt-BR": "A IA está processando currículos e textos da candidatura",
+      "es-MX": "La IA procesa CV y textos de la solicitud"
+    },
+    "ai.work_suggest_search": {
+      "de-CH": "KI erstellt Suchkriterien aus dem Profil",
+      "fr-CH": "L’IA propose des critères de recherche à partir du profil",
+      "en-GB": "AI is suggesting search criteria from the profile",
+      "pt-BR": "A IA sugere critérios de busca com base no perfil",
+      "es-MX": "La IA propone criterios de búsqueda a partir del perfil"
+    },
+    "ai.work_admin_request": {
+      "de-CH": "KI bearbeitet den Plattformauftrag",
+      "fr-CH": "L’IA traite la demande concernant la plateforme",
+      "en-GB": "AI is processing the platform task",
+      "pt-BR": "A IA está processando a tarefa da plataforma",
+      "es-MX": "La IA procesa la tarea de la plataforma"
+    },
+    "ai.work_response": {
+      "de-CH": "Antwort wird verarbeitet",
+      "fr-CH": "La réponse est en cours de traitement",
+      "en-GB": "Processing the response",
+      "pt-BR": "Processando a resposta",
+      "es-MX": "Procesando la respuesta"
     },
     "ai.abort": {
       "de-CH": "Abbrechen",

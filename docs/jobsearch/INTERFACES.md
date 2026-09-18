@@ -457,11 +457,11 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationLatestCvRowsByLanguage(array $rows): array`
 - `function applicationCvSourceRows(mysqli $db, int $userId): array`
 - `function applicationCvInputParts(array $cvRows, int $userId, string $documentRoot): array`
-- `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser): string`
-- `function applicationFallbackTexts(mysqli $db, int $userId, int $applicationId, array $currentUser): array`
+- `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser, bool $includeExistingTexts = true): string`
+- `function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant): array`
 - `function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array`
 - `function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, int $applicationId): bool`
-- `function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser): array`
+- `function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, bool $generateMissing = true): array`
 - `function matchJob(array $job): array`
 - `function repairMojibake(string $value): string`
 - `function plainText(string $value): string`

@@ -1,6 +1,37 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.32 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.33 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## KI-Laufzeitanzeige und belegte Bewerbungstexte 2.4.33
+
+Der gemeinsame `ai-work-dialog` zeigt eine aktionsbezogene Statuszeile und
+eine mit `setInterval` jede Sekunde aktualisierte Laufzeit. Er erhält vom
+Server keinen Phasen-Stream; die Bezeichnung behauptet daher nicht, dass
+ein bestimmter interner Schritt bereits abgeschlossen sei. Timer und Dialog
+werden bei Abschluss, Abbruch und Navigation bereinigt.
+
+`applicationPrompt(..., $includeExistingTexts)` schliesst bei neuer
+Generierung alte Bewerbungstexte aus; nur eine ausdrückliche Überarbeitung
+liefert sie als Eingabe. `applicationAiTexts()` übergibt bei jedem Aufruf
+erneut den neuesten aktuellen Lebenslauf pro Sprache. Das strikte JSON-Schema
+enthält neben den drei sichtbaren Texten interne `evidence_links` mit
+aktueller CV-ID, CV- und Inseratzitat und einem tatsächlich verwendeten
+Briefauszug. `applicationTextQualityIssues()` prüft Quellenzuordnung und
+Substanz. Wörtliche CV-Fakten sind nur dann technisch mit dem Dokumentinhalt
+abgleichbar, wenn korrigierter Text vorliegt; bei Binärdateien kann der Server
+die Aussage nicht vollständig unabhängig verifizieren. Darum bleibt die
+fachliche Sichtung vor Versand erforderlich.
+
+Bei Beanstandungen bekommt der nächste KI-Versuch den konkreten abgelehnten
+Entwurf und Fehlergründe. Der Lauf nutzt mittlere statt niedrige
+Reasoning-Einstellung und ein grösseres Ausgabelimit. Aus einem weiterhin
+ungenügenden KI-Rücklauf entsteht kein allgemeiner Fallback-Text. Bei
+erstmaliger Vorbereitung bleibt der Bewerbungsdatensatz bestehen, während
+Textfelder leer bleiben und eine Warnung erscheint; vorhandene Texte werden
+nicht ersetzt. Der Seitenaufruf regeneriert leere Texte nicht wiederholt.
+
+Die folgende Beschreibung zu 2.4.32 dokumentiert den historischen Stand;
+die dortige Grundentwurf-Regel wurde in 2.4.33 ersetzt.
 
 ## Vollständiger Motivationsbrief und Endkundenkontext 2.4.32
 

@@ -1,6 +1,21 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.32.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.33.
+
+Ergänzung 2.4.33: Die Fortschrittszeile im KI-Dialog benennt die
+ausgelöste Aktion und zählt die verstrichenen Sekunden bis Abschluss,
+Abbruch oder Navigation. Bei einem neuen Entwurf enthält der KI-Kontext keine
+alten Bewerbungsformulierungen. Das strukturierte Ergebnis enthält zusätzlich
+ein internes Protokoll mit CV-ID, wörtlichem CV- und Inseratauszug sowie dem
+verwendeten Briefauszug. Der Server kontrolliert mindestens zwei unterschiedliche
+Bezüge, die Zugehörigkeit zur aktuellen CV-Auswahl, exakte Inseratzitate,
+vorhandene korrigierte CV-Texte und die Briefverwendung. Er prüft die
+Begleit-E-Mail auf Mindestsubstanz und Namensschluss und den Brief weiterhin
+auf seine Struktur. Fehler werden mit dem abgelehnten Entwurf bis zu zweimal
+zurückgemeldet. Bleibt das Ergebnis unbrauchbar, erfolgt keine KI-Schreibung.
+Ein neuer Bewerbungsdatensatz kann dann mit leeren Textfeldern bestehen bleiben;
+die Warnung verweist auf den fehlgeschlagenen Textlauf. Öffnen der Seite
+startet keinen automatischen Wiederholungslauf.
 
 Ergänzung 2.4.32: Der KI-Auftrag verlangt einen vollständigen einseitigen
 Motivationsbrief mit konkreter Verbindung zwischen Stellenanforderungen und

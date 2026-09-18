@@ -61,10 +61,5 @@ if(applicationTextHasDisqualifyingLanguage($safe)) throw new RuntimeException('S
 if(richTextPlain(applicationTextWithoutDisqualifyingLanguage($safe))!==$safe) throw new RuntimeException('Supported positive wording changed.');
 echo "PASS positive factual wording remains unchanged\n";
 
-$fallbackStart=strpos($source,'function applicationFallbackTexts(');
-$fallbackEnd=strpos($source,'function applicationAiTexts(', $fallbackStart);
-$fallbackSource=substr($source,$fallbackStart,$fallbackEnd-$fallbackStart);
-foreach(['persönlichen Gespräch','in an interview','lors d’un entretien','em uma entrevista','en una entrevista'] as $forbidden){
-    if(str_contains($fallbackSource,$forbidden)) throw new RuntimeException('Fallback still contains interview deferral: '.$forbidden);
-}
-echo "PASS all local fallback languages avoid interview-deferral filler\n";
+if (str_contains($source,'function applicationFallbackTexts(')) throw new RuntimeException('Generic local fallback text must not be available.');
+echo "PASS no generic fallback can replace a failed AI draft\n";

@@ -7,8 +7,12 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.4.32' => "\$codeVersion = '2.4.32'",
+    'version 2.4.33' => "\$codeVersion = '2.4.33'",
     'AI modal' => 'id="ai-work-dialog"',
+    'live task label' => 'data-ai-work-phase',
+    'live elapsed timer' => 'data-ai-work-elapsed',
+    'one-second refresh' => 'setInterval(tick, 1000)',
+    'timer stops on completion' => 'stopClock();',
     'modal title' => "tr('ai.work_title')",
     'abort button' => 'data-ai-work-abort',
     'abort controller' => 'new AbortController()',
@@ -62,7 +66,7 @@ foreach ($checks as $label => $needle) {
 }
 if (str_contains($php, 'class="admin-ai-intro"')) throw new RuntimeException('Obsolete admin AI intro is still rendered');
 
-foreach (['ai.work_title', 'ai.work_hint', 'ai.abort', 'footer.ai_notice'] as $key) {
+foreach (['ai.work_title', 'ai.work_hint', 'ai.work_elapsed', 'ai.work_prepare_application', 'ai.work_revise_texts', 'ai.work_suggest_search', 'ai.work_admin_request', 'ai.work_response', 'ai.abort', 'footer.ai_notice'] as $key) {
     if (!isset($help['ui'][$key])) throw new RuntimeException('Missing UI key ' . $key);
     foreach ($help['locales'] as $locale) {
         if (trim((string)($help['ui'][$key][$locale] ?? '')) === '') throw new RuntimeException('Missing ' . $key . ' ' . $locale);

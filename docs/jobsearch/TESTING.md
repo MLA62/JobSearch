@@ -2,6 +2,16 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.33: `application_evidence_quality_test.php` testet die
+Zuordnung zweier Quellenbezüge, falsche Inserat-/CV-Zitate, alte/fremde CV-IDs
+und eine inhaltsleere E-Mail. `application_ai_texts_test.php` prüft die neue
+Schema- und Fehlerbehandlung; `ai_progress_quota_test.php` die sekündliche
+Statuszeile und das Timer-Cleanup. Alle PHP-Tests, PHP-Syntax und beide
+Dokumentationsgeneratoren sind auszuführen. Die Live-Anmeldeseite belegt nur
+das Deployment. Ein authentifizierter, nicht destruktiver KI-Test mit aktuellen
+Lebensläufen und einer konkreten Stelle ist für die fachliche Textqualität
+zusätzlich nötig; Quelltests allein beweisen sie nicht.
+
 Ergänzung 2.4.32: `application_letter_quality_test.php` prüft vollständige
 Briefschlüsse und Fehlerfälle in allen fünf Sprachen, den Mindestumfang und
 die Rollenbegrenzung beim offiziellen Endkundenkontext. Zusätzlich sind

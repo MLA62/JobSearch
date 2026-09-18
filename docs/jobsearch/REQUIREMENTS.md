@@ -1,6 +1,19 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.32.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.33.
+
+Ergänzung 2.4.33: Beim KI-Vorgang zeigt ein Dialog die konkrete Aktion und
+die seit Beginn verstrichene Zeit sekündlich an; ohne Streaming darf er keine
+nicht beobachtbaren internen Arbeitsschritte behaupten. Beim Erstellen eines
+neuen Bewerbungstextes dürfen alte Texte nicht als Vorlage in den Prompt
+gelangen. Die Antwort soll die Stellenanforderungen mit mindestens zwei
+konkreten, aktuellen CV-Fakten verknüpfen; ein internes Quellenprotokoll ist
+gegen das Inserat und, soweit vorhanden, korrigierten CV-Text zu prüfen.
+Begleit-E-Mail und Brief werden gemeinsam auf Substanz, Adressierung und
+Abschluss geprüft. Die KI bekommt konkrete Fehler zur Überarbeitung. Nach
+endgültigem Fehlschlag werden weder generische Ersatztexte als Erfolg
+gespeichert noch vorhandene Texte überschrieben. Die tatsächliche sprachliche
+Qualität benötigt eine fachliche Abnahme mit echten, selbst gewählten Daten.
 
 Ergänzung 2.4.32: Ein KI-Motivationsschreiben ist ein vollständiger,
 individueller Brief und nicht ein bloss nichtleerer Text. Nach dem exakten
