@@ -17,6 +17,7 @@ function tr(string $key, ?string $locale = null, array $replace = []): string
         'reports.filter_to' => 'Bis',
         'reports.filter_min' => 'Minimum',
         'reports.filter_max' => 'Maximum',
+        'reports.filter_any_of' => 'Mehrere Werte wählen (ODER); keine Auswahl = alle',
         'sf.filter' => 'Filter',
         'sf.apply' => 'Anwenden',
         'sf.reset' => 'Filter zurücksetzen',
@@ -52,12 +53,14 @@ $rows = [
     ['12.09.2026', '65', 'Im Job-Room erfasst – Noch offen', 'Projektleitung <script>alert(1)</script>'],
     ['13.09.2026', '45', 'Im Job-Room erfasst – Absage', 'Verkaufsberatung'],
     ['', '', '', 'Noch unvollständig'],
+    ['14.09.2026', '75', 'Im Job-Room erfasst – Noch offen · Vorstellungsgespräch', 'Sales Gespräch'],
 ];
 $meta = [
     ['calendar_day'=>'11.09.2026', 'calendar_week'=>'37 / 2026', 'calendar_month'=>'09/2026', 'record_url'=>'/?page=applications&edit=101#application-form', 'cell_urls'=>['/?page=applications&edit=101#application-form','/?page=applications&edit=101#application-form','/?page=applications&edit=101#application-form','/?page=jobs&edit=11#new'], 'filter_values'=>['applied_at'=>'2026-09-11 10:00:00','match_score'=>'85','job_room_result'=>'Noch nicht im Job-Room erfasst','title'=>'Account Manager']],
     ['calendar_day'=>'12.09.2026', 'calendar_week'=>'37 / 2026', 'calendar_month'=>'09/2026', 'record_url'=>'/?page=applications&edit=102#application-form', 'cell_urls'=>['/?page=applications&edit=102#application-form','/?page=applications&edit=102#application-form','/?page=applications&edit=102#application-form','/?page=jobs&edit=12#new'], 'filter_values'=>['applied_at'=>'2026-09-12 10:00:00','match_score'=>'65','job_room_result'=>'Im Job-Room erfasst – Noch offen','title'=>'Projektleitung']],
     ['calendar_day'=>'13.09.2026', 'calendar_week'=>'37 / 2026', 'calendar_month'=>'09/2026', 'record_url'=>'/?page=applications&edit=103#application-form', 'cell_urls'=>['/?page=applications&edit=103#application-form','/?page=applications&edit=103#application-form','/?page=applications&edit=103#application-form','/?page=jobs&edit=13#new'], 'filter_values'=>['applied_at'=>'2026-09-13 10:00:00','match_score'=>'45','job_room_result'=>'Im Job-Room erfasst – Absage','title'=>'Verkaufsberatung']],
     ['calendar_day'=>'—', 'calendar_week'=>'—', 'calendar_month'=>'—', 'record_url'=>'/?page=applications&edit=104#application-form', 'cell_urls'=>['/?page=applications&edit=104#application-form','/?page=applications&edit=104#application-form','/?page=applications&edit=104#application-form','/?page=jobs&edit=14#new'], 'filter_values'=>['applied_at'=>'','match_score'=>'','job_room_result'=>'','title'=>'Noch unvollständig']],
+    ['calendar_day'=>'14.09.2026', 'calendar_week'=>'38 / 2026', 'calendar_month'=>'09/2026', 'record_url'=>'/?page=applications&edit=105#application-form', 'cell_urls'=>['/?page=applications&edit=105#application-form','/?page=applications&edit=105#application-form','/?page=applications&edit=105#application-form','/?page=jobs&edit=15#new'], 'filter_values'=>['applied_at'=>'2026-09-14 10:00:00','match_score'=>'75','job_room_result'=>'Im Job-Room erfasst – Noch offen · Vorstellungsgespräch','title'=>'Sales Gespräch']],
 ];
 $definitions = reportViewFilterDefinitions($columns, $headers, $rows, $meta);
 $filters = reportViewFilterState($columns, $_GET['report_filter'] ?? []);

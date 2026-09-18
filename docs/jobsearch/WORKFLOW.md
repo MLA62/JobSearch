@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.26.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.27.
+
+Ergänzung 2.4.27: Im geöffneten Report sind Auswahlfilter Ankreuzlisten. Mehrere
+Werte in einem Feld liefern die Vereinigung der Treffer; weitere Feldfilter
+schränken diese Menge ein. Die gewählten Werte stehen in der URL und überleben
+den Ansichtswechsel. Alte Einzelauswahl-Links werden weiter angenommen.
 
 Ergänzung 2.4.26: Der Reportstatus kombiniert bestätigte Job-Room-Erfassung,
 Job-Room-Resultat und gegebenenfalls das eigenständige Kennzeichen

@@ -4074,11 +4074,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.reports.steps.5' =>
   array (
-    'de-CH' => 'Filtere einen geöffneten Report direkt nach seinen angezeigten Feldern: Text über Enthält, Daten von/bis, Zahlen mit Minimum/Maximum und jede fachlich sichtbare Auswahloption eindeutig über ihren angezeigten Wert.',
-    'fr-CH' => 'Filtre un rapport ouvert selon ses champs affichés: texte par contenu, dates de/à, nombres par minimum/maximum et chaque option visible sans confondre des états différents.',
-    'en-GB' => 'Filter an open report by its displayed fields: text by content, dates from/to, numbers by minimum/maximum, and every visible choice independently by its displayed value.',
-    'pt-BR' => 'Filtre um relatório aberto pelos campos exibidos: texto por conteúdo, datas de/até, números por mínimo/máximo e cada opção visível separadamente pelo valor exibido.',
-    'es-MX' => 'Filtra un informe abierto por sus campos mostrados: texto por contenido, fechas desde/hasta, números por mínimo/máximo y cada opción visible por separado mediante su valor mostrado.',
+    'de-CH' => 'Filtere einen geöffneten Report direkt nach seinen angezeigten Feldern: Text über Enthält, Daten von/bis, Zahlen mit Minimum/Maximum. Bei Auswahlfeldern kreuze mehrere Werte an; sie gelten innerhalb desselben Felds als ODER, andere Feldfilter zusammen als UND. Ohne Kreuz gilt Alle.',
+    'fr-CH' => 'Filtre un rapport ouvert selon ses champs affichés: texte par contenu, dates de/à et nombres par minimum/maximum. Dans les champs à choix, coche plusieurs valeurs: OU dans le même champ, ET entre champs. Sans coche, toutes les valeurs sont affichées.',
+    'en-GB' => 'Filter an open report by its displayed fields: text by content, dates from/to and numbers by minimum/maximum. Tick multiple choices: OR within one field, AND across different fields. Leave all boxes clear to include every value.',
+    'pt-BR' => 'Filtre um relatório aberto pelos campos exibidos: texto por conteúdo, datas de/até e números por mínimo/máximo. Marque vários valores: OU no mesmo campo, E entre campos diferentes. Sem marcação, todos os valores são incluídos.',
+    'es-MX' => 'Filtra un informe abierto por sus campos mostrados: texto por contenido, fechas desde/hasta y números por mínimo/máximo. Marca varios valores: O dentro del mismo campo, Y entre campos diferentes. Sin marcar, se incluyen todos los valores.',
   ),
   'help.v2.reports.steps.6' =>
   array (
@@ -4463,6 +4463,14 @@ function helpTranslationSeeds(): array
     'en-GB' => 'A maximum of {count} fields can be selected at once.',
     'pt-BR' => 'É possível selecionar no máximo {count} campos de uma vez.',
     'es-MX' => 'Se pueden seleccionar como máximo {count} campos a la vez.',
+  ),
+  'reports.filter_any_of' =>
+  array (
+    'de-CH' => 'Mehrere Werte wählen (ODER); keine Auswahl = alle',
+    'fr-CH' => 'Plusieurs valeurs (OU); aucune sélection = toutes',
+    'en-GB' => 'Select multiple values (OR); none selected = all',
+    'pt-BR' => 'Selecione vários valores (OU); nenhum = todos',
+    'es-MX' => 'Selecciona varios valores (O); ninguno = todos',
   ),
   'reports.filter_from' =>
   array (
@@ -7375,6 +7383,27 @@ function reportViewFilterState(array $columns, mixed $rawFilters): array
             }
             continue;
         }
+        if ($type === 'choice') {
+            $values = is_array($raw['values'] ?? null) ? $raw['values'] : [];
+            // Continue to accept links created by the former single-select filter.
+            if (!$values && is_scalar($raw['value'] ?? null)) {
+                $values = [$raw['value']];
+            }
+            $selected = [];
+            foreach (array_slice($values, 0, 100) as $value) {
+                if (!is_scalar($value)) {
+                    continue;
+                }
+                $value = trim(substr((string)$value, 0, 500));
+                if ($value !== '' && !in_array($value, $selected, true)) {
+                    $selected[] = $value;
+                }
+            }
+            if ($selected) {
+                $state[$field] = ['values'=>$selected];
+            }
+            continue;
+        }
         $value = trim(substr((string)($raw['value'] ?? ''), 0, 500));
         if ($value !== '') {
             $state[$field] = ['value'=>$value];
@@ -7432,8 +7461,8 @@ function reportViewApplyFilters(array $columns, array $rows, array $displayMeta,
                     $matches = false;
                 }
             } elseif ($type === 'choice') {
-                $expected = (string)($filter['value'] ?? '');
-                $matches = $expected === '__empty__' ? $raw === '' : hash_equals($expected, $raw);
+                $values = (array)($filter['values'] ?? []);
+                $matches = in_array($raw === '' ? '__empty__' : $raw, $values, true);
             } else {
                 $needle = $lower((string)($filter['value'] ?? ''));
                 $matches = $needle === '' || str_contains($lower($display), $needle);
@@ -7468,12 +7497,13 @@ function reportViewFiltersHtml(int $reportId, string $displayType, array $defini
             $html .= '<label>' . e(tr('reports.filter_min')) . '<input type="number" step="any" name="' . e($name . '[min]') . '" value="' . e((string)($current['min'] ?? '')) . '"></label>';
             $html .= '<label>' . e(tr('reports.filter_max')) . '<input type="number" step="any" name="' . e($name . '[max]') . '" value="' . e((string)($current['max'] ?? '')) . '"></label>';
         } elseif ($type === 'choice') {
-            $html .= '<label>' . e(tr('sf.filter')) . '<select name="' . e($name . '[value]') . '"><option value="">' . e(tr('common.all')) . '</option>';
+            $selectedValues = (array)($current['values'] ?? []);
+            $html .= '<p class="report-view-choice-hint">' . e(tr('reports.filter_any_of')) . '</p><div class="report-view-choice-options">';
             foreach ((array)$definition['options'] as $value=>$optionLabel) {
-                $selected = (string)($current['value'] ?? '') === (string)$value ? ' selected' : '';
-                $html .= '<option value="' . e((string)$value) . '"' . $selected . '>' . e((string)$optionLabel) . '</option>';
+                $checked = in_array((string)$value, $selectedValues, true) ? ' checked' : '';
+                $html .= '<label class="report-view-choice-option"><input type="checkbox" name="' . e($name . '[values][]') . '" value="' . e((string)$value) . '"' . $checked . '><span>' . e((string)$optionLabel) . '</span></label>';
             }
-            $html .= '</select></label>';
+            $html .= '</div>';
         } else {
             $html .= '<label>' . e(tr('sf.filter')) . '<input type="search" name="' . e($name . '[value]') . '" value="' . e((string)($current['value'] ?? '')) . '" placeholder="' . e(tr('sf.contains_placeholder', null, ['field'=>$label])) . '"></label>';
         }
@@ -11954,7 +11984,7 @@ function jobSearchDebugReport(array $state, int $uid): array
     if ($uid<=0 || ($state['uid'] ?? 0)!==$uid || !isset($state['debug_events'])) throw new RuntimeException('No diagnostic report for this user');
     $criteria=[];
     foreach (jobMatchCriteria((array)($state['criteria'] ?? [])) as $id=>$criterion) $criteria[$id]=['weight'=>$criterion['weight'],'hard'=>$criterion['hard']];
-    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.26','exported_at_utc'=>gmdate('c'),
+    return ['format'=>'jema-job-search-debug-v1','app_version'=>'2.4.27','exported_at_utc'=>gmdate('c'),
         'runtime'=>['php_version'=>PHP_VERSION,'curl_available'=>function_exists('curl_init'),'dom_available'=>class_exists('DOMDocument'),'mbstring_available'=>extension_loaded('mbstring')],
         'started_at_utc'=>gmdate('c',(int)($state['started_at'] ?? time())),
         'status'=>!empty($state['failed'])?'failed':(!empty($state['done'])?'completed':'partial_snapshot'),
@@ -15869,7 +15899,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.26';
+$codeVersion = '2.4.27';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

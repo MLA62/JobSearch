@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.26.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.27.
+
+Ergänzung 2.4.27: Auswahlfelder im geöffneten Report müssen mehrere ankreuzbare
+Werte erlauben. Mehrere Werte desselben Feldes gelten als ODER, verschiedene
+Feldfilter zusammen weiterhin als UND. Ohne Auswahl gilt das Feld als ungefiltert.
+Im Job-Room-Status können «Noch offen» und «Noch offen · Vorstellungsgespräch»
+gemeinsam gewählt werden, damit beide offenen Varianten im Ergebnis bleiben.
+Die Auswahl muss beim Wechsel zwischen Tabelle und Karten erhalten bleiben.
 
 Ergänzung 2.4.26: Der gespeicherte Report «Job-Room Bewerbungen» zeigt im Feld
 «Job-Room Status» bei bestätigter Erfassung und Bewerbungsdatum neben dem Resultat

@@ -92,6 +92,7 @@ reportCheck(reportViewDisplayType('applications', 'list', 'table') === 'table' &
 reportCheck(reportViewDisplayType('applications', 'list', 'invalid') === 'list', 'An invalid view override falls back to the saved display type');
 reportCheck(reportViewUrl(73, 'cards') === '/?page=reports&view_report=73&report_as=cards#report-view', 'The cards switch keeps the selected report');
 reportCheck(str_contains(reportViewUrl(73, 'cards', ['status'=>['value'=>'sent']]), 'report_filter%5Bstatus%5D%5Bvalue%5D=sent'), 'The table and cards switches preserve active report filters');
+reportCheck(str_contains(reportViewUrl(73, 'cards', ['status'=>['values'=>['sent','interview']]]), 'report_filter%5Bstatus%5D%5Bvalues%5D%5B0%5D=sent'), 'The table and cards switches preserve multiple choice values');
 reportCheck(str_contains($source, 'data-report-view-option="table"') && str_contains($source, 'data-report-view-option="cards"'), 'The opened report displays both view switches');
 reportCheck(str_contains($source, 'class="panel table-wrap report-saved-panel"') && str_contains((string)file_get_contents(__DIR__ . '/../public/assets/app.css'), '.reports-layout > .report-saved-panel { order: -1; }'), 'Saved reports are displayed above the report editor');
 

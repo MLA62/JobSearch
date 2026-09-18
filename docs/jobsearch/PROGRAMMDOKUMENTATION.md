@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.26 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.27 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Mehrfachauswahl in Reportfiltern 2.4.27
+
+`reportViewFiltersHtml()` rendert für alle Auswahlfelder anstelle eines
+Einfachauswahlmenüs eine kompakte, scrollbar begrenzte Ankreuzliste. Der
+GET-Parameter `report_filter[Feld][values][]` enthält die gewählten Werte;
+keine Auswahl bedeutet alle Werte. `reportViewFilterState()` normalisiert und
+dedupliziert höchstens 100 skalare Werte pro Feld, nimmt bisherige
+`[value]`-Links weiter an und beschränkt sie auf je 500 Zeichen.
+`reportViewApplyFilters()` verknüpft Werte desselben Feldes mit ODER;
+verschiedene Felder bleiben mit UND kombiniert. Leere Werte werden über
+`__empty__` ausgewählt. Die normalisierte Auswahl bleibt beim Wechsel
+zwischen Tabelle und Karten in der URL erhalten. Kein Datenbankeffekt.
 
 ## Kombinierter Job-Room-Status in Reports 2.4.26
 

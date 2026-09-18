@@ -46,6 +46,12 @@ $interviewChoices = reportViewFilterDefinitions($columns, $headers, $interviewRo
 if (count($interviewChoices) !== 2) throw new RuntimeException('Open and interview-open Job-Room states must remain separate filter options.');
 expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[1][2]]], ['5'], 'interview and open filter');
 expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['value'=>$interviewRows[0][2]]], ['2'], 'open without interview filter');
+expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['values'=>[$interviewRows[0][2],$interviewRows[1][2]]]], ['2','5'], 'multiple open variants use OR within one field');
+expectIds($columns, $interviewRows, $interviewMeta, ['job_room_result'=>['values'=>[$interviewRows[0][2],$interviewRows[1][2]]], 'title'=>['value'=>'Gespräch']], ['5'], 'multiple choices combine with other fields using AND');
+$normalizedChoice = reportViewFilterState($columns, ['job_room_result'=>['values'=>[$interviewRows[0][2],$interviewRows[0][2],$interviewRows[1][2]]]]);
+if ($normalizedChoice['job_room_result']['values'] !== [$interviewRows[0][2],$interviewRows[1][2]]) throw new RuntimeException('Multiple choice state is not deduplicated.');
+if (reportViewFilterState($columns, ['job_room_result'=>['value'=>$interviewRows[0][2]]])['job_room_result']['values'] !== [$interviewRows[0][2]]) throw new RuntimeException('Existing single-choice report links must remain valid.');
+echo "PASS multiple choice state and legacy single-choice URL\n";
 
 expectIds($columns,$rows,$meta,['applied_at'=>['from'=>'2026-09-15']],['2','3'],'date from');
 expectIds($columns,$rows,$meta,['applied_at'=>['to'=>'2026-09-15']],['1','2'],'date to');
@@ -57,6 +63,8 @@ expectIds($columns,$rows,$meta,['title'=>['value'=>'beratung']],['2'],'case-inse
 foreach ([$rows[0][2]=>['1'],$rows[1][2]=>['2'],$rows[2][2]=>['3'],'__empty__'=>['4']] as $option=>$ids) {
     expectIds($columns,$rows,$meta,['job_room_result'=>['value'=>$option]],$ids,'choice ' . $option);
 }
+expectIds($columns,$rows,$meta,['job_room_result'=>['values'=>[$rows[1][2],$rows[2][2]]]],['2','3'],'multiple independent choice values');
+expectIds($columns,$rows,$meta,['job_room_result'=>['values'=>[$rows[1][2],'__empty__']]],['2','4'],'empty choice combines with a nonempty value');
 expectIds($columns,$rows,$meta,['applied_at'=>['from'=>'2026-09-01','to'=>'2026-09-30'],'match_score'=>['min'=>'50'],'title'=>['value'=>'a'],'job_room_result'=>['value'=>$rows[1][2]]],['2'],'combined filters');
 expectIds($columns,$rows,$meta,['applied_at'=>['from'=>'invalid'],'match_score'=>['min'=>'invalid'],'title'=>['value'=>'']],['1','2','3','4'],'invalid and empty filters ignored');
 

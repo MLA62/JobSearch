@@ -2,6 +2,12 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.27: `report_filters_test.php` prüft die ODER-Verknüpfung von
+Mehrfachwerten, UND mit anderen Feldern, leere Auswahlwerte, Deduplizierung
+und alte Einzelauswahl-Links. `report_display_visual_test.cjs` prüft die
+Ankreuzliste und ihre URL-Persistenz bei Tabelle/Karten auf Mobil- und
+Desktopbreite; die Fixture enthält beide offenen Job-Room-Varianten.
+
 Ergänzung 2.4.26: `report_fields_test.php` prüft offenes Job-Room-Resultat
 mit/ohne Vorstellungsgespräch, abweichende Resultate und die Sperre bei fehlender
 Erfassung oder fehlendem Bewerbungsdatum. `report_filters_test.php` prüft,
