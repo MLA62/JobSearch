@@ -1,6 +1,24 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.31.
+Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.32.
+
+Ergänzung 2.4.32: Der KI-Auftrag verlangt einen vollständigen einseitigen
+Motivationsbrief mit konkreter Verbindung zwischen Stellenanforderungen und
+belegten CV-Erfahrungen sowie einem eigenen Schluss. Die Serverprüfung
+kontrolliert Empfängerblock, Anrede, Hauptteillänge, Schlusssatz, Grussformel
+und Namen in allen fünf Dokumentensprachen. Bis zu drei KI-Versuche erhalten
+konkretes Feedback; bleibt der Brief unvollständig, wird der KI-Vorgang nicht
+als Erfolg gespeichert. Bei einer manuellen Überarbeitung bleiben die alten
+Texte erhalten. Die bestehende Grundentwurf-Regel bei der erstmaligen
+Bewerbungsvorbereitung bleibt davon getrennt.
+
+Bei ausdrücklich zugeordnetem Vermittler ist die Jobfirma der identifizierte
+Endkunde, sofern sie nicht selbst als Vermittler markiert ist. Firmenprofil,
+Branche, Grössenangabe, Notizen und Anforderungen werden der KI getrennt vom
+Vermittler übergeben. Eine hinterlegte HTTPS-Website des Endkunden wird über
+den SSRF-geschützten Importabruf mit kurzer Zeitgrenze gelesen; Weiterleitungen
+auf fremde Domains werden nicht als offizielle Quelle übernommen. Fehlende
+oder unlesbare Webdaten blockieren die Textvorbereitung nicht.
 
 Ergänzung 2.4.31: Unmittelbar vor jedem KI-Aufruf werden die aktuellen,
 eigenen Lebensläufe vom Metadatentyp `cv` neu geladen. Pro eingetragener

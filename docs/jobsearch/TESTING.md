@@ -2,6 +2,14 @@
 
 Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.32: `application_letter_quality_test.php` prüft vollständige
+Briefschlüsse und Fehlerfälle in allen fünf Sprachen, den Mindestumfang und
+die Rollenbegrenzung beim offiziellen Endkundenkontext. Zusätzlich sind
+`application_ai_texts_test.php`, alle PHP-Tests, PHP-Syntax sowie Hilfe- und
+Referenzgeneratoren auszuführen. Die angemeldete Live-Ansicht bestätigt nur
+die bereitgestellte Version; eine fachliche KI-Abnahme benötigt einen echten
+Lauf auf einem geeigneten, nicht bereits verwendeten Entwurf.
+
 Ergänzung 2.4.31: `application_cv_context_test.php` prüft die Auswahl genau
 eines aktuellen CV je Metadatensprache nach `updated_at`, die ID-Regel bei
 Gleichstand, den Vorrang des Modifikationsdatums vor Titel/Versionsnummer

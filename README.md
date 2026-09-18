@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 18.09.2026. Version 2.4.31 wählt für KI-Bewerbungstexte bei jedem Aufruf den zuletzt geänderten aktuellen Lebenslauf je eingetragener Dokumentsprache.
-Release-Dokumentation: [Release 2.4.31](docs/jobsearch/RELEASE-2.4.31.md).
+Stand: 18.09.2026. Version 2.4.32 prüft KI-Motivationsschreiben als vollständige Briefe und berücksichtigt bei Vermittlungen das bekannte Endkundenprofil samt erreichbarer offizieller Website. Die dynamische CV-Auswahl aus 2.4.31 bleibt erhalten.
+Release-Dokumentation: [Release 2.4.32](docs/jobsearch/RELEASE-2.4.32.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

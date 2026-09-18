@@ -1,6 +1,20 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.31.
+Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.32.
+
+Ergänzung 2.4.32: Ein KI-Motivationsschreiben ist ein vollständiger,
+individueller Brief und nicht ein bloss nichtleerer Text. Nach dem exakten
+Empfängerblock folgen Anrede, substanzieller, stellen- und CV-bezogener
+Hauptteil, eigenständiger Schlusssatz, passende Grussformel und der vollständige
+Bewerbername als letzte Zeile. Der Hauptteil umfasst mindestens 100 und
+höchstens 450 Wörter. Mangelhafte KI-Rückläufe werden mit konkretem
+Prüfergebnis erneut angefordert; eine weiterhin mangelhafte Antwort darf
+nicht als erfolgreiches KI-Schreiben gespeichert werden. Bestehende Texte
+bleiben bei manueller Überarbeitung im Fehlerfall erhalten. Bei einer
+Vermittlung trennt die KI Vermittler und eindeutig identifizierten Endkunden.
+Sie verwendet zusätzlich das vorhandene Endkundenprofil und, sofern sicher
+erreichbar, einen begrenzten Auszug der dort hinterlegten offiziellen Website.
+Ein unbekannter Endkunde oder unbelegte Eigenschaften werden nicht erfunden.
 
 Ergänzung 2.4.31: Für jede in den Metadaten eingetragene Dokumentsprache
 berücksichtigt die KI bei Erstellung und Überarbeitung der Bewerbungstexte

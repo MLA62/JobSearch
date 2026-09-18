@@ -1,6 +1,30 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.31 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-18. Version 2.4.32 ist implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Vollständiger Motivationsbrief und Endkundenkontext 2.4.32
+
+`applicationPrompt()` übergibt Stellenanforderungen, Leistungen und das
+vorhandene Firmenprofil zusätzlich zur bisherigen Ausschreibung. Bei
+ausdrücklich zugeordnetem Vermittler trennt der Kontext dessen Rolle von
+der Jobfirma als Endkunde. Ist die Endkundenfirma nicht selbst Vermittler,
+liest `applicationEndClientOfficialContext()` einen auf 5000 Zeichen
+begrenzten Auszug ihrer hinterlegten HTTPS-Website. Der Abruf nutzt die
+bestehende SSRF-/DNS-/Redirect-Prüfung mit acht Sekunden pro Hop; fremde
+Redirect-Domains und Abruffehler liefern keinen Website-Kontext. Diese
+Erweiterung schreibt keine Firmendaten und behauptet bei unbekanntem
+Endkunden keine Identität.
+
+`applicationLetterStructureIssues()` prüft den KI-Brief nach Einsetzen des
+Empfängerblocks auf Anrede, 100 bis 450 Wörter Hauptteil, vollständigen
+eigenständigen Schlusssatz, lokalisierte Grussformel und Bewerbername als
+letzte Zeile. Ein mangelhafter Rücklauf wird bis zu zweimal mit den konkreten
+Prüfgründen neu angefordert. Auch nach Rich-Text-Bereinigung und finalem
+Empfängerblock erfolgt eine Schlussprüfung; bleibt sie negativ, wird kein
+erfolgreicher KI-Text zurückgegeben. Bestehende Bewerbungstexte werden bei
+einem fehlgeschlagenen manuellen KI-Aufruf nicht überschrieben. Die
+Grundentwürfe bei einer neuen Bewerbung bleiben ein ausdrücklich nicht als
+KI-Erfolg gekennzeichneter Fallback.
 
 ## Jüngster Lebenslauf je Sprache bei jedem KI-Aufruf 2.4.31
 

@@ -448,6 +448,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationRecipientForApplication(mysqli $db, int $userId, int $applicationId): array`
 - `function applicationRecipientBlockForApplication(mysqli $db, int $userId, int $applicationId): string`
 - `function applicationCoverLetterWithRecipientBlock(string $coverLetter, string $recipientBlock): string`
+- `function applicationLetterStructureIssues(string $letter, string $locale, string $applicant, string $recipientBlock): array`
+- `function applicationEndClientOfficialContext(array $application): string`
 - `function applicationTextDisqualifyingPatterns(): array`
 - `function applicationTextHasDisqualifyingLanguage(string $value): bool`
 - `function applicationTextHasMinimumSubstance(string $value, int $minimumWords): bool`
@@ -492,7 +494,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobImportDialogHtml(string $locale): string`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
 - `function importResolveUrl(string $base, string $reference): string`
-- `function importFetchHtml(string $url): array`
+- `function importFetchHtml(string $url, int $timeoutSeconds = 30): array`
 - `function importOriginalCandidates(string $html, string $url): array`
 - `function importSameJob(array $portal, array $original): bool`
 - `function importVisibleContacts(DOMDocument $document, DOMXPath $xpath, string $company): array`
