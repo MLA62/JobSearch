@@ -41,7 +41,16 @@ bewusstem Auslösen Entwürfe in der Bewerbung und versendet nichts.
   `public_html/jobs.jema.business`, produktive Version 2.4.30,
   SHA-256 `8696f609b0f554f23476e37171db1095f6bc1091ff3fd7e2bbcf7828dfa9a7fc`,
   1'335'612 Bytes, Modus `0644` read-only bestätigt.
-- Git-Commit, produktive Sicherung, freigegebenes Deployment und Live-Hash
-  werden nach Durchführung separat nachgetragen.
+- Quell-Commit `551c103cd10e330f1fd2934801667d953b65028c` auf
+  `origin/feature/jema-jobs-ki-2.1.0`, lokaler `public/index.php`-SHA-256
+  `8cdda21ff582c1b8522b9ac685252ec4abc638a8ce06f84540ab1f0b30dead95`
+  bei 1'336'548 Bytes. Git-Arbeitsbaum nach Commit sauber.
+- Die Sicherung des produktiven 2.4.30-Standes unter
+  `public_html/jobs.jema.business/index.php.bak-20260918-1359-2.4.30`
+  wurde mit Approval `65df3987f0ab448543e539e02bf48110` vorgeschlagen.
+  Status: `pending`; noch keine produktive Änderung. Nach Freigabe erst
+  Sicherung ausführen und Hash prüfen, danach den separaten Upload
+  vorschlagen und freigegeben ausführen. Live-Hash und Funktionsprüfung
+  stehen noch aus.
 - Die fachliche Abnahme eines neu generierten Schreibens mit echten CVs ist
   getrennt vom Quelltest zu dokumentieren.
