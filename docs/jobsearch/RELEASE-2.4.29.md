@@ -32,5 +32,21 @@ freigegebene Sicherung der vorherigen produktiven PHP-Datei.
   die nicht erfasste Option bleibt trotz fehlender passender Zeile sichtbar,
   eine Auswahl ohne Treffer bleibt leer, bestehende ODER-, Datums-, Zahlen-
   und Textfilter sowie Ansichtswechsel funktionieren.
-- Quell-Commit, cPanel-Freigabe, Backup- und Upload-Hash und angemeldete
-  Live-Abnahme werden nach Ausführung getrennt ergänzt.
+- Quell-Commit `dac31827764df3b56c8681869863d3d13640d051`, auf
+  `origin/feature/jema-jobs-ki-2.1.0` veröffentlicht.
+- 18.09.2026, 12:52 UTC: Freigegebene Sicherung über Approval-ID
+  `0fa723e636feb9117d941ff552bb77a8` angelegt:
+  `public_html/jobs.jema.business/index.php.bak-20260918-1450-2.4.28`.
+  SHA-256 `b6b19877da27b18ec4a2a5241b9b3a0da67bbd75cd11a4659d88ade3d43584fd`,
+  1'329'595 Byte, Berechtigung `0644`; identisch mit der vorherigen Live-Datei.
+- 18.09.2026, 12:52 UTC: Separat vorgeschlagener und bereits freigegebener
+  Upload über Approval-ID `34166c650690982c7026aa4fea724aae`
+  ausgeführt. Produktive Datei und lokal getestete Datei sind bytegleich:
+  SHA-256 `eb973c5cdba9537496a75660a1d321d084dfe7a48203a5cee79ac10fbc40b3d1`,
+  1'331'070 Byte, Berechtigung `0644`.
+- Angemeldete Live-Abnahme um 12:53 UTC: Footer Version 2.4.29. Der Report
+  `view_report=2` zeigt die sechs unabhängigen Job-Room-Optionen einschliesslich
+  «Noch nicht im Job-Room erfasst». Nur dieser Wert angekreuzt und angewendet
+  bleibt ausgewählt; die aktuelle Ergebnismenge zeigt korrekt «Keine Einträge».
+- DB-Effekt: keiner. Keine Migration und keine Änderung an produktiven
+  Datensätzen oder gespeicherten Reportdefinitionen ausgeführt.
