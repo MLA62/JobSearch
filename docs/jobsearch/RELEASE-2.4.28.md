@@ -28,5 +28,23 @@ im selben Document Root gesichert. Die CSS-Datei bleibt unverändert.
 - Chromium-Test des Reportfilters in sieben Darstellungsarten bei 390 und 1366 px
   bestanden: Einzelwerte statt Kombinationen, offene Fälle inklusive Gespräch,
   ODER-Auswahl, Datum/Zahl/Text, Ansichtswechsel und kein Seitenüberlauf.
-- Die angemeldete Live-Prüfung und der Deployment-Hash werden erst nach dem
-  freigegebenen Upload als eigener Nachweis ergänzt.
+- Quell-Commit: `552b4cf80af86afe2fb64765bb40f4409cbc0ee6`.
+- Produktiver Pfad: `public_html/jobs.jema.business/index.php`, Document Root
+  durch cPanel als `/home/kerubina/public_html/jobs.jema.business` bestätigt.
+  Vor dem Austausch: 2.4.27 mit SHA-256
+  `aca8793733fa4fc015abfbd4e6da5f86354b707cd36ea8a9fc5f77d1f4849708`.
+- 18.09.2026, 12:35 UTC: Sicherung
+  `index.php.bak-20260918-1436-2.4.27` über freigegebenes Proposal
+  `ed48e29decfe6ee73173e3e8bc067719` erstellt und mit demselben Hash
+  bestätigt. Freigegebener Upload `f9eaaf04f6ecd8cfbb38178da1eda746`
+  verwendete die noch aktive externe TOTP-Sitzung. Die produktive Datei stimmt
+  bytegenau mit der lokalen Prüfdatei überein: SHA-256
+  `b6b19877da27b18ec4a2a5241b9b3a0da67bbd75cd11a4659d88ade3d43584fd`,
+  Dateigrösse 1'329'595 Byte, Berechtigung `0644`.
+- Angemeldete Live-Abnahme: Footer Version 2.4.28; im geöffneten Report
+  `view_report=2` sind «Absage», «Im Job-Room erfasst», «Noch offen» und
+  «Vorstellungsgespräch» einzelne Optionen. `reports.filter_any_of` erscheint
+  nicht mehr roh. Allein «Noch offen» lieferte zehn Zeilen, darunter Cleeven
+  mit «Noch offen · Vorstellungsgespräch». Zusätzlich «Absage» ergab 16 Zeilen;
+  beide Häkchen und Treffer blieben beim Wechsel zu Karten erhalten.
+- DB-Effekt: keiner. Weder Migrations- noch Datensatzschreibaktion ausgeführt.
