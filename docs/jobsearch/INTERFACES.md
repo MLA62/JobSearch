@@ -462,6 +462,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationSwissWritingGuide(): string`
 - `function applicationWritingContext(mysqli $db, int $userId, int $applicationId, array $currentUser, string $recipientBlock): string`
 - `function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant, bool $checkEmail = true, bool $checkLetter = true, bool $requireNewEvidence = true): array`
+- `function applicationEmailWithSignoff(string $email, string $locale, string $applicant): string`
 - `function applicationEditTargets(string $instruction): array`
 - `function applicationEditRecipientBlock(string $currentLetter, string $databaseBlock): string`
 - `function applicationEditLetterContent(string $letter, string $recipientBlock): string`

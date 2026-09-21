@@ -1,6 +1,23 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.39 ist live; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.40 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Abbruchkriterien und Empfängerdaten 2.4.40
+
+`applicationAiTexts()` unterscheidet zwischen verbindlicher Validierung
+und modellabhängiger redaktioneller Kritik. `applicationRecipientForApplication()`
+liest bei jedem Aufruf die eigenen, fachlich zugeordneten Kontakte. Bei
+einem bekannten vierzeiligen CRM-Empfängerblock kann
+`applicationEditRecipientBlock()` keinen veralteten dreizeiligen Block
+aus dem aktuellen Schreiben mehr bevorzugen. Der Schreibkontext lädt
+ausserdem die aktuellen Jobanforderungen und eigenen Firmennotizen neu;
+unbelegte Notizen werden nicht zu erfundenen Behauptungen.
+`applicationEmailWithSignoff()`
+ergänzt Grussformel und Namen, lässt vollständige HTML-E-Mails aber
+unverändert. Ein redaktioneller oder simulierter Empfängerhinweis löst
+höchstens einen zusätzlichen Versuch aus; der letzte verbindlich gültige
+Entwurf wird bei einem misslungenen Folgeversuch behalten. Details und
+verbleibende harte Grenzen stehen im [Audit](AI_ABORT_GATE_AUDIT.md).
 
 ## KI-Textreparatur 2.4.39
 

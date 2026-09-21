@@ -1,6 +1,17 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.39.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.40.
+
+Release 2.4.40: Fehlende Empfängerangaben werden bei jeder KI-Überarbeitung
+zuerst aus den eigenen CRM-Datensätzen erneut ermittelt. Ein vollständiger
+aktueller Kontaktblock darf nicht durch einen alten dreizeiligen Briefkopf
+verdrängt werden. Redaktionelle Qualitäts- und simulierte Empfängerurteile
+sind höchstens Anlass für einen Verbesserungsversuch, aber kein Veto über
+einen bereits strukturell und gemäss der ausdrücklichen Benutzeranweisung
+gültigen Entwurf. Ein späterer Retry darf diesen nicht vernichten.
+Technische Defekte, leere Texte und tatsächlich nicht umgesetzte
+Benutzeranweisungen bleiben verbindliche Fehler. Siehe
+[Abbruchkriterien-Audit](AI_ABORT_GATE_AUDIT.md).
 
 Hotfix 2.4.39: Ein einzelner technisch entfernbarer, bewerberschädlicher
 Satz darf einen ansonsten substanziellen KI-Entwurf nicht vollständig

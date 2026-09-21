@@ -1,6 +1,16 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.39.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.40.
+
+Release 2.4.40: Vor einer KI-Überarbeitung werden der aktuelle
+Empfängerblock und die neuesten passenden Stammdaten-Lebensläufe erneut
+aus der eigenen Datenbasis geladen. Beim Briefkopf hat ein inzwischen
+bekannter CRM-Kontakt Vorrang vor einem alten dreizeiligen Adressblock.
+Nach der ersten technisch und auftragsbezogen gültigen Antwort bleibt
+ein Rückfallentwurf im Speicher. Redaktionelle Prüfungen dürfen einmal
+eine Verbesserung anfordern; ihr eigenes Urteil oder Ausfall darf den
+Rückfallentwurf nicht verwerfen. Die Endkontrolle für Briefstruktur und
+ausdrückliche Anweisung bleibt verbindlich.
 
 Hotfix 2.4.39: Nach dem KI-API-Rücklauf werden nur die angeforderten
 Textfelder von einzelnen ungeeigneten Sätzen bereinigt. Der bereinigte

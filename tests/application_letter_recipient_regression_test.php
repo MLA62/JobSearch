@@ -26,6 +26,9 @@ $editedRecipient="Muster AG\nRobin Kontakt\nNeue Strasse 8\n4052 Basel";
 if (applicationEditRecipientBlock($editedRecipient."\n\nBewerbung als Account Manager\n\nGuten Tag",$recipient)!==$editedRecipient) {
     throw new RuntimeException('The current user-supplied address was replaced by an older database address.');
 }
+if (applicationEditRecipientBlock("Muster AG\nMusterstrasse 21\n8004 Zürich\n\nBewerbung als Account Manager\n\nGuten Tag",$recipient)!==$recipient) {
+    throw new RuntimeException('A known CRM contact was dropped from a three-line existing address.');
+}
 if (applicationEditRecipientBlock("Fremde AG\nRobin Kontakt\nNeue Strasse 8\n4052 Basel",$recipient)!==$recipient) {
     throw new RuntimeException('An unrelated company address was accepted.');
 }

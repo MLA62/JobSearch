@@ -2,6 +2,14 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.40: `application_abort_gate_test.php` prüft die Trennung
+zwischen beratenden Modellurteilen und verbindlichen Prüfungen, die
+Übernahme eines gültigen Rückfallentwurfs und die HTML-erhaltende
+E-Mail-Grussformel. `application_letter_recipient_regression_test.php`
+prüft zusätzlich den inzwischen bekannten CRM-Kontakt gegenüber einem
+alten dreizeiligen Briefkopf. Syntax, gesamte PHP-Suite sowie Hilfe- und
+Referenzgenerator sind vor dem Deployment zu prüfen.
+
 Hotfix 2.4.39: `application_text_quality_test.php` prüft zusätzlich,
 dass ein belegbarer Entwurf mit einem entfernbaren Gesprächsaufschub
 inhaltlich erhalten bleibt und vor den Qualitätsprüfungen bereinigt wird.
