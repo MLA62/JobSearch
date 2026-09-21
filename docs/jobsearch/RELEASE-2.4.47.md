@@ -24,6 +24,25 @@ Serverbereinigung erhalten; es gibt keine DB-Migration.
 Lokale Nachweise: `rich_text_editor_visual_test.cjs` für Fokus, Klick,
 Absatzwahl, mehrere markierte Blöcke, Cursor, Enter, Shift+Enter, Liste,
 Tx und berechnete CSS-Abstände; `rich_text_chronology_test.php` für
-Serverbereinigung und Textauszug; PHP-Syntax und 57 PHP-Tests. Die
-Deployment-Prüfsumme und authentifizierte Live-Abnahme werden nach
-Freigabe ergänzt.
+Serverbereinigung und Textauszug; PHP-Syntax und 57 PHP-Tests.
+
+Deployment am 21.09.2026 um 15:03 UTC aus Quell-Commit `4844f2d` nach
+`public_html/jobs.jema.business`, ohne Datenbankschemaänderung. Die
+freigegebene Archivaktion `b23940f0d4ad23c86fa0c1256815871b` ersetzte
+nur `index.php` und `assets/app.css`. Zuvor wurden die Version-2.4.46-Dateien
+mit den Aktionen `19b0daf1152b7366a36bfabf2d821585` und
+`bb0fa306d6c13fb4d3e042ffce056d54` als
+`index.php.bak-20260921-2.4.46-pre-2.4.47` und
+`assets/app.css.bak-20260921-2.4.46-pre-2.4.47` gesichert. Das
+Extraktionswerkzeug legte zusätzliche eigene Backups an.
+
+Remote-Prüfsummen nach Deployment stimmen bytegenau mit den lokalen Dateien
+überein:
+
+- `index.php`: SHA-256 `18cdfd91c39a2d1d316ade563e18d85e007e6afa70a1c72ae68885ad941c8b30`
+- `assets/app.css`: SHA-256 `22e5d29cbb3329ac4696865e421bc659c815b4645d3784c551665a41b6df74bc`
+
+Die öffentliche Startseite zeigt Version 2.4.47. Die zuvor geöffnete
+Browser-Sitzung war bei der Live-Prüfung abgelaufen; eine authentifizierte
+Editorprüfung auf dem Produktivserver wurde deshalb nicht durchgeführt.
+Der lokale Interaktionstest deckt die oben genannten Bedienfälle ab.
