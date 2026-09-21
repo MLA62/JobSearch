@@ -37,6 +37,9 @@ foreach ($jobRoomIds as $index => $id) {
                 'postalCode'=>'3422','city'=>'Kirchberg BE','countryIsoCode'=>'CH'],
             'location'=>['city'=>'Bern','cantonCode'=>'BE','countryIsoCode'=>'CH']]];
     verify(importJobRoomId($url) === $id && importUrlLooksLikeDetail($url), 'Job-Room detail URL ' . ($index + 1) . ' recognised');
+    $favouriteUrl = 'https://www.job-room.ch/job-favourites/' . $id;
+    verify(importJobRoomId($favouriteUrl) === $id && importUrlLooksLikeDetail($favouriteUrl),
+        'Job-Room favourite URL ' . ($index + 1) . ' resolves to its advert ID');
     $html = importJobRoomHtml($payload, $url, $id);
     $draft = importJobHtml($html, $url);
     verify($draft['title'] === 'Account Manager ' . $index && $draft['company'] === 'Beispiel AG'
@@ -50,6 +53,7 @@ foreach ($jobRoomIds as $index => $id) {
     catch (RuntimeException) { verify(true, 'Cancelled Job-Room listing rejected'); }
 }
 verify(importJobRoomId('https://www.job-room.ch/job-search') === null
+    && importJobRoomId('https://www.job-room.ch/job-favourites') === null
     && importJobRoomId('https://evil.example/job-search/' . $jobRoomIds[0]) === null,
     'Search pages and other hosts are not accepted as Job-Room details');
 verify(str_contains($source, "importFetchHtml('https://www.job-room.ch/jobadservice/api/jobAdvertisements/' . \$jobRoomId"),

@@ -10988,7 +10988,7 @@ function importJobRoomId(string $url): ?string
     if (!is_array($parts) || strtolower((string)($parts['scheme'] ?? '')) !== 'https'
         || !in_array(strtolower((string)($parts['host'] ?? '')), ['job-room.ch', 'www.job-room.ch'], true)
         || isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) return null;
-    return preg_match('~^/job-search/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?$~i',
+    return preg_match('~^/(?:job-search|job-favourites)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?$~i',
         (string)($parts['path'] ?? ''), $match) ? strtolower($match[1]) : null;
 }
 
@@ -11525,7 +11525,8 @@ function importFetchHtml(string $url, int $timeoutSeconds = 30): array
         $api = importFetchHtml('https://www.job-room.ch/jobadservice/api/jobAdvertisements/' . $jobRoomId, $timeoutSeconds);
         $data = json_decode($api['html'], true, 64, JSON_THROW_ON_ERROR);
         if (!is_array($data)) throw new RuntimeException('Die Job-Room-Stelle lieferte keine gültigen Detaildaten.');
-        return ['html'=>importJobRoomHtml($data, $url, $jobRoomId), 'url'=>$url];
+        $canonicalUrl = 'https://www.job-room.ch/job-search/' . $jobRoomId;
+        return ['html'=>importJobRoomHtml($data, $canonicalUrl, $jobRoomId), 'url'=>$canonicalUrl];
     }
     for ($hop = 0; $hop <= 3; $hop++) {
         $parts = parse_url($url);
@@ -16668,7 +16669,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.44';
+$codeVersion = '2.4.45';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
