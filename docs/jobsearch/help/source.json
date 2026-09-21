@@ -1,5 +1,5 @@
 {
-  "version": "2.4.42",
+  "version": "2.4.43",
   "reviewed": "2026-09-21",
   "locales": [
     "de-CH",
@@ -342,7 +342,7 @@
           "title": "Stellen suchen",
       "summary": "Schnellimport übernimmt eine oder mehrere bekannte Anzeigen. Die profilbasierte Suche übernimmt deine Profilwerte; eigene Anpassungen bleiben gespeichert, bis du die Standardwerte erneut lädst.",
           "steps": [
-        "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Kopierst du formatierte Treffer aus einer Webseite, übernimmt die App auch die hinter sichtbaren Linktexten gespeicherten HTTPS-Ziele vollständig. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.",
+        "Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Auch öffentliche Job-Room-Links auf einzelne Anzeigen mit /job-search/ID werden über deren Detaildaten gelesen; eine blosse Suchseite ist kein Inserat. Kopierst du formatierte Treffer aus einer Webseite, übernimmt die App auch die hinter sichtbaren Linktexten gespeicherten HTTPS-Ziele vollständig. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.",
         "Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.",
         "Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Das Statusfenster meldet Fortschritt, Abschluss oder eine erreichte Suchgrenze.",
         "Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung."
@@ -362,7 +362,7 @@
           "title": "Rechercher des offres",
       "summary": "L’import rapide reprend une ou plusieurs annonces connues. La recherche basée sur le profil conserve tes adaptations jusqu’au rechargement des valeurs par défaut.",
           "steps": [
-        "Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.",
+        "Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Les liens Job-Room publics vers une annonce individuelle /job-search/ID sont lus depuis leurs données détaillées; une page de recherche seule n’est pas une annonce. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.",
         "Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.",
         "Adapte les critères basés sur le profil et lance la recherche.",
         "Reprends une offre du tableau seulement après vérification."
@@ -382,7 +382,7 @@
           "title": "Search for jobs",
       "summary": "Quick import handles one or more known advertisements. Profile-based search keeps your changes until you load the defaults again.",
           "steps": [
-        "Paste one or more verified advertisement URLs into quick import, one per line. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.",
+        "Paste one or more verified advertisement URLs into quick import, one per line. Public Job-Room links to individual /job-search/ID listings are read through their detail data; a search page alone is not an advertisement. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.",
         "Profile defaults deliberately replace all saved criteria with the current profile values.",
         "Adjust the profile-based criteria and start the job search.",
         "Take over a job from the result table only after reviewing it."
@@ -402,7 +402,7 @@
           "title": "Pesquisar vagas",
       "summary": "A importação rápida aceita uma ou mais vagas conhecidas. A busca baseada no perfil mantém suas alterações até recarregar os padrões.",
           "steps": [
-        "Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.",
+        "Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Links públicos do Job-Room para anúncios individuais /job-search/ID são lidos pelos dados detalhados; uma página de busca não é um anúncio. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.",
         "Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.",
         "Ajuste os critérios baseados no perfil e inicie a busca.",
         "Importe uma vaga da tabela somente após revisá-la."
@@ -422,7 +422,7 @@
           "title": "Buscar vacantes",
       "summary": "La importación rápida acepta una o varias vacantes conocidas. La búsqueda basada en el perfil conserva tus cambios hasta que cargas los valores predeterminados.",
           "steps": [
-        "Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.",
+        "Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Los enlaces públicos de Job-Room a anuncios individuales /job-search/ID se leen de sus datos detallados; una página de búsqueda no es un anuncio. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.",
         "Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.",
         "Ajusta los criterios basados en el perfil e inicia la búsqueda.",
         "Importa una vacante de la tabla solo después de revisarla."

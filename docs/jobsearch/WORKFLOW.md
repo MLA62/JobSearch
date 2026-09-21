@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.42.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.43.
+
+Release 2.4.43: Beim Schnellimport erkennt der URL-Resolver nur öffentliche
+Job-Room-Detailpfade mit UUID. Der HTTP-Importer lädt das zugehörige
+öffentliche Detail-JSON von `jobadservice/api/jobAdvertisements/<UUID>`,
+prüft ID und Publikationsstatus und übergibt die enthaltenen Angaben als
+JobPosting an die bestehende Quellen-, KI- und Speicherpipeline. Die
+sichtbare Job-Room-URL bleibt die Inseratquelle; die leere SPA-Hülle wird
+nicht als fehlendes Inserat missverstanden.
 
 Release 2.4.42: Die Bewerbungs-Edit-Abfrage lädt `rejection_reason` zusammen
 mit `status`. Das Formular zeigt bei `rejected` den gespeicherten Text nach

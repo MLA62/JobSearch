@@ -4225,11 +4225,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.0' =>
   array (
-    'de-CH' => 'Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Kopierst du formatierte Treffer aus einer Webseite, übernimmt die App auch die hinter sichtbaren Linktexten gespeicherten HTTPS-Ziele vollständig. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.',
-    'fr-CH' => 'Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.',
-    'en-GB' => 'Paste one or more verified advertisement URLs into quick import, one per line. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.',
-    'pt-BR' => 'Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.',
-    'es-MX' => 'Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.',
+    'de-CH' => 'Füge beim Schnellimport eine oder mehrere geprüfte Inserat-URLs ein, eine pro Zeile. Auch öffentliche Job-Room-Links auf einzelne Anzeigen mit /job-search/ID werden über deren Detaildaten gelesen; eine blosse Suchseite ist kein Inserat. Kopierst du formatierte Treffer aus einer Webseite, übernimmt die App auch die hinter sichtbaren Linktexten gespeicherten HTTPS-Ziele vollständig. Vorschlag erstellen öffnet ein modales Fenster mit Fortschritt, verstrichener Zeit, Verlauf pro Anzeige und Abbrechen.',
+    'fr-CH' => 'Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Les liens Job-Room publics vers une annonce individuelle /job-search/ID sont lus depuis leurs données détaillées; une page de recherche seule n’est pas une annonce. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.',
+    'en-GB' => 'Paste one or more verified advertisement URLs into quick import, one per line. Public Job-Room links to individual /job-search/ID listings are read through their detail data; a search page alone is not an advertisement. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.',
+    'pt-BR' => 'Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Links públicos do Job-Room para anúncios individuais /job-search/ID são lidos pelos dados detalhados; uma página de busca não é um anúncio. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.',
+    'es-MX' => 'Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Los enlaces públicos de Job-Room a anuncios individuales /job-search/ID se leen de sus datos detallados; una página de búsqueda no es un anuncio. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.',
   ),
   'help.v2.search.steps.1' =>
   array (
@@ -10858,8 +10858,66 @@ function importDetailPathPattern(): string
     return '~/(?:vacancies/detail|emplois/detail|stellenangebote/detail|offres-emplois/detail|detail|jobs/view)/~iu';
 }
 
+function importJobRoomId(string $url): ?string
+{
+    $parts = parse_url($url);
+    if (!is_array($parts) || strtolower((string)($parts['scheme'] ?? '')) !== 'https'
+        || !in_array(strtolower((string)($parts['host'] ?? '')), ['job-room.ch', 'www.job-room.ch'], true)
+        || isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) return null;
+    return preg_match('~^/job-search/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?$~i',
+        (string)($parts['path'] ?? ''), $match) ? strtolower($match[1]) : null;
+}
+
+function importJobRoomHtml(array $data, string $url, string $id): string
+{
+    if (!is_array($data['publication'] ?? null) || !is_array($data['jobContent'] ?? null)
+        || ($data['id'] ?? null) !== $id || ($data['status'] ?? null) !== 'PUBLISHED_PUBLIC'
+        || ($data['publication']['publicDisplay'] ?? false) !== true) {
+        throw new RuntimeException('Die Job-Room-Stelle ist nicht öffentlich verfügbar.');
+    }
+    $content = $data['jobContent'] ?? [];
+    $company = is_array($content['company'] ?? null) ? $content['company'] : [];
+    $descriptions = is_array($content['jobDescriptions'] ?? null) ? $content['jobDescriptions'] : [];
+    $description = null;
+    foreach ($descriptions as $candidate) {
+        if (!is_array($candidate) || trim((string)($candidate['title'] ?? '')) === ''
+            || trim((string)($candidate['description'] ?? '')) === '') continue;
+        if ($description === null || ($candidate['languageIsoCode'] ?? '') === 'de') $description = $candidate;
+        if (($candidate['languageIsoCode'] ?? '') === 'de') break;
+    }
+    if ($description === null || trim((string)($company['name'] ?? '')) === '') {
+        throw new RuntimeException('Die Job-Room-Stelle enthält keinen vollständigen Originaltext oder Arbeitgeber.');
+    }
+    $location = is_array($content['location'] ?? null) ? $content['location'] : [];
+    $street = trim((string)($company['street'] ?? '') . ' ' . (string)($company['houseNumber'] ?? ''));
+    $schema = [
+        '@context' => 'https://schema.org', '@type' => 'JobPosting',
+        'title' => (string)$description['title'], 'description' => (string)$description['description'],
+        'url' => $url, 'datePosted' => (string)($data['publication']['startDate'] ?? ''),
+        'validThrough' => (string)($data['publication']['endDate'] ?? ''),
+        'hiringOrganization' => ['@type'=>'Organization', 'name'=>(string)$company['name'],
+            'address'=>['@type'=>'PostalAddress', 'streetAddress'=>$street,
+                'postalCode'=>(string)($company['postalCode'] ?? ''),
+                'addressLocality'=>(string)($company['city'] ?? ''),
+                'addressCountry'=>(string)($company['countryIsoCode'] ?? '')]],
+        'jobLocation' => ['address'=>['addressLocality'=>(string)($location['city'] ?? ''),
+            'addressRegion'=>(string)($location['cantonCode'] ?? ''),
+            'addressCountry'=>(string)($location['countryIsoCode'] ?? '')]],
+    ];
+    foreach (['phone'=>'telephone','email'=>'email','website'=>'url'] as $source=>$target) {
+        if (is_string($company[$source] ?? null) && trim($company[$source]) !== '') $schema['hiringOrganization'][$target] = $company[$source];
+    }
+    $json = json_encode($schema, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    return '<!doctype html><html><head><meta charset="utf-8"><script type="application/ld+json">'
+        . $json . '</script></head><body><main><h1>'
+        . htmlspecialchars((string)$description['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+        . '</h1></main></body></html>';
+}
+
 function importUrlLooksLikeDetail(string $url): bool
 {
+    if (importJobRoomId($url) !== null) return true;
     $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
     return (bool) preg_match(importDetailPathPattern(), $path);
 }
@@ -11327,6 +11385,12 @@ function importResolveUrl(string $base, string $reference): string
 function importFetchHtml(string $url, int $timeoutSeconds = 30): array
 {
     if (!function_exists('curl_init')) throw new RuntimeException('Der HTTP-Importer ist serverseitig nicht verfügbar.');
+    if (($jobRoomId = importJobRoomId($url)) !== null) {
+        $api = importFetchHtml('https://www.job-room.ch/jobadservice/api/jobAdvertisements/' . $jobRoomId, $timeoutSeconds);
+        $data = json_decode($api['html'], true, 64, JSON_THROW_ON_ERROR);
+        if (!is_array($data)) throw new RuntimeException('Die Job-Room-Stelle lieferte keine gültigen Detaildaten.');
+        return ['html'=>importJobRoomHtml($data, $url, $jobRoomId), 'url'=>$url];
+    }
     for ($hop = 0; $hop <= 3; $hop++) {
         $parts = parse_url($url);
         if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['https','http'], true) || isset($parts['user']) || isset($parts['pass']) || !in_array((int)($parts['port'] ?? (($parts['scheme'] ?? '') === 'https' ? 443 : 80)), [80,443], true)) throw new RuntimeException('Nicht erlaubte Inserat-URL.');
@@ -16464,7 +16528,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.42';
+$codeVersion = '2.4.43';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

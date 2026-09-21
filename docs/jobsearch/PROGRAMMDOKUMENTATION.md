@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.42 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.43 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Job-Room-Detailimport 2.4.43
+
+`importJobRoomId()` akzeptiert nur HTTPS-Detailpfade des Job-Rooms mit
+gültiger UUID. `importFetchHtml()` ruft für diese Adressen die öffentliche
+Job-Room-Detail-API über die bestehende SSRF-geschützte HTTP-Funktion ab.
+`importJobRoomHtml()` prüft ID, öffentlichen Status, Titel, Arbeitgeber und
+Text und konvertiert die Angaben in ein JobPosting-Dokument. Die übrige
+Prüfung auf Laufzeit, Quellenbelege, KI-Match und Deduplikation bleibt
+unverändert. Keine Schema- oder Bestandsdatenänderung. Die drei gemeldeten
+öffentlichen URLs wurden lesend gegen die API geprüft; eine erfolgreiche
+produktive Speicherung ist davon zu unterscheiden.
 
 ## Persistenz des Absagegrundes 2.4.42
 

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 // Execute actual pure production helpers, never bootstrap or production credentials.
 $source = file_get_contents(__DIR__.'/../public/index.php');
-$wanted = array_flip(['normalizeLocale','supportedLocales','repairMojibake','plainText','readableText','findJobPosting','importMetaContent','importHtmlMatch','importHiringOrganization','importJobLocation','importJobContact','importCleanTitle','importCompanyFromText','importVisibleCompany','importLooksLikeJobDetail','importJobHtml','jobDisplayText','jobDisplayLanguage','mergeJobDisplayTranslations','localizeJobResults','currentLocale']);
+$wanted = array_flip(['normalizeLocale','supportedLocales','repairMojibake','plainText','readableText','findJobPosting','importMetaContent','importHtmlMatch','importHiringOrganization','importJobLocation','importJobContact','importCleanTitle','importCompanyFromText','importVisibleCompany','importDetailPathPattern','importJobRoomId','importJobRoomHtml','importUrlLooksLikeDetail','importLooksLikeJobDetail','importJobHtml','jobDisplayText','jobDisplayLanguage','mergeJobDisplayTranslations','localizeJobResults','currentLocale']);
 $wanted['multilingualUiEnabled'] = true;
 $wanted['importCompanyDetails'] = true;
 foreach (['importResolveUrl','importOriginalCandidates','importSameJob','importVisibleContacts','importCompanyWebsite','importCompanyPageDetails','importFromUrl','jobAvailability','companyResearchLinks'] as $helper) $wanted[$helper]=true;
@@ -26,6 +26,34 @@ function verify(bool $condition, string $message): void {
     echo "PASS $message\n";
 }
 verify(!$wanted, 'All production helpers loaded');
+$jobRoomIds = ['d748fc6a-f08e-4f5f-bc81-84d4d1ac47ac', '056a1d10-ccfd-48f3-a708-14a781c24fa9', '80d7a04f-a065-49ef-82eb-afda740373e6'];
+foreach ($jobRoomIds as $index => $id) {
+    $url = 'https://www.job-room.ch/job-search/' . $id;
+    $payload = ['id'=>$id, 'status'=>'PUBLISHED_PUBLIC',
+        'publication'=>['publicDisplay'=>true,'startDate'=>'2026-09-21','endDate'=>'2026-10-21'],
+        'jobContent'=>['jobDescriptions'=>[['languageIsoCode'=>'de','title'=>'Account Manager ' . $index,
+            'description'=>'Beratung von Kunden und eigenständige Betreuung von Projekten.']],
+            'company'=>['name'=>'Beispiel AG','street'=>'Industriestrasse','houseNumber'=>'20',
+                'postalCode'=>'3422','city'=>'Kirchberg BE','countryIsoCode'=>'CH'],
+            'location'=>['city'=>'Bern','cantonCode'=>'BE','countryIsoCode'=>'CH']]];
+    verify(importJobRoomId($url) === $id && importUrlLooksLikeDetail($url), 'Job-Room detail URL ' . ($index + 1) . ' recognised');
+    $html = importJobRoomHtml($payload, $url, $id);
+    $draft = importJobHtml($html, $url);
+    verify($draft['title'] === 'Account Manager ' . $index && $draft['company'] === 'Beispiel AG'
+        && str_contains($draft['description'], 'eigenständige Betreuung'), 'Job-Room detail ' . ($index + 1) . ' retains original advertisement');
+    verify($draft['company_details']['address_line1'] === 'Industriestrasse 20'
+        && $draft['company_details']['city'] === 'Kirchberg BE' && $draft['location'] === 'Bern',
+        'Employer address remains separate from workplace');
+    verify(jobAvailability($html, strtotime('2026-09-22'))['status'] === 'available', 'Published Job-Room detail has validity evidence');
+    $payload['status'] = 'CANCELLED';
+    try { importJobRoomHtml($payload, $url, $id); throw new LogicException('Cancelled Job-Room listing accepted'); }
+    catch (RuntimeException) { verify(true, 'Cancelled Job-Room listing rejected'); }
+}
+verify(importJobRoomId('https://www.job-room.ch/job-search') === null
+    && importJobRoomId('https://evil.example/job-search/' . $jobRoomIds[0]) === null,
+    'Search pages and other hosts are not accepted as Job-Room details');
+verify(str_contains($source, "importFetchHtml('https://www.job-room.ch/jobadservice/api/jobAdvertisements/' . \$jobRoomId"),
+    'Importer reads the public Job-Room detail API rather than the SPA shell');
 $original = "<p>Nous recherchons un conseiller à Bienne.</p><p>Vos tâches : accompagner nos clients.</p><ul><li>Français courant.</li><li>Travail à 80 %.</li></ul>";
 $schema = ['@type'=>'JobPosting','title'=>'Conseiller clientèle','hiringOrganization'=>['name'=>'Exemple SA'],'description'=>$original,'jobLocation'=>['address'=>['addressLocality'=>'Bienne']]];
 $html='<html><head><meta name="description" content="Find your next great opportunity in Switzerland"><script type="application/ld+json">'.json_encode($schema,JSON_UNESCAPED_UNICODE).'</script></head><body><h1>Conseiller clientèle</h1></body></html>';

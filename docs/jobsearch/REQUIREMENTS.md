@@ -1,6 +1,12 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.42.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.43.
+
+Release 2.4.43: Öffentliche Job-Room-Detailadressen `/job-search/<UUID>`
+müssen im Schnellimport als einzelne Inserate erkannt werden. Der Import
+liest veröffentlichte Detaildaten samt Originaltext, Arbeitgeber und
+Gültigkeit; Suchseiten, fremde Hosts sowie unveröffentlichte oder
+unvollständige Datensätze werden nicht als Anzeige ausgegeben.
 
 Release 2.4.42: Ein gespeicherter Absagegrund muss nach manuellem Speichern,
 Autosave und erneutem Öffnen der abgelehnten Bewerbung im Formular stehen

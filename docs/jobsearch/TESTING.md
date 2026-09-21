@@ -2,6 +2,13 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.43: `job_content_language_test.php` prüft drei Job-Room-UUID-
+Varianten, Detailkonvertierung, Trennung von Firmenadresse und Arbeitsort,
+Gültigkeitsbeleg sowie Ablehnung von Suchseite, Fremdhost und
+unveröffentlichtem Inserat. Zusätzlich sind Syntax, gesamte PHP-Suite und
+beide Dokumentationsgeneratoren zu prüfen. Der API-Abruf der drei realen
+URLs ist nur ein lesender Integrationstest, kein Nachweis der Speicherung.
+
 Release 2.4.42: `job_room_rejection_reason_test.php` prüft zusätzlich,
 dass die Detailabfrage den gespeicherten Absagegrund lädt und das Textfeld
 damit vorbelegt. PHP-Syntax, gesamte Suite und beide

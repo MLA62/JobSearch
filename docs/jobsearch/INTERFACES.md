@@ -485,6 +485,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function importMetaContent(DOMXPath $xpath, string $selector): string`
 - `function importHtmlMatch(string $html, array $patterns): string`
 - `function importDetailPathPattern(): string`
+- `function importJobRoomId(string $url): ?string`
+- `function importJobRoomHtml(array $data, string $url, string $id): string`
 - `function importUrlLooksLikeDetail(string $url): bool`
 - `function importAbsoluteUrl(string $href, string $baseUrl): string`
 - `function importDiscoverDetailUrls(string $url, int $limit = 30): array`
