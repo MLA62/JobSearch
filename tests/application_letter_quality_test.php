@@ -60,7 +60,7 @@ $long=str_replace($body,str_repeat('Diese belegte Erfahrung ist für die konkret
 if (!in_array('Der Briefhauptteil ist für eine Seite zu lang.',applicationLetterStructureIssues($long,'de-CH','Markus Lauber',$recipient),true)) throw new RuntimeException('Overlong letter accepted.');
 if (!str_contains($source,'Endkundenprofil aus offizieller Website: ') || !str_contains($source,'applicationEndClientOfficialContext($application)')) throw new RuntimeException('Mediated end-client profile is not passed to the application prompt.');
 if (!str_contains($source,'Mandatory letter checks failed: ')) throw new RuntimeException('AI quality retry is not wired.');
-if (!str_contains($source,'$finalIssues=applicationLetterStructureIssues(')) throw new RuntimeException('Final saved output is not validated.');
+if (!str_contains($source,'? applicationLetterStructureIssues($texts[\'cover_letter_text\']')) throw new RuntimeException('Final saved output is not validated.');
 echo "PASS short letter rejected and end-client research/AI retry wired\n";
 
 $company=['intermediary_company_id'=>0,'company_is_intermediary'=>0,'company_name'=>'Bardusch AG','company_website'=>'https://bardusch.example'];

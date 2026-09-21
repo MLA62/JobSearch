@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.33'=>"\$codeVersion = '2.4.33'",
+    'version 2.4.34'=>"\$codeVersion = '2.4.34'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'rejected drafts are not silently replaced'=>'Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.',
@@ -19,9 +19,10 @@ $checks=[
     'two-line instruction'=>'name="ai_text_instruction" rows="2"',
     'instruction length bound'=>'maxlength="2000"',
     'explicit editing request contract'=>'visibly and substantively apply every feasible requested change',
-    'editing request applies to both long texts'=>'apply every feasible requested change in BOTH email_body and cover_letter_text',
-    'unchanged result retry'=>'Apply the editing request visibly in BOTH email and letter.',
-    'email and cover change verification'=>"foreach (['email_body','cover_letter_text'] as \$field)",
+    'editing request controls named text fields'=>'Apply every requested change to the named text fields',
+    'unchanged result retry'=>'Apply the editing request visibly in every requested field.',
+    'targeted change verification'=>'foreach ($editTargets as $field)',
+    'explicit edit constraint verification'=>'applicationEditRequestIssues($editingRequest,$currentTexts,$texts,$recipientBlock,$editTargets)',
     'specific user-visible failure'=>'applications.ai_failed_detail',
     'empty instruction regeneration contract'=>'create all three texts anew; no previous drafts are provided',
     'empty instruction excludes current texts'=>"'current_texts'=>\$regenerate ? null : \$currentTexts",
@@ -42,8 +43,8 @@ $checks=[
     'recipient enrichment cannot block text preparation'=>'Application recipient enrichment continued with existing data',
     'no-data disclosure is prohibited'=>'Never mention the availability, readability, completeness or absence of source data',
     'interview deferral is prohibited'=>'Never defer missing substance to a future interview',
-    'AI quality retry'=>'Revise this exact rejected draft',
-    'final AI output quality gate'=>'applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant)',
+    'AI quality retry'=>'Revise this rejected draft',
+    'final AI output quality gate'=>'applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant,in_array(',
     'stored legacy text quality repair'=>'$qualityChanged=false;',
     'initial drafts are generated anew'=>"applicationAiTexts(\$config,\$db,\$userId,\$applicationId,\$currentUser,'',\$drafts)",
     'new generation excludes old draft context'=>'applicationPrompt($db,$userId,$applicationId,$currentUser,!$regenerate)',

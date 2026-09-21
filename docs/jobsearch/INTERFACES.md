@@ -458,7 +458,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationCvSourceRows(mysqli $db, int $userId): array`
 - `function applicationCvInputParts(array $cvRows, int $userId, string $documentRoot): array`
 - `function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $currentUser, bool $includeExistingTexts = true): string`
-- `function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant): array`
+- `function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant, bool $checkEmail = true, bool $checkLetter = true): array`
+- `function applicationEditTargets(string $instruction): array`
+- `function applicationEditLetterContent(string $letter, string $recipientBlock): string`
+- `function applicationEditRequestIssues(string $instruction, array $currentTexts, array $candidate, string $recipientBlock, array $targets): array`
 - `function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array`
 - `function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, int $applicationId): bool`
 - `function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, bool $generateMissing = true): array`

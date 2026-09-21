@@ -2403,11 +2403,19 @@ function helpTranslationSeeds(): array
   ),
   'applications.ai_failed_detail' =>
   array (
-    'de-CH' => 'Die KI konnte die Anweisung nicht zuverlässig in Begleit-E-Mail und Motivationsschreiben umsetzen. Die bestehenden Texte bleiben erhalten. Fehlerreferenz: {reference}.',
-    'fr-CH' => 'L’IA n’a pas pu appliquer l’instruction de manière fiable dans l’e-mail et la lettre de motivation. Les textes existants sont conservés. Référence d’erreur : {reference}.',
-    'en-GB' => 'AI could not reliably apply the instruction to the accompanying email and cover letter. Existing texts were kept. Error reference: {reference}.',
-    'pt-BR' => 'A IA não conseguiu aplicar a instrução de forma confiável ao e-mail e à carta. Os textos existentes foram mantidos. Referência do erro: {reference}.',
-    'es-MX' => 'La IA no pudo aplicar la instrucción de forma fiable al correo y a la carta. Se conservaron los textos existentes. Referencia del error: {reference}.',
+    'de-CH' => 'Die KI konnte die Anweisung nicht zuverlässig umsetzen. Die bestehenden Texte und deine Eingabe bleiben erhalten. Fehlerreferenz: {reference}.',
+    'fr-CH' => 'L’IA n’a pas pu appliquer l’instruction de manière fiable. Les textes existants et votre saisie sont conservés. Référence d’erreur : {reference}.',
+    'en-GB' => 'AI could not reliably apply the instruction. Existing texts and your input were kept. Error reference: {reference}.',
+    'pt-BR' => 'A IA não conseguiu aplicar a instrução de forma confiável. Os textos existentes e sua entrada foram mantidos. Referência do erro: {reference}.',
+    'es-MX' => 'La IA no pudo aplicar la instrucción de forma fiable. Se conservaron los textos existentes y tu entrada. Referencia del error: {reference}.',
+  ),
+  'applications.ai_instruction_hint' =>
+  array (
+    'de-CH' => 'Nenne bei Bedarf Betreff, Begleit-E-Mail oder Motivationsschreiben ausdrücklich. Die KI ändert nur die genannten Texte; ohne Feldnennung beide Langtexte. Nichts wird automatisch versendet.',
+    'fr-CH' => 'Nomme si nécessaire l’objet, l’e-mail ou la lettre. L’IA ne modifie que les textes nommés ; sans champ nommé, les deux textes longs. Aucun envoi automatique.',
+    'en-GB' => 'Name the subject, accompanying email or cover letter if needed. AI changes only named texts; without a named field, both long texts. Nothing is sent automatically.',
+    'pt-BR' => 'Se necessário, indique assunto, e-mail ou carta. A IA altera somente os textos nomeados; sem campo indicado, os dois textos longos. Nada é enviado automaticamente.',
+    'es-MX' => 'Si hace falta, indica asunto, correo o carta. La IA modifica solo los textos nombrados; sin campo indicado, ambos textos largos. No se envía nada automáticamente.',
   ),
   'applications.company_relation' =>
   array (
@@ -3187,11 +3195,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.4' =>
   array (
-    'de-CH' => 'Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Die Instruktion wird zusammen mit den aktuellen Texten zuverlässig übermittelt. Die App prüft, dass Begleit-E-Mail und Motivationsschreiben tatsächlich verändert wurden, und wiederholt einen unveränderten ersten Rücklauf automatisch.',
-    'fr-CH' => 'Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. L’instruction est transmise de manière fiable avec les textes actuels. L’application vérifie que l’e-mail et la lettre ont réellement changé et répète automatiquement une première réponse inchangée.',
-    'en-GB' => 'Before AI revision, the app copies the visible editor contents and stops pending autosaves. The instruction is reliably submitted together with the current texts. The app verifies that both the email and cover letter actually changed and automatically retries an unchanged first response.',
-    'pt-BR' => 'Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. A instrução é enviada de forma confiável com os textos atuais. O aplicativo verifica se o e-mail e a carta realmente mudaram e repete automaticamente uma primeira resposta inalterada.',
-    'es-MX' => 'Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. La instrucción se envía de forma fiable junto con los textos actuales. La aplicación comprueba que el correo y la carta hayan cambiado y repite automáticamente una primera respuesta sin cambios.',
+    'de-CH' => 'Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Eine gezielte Instruktion ändert nur die genannten Texte; ohne Feldnennung werden Begleit-E-Mail und Motivationsschreiben überarbeitet. Die KI erhält den Auftrag bei jedem Versuch erneut. Ausdrückliche Längen- und Weglassvorgaben werden zusätzlich geprüft. Bei einem Fehlschlag bleibt die Instruktion im Eingabefeld erhalten; bestehende Texte werden nicht überschrieben.',
+    'fr-CH' => 'Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. Une instruction ciblée ne modifie que les textes nommés ; sans champ nommé, l’e-mail et la lettre sont révisés. L’instruction est transmise à chaque tentative. Les demandes explicites de longueur ou d’omission sont aussi vérifiées. En cas d’échec, l’instruction reste dans le champ et les textes existants ne sont pas écrasés.',
+    'en-GB' => 'Before AI revision, the app copies the visible editor contents and stops pending autosaves. A targeted instruction changes only the named texts; without a named field it revises the email and cover letter. The request is sent again on every attempt. Explicit length and omission requests are checked separately. On failure, the instruction remains in the input field and existing texts are not overwritten.',
+    'pt-BR' => 'Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. Uma instrução específica altera apenas os textos nomeados; sem indicar um campo, revisa o e-mail e a carta. A instrução é reenviada em cada tentativa. Pedidos explícitos de extensão ou omissão também são verificados. Em caso de falha, a instrução permanece no campo e os textos existentes não são sobrescritos.',
+    'es-MX' => 'Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. Una instrucción específica modifica solo los textos nombrados; si no se nombra un campo, revisa el correo y la carta. La instrucción se reenvía en cada intento. También se comprueban las peticiones explícitas de extensión u omisión. Si falla, la instrucción permanece en el campo y no se sobrescriben los textos existentes.',
   ),
   'help.v2.applications.tips.5' =>
   array (
@@ -10136,7 +10144,7 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
         '',
         'Sprache/Ton: ' . (documentLanguageChoices()[normalizeLocale((string)($currentUser['preferred_language'] ?? 'de-CH'))] ?? 'Deutsch (Schweiz)') . ', professionell, klar, natürlich, nicht übertrieben.',
         'Bitte keine Fakten erfinden. Nicht belegte Aussagen werden still weggelassen: Fehlende, unlesbare oder nicht verfügbare Angaben, Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen dürfen im Bewerbungstext niemals erwähnt werden. Fehlende Substanz darf auch nicht auf ein späteres Gespräch oder Interview verschoben werden. Im Empfänger-Adressblock sind Platzhalter ausnahmslos verboten.',
-        'Motivationsschreiben: Nach dem Empfängerblock folgen Anrede, kurze individuelle Einleitung, zwei bis drei konkrete Verbindungen zwischen Stellenanforderungen und belegten CV-Erfahrungen, ein echter Bezug zum Unternehmen, ein eigenständiger Schlusssatz sowie Grussformel und vollständiger Bewerbername als letzte Zeile. Keine austauschbaren Floskeln, keine reine Wiederholung des Lebenslaufs und keine Fakten ohne Beleg. Der Hauptteil soll ungefähr 170 bis 260 Wörter haben und als eigenständiger Brief auf eine Seite passen. Der kurze E-Mail-Begleittext ist kein Ersatz für einen vollständigen Brief.',
+        'Motivationsschreiben: Nach dem Empfängerblock folgen Anrede, kurze individuelle Einleitung, zwei bis drei konkrete Verbindungen zwischen Stellenanforderungen und belegten CV-Erfahrungen, ein echter Bezug zum Unternehmen, ein eigenständiger Schlusssatz sowie Grussformel und vollständiger Bewerbername als letzte Zeile. Keine austauschbaren Floskeln, keine reine Wiederholung des Lebenslaufs und keine Fakten ohne Beleg. Ohne abweichenden Bearbeitungsauftrag soll der Hauptteil ungefähr 170 bis 260 Wörter haben und als eigenständiger Brief auf eine Seite passen. Eine ausdrücklich verlangte andere Länge hat innerhalb der Briefprüfung Vorrang. Der kurze E-Mail-Begleittext ist kein Ersatz für einen vollständigen Brief.',
         'Bei einer Vermittlung sind Vermittler und Endkunde verschiedene Rollen. Sprich die tatsächlich zuständige Kontaktperson an; erkläre, warum die konkrete Tätigkeit und das identifizierte Endkundenunternehmen passen. Verwende aus einem offiziellen Website-Auszug nur nachprüfbare Angaben, die eindeutig zu diesem Endkunden gehören. Ist kein Endkunde eindeutig identifiziert, erfinde weder einen Firmennamen noch firmenspezifische Details; beziehe dich dann konkret auf die belegten Aufgaben und das Umfeld des Inserats.',
         'Das Feld cover_letter_text muss mit dem folgenden Empfänger-Adressblock beginnen. Übernimm Firma, bekannte Kontaktperson und Adresse exakt, jeweils auf einer eigenen Zeile, ohne Aufzählungszeichen oder Feldbezeichnungen. Danach folgt mit Abstand das Motivationsschreiben. Erzeuge niemals eckige Platzhalter oder Ergänzungsaufforderungen.',
         '',
@@ -10233,14 +10241,17 @@ function applicationPrompt(mysqli $db, int $userId, int $applicationId, array $c
     return trim(implode("\n", $lines));
 }
 
-function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant): array
+function applicationTextQualityIssues(array $texts, string $jobContext, array $cvRows, string $applicant, bool $checkEmail = true, bool $checkLetter = true): array
 {
     $issues=[];
-    $email=richTextPlain((string)($texts['email_body'] ?? ''));
-    $emailWords=preg_split('/[^\p{L}\p{N}]+/u',$email,-1,PREG_SPLIT_NO_EMPTY) ?: [];
-    if (count($emailWords)<25 || count($emailWords)>150) $issues[]='Die Begleit-E-Mail muss kurz, aber inhaltlich aussagekräftig sein (25–150 Wörter).';
-    $emailLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$email) ?: []),static fn(string $line):bool=>$line!==''));
-    if ($applicant!=='' && mb_strtolower((string)end($emailLines))!==mb_strtolower($applicant)) $issues[]='Die Begleit-E-Mail braucht eine Grussformel und den vollständigen Namen am Schluss.';
+    if ($checkEmail) {
+        $email=richTextPlain((string)($texts['email_body'] ?? ''));
+        $emailWords=preg_split('/[^\p{L}\p{N}]+/u',$email,-1,PREG_SPLIT_NO_EMPTY) ?: [];
+        if (count($emailWords)<25 || count($emailWords)>150) $issues[]='Die Begleit-E-Mail muss kurz, aber inhaltlich aussagekräftig sein (25–150 Wörter).';
+        $emailLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$email) ?: []),static fn(string $line):bool=>$line!==''));
+        if ($applicant!=='' && mb_strtolower((string)end($emailLines))!==mb_strtolower($applicant)) $issues[]='Die Begleit-E-Mail braucht eine Grussformel und den vollständigen Namen am Schluss.';
+    }
+    if ($checkLetter) {
     $letter=richTextPlain((string)($texts['cover_letter_text'] ?? ''));
     foreach ([
         '/\b(?:Position|Stelle)\b[^.!?\n]{0,90}\b(?:Interesse geweckt|Aufmerksamkeit erregt)\b/iu',
@@ -10280,7 +10291,60 @@ function applicationTextQualityIssues(array $texts, string $jobContext, array $c
         if (isset($seen[$key])) $issues[]='Zwei Quellenbezüge wiederholen denselben Punkt.';
         $seen[$key]=true;
     }
+    }
     return array_values(array_unique($issues));
+}
+
+function applicationEditTargets(string $instruction): array
+{
+    $mentioned=[];
+    if (preg_match('/(?:Betreff|subject|objet|assunto|asunto)/iu',$instruction)===1) $mentioned[]='email_subject';
+    if (preg_match('/(?:Begleit(?:text|mail|e-mail)|E-Mail|E-Mail-Text|email body|accompanying email|courriel|correo|e-mail de apresenta[cç][aã]o)/iu',$instruction)===1) $mentioned[]='email_body';
+    if (preg_match('/(?:Motivationsschreiben|Anschreiben|Bewerbungsschreiben|cover letter|lettre de motivation|carta de motiva[cç][aã]o|carta de motivaci[oó]n)/iu',$instruction)===1) $mentioned[]='cover_letter_text';
+    return $mentioned ?: ['email_body','cover_letter_text'];
+}
+
+function applicationEditLetterContent(string $letter, string $recipientBlock): string
+{
+    $plain=richTextPlain($letter);
+    $recipient=trim($recipientBlock);
+    if ($recipient!=='' && str_starts_with($plain,$recipient)) $plain=trim(mb_substr($plain,mb_strlen($recipient)));
+    if (preg_match('/^(?:Guten Tag|Sehr geehrt|Dear|Hello|Bonjour|Madame|Monsieur|Ch[eè]re?|Prezados?|Prezadas?|Estimad[oa]s?|Hola)[^\n]*\R/imu',$plain,$match,PREG_OFFSET_CAPTURE)===1) {
+        $plain=trim(substr($plain,$match[0][1]+strlen($match[0][0])));
+    }
+    return $plain;
+}
+
+function applicationEditRequestIssues(string $instruction, array $currentTexts, array $candidate, string $recipientBlock, array $targets): array
+{
+    $issues=[];
+    if (in_array('cover_letter_text',$targets,true)
+        && preg_match('/(?<!\d)(\d{1,3})\s*(?:%|Prozent|pour\s+cent|por\s+ciento|por\s+cento)\s*(?:ausf[uü]hrlicher|l[aä]nger|mehr\s+(?:Text|W[oö]rter)|longer|more\s+detailed|plus\s+d[eé]taill[eé]e?|m[aá]s\s+detallad[oa]|mais\s+detalhad[oa]|m[aá]s\s+larg[oa]|mais\s+long[oa])/iu',$instruction,$lengthMatch)===1) {
+        $before=applicationEditLetterContent((string)($currentTexts['cover_letter_text'] ?? ''),$recipientBlock);
+        $after=applicationEditLetterContent((string)($candidate['cover_letter_text'] ?? ''),$recipientBlock);
+        $countWords=static fn(string $text):int=>count(preg_split('/[^\p{L}\p{N}]+/u',$text,-1,PREG_SPLIT_NO_EMPTY) ?: []);
+        $originalWords=$countWords($before);
+        $newWords=$countWords($after);
+        $requested=(int)$lengthMatch[1];
+        if ($originalWords>=30 && $newWords < (int)ceil($originalWords*(1+max(0,$requested-5)/100))) {
+            $issues[]='Die verlangte Erweiterung des Motivationsschreibens um ungefähr '.$requested.' % fehlt: vorher '.$originalWords.', nachher '.$newWords.' Wörter im Brieftext.';
+        }
+    }
+    if (preg_match('/(?:Erfolgszahlen|Kennzahlen|quantifizierte\s+Erfolge|Zahlen.{0,30}(?:weg|raus|weglassen|entfern|verzicht)|success\s+(?:figures|numbers|metrics)|quantified\s+achievements|r[eé]sultats\s+chiffr[eé]s|chiffres\s+de\s+r[eé]ussite|resultados\s+num[eé]ricos|resultados\s+cuantificados|n[uú]meros\s+de\s+sucesso)/iu',$instruction)===1
+        && preg_match('/(?:weg|raus|ohne|keine|nicht|entfern|verzicht|weglassen|omit|remove|without|no\s+success|supprim|sans|retir|sin|quit[aeo]|elimina|sem)/iu',$instruction)===1) {
+        foreach (['email_body','cover_letter_text'] as $field) {
+            if (!in_array($field,$targets,true)) continue;
+            $content=$field==='cover_letter_text'
+                ? applicationEditLetterContent((string)($candidate[$field] ?? ''),$recipientBlock)
+                : richTextPlain((string)($candidate[$field] ?? ''));
+            $hasSuccessFigure=preg_match('/\b(?:CHF|EUR|USD)\s*\d|\b(?:Prozent|percent|million(?:s|en)?|millones|milh[oõ]es|Mio)\b|\b(?:per\s+cent|pour\s+cent|por\s+ciento|por\s+cento)\b/iu',$content)===1
+                || preg_match('/(?<![\p{L}\p{N}])\d+(?:[’\x27.,]\d+)*(?:\s*(?:bis|to|a|–|-)\s*\d+)?\s*(?:%|Auftr[aä]ge|Kunden|Abschl[üu]sse|Vertr[aä]ge|Projekte|Umsatz|orders|contracts|clients|sales|deals|projets|projetos|proyectos|contratos|clientes)(?![\p{L}])/iu',$content)===1;
+            if ($hasSuccessFigure) {
+                $issues[]='Der Bearbeitungsauftrag verlangt, Erfolgszahlen wegzulassen; im '.($field==='cover_letter_text' ? 'Motivationsschreiben' : 'Begleittext').' stehen noch Zahlen. Hausnummer und PLZ im Empfängerblock bleiben erhalten.';
+            }
+        }
+    }
+    return $issues;
 }
 
 function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array
@@ -10297,6 +10361,7 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
     ],'required'=>['email_subject','email_body','cover_letter_text','evidence_links']];
     $editingRequest = trim($instruction);
     $regenerate = $editingRequest === '';
+    $editTargets = $regenerate ? ['email_subject','email_body','cover_letter_text'] : applicationEditTargets($editingRequest);
     $applicant=trim((string)($currentUser['first_name'] ?? '').' '.(string)($currentUser['last_name'] ?? ''));
     $recipientBlock=applicationRecipientBlockForApplication($db,$userId,$applicationId);
     $cvRows = applicationCvSourceRows($db, $userId);
@@ -10305,13 +10370,14 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
     $jobSource=(string)($jobSection[1] ?? '');
     $inputParts = [['type'=>'input_text', 'text'=>json_encode([
         'task'=>$regenerate ? 'Create email subject, accompanying email and cover letter completely from scratch using the available application context.' : 'Revise the supplied current texts according to the user editing request.',
-        'user_editing_request'=>substr($editingRequest,0,2000),
+        'user_editing_request'=>mb_substr($editingRequest,0,2000),
         'current_texts'=>$regenerate ? null : $currentTexts,
         'available_application_context'=>$jobContext,
         'cv_document_count'=>count($cvRows),
         'selected_cv_ids'=>array_map(static fn(array $cv):int=>(int)$cv['id'],$cvRows),
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]];
     array_push($inputParts, ...applicationCvInputParts($cvRows, $userId, storageRoot()));
+    $baseInputParts=$inputParts;
     $payload = [
         'model'=>(string)($config['openai_model'] ?? 'gpt-5.6-luna'), 'store'=>false,
         'reasoning'=>['effort'=>'medium'], 'max_output_tokens'=>7000,
@@ -10320,8 +10386,24 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         'input'=>[['role'=>'user','content'=>$inputParts]],
         'text'=>['format'=>['type'=>'json_schema','name'=>'application_texts','strict'=>true,'schema'=>$schema]],
     ];
+    if (!$regenerate) {
+        $manualInstructions=str_replace(
+            'If user_editing_request is non-empty, visibly and substantively apply every feasible requested change in BOTH email_body and cover_letter_text, and in email_subject when relevant, without contradicting factuality. If empty, create all three texts anew; no previous drafts are provided.',
+            'For a manual edit, the user_editing_request is the controlling writing instruction. Apply every requested change to the named text fields; if no field is named, apply it to email_body and cover_letter_text. Preserve other fields instead of rewriting them. Explicit length and omission requests override default style and length targets, but never permit invented facts or removal of the required recipient, greeting and closing. If the request says to omit success figures, omit quantitative achievements from the applicant-facing text, not the postal address. For an empty request, create all three texts anew without old drafts.',
+            $payload['instructions']
+        );
+        if ($manualInstructions===$payload['instructions']) throw new LogicException('Die KI-Bearbeitungsanweisung konnte nicht aktiviert werden.');
+        $manualInstructions=str_replace('Keep the body about 170–260 words.','For a manual edit, follow the user-specified length within the required complete-letter structure; use 170–260 words only without a different length request.',$manualInstructions);
+        $payload['instructions']=$manualInstructions;
+    }
     $texts=[];
+    $retryFeedback='';
     for ($attempt=1; $attempt<=3; $attempt++) {
+        $payload['input'][0]['content']=$baseInputParts;
+        if ($retryFeedback!=='') $payload['input'][0]['content'][]=['type'=>'input_text','text'=>$retryFeedback];
+        if (!$regenerate) {
+            $payload['input'][0]['content'][]=['type'=>'input_text','text'=>'Current user edit request (apply this now; it takes precedence over default wording and length, subject to factual accuracy and the required letter structure): '.$editingRequest];
+        }
         $handle = curl_init('https://api.openai.com/v1/responses');
         curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($payload,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>120,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
         $raw=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE); $error=curl_error($handle); curl_close($handle);
@@ -10330,41 +10412,59 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         if (($response['status'] ?? '')!=='completed') throw new RuntimeException('Die KI-Texterstellung wurde nicht vollständig abgeschlossen.');
         $output=''; foreach ((array)($response['output'] ?? []) as $item) foreach ((array)($item['content'] ?? []) as $content) if (($content['type'] ?? '')==='output_text' && is_string($content['text'] ?? null)) $output.=$content['text'];
         $texts=json_decode($output,true,512,JSON_THROW_ON_ERROR);
-        foreach (['email_subject','email_body','cover_letter_text'] as $field) if (!is_string($texts[$field] ?? null) || trim($texts[$field])==='') throw new RuntimeException('Die KI-Antwort enthielt nicht alle drei Texte.');
+        foreach (['email_subject','email_body','cover_letter_text'] as $field) {
+            if (!is_string($texts[$field] ?? null) || (in_array($field,$editTargets,true) && trim($texts[$field])==='')) {
+                throw new RuntimeException('Die KI-Antwort enthielt nicht alle angeforderten Texte.');
+            }
+        }
+        if (!$regenerate) {
+            foreach (['email_subject','email_body','cover_letter_text'] as $field) {
+                if (!in_array($field,$editTargets,true)) $texts[$field]=(string)($currentTexts[$field] ?? '');
+            }
+        }
         $disqualifying=[];
-        foreach (['email_body','cover_letter_text'] as $field) if (applicationTextHasDisqualifyingLanguage((string)$texts[$field])) $disqualifying[]=$field;
+        foreach (['email_body','cover_letter_text'] as $field) if (in_array($field,$editTargets,true) && applicationTextHasDisqualifyingLanguage((string)$texts[$field])) $disqualifying[]=$field;
         if ($disqualifying && $attempt<3) {
-            $payload['input'][0]['content'][]=['type'=>'input_text','text'=>'Revise this exact rejected draft; it contains applicant-undermining language or defers substance to an interview. Remove the problematic sentences and rewrite both texts from positive, documented evidence. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)];
+            $retryFeedback='Revise this rejected draft; it contains applicant-undermining language or defers substance to an interview. Remove those sentences in the requested fields. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             continue;
         }
         if ($disqualifying) throw new RuntimeException('Der KI-Entwurf enthält trotz Überarbeitung ungeeignete Aussagen. Er wurde nicht gespeichert.');
         if (!$regenerate) {
             $unchanged=[];
-            foreach (['email_body','cover_letter_text'] as $field) {
+            foreach ($editTargets as $field) {
                 $before=trim((string)preg_replace('/\s+/u',' ',richTextPlain((string)($currentTexts[$field] ?? ''))));
                 $after=trim((string)preg_replace('/\s+/u',' ',richTextPlain((string)$texts[$field])));
                 if ($before === $after) $unchanged[]=$field;
             }
             if ($unchanged && $attempt<3) {
-                $payload['input'][0]['content'][]=['type'=>'input_text','text'=>'This draft failed because '.implode(', ',$unchanged).' was unchanged. Apply the editing request visibly in BOTH email and letter. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)];
+                $retryFeedback='This draft failed because '.implode(', ',$unchanged).' was unchanged. Apply the editing request visibly in every requested field. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                 continue;
             }
-            if ($unchanged) throw new RuntimeException('Die KI hat die Anweisung nicht in Begleit-E-Mail und Motivationsschreiben umgesetzt.');
+            if ($unchanged) throw new RuntimeException('Die KI hat die Anweisung in folgenden Texten nicht umgesetzt: '.implode(', ',$unchanged).'.');
+            $editIssues=applicationEditRequestIssues($editingRequest,$currentTexts,$texts,$recipientBlock,$editTargets);
+            if ($editIssues && $attempt<3) {
+                $retryFeedback='This draft failed the explicit user edit request: '.implode(' ',$editIssues).' Rework only the requested fields. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+                continue;
+            }
+            if ($editIssues) throw new RuntimeException('Die KI hat den Bearbeitungsauftrag nicht erfüllt: '.implode(' ',$editIssues));
         }
-        $securedCover=applicationCoverLetterWithRecipientBlock(applicationTextWithoutDisqualifyingLanguage((string)$texts['cover_letter_text']),$recipientBlock);
-        $letterIssues=applicationLetterStructureIssues($securedCover,$locale,$applicant,$recipientBlock);
+        $checkLetter=in_array('cover_letter_text',$editTargets,true);
+        $securedCover=$checkLetter
+            ? applicationCoverLetterWithRecipientBlock(applicationTextWithoutDisqualifyingLanguage((string)$texts['cover_letter_text']),$recipientBlock)
+            : (string)$texts['cover_letter_text'];
+        $letterIssues=$checkLetter ? applicationLetterStructureIssues($securedCover,$locale,$applicant,$recipientBlock) : [];
         if ($letterIssues) {
             if ($attempt<3) {
-                $payload['input'][0]['content'][]=['type'=>'input_text','text'=>'Revise this exact rejected draft. Mandatory letter checks failed: '.implode(' ',$letterIssues).' Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)];
+                $retryFeedback='Revise this rejected draft. Mandatory letter checks failed: '.implode(' ',$letterIssues).' Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                 continue;
             }
             throw new RuntimeException('Das Motivationsschreiben ist auch nach Korrektur unvollständig: '.implode(' ',$letterIssues));
         }
         $texts['cover_letter_text']=$securedCover;
-        $qualityIssues=applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant);
+        $qualityIssues=applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant,in_array('email_body',$editTargets,true),$checkLetter);
         if ($qualityIssues) {
             if ($attempt<3) {
-                $payload['input'][0]['content'][]=['type'=>'input_text','text'=>'Revise this exact rejected draft. The email or evidence-based tailoring failed: '.implode(' ',$qualityIssues).' Use exact source excerpts, not invented citations. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)];
+                $retryFeedback='Revise this rejected draft. The email or evidence-based tailoring failed: '.implode(' ',$qualityIssues).' Use exact source excerpts, not invented citations. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                 continue;
             }
             throw new RuntimeException('Die KI-Texte sind auch nach Korrektur nicht ausreichend individuell: '.implode(' ',$qualityIssues));
@@ -10373,6 +10473,7 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
     }
     $texts['email_subject']=mb_substr(trim($texts['email_subject']),0,255);
     foreach (['email_body','cover_letter_text'] as $field) {
+        if (!$regenerate && !in_array($field,$editTargets,true)) continue;
         $texts[$field]=applicationTextWithoutDisqualifyingLanguage((string)$texts[$field]);
         $minimumWords=$field==='cover_letter_text' ? 100 : 25;
         if (!applicationTextHasMinimumSubstance((string)$texts[$field],$minimumWords)) {
@@ -10380,9 +10481,15 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         }
     }
     $texts['email_body']=sanitizeRichText(mb_substr(trim($texts['email_body']),0,20000));
-    $texts['cover_letter_text']=applicationCoverLetterWithRecipientBlock(mb_substr(trim($texts['cover_letter_text']),0,40000), $recipientBlock);
-    $finalIssues=applicationLetterStructureIssues($texts['cover_letter_text'],$locale,$applicant,$recipientBlock);
+    $texts['cover_letter_text']=in_array('cover_letter_text',$editTargets,true)
+        ? applicationCoverLetterWithRecipientBlock(mb_substr(trim($texts['cover_letter_text']),0,40000), $recipientBlock)
+        : sanitizeRichText(mb_substr(trim($texts['cover_letter_text']),0,40000));
+    $finalIssues=in_array('cover_letter_text',$editTargets,true) ? applicationLetterStructureIssues($texts['cover_letter_text'],$locale,$applicant,$recipientBlock) : [];
     if ($finalIssues) throw new RuntimeException('Das fertige Motivationsschreiben erfüllt die Briefprüfung nicht: '.implode(' ',$finalIssues));
+    if (!$regenerate) {
+        $finalEditIssues=applicationEditRequestIssues($editingRequest,$currentTexts,$texts,$recipientBlock,$editTargets);
+        if ($finalEditIssues) throw new RuntimeException('Das fertige KI-Ergebnis erfüllt den Bearbeitungsauftrag nicht: '.implode(' ',$finalEditIssues));
+    }
     return $texts;
 }
 
@@ -15852,6 +15959,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'revise_application_texts_ai') {
         $id=(int)($_POST['id'] ?? 0); $uid=userId();
+        $submittedInstruction=mb_substr(trim((string)($_POST['ai_text_instruction'] ?? '')),0,2000);
         $application=dbOne($db,'SELECT id FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL','ii',[$id,$uid]);
         if (!$application) { http_response_code(404); exit('Not found'); }
         $currentTexts=[
@@ -15860,15 +15968,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'cover_letter_text'=>mb_substr(trim((string)($_POST['cover_letter_text'] ?? '')),0,40000),
         ];
         try {
-            $texts=applicationAiTexts($config,$db,$uid,$id,$currentUser ?? [],(string)($_POST['ai_text_instruction'] ?? ''),$currentTexts);
+            $texts=applicationAiTexts($config,$db,$uid,$id,$currentUser ?? [],$submittedInstruction,$currentTexts);
             $stmt=$db->prepare('UPDATE applications SET email_subject=?, email_body=?, cover_letter_text=? WHERE id=? AND user_id=?');
             $stmt->bind_param('sssii',$texts['email_subject'],$texts['email_body'],$texts['cover_letter_text'],$id,$uid); $stmt->execute();
             audit($db,$uid,'update','application_ai_texts',$id,null,['fields'=>['email_subject','email_body','cover_letter_text']]);
+            unset($_SESSION['application_ai_instruction_draft']);
             flash(tr('applications.ai_updated'));
         } catch (Throwable $exception) {
+            $_SESSION['application_ai_instruction_draft']=['application_id'=>$id,'text'=>$submittedInstruction];
             $reference=strtoupper(substr(hash('sha256',$id.'|'.$uid.'|'.microtime(true).'|'.$exception->getMessage()),0,12));
             error_log('Application AI revision failed ['.$reference.'] for application '.$id.': '.$exception->getMessage());
-            flash(tr('applications.ai_failed_detail',null,['reference'=>$reference]),'danger');
+            $publicDetail=preg_match('/^(?:Die KI hat den Bearbeitungsauftrag nicht erfüllt|Das fertige KI-Ergebnis erfüllt den Bearbeitungsauftrag nicht):/u',$exception->getMessage())===1
+                ? ' '.$exception->getMessage() : '';
+            flash(tr('applications.ai_failed_detail',null,['reference'=>$reference]).$publicDetail,'danger');
         }
         redirect('/?page=applications&edit='.$id.'#application-texts');
     }
@@ -16192,7 +16304,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.33';
+$codeVersion = '2.4.34';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18005,7 +18117,7 @@ startUiTranslationBuffer($appLocale);
                 <label><?= e(tr('applications.email_subject')) ?><input id="email-subject" name="email_subject" value="<?= e($applicationEdit['email_subject'] ?? '') ?>"></label>
                 <label><?= e(tr('applications.email_body')) ?><textarea id="email-body" name="email_body" rows="7"><?= e($applicationEdit['email_body'] ?? '') ?></textarea></label>
                 <label><?= e(tr('applications.cover_letter')) ?><textarea id="cover-letter-text" name="cover_letter_text" rows="14"><?= e($applicationEdit['cover_letter_text'] ?? '') ?></textarea></label>
-                <label><?= e(tr('applications.ai_instruction')) ?><textarea name="ai_text_instruction" rows="2" maxlength="2000" placeholder="<?= e(tr('applications.ai_instruction_placeholder')) ?>"></textarea><small><?= e(tr('applications.ai_instruction_hint')) ?></small></label>
+                <label><?= e(tr('applications.ai_instruction')) ?><textarea name="ai_text_instruction" rows="2" maxlength="2000" placeholder="<?= e(tr('applications.ai_instruction_placeholder')) ?>"><?= e((($_SESSION['application_ai_instruction_draft']['application_id'] ?? 0)===(int)$applicationEdit['id']) ? (string)($_SESSION['application_ai_instruction_draft']['text'] ?? '') : '') ?></textarea><small><?= e(tr('applications.ai_instruction_hint')) ?></small></label>
                 <div class="actions"><button class="primary" name="action" value="revise_application_texts_ai"><?= e(tr('applications.ai_apply')) ?></button></div>
                 <div class="actions copy-actions"><button type="button" data-copy-target="email-subject"><?= e(tr('applications.copy_subject')) ?></button><button type="button" data-copy-target="email-body"><?= e(tr('applications.copy_body')) ?></button><button type="button" data-copy-target="cover-letter-text"><?= e(tr('applications.copy_cover')) ?></button></div>
                 <label><?= e(tr('applications.internal_notes')) ?><textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
@@ -18083,7 +18195,7 @@ startUiTranslationBuffer($appLocale);
                 const schedule = event => {
                     const field = event.target;
                     if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement)) return;
-                    if (field.type === 'file' || field.name === 'recipient_email') return;
+                    if (field.type === 'file' || field.name === 'recipient_email' || field.name === 'ai_text_instruction') return;
                     revision += 1;
                     setState('idle');
                     window.clearTimeout(timer);

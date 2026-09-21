@@ -1,6 +1,19 @@
 # Anforderungen
 
-Stand: 18.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.33.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.34.
+
+Ergänzung 2.4.34: Eine ausgefüllte KI-Bearbeitungsanweisung hat gegenüber
+Standardvorgaben zu Länge und Formulierung Vorrang, soweit belegte Fakten,
+Empfängerblock und vollständiger Brief erhalten bleiben. Nennt die Anweisung
+ein bestimmtes Textfeld, werden andere Felder nicht unnötig umformuliert;
+ohne Feldnennung gelten beide Langtexte als Ziel. Jeder Korrekturversuch
+erhält die ursprüngliche Benutzeranweisung erneut und nur das aktuelle
+Fehlerfeedback, nicht eine wachsende Reihe alter Entwürfe. Der gemeldete Fall
+«Motivationsschreiben 30 % ausführlicher; Erfolgszahlen weg» muss nach der
+KI-Antwort zusätzlich an Länge und quantitativen Erfolgsaussagen geprüft
+werden; Hausnummer und PLZ des Empfängers zählen nicht als Erfolgszahlen.
+Ein nicht erfüllter Auftrag überschreibt vorhandene Texte nicht. Die
+Benutzeranweisung bleibt bei einem Fehler im Formular erhalten.
 
 Ergänzung 2.4.33: Beim KI-Vorgang zeigt ein Dialog die konkrete Aktion und
 die seit Beginn verstrichene Zeit sekündlich an; ohne Streaming darf er keine

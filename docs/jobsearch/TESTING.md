@@ -1,6 +1,16 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-14. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+
+Ergänzung 2.4.34: `application_edit_instruction_test.php` verwendet den
+gemeldeten ROCKEN-Auftrag mit Hausnummer und Postleitzahl. Ein zu kurzer
+Brief mit Erfolgszahlen muss an beiden Bedingungen scheitern, ein
+entsprechend verlängerter Brief ohne Erfolgszahlen muss bestehen. Der Test
+prüft die Feld-Zuordnung, die Wiederholung mit unveränderter
+Originalanweisung und die Erhaltung der Eingabe nach einem Fehler.
+Zusätzlich sind die bisherigen KI-, Brief- und Qualitätsprüfungen, die
+gesamte PHP-Suite, Syntax und beide Dokumentationsgeneratoren auszuführen.
+Ein angemeldeter produktiver KI-Lauf bleibt ein separater Nachweis.
 
 Ergänzung 2.4.33: `application_evidence_quality_test.php` testet die
 Zuordnung zweier Quellenbezüge, falsche Inserat-/CV-Zitate, alte/fremde CV-IDs

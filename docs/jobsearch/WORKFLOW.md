@@ -1,6 +1,18 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 18.09.2026. Aktuelles Verhalten für Release 2.4.33.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.34.
+
+Ergänzung 2.4.34: Bei einer manuellen KI-Überarbeitung liest der Server die
+aktuell sichtbaren Formulartexte und die bis zu 2000 Zeichen lange Anweisung.
+Er erkennt ausdrücklich benannte Zielfelder; ohne Feldnennung überarbeitet
+er beide Langtexte. Nicht betroffene Felder stammen unverändert aus dem
+Formular. Der KI-Request führt die ursprüngliche Anweisung am Ende des
+Kontexts, auch in Wiederholungsversuchen. Pro Wiederholung geht nur der
+letzte abgelehnte Entwurf mit seinem konkreten Fehler mit; frühere
+Fehlerrunden werden nicht aufgetürmt. Verlangte prozentuale Verlängerung
+und Entfernung von Erfolgszahlen werden beim gemeldeten deutschen Muster
+serverseitig geprüft. Scheitern alle Versuche, bleiben die gespeicherten
+Texte erhalten und die eingegebene Anweisung für eine Korrektur sichtbar.
 
 Ergänzung 2.4.33: Die Fortschrittszeile im KI-Dialog benennt die
 ausgelöste Aktion und zählt die verstrichenen Sekunden bis Abschluss,

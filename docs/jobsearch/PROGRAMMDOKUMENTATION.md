@@ -1,6 +1,28 @@
 # Programmdokumentation
 
-Stand: 2026-09-18. Version 2.4.33 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.34 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Gezielte KI-Überarbeitung 2.4.34
+
+`applicationEditTargets()` ordnet eine ausdrücklich benannte Betreff-, Mail-
+oder Briefanweisung nur diesen Feldern zu; ohne Benennung sind die beiden
+Langtexte betroffen. Der Server erhält die aktuellen Formularwerte, nicht
+einen älteren Datenbank-Snapshot. Beim manuellen Editieren überschreibt der
+explizite Auftrag die übliche Zielspanne von ungefähr 170–260 Briefwörtern,
+nicht aber Faktenbindung, Empfänger oder Briefabschluss. Die Originalanweisung
+steht in jedem Responses-Request am Schluss des User-Kontexts. Für einen
+Retry wird die Eingabe aus dem Basis-Kontext neu aufgebaut und nur der
+neueste Fehlhinweis ergänzt; alte Fehlerrunden sammeln sich nicht an.
+
+`applicationEditRequestIssues()` prüft im gemeldeten deutschen Beispiel die
+geforderte prozentuale Erweiterung gegenüber dem vorhandenen Brieftext und
+verbliebene quantitative Erfolgsangaben. Der Empfängerblock mit Hausnummer
+und Postleitzahl wird dafür ausgeklammert. Eine nicht erfüllte Anweisung
+führt zu einer weiteren KI-Korrektur oder zu einer Fehlermeldung, niemals zu
+einem stillen Speichern. Bei einem Fehler bleibt die Formularanweisung in
+der Sitzung erhalten. Die Prüfung erkennt nicht jede mögliche freie
+sprachliche Anweisung semantisch; für weitere Fälle bleibt eine fachliche
+Abnahme nötig. Keine Datenbankmigration.
 
 ## KI-Laufzeitanzeige und belegte Bewerbungstexte 2.4.33
 
