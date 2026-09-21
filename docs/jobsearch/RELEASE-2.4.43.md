@@ -27,10 +27,23 @@ Schnellimport einzeln als Fehler ausgewiesen.
 
 Lokal geprüft: PHP-Syntax, 57 PHP-Tests und beide Dokumentationsgeneratoren.
 Der separate Playwright-Dialogtest konnte in dieser Arbeitsumgebung mangels
-installiertem `playwright`-Modul nicht gestartet werden. Die angemeldete
-Produktivprüfung bleibt nach dem Deployment offen.
+installiertem `playwright`-Modul nicht gestartet werden.
 
 ## Verifikation und Deployment
 
-Technische und angemeldete Produktivprüfung werden nach der Veröffentlichung
-getrennt ergänzt.
+Der zuvor öffentlich erreichbare Stand 2.4.42 wies alle drei Detail-URLs
+weiterhin ab. Der Fehler lag damit auch an der fehlenden Produktivveröffentlichung
+des bereits korrigierten Quellstands.
+
+Vor dem Austausch wurde die bisherige produktive `index.php` als
+`index.php.bak-20260921-2.4.42-pre-2.4.43` auf dem Server gesichert.
+Danach wurde `public/index.php` aus Commit `03909af` als Version 2.4.43
+veröffentlicht. Der SHA-256-Wert der produktiven Datei stimmt mit dem
+lokalen Release überein:
+`6ccbf04b17ee17b0c167f69ef8e377a329a9482db9b3a402aed8c0ce26d87a85`.
+Die öffentliche Startseite antwortet mit HTTP 200 und zeigt Version 2.4.43.
+
+Die App-Sitzung im Browser war bei der anschliessenden Kontrolle abgemeldet.
+Ein angemeldeter Schnellimport und die Speicherung der 33 vollständigen
+Treffer sind daher **noch nicht produktiv verifiziert**. Es wird nicht
+behauptet, dass diese Jobs bereits importiert wurden.
