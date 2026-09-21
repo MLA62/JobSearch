@@ -54,6 +54,8 @@ $plain=richTextPlain($repaired);
 if (preg_match('/'.preg_quote($subject,'/').'\s+Guten Tag/u',$plain)!==1) throw new RuntimeException('Missing greeting was not inserted after the subject.');
 if (substr_count($plain,'Meine Vertriebserfahrung')!==16) throw new RuntimeException('Greeting repair lost letter content.');
 if (applicationLetterStructureIssues($repaired,'de-CH','Markus Lauber',$recipient)) throw new RuntimeException('Repaired letter still fails structure validation.');
+$final=applicationCoverLetterWithRecipientBlock(mb_substr(trim($repaired),0,40000),$recipient);
+if (applicationLetterStructureIssues($final,'de-CH','Markus Lauber',$recipient)) throw new RuntimeException('Final serialization reintroduced the greeting error.');
 $withSwissGreeting=str_replace($subject."\n\n",$subject."\n\nGrüezi Herr Beispiel\n\n",$withoutGreeting);
 $preserved=applicationLetterWithSalutation(applicationCoverLetterWithRecipientBlock($withSwissGreeting,$recipient),'de-CH',$recipient);
 if (substr_count(richTextPlain($preserved),'Grüezi Herr Beispiel')!==1 || str_contains(richTextPlain($preserved),'Guten Tag')) throw new RuntimeException('Existing Swiss greeting was overwritten.');
