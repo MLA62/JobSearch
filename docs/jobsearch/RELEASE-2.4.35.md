@@ -1,7 +1,7 @@
 # Release 2.4.35 – KI-Schreibkontext
 
-Stand: 21.09.2026. Implementierung und lokale Tests; produktive Bereitstellung und
-authentifizierte fachliche Abnahme sind separat zu dokumentieren.
+Stand: 21.09.2026. Implementierung, lokale Tests und produktive Bereitstellung
+nachgewiesen; authentifizierte fachliche Abnahme steht aus.
 
 ## Anlass und Umsetzung
 
@@ -30,10 +30,10 @@ erhalten. Keine Datenbankmigration und kein automatischer Versand.
 
 ## Prüfungen und Grenzen
 
-52 lokale PHP-Tests einschliesslich CV-Auswahl, Kontext-Isolation,
+52 lokale PHP-Tests (`php -n`) einschliesslich CV-Auswahl, Kontext-Isolation,
 Empfängerblock/Betreff, Bearbeitungsinstruktion und Qualitätstest bestanden.
 PHP-Syntax und Hilfe-Generatorprüfung bestanden; die Referenz wurde neu
-generiert und mit `--check` zu prüfen. Die [offizielle OpenAI-Dokumentation
+generiert und mit `--check` geprüft. Die [offizielle OpenAI-Dokumentation
 zu strukturierten Ausgaben](https://developers.openai.com/api/docs/guides/structured-outputs)
 bestätigt die verwendete JSON-Schema-Antwort; die [Dateieingabe-Dokumentation](https://developers.openai.com/api/docs/guides/file-inputs)
 führt PDF, DOC und DOCX als unterstützte Responses-Dateitypen auf.
@@ -46,8 +46,24 @@ Testzwecken überschrieben.
 
 ## Deployment-Nachweis
 
-Ausgangsstand: Version 2.4.34, produktive Datei
+Quell-Commit `479036148a45c66b457664ab6effdbee6c6c44cd`, auf
+`origin/feature/jema-jobs-ki-2.1.0` veröffentlicht. Ausgangsstand:
+Version 2.4.34, produktive Datei
 `public_html/jobs.jema.business/index.php`, SHA-256
 `dbc5afe90313ecd18b41dd9a01a41dbf91951eba13b0662c51e05127bf5d0248`.
-Quell-Commit, neues Artefakt, Sicherung, Approval-IDs, produktiver Hash und
-HTTPS-Prüfung werden nach dem Deployment ergänzt.
+Vor dem Austausch um 07:48 UTC als
+`index.php.bak-20260921-2.4.34-pre-2.4.35` gesichert (Copy-Approval
+`1501c17afdbfe4a25ec88ebbb5445d55`). Sicherung: 1’363’220 Bytes,
+Berechtigung `0644`, identischer SHA-256-Hash.
+
+Neues lokales Artefakt: 1’355’665 Bytes, SHA-256
+`3bf6b8dbd86710b53257e07cb1c6ce6f36246686b22a56095ff6904960d92338`.
+Um 07:49 UTC mit Write-Approval `6be55477161496347c700d8ca5579200`
+auf die produktive Datei geschrieben. Der anschliessend gelesene Server-Hash
+ist mit dem lokalen identisch; Berechtigung weiterhin `0644`. Ein
+öffentlicher HTTPS-Abruf lieferte HTTP 200, den Titel «JeMa Jobs» und die
+Versionskennung 2.4.35. Die Browser-Sitzung war bei der Live-Prüfung nicht
+mehr angemeldet; die Anmeldeseite zeigte ebenfalls 2.4.35. Ein
+authentifizierter KI-Schreibversuch wurde deshalb nicht durchgeführt und
+darf nicht als erfolgreich behauptet werden. Keine Schema- oder
+produktiven Bewerbungsdatenänderungen durch das Deployment.
