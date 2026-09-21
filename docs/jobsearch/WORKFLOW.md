@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.40.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.41.
+
+Release 2.4.41: Im Onlinebewerbungsbereich ist «Online eingereicht» neben
+dem Link zum externen Webformular erreichbar. Der Button und der zugehörige
+Hinweis werden nur bei `draft` oder `ready` ohne `applied_at` angezeigt.
+Der bisherige zweite Button am Formularende entfällt. Die bestehende
+serverseitige Sperre und Status-/Kalenderprotokollierung bleiben unverändert.
 
 Release 2.4.40: Vor einer KI-Überarbeitung werden der aktuelle
 Empfängerblock und die neuesten passenden Stammdaten-Lebensläufe erneut

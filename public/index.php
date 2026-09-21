@@ -3905,11 +3905,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.online.steps.2' =>
   array (
-    'de-CH' => 'Bestätige die erfolgte Einreichung anschliessend in JeMa Jobs; ergänze Referenz und Notizen.',
-    'fr-CH' => 'Confirme ensuite le dépôt effectué dans JeMa Jobs et complète référence et notes.',
-    'en-GB' => 'Then confirm the completed submission in JeMa Jobs and add a reference and notes.',
-    'pt-BR' => 'Depois confirme a entrega realizada no JeMa Jobs e acrescente referência e observações.',
-    'es-MX' => 'Después confirma la entrega realizada en JeMa Jobs y añade referencia y notas.',
+    'de-CH' => 'Bestätige die erfolgte Einreichung mit «Online eingereicht» direkt neben «Webformular öffnen»; ergänze Referenz und Notizen. Der Button erscheint nur vor der Einreichung.',
+    'fr-CH' => 'Confirme ensuite le dépôt avec le bouton placé à côté de l\'ouverture du formulaire ; complète référence et notes. Le bouton n\'apparaît qu\'avant le dépôt.',
+    'en-GB' => 'Then confirm the completed submission with the button next to the web-form link; add a reference and notes. The button appears only before submission.',
+    'pt-BR' => 'Depois confirme a entrega com o botão ao lado do link para o formulário; acrescente referência e observações. O botão aparece apenas antes do envio.',
+    'es-MX' => 'Después confirma la entrega con el botón junto al enlace del formulario; añade referencia y notas. El botón solo aparece antes del envío.',
   ),
   'help.v2.online.summary' =>
   array (
@@ -16464,7 +16464,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.40';
+$codeVersion = '2.4.41';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18255,8 +18255,9 @@ startUiTranslationBuffer($appLocale);
                     <div class="actions">
                         <?php if($onlineApplicationUrl !== ''): ?><a class="button primary" href="<?= e($onlineApplicationUrl) ?>" target="_blank" rel="noopener"><?= e(tr('applications.open_webform')) ?></a><?php endif; ?>
                         <?php if($applicationDocuments): ?><a class="button" href="/?page=application_documents_temp&id=<?= (int)$applicationEdit['id'] ?>" target="_blank" rel="noopener"><?= e(tr('applications.temp_folder')) ?></a><a class="button" href="/?page=application_documents_zip&id=<?= (int)$applicationEdit['id'] ?>"><?= e(tr('applications.portal_zip')) ?></a><?php endif; ?>
+                        <?php if(in_array($applicationEdit['status'], ['draft','ready'], true) && empty($applicationEdit['applied_at'])): ?><button class="primary" type="submit" name="action" value="submit_online_application"><?= e(tr('applications.submitted_online')) ?></button><?php endif; ?>
                     </div>
-                    <p class="meta-line"><?= e(tr('applications.online_submit_hint')) ?></p>
+                    <?php if(in_array($applicationEdit['status'], ['draft','ready'], true) && empty($applicationEdit['applied_at'])): ?><p class="meta-line"><?= e(tr('applications.online_submit_hint')) ?></p><?php endif; ?>
                 </div>
                 <label><?= e(tr('applications.online_url')) ?><input id="application-url" type="url" name="application_url" value="<?= e($onlineApplicationUrl) ?>" placeholder="https://..."></label>
                 <div class="two"><label><?= e(tr('applications.portal_hint')) ?><input id="portal-account" name="portal_account" value="<?= e($applicationEdit['portal_account'] ?? '') ?>" placeholder="<?= e(tr('applications.portal_hint_placeholder')) ?>"></label><label><?= e(tr('applications.reference_number')) ?><input id="reference-number" name="reference_number" value="<?= e($applicationEdit['reference_number'] ?? '') ?>" placeholder="<?= e(tr('applications.reference_placeholder')) ?>"></label></div>
@@ -18274,7 +18275,7 @@ startUiTranslationBuffer($appLocale);
                 <div class="actions"><button class="primary" name="action" value="revise_application_texts_ai"><?= e(tr('applications.ai_apply')) ?></button></div>
                 <div class="actions copy-actions"><button type="button" data-copy-target="email-subject"><?= e(tr('applications.copy_subject')) ?></button><button type="button" data-copy-target="email-body"><?= e(tr('applications.copy_body')) ?></button><button type="button" data-copy-target="cover-letter-text"><?= e(tr('applications.copy_cover')) ?></button></div>
                 <label><?= e(tr('applications.internal_notes')) ?><textarea name="notes" rows="4"><?= e($applicationEdit['notes'] ?? '') ?></textarea></label>
-                <div class="actions"><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button><?php if(in_array($applicationEdit['status'], ['draft','ready'], true)): ?><button class="primary" name="action" value="submit_online_application"><?= e(tr('applications.submitted_online')) ?></button><button name="action" value="send_application_email"><?= e(tr('applications.send_email')) ?></button><?php endif; ?></div>
+                <div class="actions"><button class="primary" name="action" value="save_application"><?= e(tr('applications.save')) ?></button><?php if(in_array($applicationEdit['status'], ['draft','ready'], true)): ?><button name="action" value="send_application_email"><?= e(tr('applications.send_email')) ?></button><?php endif; ?></div>
             </form>
             <script>
             (() => {

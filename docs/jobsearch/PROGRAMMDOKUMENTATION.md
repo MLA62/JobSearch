@@ -1,6 +1,18 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.40 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.41 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Sichtbare Online-Einreichung 2.4.41
+
+Das Formular zeigt die Aktion `submit_online_application` direkt im
+Onlinebewerbungsbereich neben dem Webformular-Link an, solange der Datensatz
+`draft` oder `ready` und ohne `applied_at` ist. Die alte, weit entfernte
+Schaltfläche am Formularende wurde entfernt. Der Hilfetext wird in anderen
+Status nicht mehr angezeigt, damit er keine unauffindbare Aktion behauptet.
+Der bestehende Handler prüft den Status und den tatsächlichen
+Einreichungszeitpunkt erneut unter Transaktionssperre; er setzt Status,
+Datum und Kalender erst nach bewusstem Klick, nicht beim Öffnen des Portals.
+Keine Datenbankmigration.
 
 ## Abbruchkriterien und Empfängerdaten 2.4.40
 

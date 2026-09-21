@@ -2,6 +2,13 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.41: `application_online_submit_placement_test.php` prüft genau
+einen «Online eingereicht»-Button im Onlinebewerbungsbereich direkt beim
+Webformular-Link. Button und Hinweis sind nur bei Entwurf/Bereit ohne
+Bewerbungsdatum sichtbar; die bestehende serverseitige Statusprüfung bleibt.
+Syntax, alle PHP-Tests sowie Hilfe- und Referenzgenerator sind auszuführen.
+Die Live-Hash-/HTTPS-Prüfung ersetzt keine angemeldete Sichtprüfung.
+
 Release 2.4.40: `application_abort_gate_test.php` prüft die Trennung
 zwischen beratenden Modellurteilen und verbindlichen Prüfungen, die
 Übernahme eines gültigen Rückfallentwurfs und die HTML-erhaltende

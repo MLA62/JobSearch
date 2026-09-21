@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.40'=>"\$codeVersion = '2.4.40'",
+    'version 2.4.41'=>"\$codeVersion = '2.4.41'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'rejected drafts are not silently replaced'=>'Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.',

@@ -1,6 +1,13 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.40.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.41.
+
+Release 2.4.41: Der Button «Online eingereicht» steht im Bereich
+«Onlinebewerbung» unmittelbar bei «Webformular öffnen» statt am Ende des
+langen Bewerbungsformulars. Der Hinweis auf diesen Button erscheint nur,
+solange die Bewerbung noch als Entwurf/Bereit ohne Bewerbungsdatum geführt
+wird. Nach der externen Einreichung protokolliert der bewusste Klick wie
+bisher Status, Zeitpunkt und Kalender; das Öffnen des Portals allein nicht.
 
 Release 2.4.40: Fehlende Empfängerangaben werden bei jeder KI-Überarbeitung
 zuerst aus den eigenen CRM-Datensätzen erneut ermittelt. Ein vollständiger
