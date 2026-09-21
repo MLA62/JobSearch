@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 21.09.2026. Version 2.4.38 schützt vorhandene Bewerbungstexte: Öffnen ändert sie nicht; ohne KI-Instruktion werden nur leere Felder ergänzt. Für Änderungen an vorhandenen Texten ist eine ausdrückliche Instruktion erforderlich. Die KI nutzt weiterhin den [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md), aktuelle Lebensläufe und die unabhängige simulierte Empfängerprüfung.
-Release-Dokumentation: [Release 2.4.38](docs/jobsearch/RELEASE-2.4.38.md).
+Stand: 21.09.2026. Version 2.4.39 schützt vorhandene Bewerbungstexte: Öffnen ändert sie nicht; ohne KI-Instruktion werden nur leere Felder ergänzt. KI-Entwürfe werden vor der Qualitätsprüfung von einzelnen ungeeigneten Sätzen bereinigt, statt allein deshalb verworfen. Für Änderungen an vorhandenen Texten ist eine ausdrückliche Instruktion erforderlich. Die KI nutzt weiterhin den [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md), aktuelle Lebensläufe und die unabhängige simulierte Empfängerprüfung.
+Release-Dokumentation: [Release 2.4.39](docs/jobsearch/RELEASE-2.4.39.md), [Release 2.4.38](docs/jobsearch/RELEASE-2.4.38.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

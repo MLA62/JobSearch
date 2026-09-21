@@ -1,6 +1,12 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.38.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.39.
+
+Hotfix 2.4.39: Nach dem KI-API-Rücklauf werden nur die angeforderten
+Textfelder von einzelnen ungeeigneten Sätzen bereinigt. Der bereinigte
+Entwurf durchläuft danach die bestehenden Qualitätsprüfungen. Nur ein
+unvollständiger Entwurf wird neu angefordert; eine solche Formulierung
+allein löst keinen pauschalen Abbruch mehr aus.
 
 Not-Update 2.4.38: Der GET-Aufruf einer bestehenden Bewerbung liest die
 gespeicherten drei Textfelder unverändert; er startet weder Initialisierung

@@ -61,5 +61,19 @@ if(applicationTextHasDisqualifyingLanguage($safe)) throw new RuntimeException('S
 if(richTextPlain(applicationTextWithoutDisqualifyingLanguage($safe))!==$safe) throw new RuntimeException('Supported positive wording changed.');
 echo "PASS positive factual wording remains unchanged\n";
 
+$substantive='<p>Ich unterstütze Unternehmenskunden bei der Einführung passender ICT-Lösungen und verbinde technische Anforderungen mit klaren kommerziellen Entscheidungen. In der Zusammenarbeit mit Fachspezialisten koordiniere ich komplexe Angebote, kläre offene Fragen und begleite Kunden durch den gesamten Entscheidungsprozess.</p><p>Gerne erläutere ich Ihnen meine Erfahrung in einem persönlichen Gespräch.</p><p>Ich freue mich darauf, meine Erfahrung in dieser Aufgabe einzubringen und Sie kennenzulernen.</p>';
+$repaired=applicationTextWithoutDisqualifyingLanguage($substantive);
+if(applicationTextHasDisqualifyingLanguage($repaired) || !str_contains(richTextPlain($repaired),'komplexe Angebote') || !str_contains(richTextPlain($repaired),'Ich freue mich darauf')) throw new RuntimeException('A removable interview sentence prevented a substantive draft from surviving.');
+echo "PASS removable interview sentence does not discard the substantive draft\n";
+
+$aiStart=strpos($source,'function applicationAiTexts(');
+$aiEnd=strpos($source,'function applicationEnsureRecipientData(', $aiStart);
+$aiSource=substr($source,$aiStart,$aiEnd-$aiStart);
+$repairOffset=strpos($aiSource,'$texts[$field]=applicationTextWithoutDisqualifyingLanguage((string)$texts[$field]);');
+$qualityOffset=strpos($aiSource,'$qualityIssues=applicationTextQualityIssues(');
+if($repairOffset===false || $qualityOffset===false || $repairOffset>$qualityOffset) throw new RuntimeException('AI drafts must be repaired before the quality gates run.');
+if(str_contains($aiSource,'Der KI-Entwurf enthält trotz Überarbeitung ungeeignete Aussagen')) throw new RuntimeException('The old three-attempt removable-sentence rejection is still active.');
+echo "PASS AI repair precedes quality validation\n";
+
 if (str_contains($source,'function applicationFallbackTexts(')) throw new RuntimeException('Generic local fallback text must not be available.');
 echo "PASS no generic fallback can replace a failed AI draft\n";

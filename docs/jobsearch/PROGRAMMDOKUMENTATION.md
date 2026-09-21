@@ -1,6 +1,16 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.38 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.39 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## KI-Textreparatur 2.4.39
+
+Die Fehlerreferenz `65C070A70D1C` zeigte, dass drei KI-Rückläufe wegen
+einzelner ungeeigneter Sätze verworfen wurden, obwohl eine Bereinigung
+vorhanden war. Zieltexte werden jetzt unmittelbar nach dem API-Rücklauf
+bereinigt. Nur wenn danach ungeeignete Sprache verbleibt oder ein Text
+zu kurz wird, fordert die App einen neuen Entwurf an. Bestehende, nicht
+angewiesene Texte bleiben unverändert. Briefstruktur, expliziter Auftrag,
+Quellenbezüge und Empfängerprüfung werden anschliessend wie bisher geprüft.
 
 ## Textschutz beim Öffnen und bei leerer KI-Instruktion 2.4.38
 

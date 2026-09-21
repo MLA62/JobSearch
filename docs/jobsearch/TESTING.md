@@ -2,6 +2,10 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Hotfix 2.4.39: `application_text_quality_test.php` prüft zusätzlich,
+dass ein belegbarer Entwurf mit einem entfernbaren Gesprächsaufschub
+inhaltlich erhalten bleibt und vor den Qualitätsprüfungen bereinigt wird.
+
 Not-Update 2.4.38: `application_text_preservation_test.php` prüft,
 dass der reine Bewerbungsaufruf keinen Text initialisiert oder schreibt,
 dass ein leerer KI-Auftrag gefüllte Felder bytegenau erhält und dass die

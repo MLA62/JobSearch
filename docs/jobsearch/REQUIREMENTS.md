@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.38.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.39.
+
+Hotfix 2.4.39: Ein einzelner technisch entfernbarer, bewerberschädlicher
+Satz darf einen ansonsten substanziellen KI-Entwurf nicht vollständig
+blockieren. Die Bereinigung erfolgt vor Brief-, Auftrags-, Quellen- und
+Empfängerprüfung; unvollständige Reste werden erneut erzeugt.
 
 Not-Update 2.4.38: Das blosse Öffnen einer bestehenden Bewerbung ist für
 Betreff, Begleit-E-Mail und Motivationsschreiben vollständig lesend. Es darf

@@ -3217,11 +3217,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.6' =>
   array (
-    'de-CH' => 'Bewerbungstexte erwähnen niemals fehlende oder unlesbare Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen und verschieben fehlende Aussagen nicht auf ein späteres Gespräch. Ein solcher KI-Rücklauf wird neu erzeugt und vor dem Speichern zusätzlich technisch bereinigt.',
-    'fr-CH' => 'Les textes de candidature ne mentionnent jamais des documents, CV, expériences ou qualifications manquants ou illisibles et ne reportent pas leur contenu à un entretien ultérieur. Une telle réponse IA est régénérée puis contrôlée techniquement avant l’enregistrement.',
-    'en-GB' => 'Application texts never mention missing or unreadable documents, CVs, experience or qualifications and never defer missing substance to a later interview. Such an AI response is regenerated and technically checked again before saving.',
-    'pt-BR' => 'Os textos de candidatura nunca mencionam documentos, currículos, experiências ou qualificações ausentes ou ilegíveis e não adiam conteúdo para uma entrevista posterior. Essa resposta da IA é recriada e verificada tecnicamente antes de ser salva.',
-    'es-MX' => 'Los textos de candidatura nunca mencionan documentos, currículos, experiencia o cualificaciones ausentes o ilegibles ni aplazan el contenido a una entrevista posterior. Esa respuesta de la IA se vuelve a generar y se comprueba técnicamente antes de guardarla.',
+    'de-CH' => 'Bewerbungstexte erwähnen niemals fehlende oder unlesbare Unterlagen, Lebensläufe, Erfahrungen oder Qualifikationen und verschieben fehlende Aussagen nicht auf ein späteres Gespräch. Solche Sätze werden vor der Prüfung entfernt; nur wenn danach ein Text unvollständig ist, wird er neu angefordert.',
+    'fr-CH' => 'Les textes de candidature ne mentionnent jamais des documents, CV, expériences ou qualifications manquants ou illisibles et ne reportent pas leur contenu à un entretien ultérieur. Ces phrases sont retirées avant le contrôle ; un nouveau texte n’est demandé que si le résultat devient incomplet.',
+    'en-GB' => 'Application texts never mention missing or unreadable documents, CVs, experience or qualifications and never defer missing substance to a later interview. Such sentences are removed before validation; a new draft is requested only if the result is incomplete.',
+    'pt-BR' => 'Os textos de candidatura nunca mencionam documentos, currículos, experiências ou qualificações ausentes ou ilegíveis e não adiam conteúdo para uma entrevista posterior. Essas frases são removidas antes da verificação; um novo texto só é solicitado se o resultado ficar incompleto.',
+    'es-MX' => 'Los textos de candidatura nunca mencionan documentos, currículos, experiencia o cualificaciones ausentes o ilegibles ni aplazan el contenido a una entrevista posterior. Esas frases se eliminan antes de la comprobación; solo se pide otro texto si el resultado queda incompleto.',
   ),
   'help.v2.applications.tips.7' =>
   array (
@@ -10463,13 +10463,24 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
                 if (!in_array($field,$editTargets,true)) $texts[$field]=(string)($currentTexts[$field] ?? '');
             }
         }
+        // Repair the model output before judging it. Rejecting three drafts for a removable
+        // sentence prevented otherwise valid user instructions from being carried out.
         $disqualifying=[];
-        foreach (['email_body','cover_letter_text'] as $field) if (in_array($field,$editTargets,true) && applicationTextHasDisqualifyingLanguage((string)$texts[$field])) $disqualifying[]=$field;
-        if ($disqualifying && $attempt<3) {
-            $retryFeedback='Revise this rejected draft; it contains applicant-undermining language or defers substance to an interview. Remove those sentences in the requested fields. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
-            continue;
+        foreach (['email_body','cover_letter_text'] as $field) {
+            if (!in_array($field,$editTargets,true) || !applicationTextHasDisqualifyingLanguage((string)$texts[$field])) continue;
+            $texts[$field]=applicationTextWithoutDisqualifyingLanguage((string)$texts[$field]);
+            if (applicationTextHasDisqualifyingLanguage((string)$texts[$field])
+                || !applicationTextHasMinimumSubstance((string)$texts[$field],$field==='cover_letter_text' ? 100 : 25)) {
+                $disqualifying[]=$field;
+            }
         }
-        if ($disqualifying) throw new RuntimeException('Der KI-Entwurf enthält trotz Überarbeitung ungeeignete Aussagen. Er wurde nicht gespeichert.');
+        if ($disqualifying) {
+            if ($attempt<3) {
+                $retryFeedback='Write a complete fresh draft for '.implode(', ',$disqualifying).'. Do not mention unavailable materials or defer the substance to an interview. Retain the explicit user edit request.';
+                continue;
+            }
+            throw new RuntimeException('Nach dem Entfernen ungeeigneter Aussagen ist ein KI-Text zu kurz oder unvollständig.');
+        }
         if (!$regenerate) {
             $unchanged=[];
             foreach ($editTargets as $field) {
@@ -16370,7 +16381,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.38';
+$codeVersion = '2.4.39';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
