@@ -27,6 +27,21 @@ gültigen Bewerbungstext mit unbelegten Stilforderungen. Die Entscheidung
 
 ## Verifikation und Deployment
 
-Lokale Tests, Quell-Commit, Backup, Approval-ID, Live-Hash und anonyme
-HTTPS-Prüfung werden nach der Durchführung eingetragen. Ein
-authentifizierter End-to-End-KI-Lauf ist gesondert zu protokollieren.
+- Quell-Commit: `57064dc` auf `feature/jema-jobs-ki-2.1.0`, nach GitHub gepusht.
+- Lokal: `php -n -l public/index.php`, Hilfe- und Referenzgeneratorprüfung,
+  `git diff --check` und 55 PHP-Tests erfolgreich.
+- Unmittelbar vor dem Austausch hatte die Live-Datei den SHA-256-Hash
+  `0f22cfdde3e9b6679e849281c4e7a07a556808f7b3ffec8441438af11aa232a8`.
+  Sie wurde unter
+  `public_html/jobs.jema.business/index.php.bak-20260921-2.4.39-pre-2.4.40`
+  gesichert (Approval-ID `40f39e9d5dd6cf3ab934f79ba692313b`).
+- Der Upload ersetzte ausschliesslich `public_html/jobs.jema.business/index.php`
+  (Approval-ID `1e34debd2042d8ff3d83a97a3679d50b`); zusätzlich erzeugte
+  der Connector ein eigenes Datei-Backup.
+- Die Live-Datei hat danach den mit der lokal getesteten Datei identischen
+  SHA-256-Hash `180aa5c9bef497e953ae83c1b1c0ecd67931fb602e509230703bdff0a4b8d3de`
+  und weiterhin Berechtigung `0644`. Der anonyme HTTPS-Aufruf von
+  `https://jobs.jema.business/` antwortete mit HTTP 200 und zeigte 2.4.40.
+- Ein authentifizierter End-to-End-KI-Lauf mit einer realen Bewerbung wurde
+  bei diesem technischen Smoke-Test nicht durchgeführt; dies ist keine
+  Behauptung einer fachlichen Live-Abnahme.
