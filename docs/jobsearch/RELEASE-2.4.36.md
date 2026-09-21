@@ -30,6 +30,10 @@ bestimmt werden konnte.
 
 ## Deployment-Nachweis
 
+Geprüfter Quell-Commit `8ac16b90171f06fb3739a1d5d6658625fe8546c6`
+auf `origin/feature/jema-jobs-ki-2.1.0` veröffentlicht. Dieses
+Dokumentations-Nachtragscommit ändert das bereitgestellte PHP-Artefakt nicht.
+
 Ausgangsstand 2.4.35: `public_html/jobs.jema.business/index.php`, 1’355’665
 Bytes, SHA-256 `3bf6b8dbd86710b53257e07cb1c6ce6f36246686b22a56095ff6904960d92338`.
 Vor dem Austausch als `index.php.bak-20260921-2.4.35-pre-2.4.36`
