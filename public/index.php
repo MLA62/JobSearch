@@ -9930,7 +9930,7 @@ function applicationCoverLetterWithRecipientBlock(string $coverLetter, string $r
     // optional subject. Never stack that header behind the current recipient.
     $greetingIndex=null;
     foreach (array_slice($plainLines,0,12) as $index=>$line) {
-        if (preg_match('/^(?:Guten Tag|Sehr geehrt|Dear|Hello|Bonjour|Madame|Monsieur|Ch[eè]re?|Prezados?|Prezadas?|Estimad[oa]s?|Hola)\b/iu',$line)===1) {
+        if (preg_match('/^(?:Guten Tag|Grüezi|Sehr geehrt|Liebe?r?|Dear|Hello|Bonjour|Madame|Monsieur|Ch[eè]re?|Prezados?|Prezadas?|Estimad[oa]s?|Hola)\b/iu',$line)===1) {
             $greetingIndex=$index;
             break;
         }
@@ -9947,24 +9947,59 @@ function applicationCoverLetterWithRecipientBlock(string $coverLetter, string $r
     return sanitizeRichText($blockHtml . ($coverLetter !== '' ? "\n" . $coverLetter : ''));
 }
 
+function applicationLetterWithSalutation(string $letter, string $locale, string $recipientBlock): string
+{
+    $plain=richTextPlain($letter);
+    $recipient=trim($recipientBlock);
+    $allLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$plain) ?: []),static fn(string $line):bool=>$line!==''));
+    $recipientLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$recipient) ?: []),static fn(string $line):bool=>$line!==''));
+    if ($recipientLines && array_slice($allLines,0,count($recipientLines))!==$recipientLines) return $letter;
+    $lines=array_slice($allLines,count($recipientLines));
+    $locale=normalizeLocale($locale);
+    $greetingPattern=match ($locale) {
+        'fr-CH'=>'/^(?:Madame|Monsieur|Bonjour|Chère|Cher)\b/iu',
+        'en-GB'=>'/^(?:Dear|Hello)\b/iu',
+        'pt-BR'=>'/^(?:Prezados|Prezadas|Caro|Cara|Olá)\b/iu',
+        'es-MX'=>'/^(?:Estimado|Estimada|Hola|Apreciado|Apreciada)\b/iu',
+        default=>'/^(?:Guten Tag|Grüezi|Sehr geehrt|Liebe?r?)\b/iu',
+    };
+    foreach (array_slice($lines,0,5) as $line) if (preg_match($greetingPattern,$line)===1) return $letter;
+    $greeting=match ($locale) {
+        'fr-CH'=>'Bonjour', 'en-GB'=>'Dear Hiring Team',
+        'pt-BR'=>'Prezados Senhores', 'es-MX'=>'Estimado equipo de selección',
+        default=>'Guten Tag',
+    };
+    $header=[];
+    while ($lines && count($header)<3 && preg_match('/^(?:Bewerbung|Betreff\s*:|Application\s+for|Candidature|Solicitud|Candidatura)\b|^\d{1,2}\.\d{1,2}\.\d{4}\b/iu',$lines[0])===1) {
+        $header[]=array_shift($lines);
+    }
+    // Only a structurally incomplete AI draft is rebuilt; all existing words remain.
+    $complete=implode("\n\n",array_filter([$recipient,implode("\n",$header),$greeting,implode("\n",$lines)],static fn(string $part):bool=>$part!==''));
+    return sanitizeRichText(nl2br(e($complete),false));
+}
+
 function applicationLetterStructureIssues(string $letter, string $locale, string $applicant, string $recipientBlock): array
 {
     $plain=richTextPlain($letter);
     $issues=[];
     $recipient=trim($recipientBlock);
-    if ($recipient!=='' && !str_starts_with($plain,$recipient)) $issues[]='Der Empfängerblock fehlt am Anfang.';
-    $body=$recipient!=='' && str_starts_with($plain,$recipient) ? trim(mb_substr($plain,mb_strlen($recipient))) : $plain;
-    $lines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$body) ?: []),static fn(string $line):bool=>$line!==''));
+    $allLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$plain) ?: []),static fn(string $line):bool=>$line!==''));
+    $recipientLines=array_values(array_filter(array_map('trim',preg_split('/\R/u',$recipient) ?: []),static fn(string $line):bool=>$line!==''));
+    $hasRecipient=!$recipientLines || array_slice($allLines,0,count($recipientLines))===$recipientLines;
+    if (!$hasRecipient) $issues[]='Der Empfängerblock fehlt am Anfang.';
+    $lines=$hasRecipient ? array_slice($allLines,count($recipientLines)) : $allLines;
     $rules=match (normalizeLocale($locale)) {
         'fr-CH'=>['salutation'=>'/^(?:Madame|Monsieur|Bonjour|Chère|Cher)\b/iu','closing'=>'/^(?:Meilleures salutations|Avec mes meilleures salutations|Cordialement|Bien cordialement)[,.]?$/iu'],
         'en-GB'=>['salutation'=>'/^(?:Dear|Hello)\b/iu','closing'=>'/^(?:Kind regards|Best regards|Yours sincerely|Yours faithfully)[,.]?$/iu'],
         'pt-BR'=>['salutation'=>'/^(?:Prezados|Prezadas|Caro|Cara|Olá)\b/iu','closing'=>'/^(?:Atenciosamente|Cordiais saudações)[,.]?$/iu'],
         'es-MX'=>['salutation'=>'/^(?:Estimado|Estimada|Hola|Apreciado|Apreciada)\b/iu','closing'=>'/^(?:Saludos cordiales|Atentamente|Cordialmente)[,.]?$/iu'],
-        default=>['salutation'=>'/^(?:Guten Tag|Sehr geehrt)\b/iu','closing'=>'/^(?:Freundliche Grüsse|Mit freundlichen Grüssen|Beste Grüsse|Herzliche Grüsse)[,.]?$/iu'],
+        default=>['salutation'=>'/^(?:Guten Tag|Grüezi|Sehr geehrt|Liebe?r?)\b/iu','closing'=>'/^(?:Freundliche Grüsse|Mit freundlichen Grüssen|Beste Grüsse|Herzliche Grüsse)[,.]?$/iu'],
     };
-    $salutationIndex=0;
-    if (isset($lines[0]) && preg_match('/^(?:Bewerbung|Betreff\s*:|Application\s+for|Candidature|Solicitud|Candidatura)\b/iu',$lines[0])===1) $salutationIndex=1;
-    if (!isset($lines[$salutationIndex]) || preg_match($rules['salutation'],$lines[$salutationIndex])!==1) $issues[]='Eine passende persönliche oder neutrale Anrede fehlt.';
+    $salutationIndex=null;
+    foreach (array_slice($lines,0,5) as $index=>$line) {
+        if (preg_match($rules['salutation'],$line)===1) { $salutationIndex=$index; break; }
+    }
+    if ($salutationIndex===null) $issues[]='Eine passende persönliche oder neutrale Anrede fehlt.';
     $signature=trim($applicant);
     $last=$lines ? $lines[array_key_last($lines)] : '';
     if ($signature!=='' && mb_strtolower($last)!==mb_strtolower($signature)) $issues[]='Der vollständige Name fehlt als letzte Zeile.';
@@ -9973,7 +10008,8 @@ function applicationLetterStructureIssues(string $letter, string $locale, string
     $closingSentence=(string)($lines[$closingIndex-1] ?? '');
     $closingWords=preg_split('/[^\p{L}\p{N}]+/u',$closingSentence,-1,PREG_SPLIT_NO_EMPTY) ?: [];
     if (count($closingWords)<7 || count($closingWords)>45 || preg_match('/[.!?]$/u',$closingSentence)!==1) $issues[]='Ein vollständiger eigenständiger Schlusssatz fehlt.';
-    $contentLines=array_slice($lines,$salutationIndex+1,max(0,$closingIndex-$salutationIndex-2));
+    $contentStart=($salutationIndex ?? 0)+1;
+    $contentLines=array_slice($lines,$contentStart,max(0,$closingIndex-$contentStart-1));
     $words=preg_split('/[^\p{L}\p{N}]+/u',implode(' ',$contentLines),-1,PREG_SPLIT_NO_EMPTY) ?: [];
     if (count($words)<100) $issues[]='Der Briefhauptteil ist zu kurz für eine individuelle Bewerbung.';
     if (count($words)>450) $issues[]='Der Briefhauptteil ist für eine Seite zu lang.';
@@ -10457,7 +10493,7 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         }
         $checkLetter=in_array('cover_letter_text',$editTargets,true);
         $securedCover=$checkLetter
-            ? applicationCoverLetterWithRecipientBlock(applicationTextWithoutDisqualifyingLanguage((string)$texts['cover_letter_text']),$recipientBlock)
+            ? applicationLetterWithSalutation(applicationCoverLetterWithRecipientBlock(applicationTextWithoutDisqualifyingLanguage((string)$texts['cover_letter_text']),$recipientBlock),$locale,$recipientBlock)
             : (string)$texts['cover_letter_text'];
         $letterIssues=$checkLetter ? applicationLetterStructureIssues($securedCover,$locale,$applicant,$recipientBlock) : [];
         if ($letterIssues) {
@@ -16321,7 +16357,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.36';
+$codeVersion = '2.4.37';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 21.09.2026. Version 2.4.36 bindet den [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md) an jede KI-Schreibanfrage: aktuelles Inserat, konkrete Arbeitgeberbedürfnisse, Empfängerrolle und jeweils neuester aktueller Stammdaten-Lebenslauf je Sprache. Ein unabhängiger simulierter Empfänger-Prüflauf kontrolliert den fertigen Entwurf gegen Quellen und Benutzerauftrag und gibt gezielte Mängel zur Überarbeitung zurück. Bei Überarbeitungen dienen ausschliesslich die gegenwärtigen Formulartexte als Textvorlage.
-Release-Dokumentation: [Release 2.4.36](docs/jobsearch/RELEASE-2.4.36.md).
+Stand: 21.09.2026. Version 2.4.37 repariert die Anredeprüfung beim KI-Motivationsschreiben: vorhandene Schweizer Anreden bleiben erhalten, und eine tatsächlich fehlende Anrede wird ohne Verlust des Briefinhalts ergänzt. Die KI nutzt weiterhin den [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md), aktuelle Lebensläufe und die unabhängige simulierte Empfängerprüfung.
+Release-Dokumentation: [Release 2.4.37](docs/jobsearch/RELEASE-2.4.37.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

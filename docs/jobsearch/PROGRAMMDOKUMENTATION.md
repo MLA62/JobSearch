@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.36 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.37 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Anrede-Reparatur 2.4.37
+
+Die Briefprüfung vergleicht den Empfängerblock zeilenweise statt anhand
+fragiler HTML-Zeilenabstände und erkennt Schweizer Anreden wie «Grüezi».
+Steht die Anrede einige Kopfzeilen hinter Empfänger und Betreff, wird sie
+ebenfalls erkannt. Fehlt sie tatsächlich in einem KI-Entwurf, ergänzt
+`applicationLetterWithSalutation()` vor dem Briefhauptteil eine neutrale
+Anrede in der gewählten Sprache. Der vorhandene Inhalt, Betreff und
+Empfängerblock bleiben erhalten. Dies verhindert die gemeldeten drei
+erfolglosen KI-Wiederholungen allein wegen einer fehlenden Anrede. Andere
+Struktur-, Quellen- und Empfängerprüfungen bleiben aktiv. Keine
+DB-Schemaänderung und kein Versand.
 
 ## Schweizer Schreibleitfaden und Empfängerprüfung 2.4.36
 

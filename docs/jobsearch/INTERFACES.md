@@ -448,6 +448,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationRecipientForApplication(mysqli $db, int $userId, int $applicationId): array`
 - `function applicationRecipientBlockForApplication(mysqli $db, int $userId, int $applicationId): string`
 - `function applicationCoverLetterWithRecipientBlock(string $coverLetter, string $recipientBlock): string`
+- `function applicationLetterWithSalutation(string $letter, string $locale, string $recipientBlock): string`
 - `function applicationLetterStructureIssues(string $letter, string $locale, string $applicant, string $recipientBlock): array`
 - `function applicationEndClientOfficialContext(array $application): string`
 - `function applicationTextDisqualifyingPatterns(): array`

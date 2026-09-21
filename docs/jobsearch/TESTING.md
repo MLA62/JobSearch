@@ -2,6 +2,13 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.37: `application_letter_recipient_regression_test.php`
+reproduziert eine fehlende Anrede nach Empfängerblock und Betreff sowie
+eine vorhandene «Grüezi»-Anrede. Die Reparatur muss den Text vollständig
+erhalten und den Brief durch die Strukturprüfung bringen. Alle PHP-Tests,
+Syntax, Hilfe- und Referenzgenerator prüfen. Ein echter produktiver
+KI-Bearbeitungsversuch bleibt ein separater Nachweis.
+
 Ergänzung 2.4.36: `application_swiss_writing_guide_test.php` prüft
 Vermittler/Endkunde/direkten Arbeitgeber, die Leitfadenregeln und den
 separaten, quellengebundenen Empfänger-Prüflauf mit gezieltem Retry. Alle
