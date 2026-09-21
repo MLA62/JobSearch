@@ -9,7 +9,7 @@ $source = file_get_contents(__DIR__ . '/../public/index.php');
 $start = strpos($source, 'function applicationRecipientBlockLines(');
 $end = strpos($source, 'function applicationRecipientBlockForApplication(', $start);
 $secondStart = strpos($source, 'function applicationCoverLetterWithRecipientBlock(', $end);
-$secondEnd = strpos($source, 'function applicationPrompt(', $secondStart);
+$secondEnd = strpos($source, 'function applicationWritingContext(', $secondStart);
 if ($start === false || $end === false || $secondStart === false || $secondEnd === false) throw new RuntimeException('Recipient block helpers not found.');
 eval(substr($source, $start, $end - $start) . substr($source, $secondStart, $secondEnd - $secondStart));
 

@@ -58,7 +58,7 @@ $short=$recipient."\nGuten Tag Herr Wenger\nIch interessiere mich für diese Ste
 if (!in_array('Der Briefhauptteil ist zu kurz für eine individuelle Bewerbung.',applicationLetterStructureIssues($short,'de-CH','Markus Lauber',$recipient),true)) throw new RuntimeException('Generic short letter accepted.');
 $long=str_replace($body,str_repeat('Diese belegte Erfahrung ist für die konkrete Tätigkeit und die beschriebene Verantwortung relevant. ',55),$letter);
 if (!in_array('Der Briefhauptteil ist für eine Seite zu lang.',applicationLetterStructureIssues($long,'de-CH','Markus Lauber',$recipient),true)) throw new RuntimeException('Overlong letter accepted.');
-if (!str_contains($source,'Endkundenprofil aus offizieller Website: ') || !str_contains($source,'applicationEndClientOfficialContext($application)')) throw new RuntimeException('Mediated end-client profile is not passed to the application prompt.');
+if (!str_contains($source,'Belegter offizieller Endkundenkontext: ') || !str_contains($source,'applicationEndClientOfficialContext($row)')) throw new RuntimeException('Mediated end-client profile is not passed to the application context.');
 if (!str_contains($source,'Mandatory letter checks failed: ')) throw new RuntimeException('AI quality retry is not wired.');
 if (!str_contains($source,'? applicationLetterStructureIssues($texts[\'cover_letter_text\']')) throw new RuntimeException('Final saved output is not validated.');
 echo "PASS short letter rejected and end-client research/AI retry wired\n";

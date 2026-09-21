@@ -1,6 +1,20 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.34.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.35.
+
+Ergänzung 2.4.35: Die Text-KI erstellt Begleit-E-Mail und Motivationsschreiben
+mit dem Nutzen für den konkreten Arbeitgeber als Hauptziel, nicht als
+chronologische CV-Zusammenfassung und ohne Erfolgszahlen als Standard. Sie
+erhält bei jedem Aufruf nur die aktuelle Stelle, benötigte Firmen- und
+Empfängerangaben und dynamisch den neuesten aktuellen Stammdaten-Lebenslauf
+je Metadatensprache. Andere Dokumenttypen, frühere CV-Versionen und frühere
+Bewerbungstexte dürfen nicht in den KI-Kontext gelangen. Nur bei einer
+ausdrücklichen Überarbeitung werden zusätzlich die aktuell im Formular
+stehenden Texte übergeben; sie sind die einzige Textvorlage. Eine gültige
+Betreffzeile zwischen Empfängerblock und Anrede ist zulässig. Scheitert die
+KI, bleiben neben der Anweisung auch die gerade eingegebenen Texte im Formular
+erhalten. Neue Entwürfe mit quantifizierten Erfolgen sind standardmässig
+zurückzuweisen; ausdrücklich angeforderte Zahlen bleiben möglich.
 
 Ergänzung 2.4.34: Eine ausgefüllte KI-Bearbeitungsanweisung hat gegenüber
 Standardvorgaben zu Länge und Formulierung Vorrang, soweit belegte Fakten,

@@ -48,8 +48,8 @@ if (count($frenchIssues)!==2) throw new RuntimeException('French length and omis
 foreach ([
     'manual user instruction at end'=>'Current user edit request (apply this now',
     'no accumulated retry drafts'=>"\$payload['input'][0]['content']=\$baseInputParts;",
-    'manual length overrides default prompt'=>"str_replace('Keep the body about 170–260 words.'",
+    'manual length overrides default prompt'=>'Follow the user-requested length instead of the default word target.',
     'specific edit gate'=>'applicationEditRequestIssues($editingRequest,$currentTexts,$texts,$recipientBlock,$editTargets)',
-    'failed instruction retained'=>"\$_SESSION['application_ai_instruction_draft']=['application_id'=>\$id,'text'=>\$submittedInstruction]",
+    'failed instruction and current texts retained'=>"\$_SESSION['application_ai_instruction_draft']=['application_id'=>\$id,'text'=>\$submittedInstruction,'current_texts'=>\$currentTexts]",
 ] as $label=>$needle) if (!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);
 echo "PASS explicit length and omission instructions, recipient exception, scoped editing, retry and draft preservation\n";

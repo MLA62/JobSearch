@@ -19,7 +19,7 @@ function richTextPlain(?string $value): string
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $start=strpos($source,'function applicationTextDisqualifyingPatterns(');
-$end=strpos($source,'function applicationPrompt(', $start);
+$end=strpos($source,'function applicationWritingContext(', $start);
 if($start===false || $end===false) throw new RuntimeException('Application text quality helpers not found.');
 eval(substr($source,$start,$end-$start));
 

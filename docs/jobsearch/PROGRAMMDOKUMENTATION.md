@@ -1,6 +1,28 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.34 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.35 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Neu aufgebauter KI-Schreibkontext 2.4.35
+
+`applicationWritingContext()` beschränkt die Anfrage auf aktuellen
+Stelleninhalt, Firma, sicher ermittelten Empfänger und gegebenenfalls
+belegten Endkundenkontext. `applicationCvSourceRows()` lädt bei jedem
+Aufruf genau den nach `updated_at` neuesten aktuellen Stammdaten-Lebenslauf
+pro Metadatensprache; `applicationCvInputParts()` weist andere Dokumenttypen
+zurück. Früher gespeicherte Bewerbungstexte und Dokumentlisten gelangen
+nicht in diese Anfrage. Bei einer Überarbeitung liefert allein das gerade
+abgesendete Formular `current_texts`; neue Entwürfe erhalten dort `null`.
+
+Das neue Schreibbriefing priorisiert den konkreten Nutzen für den
+Arbeitgeber, verbindet belegte Erfahrungen mit Stellenanforderungen und
+vermeidet standardmässig Erfolgszahlen. Eine nachgelagerte Prüfung weist
+Zahlen in neuen Entwürfen zurück. Bei manueller Überarbeitung haben die
+benannten Felder und die aktuelle Instruktion Vorrang; nicht benannte Felder
+werden unverändert übernommen. `applicationLetterStructureIssues()` lässt
+eine Betreffzeile vor der Anrede zu. Die Empfängerfunktion ersetzt einen
+unvollständigen Altblock, statt Adressen zu stapeln. Scheitert die
+Überarbeitung, bleiben die gesendeten aktuellen Texte und die Anweisung im
+Editor erhalten. Keine Datenbankmigration, kein Versand.
 
 ## Gezielte KI-Überarbeitung 2.4.34
 
@@ -32,9 +54,10 @@ Server keinen Phasen-Stream; die Bezeichnung behauptet daher nicht, dass
 ein bestimmter interner Schritt bereits abgeschlossen sei. Timer und Dialog
 werden bei Abschluss, Abbruch und Navigation bereinigt.
 
-`applicationPrompt(..., $includeExistingTexts)` schliesst bei neuer
-Generierung alte Bewerbungstexte aus; nur eine ausdrückliche Überarbeitung
-liefert sie als Eingabe. `applicationAiTexts()` übergibt bei jedem Aufruf
+Seit 2.4.35 ersetzt `applicationWritingContext()` den damaligen breiten
+Prompt. Neue Generierung schliesst alte Bewerbungstexte aus; eine
+ausdrückliche Überarbeitung liefert ausschliesslich die aktuell abgesendeten
+Formulartexte. `applicationAiTexts()` übergibt bei jedem Aufruf
 erneut den neuesten aktuellen Lebenslauf pro Sprache. Das strikte JSON-Schema
 enthält neben den drei sichtbaren Texten interne `evidence_links` mit
 aktueller CV-ID, CV- und Inseratzitat und einem tatsächlich verwendeten
@@ -57,8 +80,8 @@ die dortige Grundentwurf-Regel wurde in 2.4.33 ersetzt.
 
 ## Vollständiger Motivationsbrief und Endkundenkontext 2.4.32
 
-`applicationPrompt()` übergibt Stellenanforderungen, Leistungen und das
-vorhandene Firmenprofil zusätzlich zur bisherigen Ausschreibung. Bei
+Der aktuelle `applicationWritingContext()` übergibt Stellenanforderungen und
+ein begrenztes Firmenprofil zusätzlich zur Ausschreibung. Bei
 ausdrücklich zugeordnetem Vermittler trennt der Kontext dessen Rolle von
 der Jobfirma als Endkunde. Ist die Endkundenfirma nicht selbst Vermittler,
 liest `applicationEndClientOfficialContext()` einen auf 5000 Zeichen
@@ -221,7 +244,7 @@ mit Datenbanksicherung vorgenommen.
 
 ## Schutz vor selbstschädigenden Bewerbungstexten 2.4.21
 
-`applicationPrompt()` übermittelt leere Kontextabschnitte ohne Formulierungen wie «kein lesbarer
+Der aktuelle Schreibkontext übermittelt keine Formulierungen wie «kein lesbarer
 Lebenslauf». Der Systemauftrag verbietet Hinweise auf fehlende oder unlesbare Quellen ebenso wie
 das Verschieben inhaltlicher Aussagen auf ein Interview. Nach jeder strukturierten KI-Antwort
 prüft `applicationTextHasDisqualifyingLanguage()` Begleit-E-Mail und Motivationsschreiben anhand

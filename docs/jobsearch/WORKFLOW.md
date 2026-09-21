@@ -1,6 +1,18 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.34.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.35.
+
+Ergänzung 2.4.35: `applicationWritingContext()` lädt pro KI-Aufruf die
+aktuelle Stelle, Firma und Empfängerangaben, jedoch keine alten
+Bewerbungstexte, anderen Dokumente oder Kontakthistorie. Die CV-Auswahl
+erfolgt unmittelbar vor demselben Aufruf neu: nur der jüngste aktuelle
+Stammdaten-Lebenslauf je Metadatensprache. Bei Überarbeitung stammen die
+einzigen Vorlagentexte aus dem abgesendeten Formular; ohne Anweisung werden
+keine alten Texte beigefügt. Der Systemauftrag priorisiert den konkreten
+Arbeitgebernutzen und vermeidet quantifizierte Erfolge als Vorgabe. Die
+Briefprüfung akzeptiert eine einzelne Betreffzeile vor der Anrede. Bei einem
+Fehlschlag wird der aktuelle Formulartext samt Instruktion in der Sitzung
+für die Rückkehr zum Editor erhalten. Es wird nichts versendet.
 
 Ergänzung 2.4.34: Bei einer manuellen KI-Überarbeitung liest der Server die
 aktuell sichtbaren Formulartexte und die bis zu 2000 Zeichen lange Anweisung.

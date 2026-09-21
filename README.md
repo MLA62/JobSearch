@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 21.09.2026. Version 2.4.34 richtet die KI-Überarbeitung gezielt an der eingegebenen Benutzeranweisung aus. Benannte Textfelder werden einzeln bearbeitet, die Anweisung bleibt in jedem Korrekturversuch sichtbar, und ausdrückliche Längen- und Weglassvorgaben werden im gemeldeten Muster geprüft. Die dynamische CV-Auswahl und die belegbasierte Briefprüfung bleiben erhalten.
-Release-Dokumentation: [Release 2.4.34](docs/jobsearch/RELEASE-2.4.34.md).
+Stand: 21.09.2026. Version 2.4.35 baut die KI-Schreibanfrage für Begleit-E-Mail und Motivationsschreiben neu auf: aktuelles Inserat, konkrete Arbeitgeberbedürfnisse und der jeweils neueste aktuelle Stammdaten-Lebenslauf je Sprache. Bei Überarbeitungen dienen ausschliesslich die gegenwärtigen Formulartexte als Textvorlage; frühere Versionen und andere Dokumente werden nicht beigezogen. Ein gültiger Betreff im Brief wird akzeptiert, und fehlgeschlagene Bearbeitungen erhalten die aktuelle Formulareingabe.
+Release-Dokumentation: [Release 2.4.35](docs/jobsearch/RELEASE-2.4.35.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

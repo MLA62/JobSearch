@@ -7,7 +7,7 @@ $selectorEnd = strpos($source, 'function applicationCvSourceRows(', $selectorSta
 if ($selectorStart === false || $selectorEnd === false) throw new RuntimeException('Latest-CV selector not found.');
 eval(substr($source, $selectorStart, $selectorEnd - $selectorStart));
 $start = strpos($source, 'function applicationCvInputParts(');
-$end = strpos($source, 'function applicationPrompt(', $start);
+$end = strpos($source, 'function applicationWritingContext(', $start);
 if ($start === false || $end === false) throw new RuntimeException('CV input builder not found.');
 eval(substr($source, $start, $end - $start));
 
@@ -45,8 +45,8 @@ try {
     file_put_contents($ownerRoot . '/two.docx', 'CV two content');
     file_put_contents($otherRoot . '/foreign.pdf', '%PDF-1.4 foreign');
     $rows = [
-        ['id'=>11, 'title'=>'CV Deutsch', 'version'=>2, 'language_code'=>'de-CH', 'original_filename'=>'CV-D.pdf', 'storage_path'=>'storage/documents/7/one.pdf', 'corrected_text'=>str_repeat('Korrigierte Berufserfahrung. ', 1100)],
-        ['id'=>12, 'title'=>'CV English', 'version'=>1, 'language_code'=>'en-GB', 'original_filename'=>'CV-E.docx', 'storage_path'=>'storage/documents/7/two.docx', 'corrected_text'=>''],
+        ['id'=>11, 'title'=>'CV Deutsch', 'version'=>2, 'language_code'=>'de-CH', 'document_type_code'=>'cv', 'original_filename'=>'CV-D.pdf', 'storage_path'=>'storage/documents/7/one.pdf', 'corrected_text'=>str_repeat('Korrigierte Berufserfahrung. ', 1100)],
+        ['id'=>12, 'title'=>'CV English', 'version'=>1, 'language_code'=>'en-GB', 'document_type_code'=>'cv', 'original_filename'=>'CV-E.docx', 'storage_path'=>'storage/documents/7/two.docx', 'corrected_text'=>''],
     ];
     $parts = applicationCvInputParts($rows, 7, $documentRoot);
     if (count($parts) !== 5) throw new RuntimeException('Both full CVs and corrected text must be included.');
@@ -58,6 +58,14 @@ try {
     }
     if (substr_count($parts[2]['text'], 'Korrigierte Berufserfahrung') !== 1100) throw new RuntimeException('Corrected CV text is missing or truncated.');
     if (applicationCvInputParts([], 7, $documentRoot) !== []) throw new RuntimeException('Empty CV inventory should not add file parts.');
+    $otherDocument=$rows[0];
+    $otherDocument['document_type_code']='certificate';
+    try {
+        applicationCvInputParts([$otherDocument],7,$documentRoot);
+        throw new RuntimeException('A non-CV document was attached to the AI request.');
+    } catch (RuntimeException $exception) {
+        if (!str_contains($exception->getMessage(),'Nur Stammdaten-Lebensläufe')) throw $exception;
+    }
     $foreign = $rows[0];
     $foreign['storage_path'] = 'storage/documents/8/foreign.pdf';
     try {

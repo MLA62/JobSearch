@@ -35,6 +35,6 @@ foreach ([
     'official career page, legal notice and official registry'=>'primary-source preference',
     'importFetchHtml($url)'=>'independent fetch of every cited source',
     'mb_stripos($pageText[$url],$evidence)!==false'=>'exact evidence verification before acceptance',
-    'Im Empfänger-Adressblock sind Platzhalter ausnahmslos verboten.'=>'recipient placeholder prohibition',
+    'Never invent achievements, qualifications, employer facts, contacts or addresses.'=>'recipient placeholder prohibition',
 ] as $needle=>$label) helpAssert(str_contains($source,$needle),$label);
 echo "$helpChecks job web research checks passed\n";
