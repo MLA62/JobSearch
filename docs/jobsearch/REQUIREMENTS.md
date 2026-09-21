@@ -1,6 +1,10 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.41.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.42.
+
+Release 2.4.42: Ein gespeicherter Absagegrund muss nach manuellem Speichern,
+Autosave und erneutem Öffnen der abgelehnten Bewerbung im Formular stehen
+bleiben. Ein blosses erneutes Speichern darf ihn nicht unbeabsichtigt leeren.
 
 Release 2.4.41: Der Button «Online eingereicht» steht im Bereich
 «Onlinebewerbung» unmittelbar bei «Webformular öffnen» statt am Ende des

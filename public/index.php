@@ -3153,11 +3153,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.3' =>
   array (
-    'de-CH' => 'Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten.',
-    'fr-CH' => 'Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes.',
-    'en-GB' => 'Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards.',
-    'pt-BR' => 'Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões.',
-    'es-MX' => 'Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas.',
+    'de-CH' => 'Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten und zeigt den gespeicherten Grund auch nach erneutem Öffnen der Bewerbung.',
+    'fr-CH' => 'Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes et affiche le motif enregistré après réouverture de la candidature.',
+    'en-GB' => 'Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards; the saved reason remains visible when the application is reopened.',
+    'pt-BR' => 'Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões; o motivo salvo continua visível ao reabrir a candidatura.',
+    'es-MX' => 'Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas; el motivo guardado sigue visible al reabrir la solicitud.',
   ),
   'help.v2.applications.summary' =>
   array (
@@ -16464,7 +16464,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.41';
+$codeVersion = '2.4.42';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18177,7 +18177,7 @@ startUiTranslationBuffer($appLocale);
         $appSql .= sfApplySql($appSf, $appSfFields, $appTypes, $appVals);
         $appSql .= sfOrderSql($appSf, $appSfFields, 'title');
         $apps=dbAll($db,$appSql,$appTypes,$appVals);
-        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
+        $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.rejection_reason, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [(int)$applicationEdit['id']]) : [];
         $workflowAppointments = $applicationEdit ? dbAll($db, "SELECT id, title, starts_at, ends_at, status FROM calendar_events WHERE owner_user_id=? AND application_id=? AND entry_kind IN ('appointment','action') AND (source_type IS NULL OR source_type='workflow_appointment' OR (source_type='application_next_action' AND title='follow_up') OR source_type='contact_log') AND status<>'cancelled' ORDER BY starts_at ASC, id ASC", 'ii', [userId(), (int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];

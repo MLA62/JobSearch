@@ -1,5 +1,5 @@
 {
-  "version": "2.4.41",
+  "version": "2.4.42",
   "reviewed": "2026-09-21",
   "locales": [
     "de-CH",
@@ -697,7 +697,7 @@
             "Beim Vorbereiten legt die App die neue Bewerbung immer an oder öffnet die bereits aktive Bewerbung. Zuvor analysiert sie die Originalausschreibung erneut über die KI-API und ergänzt belegte Firmen-, Adress-, Kontakt- und Jobdaten. Eine verifiziert abweichende Arbeitgeberfirma korrigiert die Zuordnung des gewählten Jobs, ohne die bisherige Firma zu überschreiben. Ist die Analyse vorübergehend nicht möglich, wird die Bewerbung mit den vorhandenen Angaben und bearbeitbaren Entwürfen fortgesetzt. Gelöschte Bewerbungen bleiben gelöscht und blockieren keine Neuanlage.",
             "Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer ausdrücklichen KI-Instruktion werden vorhandene Texte gezielt überarbeitet. Ohne Instruktion ergänzt die KI nur leere Felder; bereits ausgefüllte Texte bleiben unverändert. Die App versendet dabei nichts.",
             "Kennzeichne den tatsächlichen Versand beziehungsweise die externe Einreichung; der Statusverlauf erhält Zeitstempel.",
-            "Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten."
+            "Erfasse jedes Bewerbungsgespräch als eigenen Termin; bei einer Absage ist ein Absagegrund mit höchstens 249 Zeichen Pflicht. Das mehrzeilige Feld erscheint oberhalb der Karten und zeigt den gespeicherten Grund auch nach erneutem Öffnen der Bewerbung."
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
@@ -718,7 +718,7 @@
             "Lors de la préparation, l’application crée toujours la nouvelle candidature ou ouvre la candidature active. Elle réanalyse auparavant l’annonce originale via l’API d’IA et complète les données vérifiées. Si l’employeur vérifié diffère, l’offre choisie est réaffectée sans écraser l’ancienne entreprise. Si l’analyse est momentanément indisponible, la candidature continue avec les données existantes et des brouillons modifiables.",
             "Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : une instruction explicite permet de réviser les textes existants. Sans instruction, l’IA complète uniquement les champs vides; les textes déjà remplis restent inchangés. Rien n’est envoyé à cette étape.",
             "Consigne l’envoi réel ou le dépôt externe; l’historique des statuts est horodaté.",
-            "Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes."
+            "Enregistre chaque entretien comme rendez-vous distinct ; en cas de refus, le motif est obligatoire (249 caractères au maximum). Le champ multiligne apparaît au-dessus des cartes et affiche le motif enregistré après réouverture de la candidature."
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
@@ -739,7 +739,7 @@
             "When preparing, the app always creates the new application or opens the active one. It first reanalyses the original advertisement through the AI API and fills verified data. If the verified employer differs, the selected job is reassigned without overwriting the previous company. If analysis is temporarily unavailable, preparation continues with existing data and editable drafts.",
             "Edit the three texts directly or click Create/adjust texts with AI: an explicit instruction revises existing texts. Without an instruction, AI fills only empty fields; already filled texts remain unchanged. Nothing is sent at this stage.",
             "Record actual sending or external submission; status history receives timestamps.",
-            "Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards."
+            "Record each interview as a separate appointment. A rejection requires a reason of at most 249 characters in the multi-line field above the cards; the saved reason remains visible when the application is reopened."
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
@@ -760,7 +760,7 @@
             "Ao preparar, o aplicativo sempre cria a nova candidatura ou abre a candidatura ativa. Antes, ele reanalisa o anúncio original pela API de IA e completa os dados verificados. Se o empregador verificado for diferente, a vaga selecionada é reatribuída sem sobrescrever a empresa anterior. Se a análise estiver temporariamente indisponível, a preparação continua com os dados existentes e rascunhos editáveis.",
             "Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: uma instrução explícita revisa os textos existentes. Sem instrução, a IA preenche apenas os campos vazios; os textos já preenchidos permanecem inalterados. Nada é enviado nessa etapa.",
             "Registre o envio real ou a entrega externa; o histórico recebe data e hora.",
-            "Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões."
+            "Cadastre cada entrevista separadamente. Uma recusa exige um motivo de até 249 caracteres no campo multilinha acima dos cartões; o motivo salvo continua visível ao reabrir a candidatura."
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
@@ -781,7 +781,7 @@
             "Al preparar, la aplicación siempre crea la nueva solicitud o abre la solicitud activa. Antes vuelve a analizar el anuncio original mediante la API de IA y completa los datos verificados. Si el empleador verificado es distinto, reasigna la vacante seleccionada sin sobrescribir la empresa anterior. Si el análisis no está disponible temporalmente, la preparación continúa con los datos existentes y borradores editables.",
             "Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: una instrucción explícita revisa los textos existentes. Sin instrucción, la IA solo completa los campos vacíos; los textos ya completos permanecen intactos. En esta etapa no se envía nada.",
             "Registra el envío real o la entrega externa; el historial conserva fecha y hora.",
-            "Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas."
+            "Registra cada entrevista por separado. Un rechazo requiere un motivo de hasta 249 caracteres en el campo multilínea sobre las tarjetas; el motivo guardado sigue visible al reabrir la solicitud."
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",

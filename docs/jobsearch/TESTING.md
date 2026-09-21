@@ -2,6 +2,11 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.42: `job_room_rejection_reason_test.php` prüft zusätzlich,
+dass die Detailabfrage den gespeicherten Absagegrund lädt und das Textfeld
+damit vorbelegt. PHP-Syntax, gesamte Suite und beide
+Dokumentationsgeneratoren sind vor dem Deployment zu prüfen.
+
 Release 2.4.41: `application_online_submit_placement_test.php` prüft genau
 einen «Online eingereicht»-Button im Onlinebewerbungsbereich direkt beim
 Webformular-Link. Button und Hinweis sind nur bei Entwurf/Bereit ohne

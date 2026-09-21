@@ -71,6 +71,9 @@ check(str_contains($source, 'a.rejection_reason, a.job_room_result'), 'Helper se
 check(str_contains($source, 'data-application-rejection-reason') && str_contains($source, 'maxlength="249"'), 'Application form has conditional limited multi-line field');
 check(str_contains($source, 'data-mail-rejection-reason') && str_contains($source, "applicationRejectionReason(\$newStatus"), 'Mail activity enforces reason before writing');
 check(str_contains($source, "applicationRejectionReason(\$status") && str_contains($source, 'rejection_reason=?, channel=?'), 'Manual and autosave enforce and persist reason');
+check(str_contains($source, 'a.primary_contact_id, a.status, a.rejection_reason, a.job_room_result')
+    && str_contains($source, "e(\$applicationEdit['rejection_reason'] ?? '')"),
+    'Application edit reloads the saved rejection reason into the form');
 check(str_contains($source, "\$table === 'applications'") && str_contains($source, 'applicationRejectionReason($effectiveStatus, $effectiveReason)'), 'Admin AI write enforces reason');
 check(str_contains($source, "'rejection_reason'=>tr('applications.rejection_reason')") && str_contains($source, 'a.status, a.rejection_reason, a.applied_at'), 'Reports can select the new field');
 check(str_contains($schema, 'rejection_reason VARCHAR(249) NULL') && str_contains($migration, 'ADD COLUMN rejection_reason VARCHAR(249) NULL'), 'Base and migration schemas match');

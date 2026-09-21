@@ -1,6 +1,11 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.41.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.42.
+
+Release 2.4.42: Die Bewerbungs-Edit-Abfrage lädt `rejection_reason` zusammen
+mit `status`. Das Formular zeigt bei `rejected` den gespeicherten Text nach
+jedem Reload wieder an; der bestehende gemeinsame Speicherpfad für manuelles
+Speichern und Autosave bleibt unverändert.
 
 Release 2.4.41: Im Onlinebewerbungsbereich ist «Online eingereicht» neben
 dem Link zum externen Webformular erreichbar. Der Button und der zugehörige

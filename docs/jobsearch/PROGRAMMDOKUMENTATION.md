@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.41 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.42 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Persistenz des Absagegrundes 2.4.42
+
+Der Save-Handler schrieb `applications.rejection_reason` bereits. Die
+Detailabfrage für `$applicationEdit` enthielt das Feld jedoch nicht, sodass
+das Textfeld beim erneuten Rendern leer blieb und ein späteres Speichern
+gefährdet war. Die Detailabfrage selektiert nun `a.rejection_reason`.
+Ein Regressionstest prüft die Edit-Abfrage und die Vorbelegung des Felds.
+Keine Schema- oder Bestandsdatenänderung.
 
 ## Sichtbare Online-Einreichung 2.4.41
 
