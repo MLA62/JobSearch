@@ -1701,7 +1701,7 @@ function sanitizeRichText(?string $value): string
     if (!class_exists(DOMDocument::class)) {
         return nl2br(e(strip_tags($value)), false);
     }
-    if (!preg_match('/<(?:p|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h2|h3)\b/i', $value)) {
+    if (!preg_match('/<(?:p|div|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h1|h2|h3)\b/i', $value)) {
         return nl2br(e($value), false);
     }
     $document = new DOMDocument('1.0', 'UTF-8');
@@ -1709,7 +1709,7 @@ function sanitizeRichText(?string $value): string
     $document->loadHTML('<?xml encoding="UTF-8"><body>' . $value . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
     libxml_clear_errors();
     libxml_use_internal_errors($previous);
-    $allowed = ['body','p','br','strong','b','em','i','u','ul','ol','li','blockquote','a','img','table','thead','tbody','tr','th','td','hr','h2','h3'];
+    $allowed = ['body','p','div','br','strong','b','em','i','u','ul','ol','li','blockquote','a','img','table','thead','tbody','tr','th','td','hr','h1','h2','h3'];
     $dangerous = ['script','style','iframe','object','embed','svg','math','form','input','button','textarea','select','option','link','meta'];
     $nodes = [];
     foreach ($document->getElementsByTagName('*') as $node) $nodes[] = $node;
@@ -1758,7 +1758,7 @@ function richTextHtml(?string $value): string
 function richTextPlain(?string $value): string
 {
     $html = sanitizeRichText($value);
-    $html = preg_replace('/<(?:br\s*\/?|\/p|\/div|\/li|\/tr|hr\s*\/?)>/i', "\n", $html) ?? $html;
+    $html = preg_replace('/<(?:br\s*\/?|\/p|\/div|\/h[1-3]|\/blockquote|\/li|\/tr|hr\s*\/?)>/i', "\n", $html) ?? $html;
     return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 }
 
@@ -3257,11 +3257,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.3' =>
   array (
-    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Markiere mehrere Zeilen oder Absätze: ¶ wandelt sie in echte Absätze um; der direkt folgende ↵-Button verbindet sie mit weichen Umbrüchen wie Shift+Enter. Inline-Formatierungen bleiben erhalten. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.',
-    'fr-CH' => 'L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Sélectionnez plusieurs lignes ou paragraphes : ¶ les convertit en paragraphes réels et le bouton ↵ juste à côté les relie par des sauts de ligne souples comme Maj+Entrée. La mise en forme en ligne est conservée. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.',
-    'en-GB' => 'The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. Select several lines or paragraphs: ¶ converts them to real paragraphs and the adjacent ↵ button joins them with soft line breaks like Shift+Enter. Inline formatting is retained. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.',
-    'pt-BR' => 'O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. Selecione várias linhas ou parágrafos: ¶ converte em parágrafos reais e o botão ↵ ao lado une com quebras suaves como Shift+Enter. A formatação inline é preservada. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.',
-    'es-MX' => 'El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Selecciona varias líneas o párrafos: ¶ los convierte en párrafos reales y el botón ↵ contiguo los une con saltos suaves como Mayús+Intro. Se conserva el formato en línea. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.',
+    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Ausschreibung und weitere Mehrzeilenfelder nutzen denselben HTML-Mini-Editor. Wähle Absatz, H1, H2 oder H3 im Formatmenü; Enter beginnt einen neuen Absatz (6 pt Abstand danach), Shift+Enter nur eine Zeile ohne zusätzlichen Abstand. Automatischer Zeilenumbruch braucht keine Taste. Listenpunkte erhalten keinen Absatzabstand. Tx entfernt die markierte Inline-Formatierung und setzt markierte Überschriften oder Listenpunkte auf Absatz zurück. Änderungen in der HTML-Ansicht werden vor Speichern, Autosave und KI-Aufruf synchronisiert. Karten und Tabellen zeigen Klartext; das Dossier zeigt die Formatierung.',
+    'fr-CH' => 'L’e-mail, la lettre, l’annonce et les autres champs multilignes utilisent le même mini-éditeur HTML. Choisissez Paragraphe, H1, H2 ou H3 dans le menu de style. Entrée crée un paragraphe avec 6 pt après; Maj+Entrée insère un saut de ligne sans espacement, et le retour automatique ne nécessite aucune touche. Les éléments de liste n’ajoutent pas d’espace. Tx supprime la mise en forme sélectionnée et ramène les titres ou éléments de liste sélectionnés au paragraphe. Les modifications HTML sont synchronisées avant l’enregistrement et les actions IA; les tableaux montrent du texte brut, le dossier conserve le formatage.',
+    'en-GB' => 'The accompanying email, cover letter, job description and other multi-line fields share the HTML mini editor. Choose Paragraph, H1, H2 or H3 from the style menu. Enter starts a paragraph with 6 pt after it; Shift+Enter inserts a line break without extra spacing, while automatic wrapping needs no key. List items have no paragraph gap. Tx clears selected inline formatting and resets selected headings or list items to paragraphs. HTML changes are synchronised before saving and AI actions. Cards and tables show plain text; the dossier retains formatting.',
+    'pt-BR' => 'O e-mail, a carta, o anúncio e outros campos multilinhas usam o mesmo minieditor HTML. Escolha Parágrafo, H1, H2 ou H3 no menu. Enter cria um parágrafo com 6 pt depois; Shift+Enter insere uma quebra de linha sem espaço extra, e a quebra automática não exige tecla. Itens de lista não têm espaço adicional. Tx remove a formatação inline selecionada e redefine títulos ou itens de lista selecionados como parágrafos. Alterações HTML são sincronizadas antes de salvar e de ações de IA. Cartões e tabelas mostram texto simples; o dossiê mantém a formatação.',
+    'es-MX' => 'El correo, la carta, el anuncio y otros campos multilínea usan el mismo minieditor HTML. Elige Párrafo, H1, H2 o H3 en el menú. Intro crea un párrafo con 6 pt después; Mayús+Intro inserta un salto sin espacio adicional y el ajuste automático no requiere tecla. Las viñetas no tienen separación extra. Tx quita el formato en línea seleccionado y devuelve los títulos o elementos de lista seleccionados a párrafos. Los cambios HTML se sincronizan antes de guardar y de las acciones de IA. Tablas y tarjetas muestran texto plano; el expediente conserva el formato.',
   ),
   'help.v2.applications.tips.4' =>
   array (
@@ -16871,7 +16871,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.46';
+$codeVersion = '2.4.47';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17331,7 +17331,7 @@ startUiTranslationBuffer($appLocale);
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/app.css?v=<?= e($appVersion) ?>"><link rel="stylesheet" href="/assets/layout.css?v=<?= e($appVersion) ?>"><script defer src="/assets/layout.js?v=<?= e($appVersion) ?>"></script>
 <style>
-.rich-text-shell{display:grid;gap:0;border:1.5px solid var(--line);border-bottom-color:var(--line-strong);border-radius:6px;background:var(--field);overflow:hidden}.rich-text-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);background:var(--surface-subtle)}.rich-text-toolbar button{min-width:36px;padding:5px 8px}.rich-text-editor{min-height:140px;max-height:520px;overflow:auto;padding:12px;background:#fff;color:var(--text);font:inherit;font-weight:400;line-height:1.5}.rich-text-editor:focus{outline:3px solid var(--accent-ring);outline-offset:-3px}.rich-text-editor img,.rich-text-view img{max-width:100%;height:auto}.rich-text-editor table,.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-editor td,.rich-text-editor th,.rich-text-view td,.rich-text-view th{border:1px solid var(--line);padding:6px;vertical-align:top}.rich-text-editor hr,.rich-text-view hr{border:0;border-top:1px solid var(--line);margin:1em 0}.rich-text-source{position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;opacity:0!important;pointer-events:none!important}.rich-text-shell.is-source .rich-text-source{position:static!important;width:100%!important;height:180px!important;opacity:1!important;pointer-events:auto!important}.rich-text-shell.is-source .rich-text-editor{display:none}.rich-text-view{overflow-wrap:anywhere;white-space:normal}.rich-text-view p:first-child{margin-top:0}.rich-text-view p:last-child{margin-bottom:0}
+.rich-text-shell{display:grid;gap:0;border:1.5px solid var(--line);border-bottom-color:var(--line-strong);border-radius:6px;background:var(--field);overflow:hidden}.rich-text-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);background:var(--surface-subtle)}.rich-text-toolbar button{min-width:36px;padding:5px 8px}.rich-text-toolbar select{width:auto;min-width:110px;min-height:36px;padding:5px 8px;font-size:1rem}.rich-text-editor{min-height:140px;max-height:520px;overflow:auto;padding:12px;background:#fff;color:var(--text);font:inherit;font-size:12pt;font-weight:400;line-height:1.5}.rich-text-editor:focus{outline:3px solid var(--accent-ring);outline-offset:-3px}.rich-text-editor img,.rich-text-view img{max-width:100%;height:auto}.rich-text-editor table,.rich-text-view table{width:100%;border-collapse:collapse}.rich-text-editor td,.rich-text-editor th,.rich-text-view td,.rich-text-view th{border:1px solid var(--line);padding:6px;vertical-align:top}.rich-text-editor hr,.rich-text-view hr{border:0;border-top:1px solid var(--line);margin:1em 0}.rich-text-source{position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;opacity:0!important;pointer-events:none!important}.rich-text-shell.is-source .rich-text-source{position:static!important;width:100%!important;height:180px!important;opacity:1!important;pointer-events:auto!important}.rich-text-shell.is-source .rich-text-editor{display:none}.rich-text-view{overflow-wrap:anywhere;white-space:normal}
 .filter-note{align-items:center;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px}.filter-note a{display:inline;white-space:normal}
 </style>
 </head>
@@ -19565,15 +19565,15 @@ startUiTranslationBuffer($appLocale);
     const richNames = new Set(<?= json_encode(richTextFieldNames(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>);
     const locale = <?= json_encode(substr($appLocale, 0, 2), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     const labelSets = {
-        de:{paragraph:'Markierte Zeilen in Absätze umwandeln',softBreak:'Markierte Absätze in weiche Zeilenumbrüche (Shift+Enter) umwandeln',bold:'Fett',italic:'Kursiv',bullets:'Aufzählung',numbers:'Nummerierte Liste',indent:'Einrücken',outdent:'Ausrücken',clear:'Formatierung löschen',link:'Link',linkPrompt:'HTTPS-Link oder E-Mail-Adresse',image:'Bild',imagePrompt:'HTTPS-Adresse des Bildes',table:'Tabelle',divider:'Trennlinie',source:'HTML bearbeiten',heading:'Titel',content:'Inhalt'},
-        fr:{paragraph:'Convertir les lignes sélectionnées en paragraphes',softBreak:'Convertir les paragraphes sélectionnés en sauts de ligne souples (Maj+Entrée)',bold:'Gras',italic:'Italique',bullets:'Liste à puces',numbers:'Liste numérotée',indent:'Augmenter le retrait',outdent:'Réduire le retrait',clear:'Effacer la mise en forme',link:'Lien',linkPrompt:'Lien HTTPS ou adresse e-mail',image:'Image',imagePrompt:"Adresse HTTPS de l’image",table:'Tableau',divider:'Ligne de séparation',source:'Modifier le HTML',heading:'Titre',content:'Contenu'},
-        it:{paragraph:'Converti le righe selezionate in paragrafi',softBreak:'Converti i paragrafi selezionati in interruzioni di riga morbide (Maiusc+Invio)',bold:'Grassetto',italic:'Corsivo',bullets:'Elenco puntato',numbers:'Elenco numerato',indent:'Aumenta rientro',outdent:'Diminuisci rientro',clear:'Cancella formattazione',link:'Link',linkPrompt:'Link HTTPS o indirizzo e-mail',image:'Immagine',imagePrompt:"Indirizzo HTTPS dell’immagine",table:'Tabella',divider:'Linea divisoria',source:"Modifica l’HTML",heading:'Titolo',content:'Contenuto'},
-        en:{paragraph:'Convert selected lines to paragraphs',softBreak:'Convert selected paragraphs to soft line breaks (Shift+Enter)',bold:'Bold',italic:'Italic',bullets:'Bulleted list',numbers:'Numbered list',indent:'Indent',outdent:'Outdent',clear:'Clear formatting',link:'Link',linkPrompt:'HTTPS link or email address',image:'Image',imagePrompt:'HTTPS image address',table:'Table',divider:'Divider',source:'Edit HTML',heading:'Heading',content:'Content'},
-        es:{paragraph:'Convertir las líneas seleccionadas en párrafos',softBreak:'Convertir los párrafos seleccionados en saltos de línea suaves (Mayús+Intro)',bold:'Negrita',italic:'Cursiva',bullets:'Lista con viñetas',numbers:'Lista numerada',indent:'Aumentar sangría',outdent:'Reducir sangría',clear:'Borrar formato',link:'Enlace',linkPrompt:'Enlace HTTPS o correo electrónico',image:'Imagen',imagePrompt:'Dirección HTTPS de la imagen',table:'Tabla',divider:'Línea divisoria',source:'Editar HTML',heading:'Título',content:'Contenido'},
-        pt:{paragraph:'Converter as linhas selecionadas em parágrafos',softBreak:'Converter os parágrafos selecionados em quebras de linha suaves (Shift+Enter)',bold:'Negrito',italic:'Itálico',bullets:'Lista com marcadores',numbers:'Lista numerada',indent:'Aumentar recuo',outdent:'Diminuir recuo',clear:'Limpar formatação',link:'Ligação',linkPrompt:'Ligação HTTPS ou endereço de e-mail',image:'Imagem',imagePrompt:'Endereço HTTPS da imagem',table:'Tabela',divider:'Linha divisória',source:'Editar HTML',heading:'Título',content:'Conteúdo'}
+        de:{format:'Absatzformat',paragraph:'Absatz',bold:'Fett',italic:'Kursiv',bullets:'Aufzählung',numbers:'Nummerierte Liste',indent:'Einrücken',outdent:'Ausrücken',clear:'Formatierung löschen',link:'Link',linkPrompt:'HTTPS-Link oder E-Mail-Adresse',image:'Bild',imagePrompt:'HTTPS-Adresse des Bildes',table:'Tabelle',divider:'Trennlinie',source:'HTML bearbeiten',heading:'Titel',content:'Inhalt'},
+        fr:{format:'Style de paragraphe',paragraph:'Paragraphe',bold:'Gras',italic:'Italique',bullets:'Liste à puces',numbers:'Liste numérotée',indent:'Augmenter le retrait',outdent:'Réduire le retrait',clear:'Effacer la mise en forme',link:'Lien',linkPrompt:'Lien HTTPS ou adresse e-mail',image:'Image',imagePrompt:"Adresse HTTPS de l’image",table:'Tableau',divider:'Ligne de séparation',source:'Modifier le HTML',heading:'Titre',content:'Contenu'},
+        it:{format:'Stile di paragrafo',paragraph:'Paragrafo',bold:'Grassetto',italic:'Corsivo',bullets:'Elenco puntato',numbers:'Elenco numerato',indent:'Aumenta rientro',outdent:'Diminuisci rientro',clear:'Cancella formattazione',link:'Link',linkPrompt:'Link HTTPS o indirizzo e-mail',image:'Immagine',imagePrompt:"Indirizzo HTTPS dell’immagine",table:'Tabella',divider:'Linea divisoria',source:"Modifica l’HTML",heading:'Titolo',content:'Contenuto'},
+        en:{format:'Paragraph style',paragraph:'Paragraph',bold:'Bold',italic:'Italic',bullets:'Bulleted list',numbers:'Numbered list',indent:'Indent',outdent:'Outdent',clear:'Clear formatting',link:'Link',linkPrompt:'HTTPS link or email address',image:'Image',imagePrompt:'HTTPS image address',table:'Table',divider:'Divider',source:'Edit HTML',heading:'Heading',content:'Content'},
+        es:{format:'Estilo de párrafo',paragraph:'Párrafo',bold:'Negrita',italic:'Cursiva',bullets:'Lista con viñetas',numbers:'Lista numerada',indent:'Aumentar sangría',outdent:'Reducir sangría',clear:'Borrar formato',link:'Enlace',linkPrompt:'Enlace HTTPS o correo electrónico',image:'Imagen',imagePrompt:'Dirección HTTPS de la imagen',table:'Tabla',divider:'Línea divisoria',source:'Editar HTML',heading:'Título',content:'Contenido'},
+        pt:{format:'Estilo de parágrafo',paragraph:'Parágrafo',bold:'Negrito',italic:'Itálico',bullets:'Lista com marcadores',numbers:'Lista numerada',indent:'Aumentar recuo',outdent:'Diminuir recuo',clear:'Limpar formatação',link:'Ligação',linkPrompt:'Ligação HTTPS ou endereço de e-mail',image:'Imagem',imagePrompt:'Endereço HTTPS da imagem',table:'Tabela',divider:'Linha divisória',source:'Editar HTML',heading:'Título',content:'Conteúdo'}
     };
     const labels = labelSets[locale] || labelSets.de;
-    const allowed = new Set(['P','BR','STRONG','B','EM','I','U','UL','OL','LI','BLOCKQUOTE','A','IMG','TABLE','THEAD','TBODY','TR','TH','TD','HR','H2','H3']);
+    const allowed = new Set(['P','DIV','BR','STRONG','B','EM','I','U','UL','OL','LI','BLOCKQUOTE','A','IMG','TABLE','THEAD','TBODY','TR','TH','TD','HR','H1','H2','H3']);
     const dangerous = new Set(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','FORM','INPUT','BUTTON','TEXTAREA','SELECT','OPTION','LINK','META']);
     const sanitize = (html) => {
         const documentValue = new DOMParser().parseFromString(`<body>${html || ''}</body>`, 'text/html');
@@ -19606,7 +19606,7 @@ startUiTranslationBuffer($appLocale);
         const shell = document.createElement('div'); shell.className = 'rich-text-shell';
         const toolbar = document.createElement('div'); toolbar.className = 'rich-text-toolbar'; toolbar.setAttribute('role','toolbar');
         const editor = document.createElement('div'); editor.className = 'rich-text-editor'; editor.contentEditable = 'true'; editor.setAttribute('role','textbox'); editor.setAttribute('aria-multiline','true');
-        const looksHtml = /<(?:p|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h2|h3)\b/i.test(source.value);
+        const looksHtml = /<(?:p|div|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h1|h2|h3)\b/i.test(source.value);
         editor.innerHTML = sanitize(looksHtml ? source.value : plainToHtml(source.value));
         const commitSource = (notify = true) => {
             const clean = sanitize(source.value);
@@ -19619,71 +19619,109 @@ startUiTranslationBuffer($appLocale);
             if (notify) source.dispatchEvent(new Event('input',{bubbles:true}));
         };
         const sync = (notify = true) => shell.classList.contains('is-source') ? commitSource(notify) : commitEditor(notify);
-        const command = (label, title, handler) => { const button=document.createElement('button'); button.type='button'; button.textContent=label; button.title=title; button.addEventListener('mousedown',(event)=>event.preventDefault()); button.addEventListener('click',()=>{editor.focus();handler();sync();}); toolbar.appendChild(button); };
-        const selectedTopLevelNodes = () => {
+        let savedRange = null;
+        const formatSelect = document.createElement('select');
+        formatSelect.title = labels.format;
+        formatSelect.setAttribute('aria-label', labels.format);
+        [['p',labels.paragraph],['h1','H1'],['h2','H2'],['h3','H3']].forEach(([value,text])=>formatSelect.add(new Option(text,value)));
+        toolbar.appendChild(formatSelect);
+        const restoreSelection = () => {
+            editor.focus();
+            if (!savedRange || !editor.contains(savedRange.commonAncestorContainer)) return;
+            const selection = window.getSelection();
+            selection.removeAllRanges(); selection.addRange(savedRange);
+        };
+        const rememberSelection = () => {
             const selection=window.getSelection();
-            if(!selection || selection.rangeCount===0) return [];
-            const range=selection.getRangeAt(0);
-            if(!editor.contains(range.commonAncestorContainer)) return [];
-            return Array.from(editor.childNodes).filter((node)=>{try{return range.intersectsNode(node);}catch{return false;}});
+            if(!selection || selection.rangeCount===0 || !editor.contains(selection.anchorNode)) return;
+            savedRange=selection.getRangeAt(0).cloneRange();
+            const block=selection.anchorNode.nodeType===Node.ELEMENT_NODE ? selection.anchorNode : selection.anchorNode.parentElement;
+            const paragraph=block?.closest('p,h1,h2,h3');
+            formatSelect.value=paragraph && editor.contains(paragraph) ? paragraph.tagName.toLowerCase() : 'p';
         };
-        const selectNodes = (nodes) => {
-            if(!nodes.length) return;
-            const selection=window.getSelection(); const range=document.createRange();
-            range.setStartBefore(nodes[0]); range.setEndAfter(nodes[nodes.length-1]);
-            selection.removeAllRanges(); selection.addRange(range);
-        };
-        const appendParagraphs = (target, nodes) => {
-            let paragraph=document.createElement('p');
-            const flush=()=>{if(!paragraph.childNodes.length)paragraph.appendChild(document.createElement('br'));target.appendChild(paragraph);paragraph=document.createElement('p');};
-            nodes.forEach((node)=>{const copy=node.cloneNode(true);if(copy.nodeType===Node.ELEMENT_NODE && copy.nodeName==='BR')flush();else paragraph.appendChild(copy);});
-            if(paragraph.childNodes.length) flush();
-        };
-        const convertSelectedBlocks = (soft) => {
+        document.addEventListener('selectionchange',rememberSelection);
+        editor.addEventListener('keyup',rememberSelection);
+        editor.addEventListener('mouseup',rememberSelection);
+        formatSelect.addEventListener('pointerdown',rememberSelection);
+        const applyBlockFormat = (tag) => {
             const selection=window.getSelection();
-            if(!selection || selection.rangeCount===0) return;
-            const original=selection.getRangeAt(0);
-            if(original.collapsed){
-                if(soft){if(!document.execCommand('insertLineBreak'))document.execCommand('insertHTML',false,'<br>');}
-                else document.execCommand('formatBlock',false,'p');
-                return;
-            }
-            const nodes=selectedTopLevelNodes();
-            if(!nodes.length) return;
-            const replacement=document.createDocumentFragment();
-            if(soft){
-                const paragraph=document.createElement('p'); let needsBreak=false;
-                const appendLine=(lineNodes)=>{if(needsBreak)paragraph.appendChild(document.createElement('br'));lineNodes.forEach((node)=>paragraph.appendChild(node.cloneNode(true)));needsBreak=true;};
-                nodes.forEach((node)=>{
-                    const copy=node.cloneNode(true);
-                    if(copy.nodeType===Node.ELEMENT_NODE && ['P','DIV','H2','H3','BLOCKQUOTE'].includes(copy.nodeName)) appendLine(Array.from(copy.childNodes));
-                    else if(copy.nodeType===Node.ELEMENT_NODE && ['UL','OL'].includes(copy.nodeName)) Array.from(copy.children).forEach((item)=>appendLine(Array.from(item.childNodes)));
-                    else if(copy.nodeType===Node.ELEMENT_NODE && copy.nodeName==='BR') appendLine([]);
-                    else appendLine([copy]);
-                });
-                if(!paragraph.childNodes.length)paragraph.appendChild(document.createElement('br'));
-                replacement.appendChild(paragraph);
+            if(!selection || !selection.rangeCount || !editor.contains(selection.anchorNode)) return;
+            const oldRange=selection.getRangeAt(0).cloneRange();
+            const blocks=Array.from(editor.querySelectorAll('p,h1,h2,h3,div')).filter((node)=>{
+                if(node.querySelector('p,h1,h2,h3,div')) return false;
+                try { return oldRange.intersectsNode(node); } catch { return false; }
+            });
+            if(!blocks.length) { document.execCommand('formatBlock',false,tag); return; }
+            const originalStart=oldRange.startContainer, originalOffset=oldRange.startOffset;
+            const originalEnd=oldRange.endContainer, endOffset=oldRange.endOffset;
+            const changed=blocks.map((block)=>{
+                if(block.tagName.toLowerCase()===tag) return block;
+                const replacement=document.createElement(tag);
+                while(block.firstChild) replacement.appendChild(block.firstChild);
+                block.replaceWith(replacement);
+                return replacement;
+            });
+            const range=document.createRange();
+            if(editor.contains(originalStart) && editor.contains(originalEnd)){
+                const length=(node)=>node.nodeType===Node.TEXT_NODE ? node.length : node.childNodes.length;
+                range.setStart(originalStart,Math.min(originalOffset,length(originalStart)));
+                range.setEnd(originalEnd,Math.min(endOffset,length(originalEnd)));
+            }else if(oldRange.collapsed){
+                range.selectNodeContents(changed[0]);range.collapse(false);
             }else{
-                nodes.forEach((node)=>{
-                    const copy=node.cloneNode(true);
-                    if(copy.nodeType===Node.ELEMENT_NODE && ['P','DIV','H2','H3','BLOCKQUOTE'].includes(copy.nodeName)) appendParagraphs(replacement,Array.from(copy.childNodes));
-                    else if(copy.nodeType===Node.ELEMENT_NODE && ['UL','OL'].includes(copy.nodeName)) Array.from(copy.children).forEach((item)=>appendParagraphs(replacement,Array.from(item.childNodes)));
-                    else if(copy.nodeType===Node.ELEMENT_NODE && ['TABLE','IMG','HR'].includes(copy.nodeName)) replacement.appendChild(copy);
-                    else appendParagraphs(replacement,[copy]);
-                });
+                range.setStartBefore(changed[0]); range.setEndAfter(changed[changed.length-1]);
             }
-            const range=document.createRange(); range.setStartBefore(nodes[0]); range.setEndAfter(nodes[nodes.length-1]); range.deleteContents();
-            const inserted=Array.from(replacement.childNodes); range.insertNode(replacement); selectNodes(inserted);
+            selection.removeAllRanges(); selection.addRange(range);
+            savedRange=range.cloneRange();
         };
-        command('¶',labels.paragraph,()=>convertSelectedBlocks(false));
-        command('↵',labels.softBreak,()=>convertSelectedBlocks(true));
+        formatSelect.addEventListener('change',()=>{
+            const tag=formatSelect.value;
+            restoreSelection();
+            applyBlockFormat(tag);
+            sync();
+        });
+        const command = (label, title, handler) => { const button=document.createElement('button'); button.type='button'; button.textContent=label; button.title=title; button.addEventListener('mousedown',(event)=>event.preventDefault()); button.addEventListener('click',()=>{restoreSelection();handler();sync();}); toolbar.appendChild(button); };
         command('B',labels.bold,()=>document.execCommand('bold'));
         command('I',labels.italic,()=>document.execCommand('italic'));
         command('•',labels.bullets,()=>document.execCommand('insertUnorderedList'));
         command('1.',labels.numbers,()=>document.execCommand('insertOrderedList'));
         command('→',labels.indent,()=>document.execCommand('indent'));
         command('←',labels.outdent,()=>document.execCommand('outdent'));
-        command('Tx',labels.clear,()=>{document.execCommand('removeFormat');document.execCommand('unlink');});
+        command('Tx',labels.clear,()=>{
+            const selection=window.getSelection();
+            const anchor=selection?.anchorNode?.nodeType===Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
+            const heading=anchor?.closest('h1,h2,h3,blockquote');
+            const list=anchor?.closest('ul,ol');
+            const resetBlock=heading && editor.contains(heading);
+            const resetList=list && editor.contains(list);
+            const range=selection?.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+            const selectedIndexes=resetList ? Array.from(list.children).flatMap((item,index)=>{
+                if(item.tagName!=='LI') return [];
+                try { return range?.intersectsNode(item) ? [index] : []; } catch { return []; }
+            }) : [];
+            document.execCommand('removeFormat'); document.execCommand('unlink');
+            if(resetList && selectedIndexes.length){
+                const fragment=document.createDocumentFragment(); let remaining=null; const paragraphs=[];
+                Array.from(list.children).forEach((item,index)=>{
+                    if(selectedIndexes.includes(index)){
+                        remaining=null;
+                        const paragraph=document.createElement('p');
+                        while(item.firstChild) paragraph.appendChild(item.firstChild);
+                        paragraph.innerHTML=sanitize(paragraph.innerHTML);
+                        fragment.appendChild(paragraph); paragraphs.push(paragraph);
+                    }else{
+                        if(!remaining){remaining=document.createElement(list.tagName.toLowerCase());fragment.appendChild(remaining);}
+                        remaining.appendChild(item);
+                    }
+                });
+                list.replaceWith(fragment);
+                const next=document.createRange();
+                if(range?.collapsed){next.selectNodeContents(paragraphs[0]);next.collapse(false);}
+                else{next.setStartBefore(paragraphs[0]);next.setEndAfter(paragraphs[paragraphs.length-1]);}
+                selection.removeAllRanges();selection.addRange(next);savedRange=next.cloneRange();
+            }else if(resetBlock) applyBlockFormat('p');
+            formatSelect.value='p';
+        });
         command('🔗',labels.link,()=>{const url=window.prompt(labels.linkPrompt);if(!url)return;const href=url.includes('@')&&!url.includes('://')?'mailto:'+url:url;if(/^(https?:\/\/|mailto:)/i.test(href))document.execCommand('createLink',false,href);});
         command('🖼',labels.image,()=>{const url=window.prompt(labels.imagePrompt);if(/^https:\/\//i.test(url||''))document.execCommand('insertImage',false,url);});
         command('▦',labels.table,()=>document.execCommand('insertHTML',false,`<table><tbody><tr><th>${labels.heading}</th><th>${labels.heading}</th></tr><tr><td>${labels.content}</td><td>${labels.content}</td></tr></tbody></table><p><br></p>`));
@@ -19691,6 +19729,16 @@ startUiTranslationBuffer($appLocale);
         const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){commitSource();shell.classList.remove('is-source');editor.focus();}else{commitEditor(false);shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
         source.addEventListener('jema:richtext-load',()=>{editor.innerHTML=sanitize(source.value);});
         source.addEventListener('jema:richtext-sync',()=>sync(false));
+        editor.addEventListener('focus',()=>document.execCommand('defaultParagraphSeparator',false,'p'));
+        // The textarea's enclosing <label> must not forward an editor click to the toolbar select.
+        editor.addEventListener('click',(event)=>event.preventDefault());
+        editor.addEventListener('keydown',(event)=>{
+            if(event.key!=='Enter' || event.isComposing) return;
+            event.preventDefault();
+            document.execCommand('defaultParagraphSeparator',false,'p');
+            document.execCommand(event.shiftKey ? 'insertLineBreak' : 'insertParagraph');
+            sync();
+        });
         editor.addEventListener('input',sync);
         editor.addEventListener('paste',(event)=>{event.preventDefault();const html=event.clipboardData?.getData('text/html');const text=event.clipboardData?.getData('text/plain')||'';document.execCommand('insertHTML',false,sanitize(html||plainToHtml(text)));sync();});
         const wasRequired = source.required; source.required = false;

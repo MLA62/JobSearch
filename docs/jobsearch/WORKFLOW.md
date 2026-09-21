@@ -1,6 +1,16 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.46.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.47.
+
+Release 2.4.47: Beim Bearbeiten von Ausschreibung, Begleittext,
+Motivationsschreiben und anderen Rich-Text-Feldern bleibt der Fokus nach
+einem Klick im Textfeld. Das Absatzformat wird im Menü (Absatz, H1–H3)
+gewählt. Return erzeugt einen neuen `<p>`-Absatz, Shift+Return ein `<br>`
+im aktuellen Absatz; automatischer Zeilenumbruch ändert das HTML nicht.
+Innerhalb von Listen erzeugt Return einen weiteren Listeneintrag ohne
+zusätzlichen Absatzabstand. Tx entfernt Inline-Formatierungen; markierte
+Überschriften und Listenpunkte werden normale Absätze. Vorhandene
+Formatierungen werden beim blossen Öffnen nicht umgeschrieben.
 
 Release 2.4.46: «Bewerbung vorbereiten» legt den Entwurf vor der optionalen
 erneuten Inseratanalyse an. Danach gelten über alle Phasen zusammen maximal

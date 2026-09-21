@@ -1,6 +1,32 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.43 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Aktueller Code 2.4.47; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Rich-Text-Absatzsemantik 2.4.47
+
+Das gemeinsame Editor-Skript in `public/index.php` initialisiert für jedes
+mehrzeilige Rich-Text-Feld eine `contenteditable`-Fläche. Da die Fläche in
+einem `<label>` für das versteckte Textarea steht, unterdrückt der Click-
+Handler die Label-Standardaktion. Andernfalls aktivierte ein Klick in den
+Inhalt das erste Toolbar-Control und änderte beim anschliessenden Tippen
+unbeabsichtigt Format und HTML. Das Formatmenü bewahrt die zuletzt im Editor
+gesetzte Auswahl und wendet `formatBlock` auf Absatz/H1/H2/H3 an.
+Ein fokussierter Editor setzt den Standard-Absatztrenner auf `<p>`;
+`keydown` trennt Enter (`insertParagraph`) von Shift+Enter
+(`insertLineBreak`). Die bestehende Synchronisierung mit dem Textarea
+bleibt erhalten. `Tx` entfernt Inlineformat und Link. Selektierte
+Listenpunkte werden als Absätze aus der Liste gelöst, während andere
+Listeneinträge in ihrer Liste bleiben. Nur bei einer Überschrift wird
+zusätzlich das Blockformat auf Absatz zurückgesetzt, um `<p>`-
+Verschachtelung in normalen Absätzen zu vermeiden.
+
+Die auf Editor und HTML-Ansichten begrenzten CSS-Regeln stehen in
+`public/assets/app.css`. Normaltext ist 12 pt, H3/H2/H1 sind 14/16/18 pt;
+Abstände sind in pt definiert. `li` und darin verschachtelte Absätze haben
+keinen zusätzlichen Absatzabstand. Der Server-Sanitizer lässt H1 und
+vorhandene `<div>`-Absatzgrenzen zu, entfernt weiterhin Attribute und
+unsichere Inhalte. Eine bestehende gespeicherte Formatierung wird nicht
+automatisch neu geschrieben. Keine Datenbankmigration.
 
 ## Job-Room-Detailimport 2.4.43
 

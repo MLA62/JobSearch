@@ -2,6 +2,14 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.47: `rich_text_editor_visual_test.cjs` reproduziert den Klick
+auf Absatz und Aufzählung innerhalb des umgebenden Formularlabels und
+prüft unverändertes HTML, fortbestehenden Editorfokus, Enter, Shift+Enter,
+neue Listenpunkte, Tx, alle vier Formate sowie berechnete Schriftgrössen
+und Abstände. `rich_text_chronology_test.php` prüft den Server-Sanitizer
+für H1 und ältere DIV-Blöcke sowie die neue Editorverdrahtung. Zusätzlich
+PHP-Syntax, gesamte PHP-Suite und beide Dokumentationsgeneratoren prüfen.
+
 Release 2.4.43: `job_content_language_test.php` prüft drei Job-Room-UUID-
 Varianten, Detailkonvertierung, Trennung von Firmenadresse und Arbeitsort,
 Gültigkeitsbeleg sowie Ablehnung von Suchseite, Fremdhost und

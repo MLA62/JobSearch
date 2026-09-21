@@ -1,6 +1,22 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.46.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.47.
+
+Release 2.4.47: Alle Rich-Text-Felder verwenden dieselbe Absatzsemantik.
+Ein Klick in Text oder Aufzählungen verändert weder Inhalt noch Format.
+Automatischer Umbruch bleibt innerhalb einer Zeile, Shift+Enter erzeugt
+einen weichen Umbruch ohne Abstand und Enter einen neuen Absatz mit 6 pt
+Abstand danach. Die vier wählbaren Absatzformate sind Absatz, H1, H2 und
+H3. Weil die bisherige Editorbasis durch die Formularlabel-Regel etwa
+10,8 pt und nicht 10 pt betrug, gilt nun die vom Benutzer für diesen Fall
+vorgegebene 12-pt-Stufe: Absatz 12 pt/0 pt davor/6 pt danach, H3 14 pt/
+12 pt davor/6 pt danach, H2 16 pt/12 pt davor/6 pt danach und H1 18 pt/
+24 pt davor/6 pt danach, Überschriften fett. Listenpunkte haben keinen
+zusätzlichen Abstand. Tx entfernt die markierte Inline-Formatierung und
+setzt markierte Überschriften oder Listeneinträge auf Absätze zurück,
+ohne benachbarte Listeneinträge zu verändern. Die bisherigen
+Konvertierungsbuttons ¶ und ↵ werden durch das eindeutige Formatmenü
+ersetzt. Bestehende HTML-Inhalte und manuelle `<br>` bleiben erhalten.
 
 Release 2.4.46: «Bewerbung vorbereiten» erhält ein serverseitiges Budget
 von höchstens drei Minuten und fünf KI-API-Aufrufen. Das Budget gilt über
