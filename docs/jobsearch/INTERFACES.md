@@ -480,6 +480,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function readableText(string $value): string`
 - `function publicHttpUrl(string $url): bool`
 - `function extractImportUrls(string $payload): array`
+- `function extractJobRoomListingRows(string $payload): array`
+- `function importJobRoomComparable(string $text): string`
+- `function importResolveJobRoomListing(array $row): string`
+- `function importSelectJobRoomListing(array $row, array $matches): string`
 - `function importPayloadIsUrlOnly(string $payload, array $urls): bool`
 - `function findJobPosting(mixed $value): ?array`
 - `function importMetaContent(DOMXPath $xpath, string $selector): string`

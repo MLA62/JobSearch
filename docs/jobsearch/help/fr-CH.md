@@ -65,9 +65,10 @@ Pour remplacer un fichier, sélectionne d’abord le document actuel sous Nouvel
 L’import rapide reprend une ou plusieurs annonces connues. La recherche basée sur le profil conserve tes adaptations jusqu’au rechargement des valeurs par défaut.
 
 1. Colle dans l’import rapide une ou plusieurs URL d’annonces vérifiées, une par ligne. Les liens Job-Room publics vers une annonce individuelle /job-search/ID sont lus depuis leurs données détaillées; une page de recherche seule n’est pas une annonce. Si tu copies des résultats formatés depuis une page Web, l’application conserve aussi les cibles HTTPS complètes derrière les libellés visibles. Créer une proposition ouvre une fenêtre modale avec progression, temps écoulé, historique par annonce et Annuler.
-2. Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.
-3. Adapte les critères basés sur le profil et lance la recherche.
-4. Reprends une offre du tableau seulement après vérification.
+2. Une liste de résultats Job-Room copiée sans liens peut aussi importer plusieurs offres. L’application associe chaque fiche complète à une annonce publiée par le titre, l’entreprise et le lieu de travail; en cas d’homonymie, elle compare la date et la description. Les fiches incomplètes ou ambiguës sont signalées séparément dans l’historique, sans deviner.
+3. Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.
+4. Adapte les critères basés sur le profil et lance la recherche.
+5. Reprends une offre du tableau seulement après vérification.
 
 L’application lit chaque annonce originale avant affichage et suit les liens originaux reconnus. Les annonces expirées, illisibles, non vérifiables, incompatibles, supprimées et doublons sont exclus du tableau. L’IA évalue les critères avec citations; l’application calcule le score pondéré. Les données absentes ne donnent aucun point. Seuil de 70 %, sans contradiction attestée sur rôle, lieu, taux ou exclusions; rôle et lieu doivent être vérifiables. L’interprétation dépend du modèle. Le titre, la justification et un résumé plus détaillé de douze lignes au maximum utilisent la langue de l’application. La période salariale exige une preuve explicite; /mois, /an ou par heure est contrôlé techniquement sans conversion.
 

@@ -13,6 +13,14 @@ Prüfung auf Laufzeit, Quellenbelege, KI-Match und Deduplikation bleibt
 unverändert. Keine Schema- oder Bestandsdatenänderung. Die drei gemeldeten
 öffentlichen URLs wurden lesend gegen die API geprüft; eine erfolgreiche
 produktive Speicherung ist davon zu unterscheiden.
+`extractJobRoomListingRows()` erkennt daneben kopierte Ergebnislisten ohne
+Linkziele, mit Firma und Arbeitsort auf derselben oder getrennten Zeilen.
+`importResolveJobRoomListing()` sucht je Karte über die öffentliche
+Job-Room-Suche, verwirft unveröffentlichte bzw. in Titel, Firma oder
+Postleitzahl abweichende Treffer und wählt bei mehreren Kandidaten nur
+einen eindeutig durch Publikationsdatum und Beschreibung gestützten Treffer.
+Die Verarbeitung erfolgt im bestehenden modalen Schnellimport pro Karte;
+kein Sammel-HTTP-Request mit allen Stellen, keine stillen Auslassungen.
 
 ## Persistenz des Absagegrundes 2.4.42
 

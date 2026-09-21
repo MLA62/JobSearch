@@ -65,9 +65,10 @@ Para sustituir un archivo, selecciona primero el documento actual en Nueva versi
 La importación rápida acepta una o varias vacantes conocidas. La búsqueda basada en el perfil conserva tus cambios hasta que cargas los valores predeterminados.
 
 1. Pega una o varias URL verificadas de anuncios en la importación rápida, una por línea. Los enlaces públicos de Job-Room a anuncios individuales /job-search/ID se leen de sus datos detallados; una página de búsqueda no es un anuncio. Al copiar resultados con formato desde una página web, la aplicación también conserva los destinos HTTPS completos detrás de los textos visibles. Crear sugerencia abre una ventana modal con progreso, tiempo transcurrido, historial por anuncio y Cancelar.
-2. Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.
-3. Ajusta los criterios basados en el perfil e inicia la búsqueda.
-4. Importa una vacante de la tabla solo después de revisarla.
+2. Una lista de resultados de Job-Room copiada sin enlaces también puede importar varias vacantes. La aplicación relaciona cada ficha completa con un anuncio publicado por título, empresa y lugar de trabajo; los duplicados se comprueban con fecha y descripción. Las fichas incompletas o ambiguas aparecen como errores individuales en el historial, sin adivinar.
+3. Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.
+4. Ajusta los criterios basados en el perfil e inicia la búsqueda.
+5. Importa una vacante de la tabla solo después de revisarla.
 
 La aplicación lee cada anuncio original antes de mostrarlo y sigue enlaces originales reconocidos. Anuncios vencidos, ilegibles, no verificables, incompatibles, eliminados y duplicados quedan fuera de la tabla. La IA evalúa criterios con citas; la aplicación calcula la compatibilidad ponderada. Datos ausentes no suman puntos. Umbral de 70%, sin conflicto comprobado de puesto, lugar, jornada o exclusiones; puesto y lugar requieren evidencia. La interpretación depende del modelo. Título, explicación y un resumen más completo de hasta doce líneas usan el idioma de la aplicación. El periodo salarial exige evidencia explícita; /mes, /año o por hora se comprueba técnicamente sin conversión.
 

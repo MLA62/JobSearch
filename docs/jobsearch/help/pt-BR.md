@@ -65,9 +65,10 @@ Para substituir um arquivo, selecione primeiro o documento atual em Nova versão
 A importação rápida aceita uma ou mais vagas conhecidas. A busca baseada no perfil mantém suas alterações até recarregar os padrões.
 
 1. Cole uma ou mais URLs verificadas de anúncios na importação rápida, uma por linha. Links públicos do Job-Room para anúncios individuais /job-search/ID são lidos pelos dados detalhados; uma página de busca não é um anúncio. Ao copiar resultados formatados de uma página, o aplicativo também preserva os destinos HTTPS completos por trás dos textos visíveis. Criar sugestão abre uma janela modal com progresso, tempo decorrido, histórico por anúncio e Cancelar.
-2. Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.
-3. Ajuste os critérios baseados no perfil e inicie a busca.
-4. Importe uma vaga da tabela somente após revisá-la.
+2. Uma lista de resultados do Job-Room copiada sem links também pode importar várias vagas. O aplicativo associa cada item completo a um anúncio publicado pelo título, empresa e local de trabalho; duplicatas são verificadas pela data e descrição. Itens incompletos ou ambíguos aparecem como erros individuais no histórico, sem adivinhação.
+3. Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.
+4. Ajuste os critérios baseados no perfil e inicie a busca.
+5. Importe uma vaga da tabela somente após revisá-la.
 
 O aplicativo lê cada anúncio original antes de exibi-lo e segue links originais reconhecidos. Anúncios expirados, ilegíveis, não verificáveis, incompatíveis, excluídos e duplicados ficam fora da tabela. A IA avalia critérios com citações; o aplicativo calcula a compatibilidade ponderada. Dados ausentes não dão pontos. Limite de 70%, sem conflito comprovado de função, local, carga ou exclusões; função e local precisam de evidências. A interpretação depende do modelo. Título, justificativa e um resumo mais completo de até doze linhas usam o idioma do aplicativo. O período salarial exige prova explícita; /mês, /ano ou por hora é verificado tecnicamente sem conversão.
 

@@ -65,9 +65,10 @@ To replace a file, first select the current document under New version of. Title
 Quick import handles one or more known advertisements. Profile-based search keeps your changes until you load the defaults again.
 
 1. Paste one or more verified advertisement URLs into quick import, one per line. Public Job-Room links to individual /job-search/ID listings are read through their detail data; a search page alone is not an advertisement. When formatted results are copied from a webpage, the app also retains the complete HTTPS targets behind visible link labels. Create suggestion opens a modal with progress, elapsed time, per-advertisement history and Cancel.
-2. Profile defaults deliberately replace all saved criteria with the current profile values.
-3. Adjust the profile-based criteria and start the job search.
-4. Take over a job from the result table only after reviewing it.
+2. A copied Job-Room result list without links can import multiple jobs too. The app resolves each complete result card to a published advert using title, company and workplace; duplicates are checked against date and description. Incomplete or ambiguous cards appear as individual errors in the history instead of being guessed.
+3. Profile defaults deliberately replace all saved criteria with the current profile values.
+4. Adjust the profile-based criteria and start the job search.
+5. Take over a job from the result table only after reviewing it.
 
 The app reads every original advertisement before display and follows recognised original links. Expired, unreadable, unverifiable, unsuitable, deleted and duplicate jobs are excluded from the table. AI evaluates criteria with quotations; the app computes the weighted match. Missing information earns no points. The threshold is 70%, without evidenced conflicts in role, location, workload or exclusions; role and location must be evidenced. Interpretation remains model-dependent. Titles, match explanations and a fuller summary of up to twelve lines use the app language. A salary period requires explicit evidence; /month, /year or hourly wording is checked technically and is not converted.
 

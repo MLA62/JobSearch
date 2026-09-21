@@ -7,6 +7,14 @@ müssen im Schnellimport als einzelne Inserate erkannt werden. Der Import
 liest veröffentlichte Detaildaten samt Originaltext, Arbeitgeber und
 Gültigkeit; Suchseiten, fremde Hosts sowie unveröffentlichte oder
 unvollständige Datensätze werden nicht als Anzeige ausgegeben.
+Zusätzlich muss der Schnellimport kopierte Job-Room-Ergebnislisten ohne
+Linkziele als mehrere Stellenkarten erkennen. Für jede Karte wird die
+veröffentlichte Detailadresse anhand Titel, Firma und Arbeitsort gesucht;
+Datum und Beschreibung unterscheiden gleichnamige Anzeigen. Jede Karte
+wird einzeln verarbeitet und im Verlauf ausgewiesen. Unvollständige oder
+mehrdeutige Karten werden ausdrücklich als Fehler gezählt, nicht still
+weggelassen oder einer fremden Stelle zugeordnet. Anderer Freitext bleibt
+ein einzelner Formularentwurf.
 
 Release 2.4.42: Ein gespeicherter Absagegrund muss nach manuellem Speichern,
 Autosave und erneutem Öffnen der abgelehnten Bewerbung im Formular stehen

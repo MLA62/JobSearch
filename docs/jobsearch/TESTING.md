@@ -8,6 +8,11 @@ Gültigkeitsbeleg sowie Ablehnung von Suchseite, Fremdhost und
 unveröffentlichtem Inserat. Zusätzlich sind Syntax, gesamte PHP-Suite und
 beide Dokumentationsgeneratoren zu prüfen. Der API-Abruf der drei realen
 URLs ist nur ein lesender Integrationstest, kein Nachweis der Speicherung.
+`job_room_plain_list_test.php` prüft kopierte Ergebnislisten mit getrennten
+und kombinierten Firmen-/Ortszeilen, Dublettenabgleich und Fehler statt
+geratener Zuordnung. Die 34 Karten der Benutzerprobe werden lokal gezählt;
+die letzte Karte ist im gelieferten Text abgeschnitten. Öffentliche
+Suchabfragen sind nur lesende Integrationstests, keine produktive Übernahme.
 
 Release 2.4.42: `job_room_rejection_reason_test.php` prüft zusätzlich,
 dass die Detailabfrage den gespeicherten Absagegrund lädt und das Textfeld

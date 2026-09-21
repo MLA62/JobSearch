@@ -4233,13 +4233,21 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.search.steps.1' =>
   array (
+    'de-CH' => 'Auch eine kopierte Job-Room-Trefferliste ohne Links kann mehrere Jobs importieren. Die App löst jede vollständige Stellenkarte über Titel, Firma und Arbeitsort zur veröffentlichten Einzelanzeige auf; bei Namensdubletten werden Datum und Beschreibung abgeglichen. Unvollständige oder mehrdeutige Einträge erscheinen als einzelne Fehler im Verlauf und werden nicht geraten.',
+    'fr-CH' => 'Une liste de résultats Job-Room copiée sans liens peut aussi importer plusieurs offres. L’application associe chaque fiche complète à une annonce publiée par le titre, l’entreprise et le lieu de travail; en cas d’homonymie, elle compare la date et la description. Les fiches incomplètes ou ambiguës sont signalées séparément dans l’historique, sans deviner.',
+    'en-GB' => 'A copied Job-Room result list without links can import multiple jobs too. The app resolves each complete result card to a published advert using title, company and workplace; duplicates are checked against date and description. Incomplete or ambiguous cards appear as individual errors in the history instead of being guessed.',
+    'pt-BR' => 'Uma lista de resultados do Job-Room copiada sem links também pode importar várias vagas. O aplicativo associa cada item completo a um anúncio publicado pelo título, empresa e local de trabalho; duplicatas são verificadas pela data e descrição. Itens incompletos ou ambíguos aparecem como erros individuais no histórico, sem adivinhação.',
+    'es-MX' => 'Una lista de resultados de Job-Room copiada sin enlaces también puede importar varias vacantes. La aplicación relaciona cada ficha completa con un anuncio publicado por título, empresa y lugar de trabajo; los duplicados se comprueban con fecha y descripción. Las fichas incompletas o ambiguas aparecen como errores individuales en el historial, sin adivinar.',
+  ),
+  'help.v2.search.steps.2' =>
+  array (
     'de-CH' => 'Mit Standardwerte aus dem Profil ersetzt du alle gespeicherten Kriterien bewusst durch die aktuellen Profilwerte.',
     'fr-CH' => 'Les valeurs par défaut du profil remplacent volontairement tous les critères enregistrés.',
     'en-GB' => 'Profile defaults deliberately replace all saved criteria with the current profile values.',
     'pt-BR' => 'Os padrões do perfil substituem deliberadamente todos os critérios salvos pelos valores atuais do perfil.',
     'es-MX' => 'Los valores predeterminados del perfil sustituyen deliberadamente todos los criterios guardados por los valores actuales del perfil.',
   ),
-  'help.v2.search.steps.2' =>
+  'help.v2.search.steps.3' =>
   array (
     'de-CH' => 'Passe die profilbasierten Kriterien an und starte Passende Jobs suchen. Das Statusfenster meldet Fortschritt, Abschluss oder eine erreichte Suchgrenze.',
     'fr-CH' => 'Adapte les critères basés sur le profil et lance la recherche.',
@@ -4247,7 +4255,7 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Ajuste os critérios baseados no perfil e inicie a busca.',
     'es-MX' => 'Ajusta los criterios basados en el perfil e inicia la búsqueda.',
   ),
-  'help.v2.search.steps.3' =>
+  'help.v2.search.steps.4' =>
   array (
     'de-CH' => 'Die Ergebnisliste zeigt pro Anzeige die Match-Prozentzahl zum vollständigen Suchprofil in deiner Benutzersprache; übernimm eine Stelle erst nach eigener Prüfung.',
     'fr-CH' => 'Reprends une offre du tableau seulement après vérification.',
@@ -4721,7 +4729,7 @@ function helpTopicDefinitions(): array
       0 => 'job_platform_search',
       1 => 'jobs#quick-import',
     ),
-    'step_count' => 4,
+    'step_count' => 5,
     'tip_count' => 8,
   ),
   5 =>
@@ -10806,6 +10814,122 @@ function extractImportUrls(string $payload): array
     return array_values($urls);
 }
 
+/** A plain-text Job-Room result list has titles and dates, but no link targets. */
+function extractJobRoomListingRows(string $payload): array
+{
+    $lines = preg_split('/\R/u', str_replace('\\&', '&', $payload)) ?: [];
+    $rows = [];
+    foreach ($lines as $index => $line) {
+        $date = trim($line);
+        if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $date)) continue;
+        $titleIndex = $index - 1;
+        while ($titleIndex >= 0 && trim($lines[$titleIndex]) === '') $titleIndex--;
+        $companyIndex = $index + 1;
+        while (isset($lines[$companyIndex]) && trim($lines[$companyIndex]) === '') $companyIndex++;
+        $locationIndex = $companyIndex;
+        if (!preg_match('/\d{4}\s+.+?\s*\([A-Z]{2}\)/u', trim($lines[$locationIndex] ?? '')))
+            $locationIndex++;
+        $summaryIndex = $locationIndex + 1;
+        while (isset($lines[$summaryIndex]) && trim($lines[$summaryIndex]) === '') $summaryIndex++;
+        $title = $titleIndex >= 0 ? trim($lines[$titleIndex]) : '';
+        $companyLine = trim($lines[$companyIndex] ?? '');
+        if ($locationIndex !== $companyIndex) $companyLine .= trim($lines[$locationIndex] ?? '');
+        $summary = trim($lines[$summaryIndex] ?? '');
+        if ($title === '') continue;
+        if ($summary === '' || !preg_match('/^(.*?)\s*(\d{4})\s+(.+?)\s*\(([A-Z]{2})\)/u', $companyLine, $match)) {
+            $rows['incomplete-'.$index] = ['title'=>$title,'date'=>$date,'incomplete'=>true];
+            continue;
+        }
+        $company = trim($match[1]);
+        if ($company === '' || mb_strlen($title) > 300 || mb_strlen($company) > 200) continue;
+        $key = mb_strtolower($title.'|'.$company.'|'.$date.'|'.mb_substr($summary, 0, 120));
+        $rows[$key] = ['title'=>$title,'company'=>$company,'postal_code'=>$match[2],
+            'city'=>trim($match[3]),'date'=>$date,'summary'=>mb_substr($summary, 0, 500)];
+    }
+    if (!array_filter($rows, static fn(array $row): bool => empty($row['incomplete']))) return [];
+    return array_slice(array_values($rows), 0, 100);
+}
+
+function importJobRoomComparable(string $text): string
+{
+    $text = mb_strtolower(plainText(str_replace('\\', '', $text)));
+    return trim(preg_replace('/\s+/u', ' ', preg_replace('/[^\pL\pN]+/u', ' ', $text) ?? $text) ?? $text);
+}
+
+/** Resolve a copied result card only when the public search returns one matching advert. */
+function importResolveJobRoomListing(array $row): string
+{
+    if (!empty($row['incomplete'])) throw new RuntimeException('Der kopierte Listeneintrag enthält keine vollständige Firma, Ortsangabe und Beschreibung.');
+    if (!function_exists('curl_init')) throw new RuntimeException('Die Job-Room-Suche ist serverseitig nicht verfügbar.');
+    $endpoint = 'https://www.job-room.ch/jobadservice/api/jobAdvertisements/_search?page=0&size=30';
+    $host = 'www.job-room.ch';
+    $records = @dns_get_record($host, DNS_A | DNS_AAAA);
+    $addresses = [];
+    foreach ($records ?: [] as $record) {
+        $ip = $record['ip'] ?? ($record['ipv6'] ?? '');
+        if ($ip === '' || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) throw new RuntimeException('Die Job-Room-Adresse ist nicht öffentlich.');
+        $addresses[] = $ip;
+    }
+    if (!$addresses) throw new RuntimeException('Job-Room konnte nicht aufgelöst werden.');
+    usort($addresses, static fn(string $a,string $b): int => (int)str_contains($a,':') <=> (int)str_contains($b,':'));
+    $ip = str_contains($addresses[0],':') ? '['.$addresses[0].']' : $addresses[0];
+    $body = ''; $tooLarge = false;
+    $curl = curl_init($endpoint);
+    curl_setopt_array($curl, [
+        CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>json_encode(['keywords'=>[(string)$row['title']],
+            'companyName'=>(string)$row['company'],'displayRestricted'=>false], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+        CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>8, CURLOPT_TIMEOUT=>20,
+        CURLOPT_USERAGENT=>'JeMaJobs/2.0 (+https://jobs.jema.business)',
+        CURLOPT_HTTPHEADER=>['Accept: application/json','Content-Type: application/json'],
+        CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS, CURLOPT_PROXY=>'', CURLOPT_RESOLVE=>[$host.':443:'.$ip],
+        CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk) use (&$body,&$tooLarge): int {
+            if (strlen($body)+strlen($chunk) > 2_000_000) { $tooLarge=true; return 0; }
+            $body.=$chunk; return strlen($chunk);
+        },
+    ]);
+    $ok = curl_exec($curl); $status=(int)curl_getinfo($curl,CURLINFO_RESPONSE_CODE); curl_close($curl);
+    if ($tooLarge || $ok === false || $status !== 200) throw new RuntimeException('Die Job-Room-Suche konnte nicht gelesen werden.');
+    $matches = json_decode($body, true, 64, JSON_THROW_ON_ERROR);
+    if (!is_array($matches)) throw new RuntimeException('Die Job-Room-Suche lieferte ungültige Daten.');
+    return importSelectJobRoomListing($row, $matches);
+}
+
+function importSelectJobRoomListing(array $row, array $matches): string
+{
+    $wantedTitle = importJobRoomComparable((string)$row['title']);
+    $wantedCompany = importJobRoomComparable((string)$row['company']);
+    $wantedSummary = importJobRoomComparable((string)$row['summary']);
+    $wantedDate = DateTimeImmutable::createFromFormat('!d.m.Y', (string)$row['date']);
+    $candidates = [];
+    foreach ($matches as $result) {
+        $ad = (array)($result['jobAdvertisement'] ?? []);
+        $content = (array)($ad['jobContent'] ?? []);
+        $description = (array)(($content['jobDescriptions'] ?? [])[0] ?? []);
+        $company = (array)($content['company'] ?? []);
+        $location = (array)($content['location'] ?? []);
+        $id = (string)($ad['id'] ?? '');
+        if (!preg_match('/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i', $id)
+            || (string)($ad['status'] ?? '') !== 'PUBLISHED_PUBLIC'
+            || importJobRoomComparable((string)($description['title'] ?? '')) !== $wantedTitle
+            || importJobRoomComparable((string)($company['name'] ?? '')) !== $wantedCompany
+            || (string)($location['postalCode'] ?? $company['postalCode'] ?? '') !== (string)$row['postal_code']) continue;
+        $actualSummary = importJobRoomComparable((string)($description['description'] ?? ''));
+        $summaryStart = mb_substr($wantedSummary, 0, min(70, mb_strlen($wantedSummary)));
+        $summaryMatch = mb_strlen($summaryStart) >= 25 && str_contains($actualSummary, $summaryStart);
+        $createdDate = substr((string)($ad['createdTime'] ?? ''), 0, 10);
+        $dateMatch = $wantedDate && $createdDate === $wantedDate->format('Y-m-d');
+        $candidates[$id] = ['url'=>'https://www.job-room.ch/job-search/'.$id,
+            'score'=>(int)$summaryMatch * 2 + (int)$dateMatch];
+    }
+    if (!$candidates) throw new RuntimeException('Für diesen Listeneintrag wurde keine eindeutig passende veröffentlichte Anzeige gefunden.');
+    if (count($candidates) === 1) return reset($candidates)['url'];
+    $highest = max(array_column($candidates, 'score'));
+    if ($highest === 0) throw new RuntimeException('Mehrere gleichnamige Job-Room-Anzeigen gefunden; bitte den direkten Inserat-Link verwenden.');
+    $best = array_values(array_filter($candidates, static fn(array $candidate): bool => $candidate['score'] === $highest));
+    if (count($best) !== 1) throw new RuntimeException('Mehrere passende Job-Room-Anzeigen gefunden; bitte den direkten Inserat-Link verwenden.');
+    return $best[0]['url'];
+}
+
 function importPayloadIsUrlOnly(string $payload, array $urls): bool
 {
     if (!$urls) {
@@ -11294,7 +11418,7 @@ function jobImportDialogHtml(string $locale): string
  modal.querySelector('h2').textContent=labels[0]; progress.setAttribute('aria-label',labels[0]);
  let active=null;
  modal.addEventListener('cancel',event=>event.preventDefault());
- cancel.addEventListener('click',()=>{if(active?.saving)return;if(active){active.cancelled=true;active.controller.abort();clearInterval(active.timer);active.trigger.disabled=false;if(active.quickToken){const stopped=new FormData();stopped.set('csrf',active.csrf||'');stopped.set('action','cancel_quick_import');stopped.set('quick_import_token',active.quickToken);fetch('/?page=job_platform_search',{method:'POST',body:stopped,credentials:'same-origin',keepalive:true}).catch(()=>{});}}active=null;modal.close();});
+ cancel.addEventListener('click',()=>{if(active?.saving)return;if(active?.finishedRedirect){const destination=active.finishedRedirect;active.trigger.disabled=false;active=null;modal.close();window.location.assign(destination);return;}if(active){active.cancelled=true;active.controller.abort();clearInterval(active.timer);active.trigger.disabled=false;if(active.quickToken){const stopped=new FormData();stopped.set('csrf',active.csrf||'');stopped.set('action','cancel_quick_import');stopped.set('quick_import_token',active.quickToken);fetch('/?page=job_platform_search',{method:'POST',body:stopped,credentials:'same-origin',keepalive:true}).catch(()=>{});}}active=null;modal.close();});
  async function request(data,signal){
   const response=await fetch('/?page=job_platform_search',{method:'POST',body:data,credentials:'same-origin',signal,headers:{Accept:'application/json'}});
    const result=await response.json().catch(()=>null); if(!response.ok||!result?.ok)throw new Error(String(result?.error||'Request failed')); return result;
@@ -11323,7 +11447,9 @@ function jobImportDialogHtml(string $locale): string
       progress.value=Number(result.processed||0);
       const item=document.createElement('li');const prefix=result.item_status==='created'?labels[16]:(result.item_status==='updated'?labels[17]:labels[18]);item.textContent=prefix+': '+String(result.host||result.line||'')+(result.item_error?' — '+result.item_error:'');history.appendChild(item);history.scrollTop=history.scrollHeight;
      }
-     clearInterval(run.timer);status.textContent=labels[14]+' '+String(result.created||0)+' / '+String(result.updated||0)+' / '+String(result.failed||0);window.location.assign(String(result.redirect||'/?page=job_platform_search#quick-import'));return;
+     clearInterval(run.timer);status.textContent=labels[14]+' '+String(result.created||0)+' / '+String(result.updated||0)+' / '+String(result.failed||0);
+     if(Number(result.failed||0)>0){run.finishedRedirect=String(result.redirect||'/?page=job_platform_search#quick-import');cancel.textContent=labels[8];return;}
+     window.location.assign(String(result.redirect||'/?page=job_platform_search#quick-import'));return;
     }
     if(typeof prepared.token!=='string')throw new Error('Missing preparation');
    run.saving=true;cancel.disabled=true;status.textContent=labels[2];note.textContent=labels[8];
@@ -14919,8 +15045,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $importUrls = [];
                 foreach ($rawImportUrls as $importUrl) foreach (importDiscoverDetailUrls($importUrl) as $detailUrl) $importUrls[$detailUrl] = $detailUrl;
                 $importUrls = array_slice(array_values($importUrls), 0, 100);
+                $listingRows = $importUrls ? [] : extractJobRoomListingRows($payload);
                 unset($_SESSION['import_draft']);
-                if (count($importUrls) < 1 || (count($importUrls) === 1 && !importPayloadIsUrlOnly($payload, $importUrls))) {
+                if (!$listingRows && (count($importUrls) < 1 || (count($importUrls) === 1 && !importPayloadIsUrlOnly($payload, $importUrls)))) {
                     $_SESSION['import_draft'] = count($importUrls) === 1 && importPayloadIsUrlOnly($payload, $importUrls)
                         ? importFromUrl($importUrls[0], $manualDiagnostic, true)
                         : importFromText($payload);
@@ -14930,9 +15057,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 while (count($pending) >= 5) array_shift($pending);
                 $token = bin2hex(random_bytes(24));
-                $pending[$token] = ['uid'=>$uid,'expires'=>time()+900,'urls'=>$importUrls,'next'=>0,'created'=>0,'updated'=>0,'failed'=>0,'fail_reasons'=>[],'last_job_id'=>0];
+                $items = $listingRows ?: $importUrls;
+                $pending[$token] = ['uid'=>$uid,'expires'=>time()+900,'urls'=>$items,'next'=>0,'created'=>0,'updated'=>0,'failed'=>0,'fail_reasons'=>[],'last_job_id'=>0];
                 $_SESSION['pending_quick_imports'] = $pending;
-                echo json_encode(['ok'=>true,'done'=>false,'token'=>$token,'total'=>count($importUrls)], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                echo json_encode(['ok'=>true,'done'=>false,'token'=>$token,'total'=>count($items)], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
                 exit;
             }
             $token = trim((string)($_POST['quick_import_token'] ?? ''));
@@ -14947,12 +15075,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $urls = array_values((array)($run['urls'] ?? []));
             $index = (int)($run['next'] ?? 0);
             if (!isset($urls[$index])) throw new RuntimeException('Der Schnellimport enthält keinen weiteren Datensatz.');
-            $sourceUrl = (string)$urls[$index];
+            $item = $urls[$index];
+            $sourceUrl = is_string($item) ? $item : '';
             $line = '';
             $itemStatus = '';
             $itemError = '';
-            $host = (string)(parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl);
+            $host = is_array($item) ? mb_substr((string)($item['title'] ?? ''),0,100) : (string)(parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl);
             try {
+                if (is_array($item)) $sourceUrl = importResolveJobRoomListing($item);
                 $manualDiagnostic = [];
                 $saved = importStoreDraft($db, $uid, verifiedJobImport($config, $uid, $sourceUrl, importSearchCriteria($db, $uid), $manualDiagnostic, true));
                 $run['last_job_id'] = (int)$saved['job_id'];
@@ -14961,7 +15091,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $line .= $host;
             } catch (Throwable $itemException) {
                 $run['failed'] = (int)$run['failed'] + 1;
-                $reason = (string)(parse_url($sourceUrl, PHP_URL_HOST) ?: $sourceUrl) . ': ' . $itemException->getMessage();
+                $reason = $host . ': ' . $itemException->getMessage();
                 $run['fail_reasons'] = array_slice(array_merge((array)($run['fail_reasons'] ?? []), [$reason]), -10);
                 $line = 'Fehlgeschlagen: ' . $reason;
                 $itemStatus = 'failed';

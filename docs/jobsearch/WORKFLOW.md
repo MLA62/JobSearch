@@ -9,6 +9,13 @@ prüft ID und Publikationsstatus und übergibt die enthaltenen Angaben als
 JobPosting an die bestehende Quellen-, KI- und Speicherpipeline. Die
 sichtbare Job-Room-URL bleibt die Inseratquelle; die leere SPA-Hülle wird
 nicht als fehlendes Inserat missverstanden.
+Kopierte Ergebnislisten ohne URLs werden anhand ihrer datierten Stellenkarten
+erkannt. `prepare_quick_import` legt jede Karte als eigenen Sitzungsschritt
+an; `process_quick_import` fragt die öffentliche Job-Room-Suche ab, gleicht
+Titel, Firma und Arbeitsort sowie bei Dubletten Datum und Kurztext ab und
+verarbeitet nur eine eindeutig zugeordnete veröffentlichte Einzelanzeige.
+Unvollständige oder mehrdeutige Karten bleiben als einzelne Fehlversuche
+im Verlauf sichtbar. Der Import behauptet für sie keine Speicherung.
 
 Release 2.4.42: Die Bewerbungs-Edit-Abfrage lädt `rejection_reason` zusammen
 mit `status`. Das Formular zeigt bei `rejected` den gespeicherten Text nach
