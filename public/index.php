@@ -11508,6 +11508,16 @@ function importResolveUrl(string $base, string $reference): string
     return $origin.implode('/', $segments);
 }
 
+function importHttpHeaders(string $url): array
+{
+    $parts = parse_url($url);
+    $jobRoomApi = is_array($parts)
+        && strtolower((string)($parts['host'] ?? '')) === 'www.job-room.ch'
+        && preg_match('~^/jobadservice/api/jobAdvertisements/[0-9a-f-]{36}$~i', (string)($parts['path'] ?? ''));
+    return ['Accept: '.($jobRoomApi ? 'application/json' : 'text/html,application/xhtml+xml'),
+        'Accept-Language: de-CH,de;q=0.9,en;q=0.7'];
+}
+
 function importFetchHtml(string $url, int $timeoutSeconds = 30): array
 {
     if (!function_exists('curl_init')) throw new RuntimeException('Der HTTP-Importer ist serverseitig nicht verfügbar.');
@@ -11537,7 +11547,7 @@ function importFetchHtml(string $url, int $timeoutSeconds = 30): array
         curl_setopt_array($curl, [
             CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>min(10,max(1,$timeoutSeconds)), CURLOPT_TIMEOUT=>max(1,$timeoutSeconds),
             CURLOPT_ENCODING=>'', CURLOPT_USERAGENT=>'JeMaJobs/2.0 (+https://jobs.jema.business)',
-            CURLOPT_HTTPHEADER=>['Accept: text/html,application/xhtml+xml','Accept-Language: de-CH,de;q=0.9,en;q=0.7'],
+            CURLOPT_HTTPHEADER=>importHttpHeaders($url),
             CURLOPT_PROTOCOLS=>CURLPROTO_HTTP | CURLPROTO_HTTPS, CURLOPT_PROXY=>'',
             CURLOPT_RESOLVE=>[$parts['host'].':'.$port.':'.$ip],
             CURLOPT_HEADERFUNCTION=>static function($handle,string $line) use (&$location): int {
@@ -16658,7 +16668,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.43';
+$codeVersion = '2.4.44';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

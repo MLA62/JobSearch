@@ -6,7 +6,7 @@ if (!function_exists('mb_substr')) { function mb_substr(string $value,int $start
 if (!function_exists('mb_strtolower')) { function mb_strtolower(string $value): string { return strtolower($value); } }
 
 $source = file_get_contents(__DIR__.'/../public/index.php');
-$wanted = array_fill_keys(['repairMojibake','plainText','extractJobRoomListingRows','importJobRoomComparable','importSelectJobRoomListing'], true);
+$wanted = array_fill_keys(['repairMojibake','plainText','extractJobRoomListingRows','importJobRoomComparable','importSelectJobRoomListing','importHttpHeaders'], true);
 $tokens = token_get_all($source);
 for ($i=0; $i<count($tokens); $i++) {
     if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_FUNCTION) continue;
@@ -26,6 +26,10 @@ function checkPlainList(bool $condition, string $message): void {
     if (!$condition) throw new RuntimeException($message);
     echo "PASS $message\n";
 }
+checkPlainList(in_array('Accept: application/json', importHttpHeaders('https://www.job-room.ch/jobadservice/api/jobAdvertisements/d748fc6a-f08e-4f5f-bc81-84d4d1ac47ac'), true),
+    'Job-Room detail API requests JSON rather than HTML');
+checkPlainList(in_array('Accept: text/html,application/xhtml+xml', importHttpHeaders('https://www.job-room.ch/job-search/d748fc6a-f08e-4f5f-bc81-84d4d1ac47ac'), true),
+    'Ordinary advert pages continue requesting HTML');
 $payload="Recruitment & Sales Consultant m/w/d/ 100%\n\n21.09.2026\ndas team ag3012 Bern (BE)100%Nach Vereinbarung\nRecruitment & Sales Consultant: Baupersonal finden, auswählen und gewinnen\n\nGeneral Manager Schweiz w/m/d\n\n21.09.2026\nLogjob AG - For Supply Chain Experts3052 Zollikofen (BE)100%\nGeneral Manager Schweiz: Markteintritt und Aufbau in der Schweiz";
 $rows=extractJobRoomListingRows($payload);
 checkPlainList(count($rows)===2 && $rows[0]['company']==='das team ag' && $rows[0]['postal_code']==='3012', 'Plain result list parsed into separate dated cards');

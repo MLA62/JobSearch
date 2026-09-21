@@ -511,6 +511,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function jobImportDialogHtml(string $locale): string`
 - `function importRepairExistingJob(mysqli $db, int $uid, array $existing, array $draft, int $companyId): bool`
 - `function importResolveUrl(string $base, string $reference): string`
+- `function importHttpHeaders(string $url): array`
 - `function importFetchHtml(string $url, int $timeoutSeconds = 30): array`
 - `function importOriginalCandidates(string $html, string $url): array`
 - `function importSameJob(array $portal, array $original): bool`
