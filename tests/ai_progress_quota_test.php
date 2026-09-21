@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.4.35' => "\$codeVersion = '2.4.35'",
+    'version 2.4.36' => "\$codeVersion = '2.4.36'",
     'AI modal' => 'id="ai-work-dialog"',
     'live task label' => 'data-ai-work-phase',
     'live elapsed timer' => 'data-ai-work-elapsed',

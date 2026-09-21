@@ -2,6 +2,13 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Ergänzung 2.4.36: `application_swiss_writing_guide_test.php` prüft
+Vermittler/Endkunde/direkten Arbeitgeber, die Leitfadenregeln und den
+separaten, quellengebundenen Empfänger-Prüflauf mit gezieltem Retry. Alle
+PHP-Tests, Syntax und beide Dokumentationsgeneratoren sind auszuführen.
+Die produktive Versions- und Hashprüfung bestätigt keine Textqualität;
+ein angemeldeter KI-Lauf mit bewusst gewählter Bewerbung bleibt separat.
+
 Ergänzung 2.4.35: `application_writing_context_isolation_test.php` prüft,
 dass nur aktuelle Formulartexte und frisch selektierte CVs als Schreibquellen
 verwendet werden. `application_letter_recipient_regression_test.php` sichert

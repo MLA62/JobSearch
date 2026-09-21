@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 21.09.2026. Version 2.4.35 baut die KI-Schreibanfrage für Begleit-E-Mail und Motivationsschreiben neu auf: aktuelles Inserat, konkrete Arbeitgeberbedürfnisse und der jeweils neueste aktuelle Stammdaten-Lebenslauf je Sprache. Bei Überarbeitungen dienen ausschliesslich die gegenwärtigen Formulartexte als Textvorlage; frühere Versionen und andere Dokumente werden nicht beigezogen. Ein gültiger Betreff im Brief wird akzeptiert, und fehlgeschlagene Bearbeitungen erhalten die aktuelle Formulareingabe.
-Release-Dokumentation: [Release 2.4.35](docs/jobsearch/RELEASE-2.4.35.md).
+Stand: 21.09.2026. Version 2.4.36 bindet den [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md) an jede KI-Schreibanfrage: aktuelles Inserat, konkrete Arbeitgeberbedürfnisse, Empfängerrolle und jeweils neuester aktueller Stammdaten-Lebenslauf je Sprache. Ein unabhängiger simulierter Empfänger-Prüflauf kontrolliert den fertigen Entwurf gegen Quellen und Benutzerauftrag und gibt gezielte Mängel zur Überarbeitung zurück. Bei Überarbeitungen dienen ausschliesslich die gegenwärtigen Formulartexte als Textvorlage.
+Release-Dokumentation: [Release 2.4.36](docs/jobsearch/RELEASE-2.4.36.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

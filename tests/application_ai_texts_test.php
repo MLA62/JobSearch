@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.35'=>"\$codeVersion = '2.4.35'",
+    'version 2.4.36'=>"\$codeVersion = '2.4.36'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'rejected drafts are not silently replaced'=>'Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.',
@@ -49,7 +49,8 @@ $checks=[
     'initial drafts are generated anew'=>"applicationAiTexts(\$config,\$db,\$userId,\$applicationId,\$currentUser,'',\$drafts)",
     'narrow application context'=>'applicationWritingContext($db,$userId,$applicationId,$currentUser,$recipientBlock)',
     'no older drafts sent'=>'The current_texts in this request are the only existing draft.',
-    'applicant benefit first'=>'The objective is to show the specific benefit this candidate can bring to this employer and role',
+    'applicant benefit first'=>'The objective is to show the specific benefit this candidate can bring to the future employer and role',
+    'Swiss best-practice guide in prompt'=>'applicationSwissWritingGuide()',
     'failed AI leaves draft unwritten'=>'$generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,\'\',$drafts);',
 ];
 foreach($checks as $label=>$needle){

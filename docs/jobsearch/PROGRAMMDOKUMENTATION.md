@@ -1,6 +1,21 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.35 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.36 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Schweizer Schreibleitfaden und Empfängerprüfung 2.4.36
+
+Der [Best-Practice-Leitfaden](SWISS_APPLICATION_WRITING_GUIDE.md) dokumentiert
+Primärquellen von SECO/arbeit.swiss, UZH und ETH. Seine kompakten Regeln
+werden bei jedem KI-Aufruf durch `applicationSwissWritingGuide()` übergeben.
+`applicationWritingRelationship()` trennt die Empfängerrolle von der
+künftigen Arbeitgeberrolle. Bei einem Vermittler ohne belegten Endkunden
+wird der Auftraggeber beschrieben, nicht der Vermittler als Arbeitgeber.
+Nach Quellen- und Strukturprüfung bekommt ein eigener API-Aufruf nur die
+aktuellen Quellen, den fertigen Text und die angeforderten Zielfelder. Die
+simulierte Empfängerprüfung liefert konkrete Mängel an den Schreibaufruf
+zurück; höchstens drei Schreibversuche. Dies ist keine Rückmeldung eines
+tatsächlichen Empfängers. Alte Versionen und andere Dokumenttypen werden
+auch dem Prüflauf nicht übergeben. Kein DB-Schemaeingriff oder Versand.
 
 ## Neu aufgebauter KI-Schreibkontext 2.4.35
 
