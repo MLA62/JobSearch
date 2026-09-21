@@ -19612,6 +19612,7 @@ startUiTranslationBuffer($appLocale);
             const clean = sanitize(source.value);
             source.value = clean;
             editor.innerHTML = clean;
+            savedRange = null;
             if (notify) source.dispatchEvent(new Event('input',{bubbles:true}));
         };
         const commitEditor = (notify = true) => {
@@ -19727,7 +19728,7 @@ startUiTranslationBuffer($appLocale);
         command('▦',labels.table,()=>document.execCommand('insertHTML',false,`<table><tbody><tr><th>${labels.heading}</th><th>${labels.heading}</th></tr><tr><td>${labels.content}</td><td>${labels.content}</td></tr></tbody></table><p><br></p>`));
         command('―',labels.divider,()=>document.execCommand('insertHorizontalRule'));
         const sourceButton=document.createElement('button'); sourceButton.type='button'; sourceButton.textContent='HTML'; sourceButton.title=labels.source; sourceButton.addEventListener('click',()=>{if(shell.classList.contains('is-source')){commitSource();shell.classList.remove('is-source');editor.focus();}else{commitEditor(false);shell.classList.add('is-source');source.focus();}}); toolbar.appendChild(sourceButton);
-        source.addEventListener('jema:richtext-load',()=>{editor.innerHTML=sanitize(source.value);});
+        source.addEventListener('jema:richtext-load',()=>{editor.innerHTML=sanitize(source.value);savedRange=null;formatSelect.value='p';});
         source.addEventListener('jema:richtext-sync',()=>sync(false));
         editor.addEventListener('focus',()=>document.execCommand('defaultParagraphSeparator',false,'p'));
         // The textarea's enclosing <label> must not forward an editor click to the toolbar select.
