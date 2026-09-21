@@ -147,7 +147,7 @@ A janela Em andamento mostra o tempo real. Em Preparar candidatura, o servidor l
 
 O campo Enviada em aceita o horário armazenado, incluindo segundos.
 
-O e-mail, a carta, o anúncio e outros campos multilinhas usam o mesmo minieditor HTML. Escolha Parágrafo, H1, H2 ou H3 no menu. Enter cria um parágrafo com 6 pt depois; Shift+Enter insere uma quebra de linha sem espaço extra, e a quebra automática não exige tecla. Itens de lista não têm espaço adicional. Tx remove a formatação inline selecionada e redefine títulos ou itens de lista selecionados como parágrafos. Alterações HTML são sincronizadas antes de salvar e de ações de IA. Cartões e tabelas mostram texto simples; o dossiê mantém a formatação.
+O e-mail, a carta, o anúncio e outros campos multilinhas usam o mesmo minieditor HTML. Escolha Parágrafo, H1, H2 ou H3 no menu. Enter cria um parágrafo com 8 pt depois; Shift+Enter insere uma quebra de linha sem espaço extra, e a quebra automática não exige tecla. Itens de lista não têm espaço adicional. Tx remove a formatação inline selecionada e redefine títulos ou itens de lista selecionados como parágrafos. Alterações HTML são sincronizadas antes de salvar e de ações de IA. Cartões e tabelas mostram texto simples; o dossiê mantém a formatação.
 
 Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. Uma instrução específica altera apenas os textos nomeados; sem indicar um campo, revisa o e-mail e a carta. A instrução é reenviada em cada tentativa. Pedidos explícitos de extensão ou omissão também são verificados. Em caso de falha, a instrução permanece no campo e os textos existentes não são sobrescritos.
 

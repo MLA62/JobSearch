@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.47.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.48.
+
+Release 2.4.48: Der Abstand nach einem normalen Absatz oder einer
+Überschrift H1–H3 beträgt 8 pt statt 6 pt (ein Drittel mehr). Die
+Abstände davor, Schriftgrössen und weichen Zeilenumbrüche bleiben
+unverändert; einzelne Listenpunkte haben weiterhin keinen Zusatzabstand.
 
 Release 2.4.47: Alle Rich-Text-Felder verwenden dieselbe Absatzsemantik.
 Ein Klick in Text oder Aufzählungen verändert weder Inhalt noch Format.

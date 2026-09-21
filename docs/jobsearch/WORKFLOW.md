@@ -1,6 +1,10 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.47.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.48.
+
+Release 2.4.48: Der sichtbare Abstand nach Absätzen und Überschriften
+im Editor und in gespeicherten HTML-Ansichten wurde von 6 auf 8 pt
+erhöht. HTML-Inhalte und Datenbankwerte werden dabei nicht geändert.
 
 Release 2.4.47: Beim Bearbeiten von Ausschreibung, Begleittext,
 Motivationsschreiben und anderen Rich-Text-Feldern bleibt der Fokus nach

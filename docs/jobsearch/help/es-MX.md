@@ -147,7 +147,7 @@ La ventana En curso muestra el tiempo real. Para Preparar solicitud, el servidor
 
 El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.
 
-El correo, la carta, el anuncio y otros campos multilínea usan el mismo minieditor HTML. Elige Párrafo, H1, H2 o H3 en el menú. Intro crea un párrafo con 6 pt después; Mayús+Intro inserta un salto sin espacio adicional y el ajuste automático no requiere tecla. Las viñetas no tienen separación extra. Tx quita el formato en línea seleccionado y devuelve los títulos o elementos de lista seleccionados a párrafos. Los cambios HTML se sincronizan antes de guardar y de las acciones de IA. Tablas y tarjetas muestran texto plano; el expediente conserva el formato.
+El correo, la carta, el anuncio y otros campos multilínea usan el mismo minieditor HTML. Elige Párrafo, H1, H2 o H3 en el menú. Intro crea un párrafo con 8 pt después; Mayús+Intro inserta un salto sin espacio adicional y el ajuste automático no requiere tecla. Las viñetas no tienen separación extra. Tx quita el formato en línea seleccionado y devuelve los títulos o elementos de lista seleccionados a párrafos. Los cambios HTML se sincronizan antes de guardar y de las acciones de IA. Tablas y tarjetas muestran texto plano; el expediente conserva el formato.
 
 Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. Una instrucción específica modifica solo los textos nombrados; si no se nombra un campo, revisa el correo y la carta. La instrucción se reenvía en cada intento. También se comprueban las peticiones explícitas de extensión u omisión. Si falla, la instrucción permanece en el campo y no se sobrescriben los textos existentes.
 

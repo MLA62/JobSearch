@@ -1,6 +1,15 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Aktueller Code 2.4.47; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-21. Aktueller Code 2.4.48; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Absatzabstand 2.4.48
+
+Die auf Rich-Text-Editor und gespeicherte HTML-Ansichten begrenzten
+CSS-Regeln setzen den unteren Rand von `p`, älteren `div`-Absätzen und
+H1–H3 auf 8 pt. Der vorherige Wert betrug 6 pt. Schriftgrössen,
+obere Ränder, weiche Umbrüche und Abstände innerhalb von Listen bleiben
+unverändert. Es werden keine gespeicherten HTML- oder Datenbankwerte
+migriert.
 
 ## Rich-Text-Absatzsemantik 2.4.47
 

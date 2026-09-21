@@ -2,6 +2,11 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.48: `rich_text_editor_visual_test.cjs` prüft berechnete
+8-pt-Abstände nach Absatz und H1–H3 sowie unveränderten Abstand innerhalb
+von Listen. PHP-Syntax, PHP-Suite und beide Dokumentationsgeneratoren
+bleiben Pflicht; eine angemeldete Live-Ansicht wird gesondert vermerkt.
+
 Release 2.4.47: `rich_text_editor_visual_test.cjs` reproduziert den Klick
 auf Absatz und Aufzählung innerhalb des umgebenden Formularlabels und
 prüft unverändertes HTML, fortbestehenden Editorfokus, Enter, Shift+Enter,

@@ -51,14 +51,14 @@ async function selectContents(page, selector) {
       return { p: read('p'), ul: read('ul'), li: read('li') };
     });
     assert.equal(metrics.p[0], '16px', 'Paragraphs have a 12pt font');
-    assert.equal(metrics.p[2], '8px', 'Paragraphs have 6pt trailing space');
+    assert.equal(metrics.p[2], '10.6667px', 'Paragraphs have 8pt trailing space');
     assert.equal(metrics.li[2], '0px', 'List items have no extra line gap');
 
     await selectContents(page, '.rich-text-editor p:first-child');
     await format.selectOption('h1');
     assert.match(await editor.innerHTML(), /^<h1>Alpha<br>Beta<\/h1>/);
     const heading = await page.evaluate(() => { const style = getComputedStyle(document.querySelector('.rich-text-editor h1')); return [style.fontSize, style.marginTop, style.marginBottom]; });
-    assert.deepEqual(heading, ['24px', '32px', '8px'], 'H1 uses 18pt / 24pt before / 6pt after');
+    assert.deepEqual(heading, ['24px', '32px', '10.6667px'], 'H1 uses 18pt / 24pt before / 8pt after');
 
     await selectContents(page, '.rich-text-editor h1');
     await toolbar.locator('button[title="Formatierung löschen"]').click();
@@ -67,12 +67,12 @@ async function selectContents(page, selector) {
     await format.selectOption('h2');
     assert.match(await editor.innerHTML(), /^<h2>Alpha<br>Beta<\/h2>/);
     const h2 = await page.evaluate(() => { const s=getComputedStyle(document.querySelector('.rich-text-editor h2')); return [s.fontSize,s.marginTop,s.marginBottom]; });
-    assert.deepEqual(h2, ['21.3333px','16px','8px'], 'H2 has 16pt font and 12pt / 6pt margins');
+    assert.deepEqual(h2, ['21.3333px','16px','10.6667px'], 'H2 has 16pt font and 12pt / 8pt margins');
     await selectContents(page, '.rich-text-editor h2');
     await format.selectOption('h3');
     assert.match(await editor.innerHTML(), /^<h3>Alpha<br>Beta<\/h3>/);
     const h3 = await page.evaluate(() => { const s=getComputedStyle(document.querySelector('.rich-text-editor h3')); return [s.fontSize,s.marginTop,s.marginBottom]; });
-    assert.deepEqual(h3, ['18.6667px','16px','8px'], 'H3 has 14pt font and 12pt / 6pt margins');
+    assert.deepEqual(h3, ['18.6667px','16px','10.6667px'], 'H3 has 14pt font and 12pt / 8pt margins');
     await selectContents(page, '.rich-text-editor h3');
     await format.selectOption('p');
     assert.match(await editor.innerHTML(), /^<p>Alpha<br>Beta<\/p>/);

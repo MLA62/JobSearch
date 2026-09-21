@@ -74,10 +74,10 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 
 /* Letter-style typography applies to the editor and to its saved HTML previews. */
 .rich-text-editor, .rich-text-view { font-size: 12pt; line-height: 1.5; font-weight: 400; }
-.rich-text-editor :is(p, div), .rich-text-view :is(p, div) { margin: 0 0 6pt; font-size: 1em; font-weight: 400; }
-.rich-text-editor h1, .rich-text-view h1 { margin: 24pt 0 6pt; font-size: 18pt; line-height: 1.25; font-weight: 700; }
-.rich-text-editor h2, .rich-text-view h2 { margin: 12pt 0 6pt; font-size: 16pt; line-height: 1.3; font-weight: 700; }
-.rich-text-editor h3, .rich-text-view h3 { margin: 12pt 0 6pt; font-size: 14pt; line-height: 1.35; font-weight: 700; }
+.rich-text-editor :is(p, div), .rich-text-view :is(p, div) { margin: 0 0 8pt; font-size: 1em; font-weight: 400; }
+.rich-text-editor h1, .rich-text-view h1 { margin: 24pt 0 8pt; font-size: 18pt; line-height: 1.25; font-weight: 700; }
+.rich-text-editor h2, .rich-text-view h2 { margin: 12pt 0 8pt; font-size: 16pt; line-height: 1.3; font-weight: 700; }
+.rich-text-editor h3, .rich-text-view h3 { margin: 12pt 0 8pt; font-size: 14pt; line-height: 1.35; font-weight: 700; }
 .rich-text-editor :is(ul, ol), .rich-text-view :is(ul, ol) { margin: 0 0 6pt; padding-inline-start: 1.5em; }
 .rich-text-editor li, .rich-text-view li { margin: 0; padding: 0; line-height: inherit; }
 .rich-text-editor li :is(p, div, ul, ol), .rich-text-view li :is(p, div, ul, ol) { margin: 0; }
