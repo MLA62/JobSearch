@@ -1,6 +1,6 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.39 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.39 ist live; Verifikation und Deployment siehe Release-Nachweis.
 
 ## KI-Textreparatur 2.4.39
 
