@@ -2351,6 +2351,30 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'A IA está processando a tarefa da plataforma',
     'es-MX' => 'La IA procesa la tarea de la plataforma',
   ),
+  'ai.work_cancel_failed' =>
+  array (
+    'de-CH' => 'Der Abbruch konnte nicht bestätigt werden. Die Anfrage kann noch laufen.',
+    'fr-CH' => 'L’annulation n’a pas pu être confirmée. La demande peut être encore en cours.',
+    'en-GB' => 'Cancellation could not be confirmed. The request may still be running.',
+    'pt-BR' => 'O cancelamento não pôde ser confirmado. A solicitação ainda pode estar em execução.',
+    'es-MX' => 'No se pudo confirmar la cancelación. La solicitud puede seguir en curso.',
+  ),
+  'ai.work_cancelling' =>
+  array (
+    'de-CH' => 'Abbruch angefordert – warte auf die Bestätigung des Servers',
+    'fr-CH' => 'Annulation demandée – attente de la confirmation du serveur',
+    'en-GB' => 'Cancellation requested – waiting for server confirmation',
+    'pt-BR' => 'Cancelamento solicitado – aguardando confirmação do servidor',
+    'es-MX' => 'Cancelación solicitada – esperando confirmación del servidor',
+  ),
+  'ai.work_close' =>
+  array (
+    'de-CH' => 'Schliessen',
+    'fr-CH' => 'Fermer',
+    'en-GB' => 'Close',
+    'pt-BR' => 'Fechar',
+    'es-MX' => 'Cerrar',
+  ),
   'ai.work_elapsed' =>
   array (
     'de-CH' => 'Laufzeit:',
@@ -2358,6 +2382,14 @@ function helpTranslationSeeds(): array
     'en-GB' => 'Elapsed:',
     'pt-BR' => 'Tempo decorrido:',
     'es-MX' => 'Tiempo transcurrido:',
+  ),
+  'ai.work_failed' =>
+  array (
+    'de-CH' => 'Keine Abschlussmeldung vom Server. Prüfe die Bewerbungsliste, bevor du den Auftrag erneut startest.',
+    'fr-CH' => 'Aucune réponse finale du serveur. Vérifiez les candidatures avant de relancer la demande.',
+    'en-GB' => 'No final response from the server. Check the applications before trying again.',
+    'pt-BR' => 'Sem resposta final do servidor. Verifique as candidaturas antes de tentar novamente.',
+    'es-MX' => 'No hay respuesta final del servidor. Compruebe las solicitudes antes de reintentar.',
   ),
   'ai.work_hint' =>
   array (
@@ -2462,6 +2494,38 @@ function helpTranslationSeeds(): array
     'en-GB' => 'Filtered view',
     'pt-BR' => 'Visualização filtrada',
     'es-MX' => 'Vista filtrada',
+  ),
+  'applications.prepare_busy' =>
+  array (
+    'de-CH' => 'Für dieses Konto läuft bereits eine Bewerbungsvorbereitung oder sie konnte nicht gestartet werden. Bitte zuerst deren Ergebnis prüfen.',
+    'fr-CH' => 'Une préparation est déjà en cours pour ce compte ou n’a pas pu démarrer. Vérifiez d’abord son résultat.',
+    'en-GB' => 'An application preparation is already running for this account or could not be started. Check its result first.',
+    'pt-BR' => 'Uma preparação já está em execução nesta conta ou não pôde ser iniciada. Verifique o resultado primeiro.',
+    'es-MX' => 'Ya hay una preparación en curso en esta cuenta o no se pudo iniciar. Compruebe primero su resultado.',
+  ),
+  'applications.prepare_cancelled' =>
+  array (
+    'de-CH' => 'Die Vorbereitung wurde abgebrochen. Es wurde keine Bewerbung angelegt.',
+    'fr-CH' => 'La préparation a été annulée. Aucune candidature n’a été créée.',
+    'en-GB' => 'Preparation was cancelled. No application was created.',
+    'pt-BR' => 'A preparação foi cancelada. Nenhuma candidatura foi criada.',
+    'es-MX' => 'La preparación se canceló. No se creó ninguna solicitud.',
+  ),
+  'applications.prepare_cancelled_saved' =>
+  array (
+    'de-CH' => 'Die KI-Vorbereitung wurde abgebrochen. Der Bewerbungsentwurf bleibt gespeichert und ist geöffnet; die Texte wurden nicht als fertig gemeldet.',
+    'fr-CH' => 'La préparation par IA a été annulée. Le brouillon reste enregistré et ouvert ; les textes ne sont pas indiqués comme terminés.',
+    'en-GB' => 'AI preparation was cancelled. The application draft remains saved and open; the texts are not marked as complete.',
+    'pt-BR' => 'A preparação por IA foi cancelada. O rascunho permanece salvo e aberto; os textos não são marcados como concluídos.',
+    'es-MX' => 'La preparación con IA se canceló. El borrador permanece guardado y abierto; los textos no se marcan como terminados.',
+  ),
+  'applications.prepare_limit_saved' =>
+  array (
+    'de-CH' => 'Die KI-Vorbereitung wurde an der Zeit- oder Aufrufgrenze beendet. Der Bewerbungsentwurf bleibt gespeichert und ist geöffnet; unvollständige Texte können dort bearbeitet werden.',
+    'fr-CH' => 'La préparation par IA a atteint sa limite de temps ou d’appels. Le brouillon reste enregistré et ouvert ; les textes incomplets peuvent y être modifiés.',
+    'en-GB' => 'AI preparation reached its time or call limit. The application draft remains saved and open; incomplete texts can be edited there.',
+    'pt-BR' => 'A preparação por IA atingiu o limite de tempo ou de chamadas. O rascunho permanece salvo e aberto; textos incompletos podem ser editados.',
+    'es-MX' => 'La preparación con IA alcanzó el límite de tiempo o llamadas. El borrador permanece guardado y abierto; los textos incompletos se pueden editar.',
   ),
   'applications.prepare_storage_failed' =>
   array (
@@ -3177,11 +3241,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.1' =>
   array (
-    'de-CH' => 'Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf. Eine zusätzliche Zeile nennt den gestarteten Auftrag und aktualisiert die tatsächliche Laufzeit jede Sekunde; unbekannte interne KI-Schritte werden nicht vorgetäuscht. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.',
-    'fr-CH' => 'La fenêtre Traitement en cours apparaît avant l’appel IA. Une ligne supplémentaire indique la tâche lancée et actualise la durée réelle chaque seconde, sans inventer d’étapes internes. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.',
-    'en-GB' => 'The In progress window appears before the AI request. An extra line names the active task and updates the actual elapsed time every second without inventing hidden AI steps. Abort ends the browser request and leaves the current page open.',
-    'pt-BR' => 'A janela Em andamento aparece antes da chamada de IA. Uma linha adicional mostra a tarefa iniciada e atualiza o tempo decorrido a cada segundo, sem inventar etapas internas. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.',
-    'es-MX' => 'La ventana En curso aparece antes de la llamada a la IA. Una línea adicional indica la tarea iniciada y actualiza cada segundo el tiempo transcurrido real, sin inventar pasos internos. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.',
+    'de-CH' => 'Das Fenster In Arbeit erscheint vor dem KI-Aufruf und zeigt die tatsächliche Laufzeit. Bei Bewerbung vorbereiten begrenzt der Server den Lauf auf drei Minuten und fünf KI-Aufrufe. Abbrechen fordert den serverseitigen Stopp an; das Fenster bleibt bis zur Abschlussantwort offen. Ein bereits gespeicherter Entwurf bleibt erhalten und wird mit einer klaren Meldung geöffnet.',
+    'fr-CH' => 'La fenêtre Traitement en cours affiche la durée réelle. Pour Préparer la candidature, le serveur limite l’opération à trois minutes et cinq appels IA. Annuler demande un arrêt côté serveur; la fenêtre reste ouverte jusqu’à la réponse finale. Un brouillon déjà enregistré reste disponible avec un message clair.',
+    'en-GB' => 'The In progress window shows actual elapsed time. For Prepare application, the server limits work to three minutes and five AI calls. Abort requests a server-side stop; the window stays open until the final response. An already saved draft remains available with a clear message.',
+    'pt-BR' => 'A janela Em andamento mostra o tempo real. Em Preparar candidatura, o servidor limita a operação a três minutos e cinco chamadas de IA. Cancelar solicita a interrupção no servidor; a janela fica aberta até a resposta final. Um rascunho já salvo permanece disponível com uma mensagem clara.',
+    'es-MX' => 'La ventana En curso muestra el tiempo real. Para Preparar solicitud, el servidor limita el trabajo a tres minutos y cinco llamadas de IA. Cancelar solicita la detención en el servidor; la ventana sigue abierta hasta la respuesta final. Un borrador ya guardado permanece disponible con un mensaje claro.',
   ),
   'help.v2.applications.tips.2' =>
   array (
@@ -9466,6 +9530,88 @@ function storageRoot(): string
     return __DIR__ . '/storage/documents';
 }
 
+final class AiWorkStopped extends RuntimeException
+{
+    public function __construct(public readonly string $reason)
+    {
+        parent::__construct($reason === 'cancelled' ? 'AI work was cancelled.' : 'AI work budget was reached.');
+    }
+}
+
+function aiWorkPath(int $userId, string $token): string
+{
+    if ($userId <= 0 || preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) {
+        throw new InvalidArgumentException('Invalid AI work token.');
+    }
+    return storageRoot() . '/.ai-work-' . $userId . '-' . $token;
+}
+
+function aiWorkStopReason(): string
+{
+    $work = $GLOBALS['ai_work'] ?? null;
+    if (!is_array($work)) return '';
+    if (is_file($work['path']) && trim((string)@file_get_contents($work['path'])) === 'cancelled') return 'cancelled';
+    return microtime(true) >= $work['deadline'] ? 'limit' : '';
+}
+
+function aiWorkCheck(): void
+{
+    $reason = aiWorkStopReason();
+    if ($reason !== '') throw new AiWorkStopped($reason);
+}
+
+function aiWorkCanSpend(int $minimumSeconds = 25): bool
+{
+    $work = $GLOBALS['ai_work'] ?? null;
+    return !is_array($work) || ($work['calls'] < $work['max_calls'] && $work['deadline'] - microtime(true) >= $minimumSeconds);
+}
+
+function aiWorkCurlOptions(int $timeoutSeconds, bool $aiRequest = false): array
+{
+    $work = $GLOBALS['ai_work'] ?? null;
+    if (!is_array($work)) return [];
+    aiWorkCheck();
+    if ($aiRequest) {
+        if ($work['calls'] >= $work['max_calls']) throw new AiWorkStopped('limit');
+        $GLOBALS['ai_work']['calls']++;
+    }
+    $remaining = max(1, (int)ceil($work['deadline'] - microtime(true)));
+    return [
+        CURLOPT_TIMEOUT => min($timeoutSeconds, $remaining),
+        CURLOPT_NOPROGRESS => false,
+        CURLOPT_XFERINFOFUNCTION => static function (): int { return aiWorkStopReason() === '' ? 0 : 1; },
+    ];
+}
+
+function aiWorkBegin(int $userId, string $token): void
+{
+    ensureDocumentStorage($userId);
+    $path = aiWorkPath($userId, $token);
+    $lock = fopen(storageRoot() . '/.ai-work-lock-' . $userId, 'c');
+    if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
+        if (is_resource($lock)) fclose($lock);
+        throw new RuntimeException('An AI preparation is already running for this user.');
+    }
+    $cancelledBeforeStart = is_file($path) && trim((string)@file_get_contents($path)) === 'cancelled';
+    if (!$cancelledBeforeStart && file_put_contents($path, 'running', LOCK_EX) === false) {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+        throw new RuntimeException('AI work marker could not be stored.');
+    }
+    $GLOBALS['ai_work'] = ['path'=>$path, 'deadline'=>microtime(true) + 180, 'calls'=>0, 'max_calls'=>5];
+    register_shutdown_function(static function () use ($path, $lock): void {
+        @unlink($path);
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    });
+    aiWorkCheck();
+}
+
+function aiWorkResumeSession(): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+}
+
 function ensureDocumentStorage(int $userId): string
 {
     $root = storageRoot();
@@ -10433,7 +10579,9 @@ function applicationRecipientPerspectiveReview(array $config, string $apiKey, in
     ];
     $handle=curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($payload,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>120,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+    curl_setopt_array($handle, aiWorkCurlOptions(120, true));
     $raw=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE); $error=curl_error($handle); curl_close($handle);
+    aiWorkCheck();
     if (!is_string($raw) || $status<200 || $status>=300) throw new RuntimeException('Die unabhängige KI-Empfängerprüfung ist fehlgeschlagen (HTTP '.$status.($error!=='' ? ': '.$error : '').').');
     $response=json_decode($raw,true,512,JSON_THROW_ON_ERROR);
     if (($response['status'] ?? '')!=='completed') throw new RuntimeException('Die unabhängige KI-Empfängerprüfung wurde nicht vollständig abgeschlossen.');
@@ -10503,7 +10651,9 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         }
         $handle = curl_init('https://api.openai.com/v1/responses');
         curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($payload,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$apiKey,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>120,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+        curl_setopt_array($handle, aiWorkCurlOptions(120, true));
         $raw=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE); $error=curl_error($handle); curl_close($handle);
+        aiWorkCheck();
         if (!is_string($raw) || $status<200 || $status>=300) throw new RuntimeException('KI-Texterstellung fehlgeschlagen (HTTP '.$status.($error!=='' ? ': '.$error : '').').');
         $response=json_decode($raw,true,512,JSON_THROW_ON_ERROR);
         if (($response['status'] ?? '')!=='completed') throw new RuntimeException('Die KI-Texterstellung wurde nicht vollständig abgeschlossen.');
@@ -10601,7 +10751,7 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         // structure; a legacy stock phrase must not veto an unrelated requested edit.
         $qualityIssues=applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant,in_array('email_body',$editTargets,true),$checkLetter && $regenerate,$regenerate);
         if ($qualityIssues) {
-            if ($attempt===1) {
+            if ($attempt===1 && aiWorkCanSpend()) {
                 $retryFeedback='Revise this rejected draft. The email or evidence-based tailoring failed: '.implode(' ',$qualityIssues).' Use exact source excerpts, not invented citations. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                 continue;
             }
@@ -10610,15 +10760,18 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
             error_log('Application AI editorial review retained '.count($qualityIssues).' advisory issue(s) for application '.$applicationId.'.');
         }
         $recipientIssues=[];
-        try {
-            $recipientIssues=applicationRecipientPerspectiveReview($config,$apiKey,$userId,$baseInputParts,$texts,$editTargets);
-        } catch (Throwable $reviewException) {
-            // A second model is fallible and must not veto a draft that passed the
-            // deterministic checks or turn an optional review outage into data loss.
-            error_log('Application AI recipient review unavailable for application '.$applicationId.': '.get_class($reviewException));
+        if (aiWorkCanSpend()) {
+            try {
+                $recipientIssues=applicationRecipientPerspectiveReview($config,$apiKey,$userId,$baseInputParts,$texts,$editTargets);
+            } catch (Throwable $reviewException) {
+                if ($reviewException instanceof AiWorkStopped) throw $reviewException;
+                // A second model is fallible and must not veto a draft that passed the
+                // deterministic checks or turn an optional review outage into data loss.
+                error_log('Application AI recipient review unavailable for application '.$applicationId.': '.get_class($reviewException));
+            }
         }
         if ($recipientIssues) {
-            if ($attempt===1) {
+            if ($attempt===1 && aiWorkCanSpend()) {
                 $retryFeedback='An independent simulated recipient review found these concrete deficiencies: '.implode(' ',$recipientIssues).' Improve only the requested fields without changing any unrequested text or inventing facts. Draft: '.json_encode($texts,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
                 continue;
             }
@@ -10626,6 +10779,7 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
         }
         break;
         } catch (Throwable $attemptException) {
+            if ($attemptException instanceof AiWorkStopped) throw $attemptException;
             if ($bestValidTexts===null) throw $attemptException;
             error_log('Application AI advisory retry failed for application '.$applicationId.'; retaining the last hard-valid draft ('.get_class($attemptException).').');
             $texts=$bestValidTexts;
@@ -10710,6 +10864,7 @@ function initializeApplicationTexts(array $config, mysqli $db, int $userId, int 
     try {
         applicationEnsureRecipientData($config,$db,$userId,$applicationId);
     } catch (Throwable $exception) {
+        if ($exception instanceof AiWorkStopped) throw $exception;
         error_log('Application recipient enrichment continued with existing data for application '.$applicationId.': '.$exception->getMessage());
     }
     $generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,'',$current);
@@ -11520,6 +11675,7 @@ function importHttpHeaders(string $url): array
 
 function importFetchHtml(string $url, int $timeoutSeconds = 30): array
 {
+    aiWorkCheck();
     if (!function_exists('curl_init')) throw new RuntimeException('Der HTTP-Importer ist serverseitig nicht verfügbar.');
     if (($jobRoomId = importJobRoomId($url)) !== null) {
         $api = importFetchHtml('https://www.job-room.ch/jobadservice/api/jobAdvertisements/' . $jobRoomId, $timeoutSeconds);
@@ -11529,6 +11685,7 @@ function importFetchHtml(string $url, int $timeoutSeconds = 30): array
         return ['html'=>importJobRoomHtml($data, $canonicalUrl, $jobRoomId), 'url'=>$canonicalUrl];
     }
     for ($hop = 0; $hop <= 3; $hop++) {
+        aiWorkCheck();
         $parts = parse_url($url);
         if (!is_array($parts) || !in_array($parts['scheme'] ?? '', ['https','http'], true) || isset($parts['user']) || isset($parts['pass']) || !in_array((int)($parts['port'] ?? (($parts['scheme'] ?? '') === 'https' ? 443 : 80)), [80,443], true)) throw new RuntimeException('Nicht erlaubte Inserat-URL.');
         $records = @dns_get_record($parts['host'], DNS_A | DNS_AAAA);
@@ -11560,7 +11717,9 @@ function importFetchHtml(string $url, int $timeoutSeconds = 30): array
                 $body.=$chunk; return strlen($chunk);
             },
         ]);
+        curl_setopt_array($curl, aiWorkCurlOptions($timeoutSeconds));
         $ok = curl_exec($curl); $status=(int)curl_getinfo($curl,CURLINFO_RESPONSE_CODE); $errno=curl_errno($curl); curl_close($curl);
+        aiWorkCheck();
         if ($tooLarge) throw new RuntimeException('Die Inseratseite überschreitet die Importgrenze von 5 MB.');
         if ($ok === false) throw new RuntimeException('Abruf bei '.$parts['host'].' fehlgeschlagen (Netzwerkfehler '.$errno.').');
         if (in_array($status,[301,302,303,307,308],true) && $location !== '') { $url=importResolveUrl($url,$location); continue; }
@@ -12492,7 +12651,9 @@ function jobStructuredResponse(array $config, int $uid, string $instructions, ar
         'text'=>['format'=>['type'=>'json_schema','name'=>'verified_job','strict'=>true,'schema'=>$schema]]];
     $handle=curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($payload,JSON_THROW_ON_ERROR),CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$key,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>100,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS]);
+    curl_setopt_array($handle, aiWorkCurlOptions(100, true));
     $raw=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE); curl_close($handle);
+    aiWorkCheck();
     if (!is_string($raw) || $status!==200) throw new RuntimeException('Die KI-Prüfung ist fehlgeschlagen (HTTP '.$status.').');
     $decoded=json_decode($raw,true,512,JSON_THROW_ON_ERROR);
     if (($decoded['status'] ?? '')!=='completed') throw new RuntimeException('Die KI-Prüfung wurde nicht vollständig abgeschlossen.');
@@ -12541,7 +12702,9 @@ function jobWebResearchResponse(array $config, int $uid, array $draft, array $mi
     ];
     $handle=curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>json_encode($payload,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$key,'Content-Type: application/json'],CURLOPT_RETURNTRANSFER=>true,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>150,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS]);
+    curl_setopt_array($handle, aiWorkCurlOptions(150, true));
     $raw=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_RESPONSE_CODE); $error=curl_error($handle); curl_close($handle);
+    aiWorkCheck();
     if (!is_string($raw) || $status<200 || $status>=300) {
         $api=''; if (is_string($raw)) { $body=json_decode($raw,true); $api=trim((string)($body['error']['message'] ?? $body['error']['code'] ?? '')); }
         throw new RuntimeException('KI-Webrecherche fehlgeschlagen (HTTP '.$status.($api!=='' ? ': '.mb_substr($api,0,220) : ($error!=='' ? ': '.$error : '')).').');
@@ -15893,6 +16056,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/?page=jobs');
     }
 
+    if ($action === 'cancel_ai_work') {
+        requireLogin();
+        $token = trim((string)($_POST['ai_work_token'] ?? ''));
+        if (preg_match('/\A[a-f0-9]{32}\z/', $token) !== 1) { http_response_code(422); exit('Invalid work token.'); }
+        ensureDocumentStorage(userId());
+        file_put_contents(aiWorkPath(userId(), $token), 'cancelled', LOCK_EX);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['accepted'=>true], JSON_THROW_ON_ERROR);
+        exit;
+    }
+
     if ($action === 'start_application') {
         $jobId = (int) ($_POST['job_id'] ?? 0);
         $job = dbOne($db, 'SELECT id, title, source_url FROM jobs WHERE id=? AND owner_user_id=? AND deleted_at IS NULL', 'ii', [$jobId, userId()]);
@@ -15903,19 +16077,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uid = userId();
         $applicationId = 0;
         $created = false;
-        if (trim((string)($job['source_url'] ?? '')) !== '') {
-            try {
-                $analysisDiagnostic=[];
-                $analysed=verifiedJobImport($config,$uid,(string)$job['source_url'],importSearchCriteria($db,$uid),$analysisDiagnostic,true);
-                $analysed['target_job_id']=$jobId;
-                $refreshed=importStoreDraft($db,$uid,$analysed);
-                if ((int)($refreshed['job_id'] ?? 0) !== $jobId) throw new RuntimeException('Die analysierte Originalausschreibung konnte dem ausgewählten Job nicht eindeutig zugeordnet werden.');
-            } catch (Throwable $exception) {
-                $reference = strtoupper(bin2hex(random_bytes(4)));
-                error_log('Application job analysis continued with existing data [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
-            }
+        $workToken = trim((string)($_POST['ai_work_token'] ?? ''));
+        if (preg_match('/\A[a-f0-9]{32}\z/', $workToken) !== 1) $workToken = bin2hex(random_bytes(16));
+        // The cancellation request needs its own PHP request; do not retain the session lock
+        // while this potentially long-running worker reads the advert and calls the AI API.
+        session_write_close();
+        try {
+            aiWorkBegin($uid, $workToken);
+        } catch (AiWorkStopped $exception) {
+            aiWorkResumeSession();
+            flash(tr('applications.prepare_cancelled'), 'warning');
+            redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
+        } catch (Throwable $exception) {
+            aiWorkResumeSession();
+            flash(tr('applications.prepare_busy'), 'warning');
+            redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
         }
         try {
+            aiWorkCheck();
             $db->begin_transaction();
             $applicationUrl = trim((string) ($job['source_url'] ?? '')) ?: null;
             $stmt = $db->prepare("INSERT INTO applications (user_id, job_id, status, channel, application_url) VALUES (?, ?, 'draft', 'website', ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)");
@@ -15936,15 +16115,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->commit();
         } catch (Throwable $exception) {
             try { $db->rollback(); } catch (Throwable) {}
+            aiWorkResumeSession();
             $reference = strtoupper(bin2hex(random_bytes(4)));
             error_log('Application storage failed [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
             flash(tr('applications.prepare_storage_failed', null, ['reference' => $reference]), 'danger');
             redirectAiFetch('/?page=jobs&edit=' . $jobId . '#new');
         }
         try {
+            aiWorkCheck();
+            if (trim((string)($job['source_url'] ?? '')) !== '') {
+                try {
+                    $analysisDiagnostic=[];
+                    $analysed=verifiedJobImport($config,$uid,(string)$job['source_url'],importSearchCriteria($db,$uid),$analysisDiagnostic,true);
+                    aiWorkCheck();
+                    $analysed['target_job_id']=$jobId;
+                    $refreshed=importStoreDraft($db,$uid,$analysed);
+                    if ((int)($refreshed['job_id'] ?? 0) !== $jobId) throw new RuntimeException('Die analysierte Originalausschreibung konnte dem ausgewählten Job nicht eindeutig zugeordnet werden.');
+                } catch (Throwable $exception) {
+                    if ($exception instanceof AiWorkStopped) throw $exception;
+                    $reference = strtoupper(bin2hex(random_bytes(4)));
+                    error_log('Application job analysis continued with existing data [' . $reference . '] for job ' . $jobId . ': ' . $exception->getMessage());
+                }
+            }
+            aiWorkCheck();
             $initialized=initializeApplicationTexts($config,$db,$uid,$applicationId,$currentUser ?? []);
+            aiWorkCheck();
+            aiWorkResumeSession();
             flash($initialized['ai'] ? tr('applications.prepared') : tr('applications.ai_initial_fallback'), $initialized['ai'] ? 'success' : 'warning');
+        } catch (AiWorkStopped $exception) {
+            aiWorkResumeSession();
+            flash(tr($exception->reason === 'cancelled' ? 'applications.prepare_cancelled_saved' : 'applications.prepare_limit_saved'), 'warning');
         } catch (Throwable $exception) {
+            aiWorkResumeSession();
             $reference = strtoupper(bin2hex(random_bytes(4)));
             error_log('Application text preparation failed [' . $reference . '] for application ' . $applicationId . ': ' . $exception->getMessage());
             flash(tr('applications.prepare_texts_failed', null, ['reference' => $reference]), 'warning');
@@ -16669,7 +16871,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.45';
+$codeVersion = '2.4.46';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18928,6 +19130,7 @@ startUiTranslationBuffer($appLocale);
 (() => {
     const dialog = document.getElementById('ai-work-dialog');
     const abortButton = dialog?.querySelector('[data-ai-work-abort]');
+    const abortLabel = abortButton?.textContent || '';
     const phase = dialog?.querySelector('[data-ai-work-phase]');
     const elapsed = dialog?.querySelector('[data-ai-work-elapsed]');
     const statusLabels = <?= json_encode([
@@ -18936,10 +19139,17 @@ startUiTranslationBuffer($appLocale);
         'suggest_job_search_criteria'=>tr('ai.work_suggest_search'),
         'admin_ai_request'=>tr('ai.work_admin_request'),
         'response'=>tr('ai.work_response'),
+        'cancelling'=>tr('ai.work_cancelling'),
+        'cancelFailed'=>tr('ai.work_cancel_failed'),
+        'failed'=>tr('ai.work_failed'),
+        'close'=>tr('ai.work_close'),
     ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     const aiActions = new Set(['start_application', 'revise_application_texts_ai', 'suggest_job_search_criteria', 'admin_ai_request']);
     let controller = null;
     let nativeNavigationPending = false;
+    let activeStartToken = '';
+    let activeCsrf = '';
+    let failedStart = false;
     let clock = null;
     let startedAt = 0;
     if (!dialog || !abortButton || !phase || !elapsed) return;
@@ -18971,14 +19181,22 @@ startUiTranslationBuffer($appLocale);
         const form = submitter.form;
         if (!form || !form.reportValidity()) return;
         event.preventDefault();
+        if (dialog.open) return;
         form.querySelectorAll('textarea[data-rich-ready="1"]').forEach(source => source.dispatchEvent(new Event('jema:richtext-sync')));
         form.dispatchEvent(new Event('jema:manual-submit'));
+        if (action === 'start_application') {
+            activeStartToken = Array.from(crypto.getRandomValues(new Uint8Array(16)), value => value.toString(16).padStart(2, '0')).join('');
+            activeCsrf = form.querySelector('[name="csrf"]')?.value || '';
+            abortButton.disabled = false;
+            abortButton.textContent = abortLabel;
+            failedStart = false;
+        }
         document.body.classList.add('modal-open');
         if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
         startClock(action);
         try {
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-            if (action === 'start_application' || action === 'revise_application_texts_ai') {
+            if (action === 'revise_application_texts_ai') {
                 let actionInput = form.querySelector('input[data-ai-native-action]');
                 if (!actionInput) {
                     actionInput = document.createElement('input');
@@ -18996,10 +19214,13 @@ startUiTranslationBuffer($appLocale);
             const data = new FormData(form);
             data.set('action', action);
             data.set('_ai_fetch', '1');
+            if (action === 'start_application') {
+                data.set('ai_work_token', activeStartToken);
+            }
             const declaredAction = form.getAttribute('action');
             const requestUrl = declaredAction ? new URL(declaredAction, document.baseURI).href : window.location.href;
             const response = await fetch(requestUrl, {
-                method: 'POST', body: data, credentials: 'same-origin', signal: controller.signal
+                method: 'POST', body: data, credentials: 'same-origin', signal: action === 'start_application' ? undefined : controller.signal
             });
             phase.textContent = statusLabels.response;
             let redirectTarget = response.url || window.location.href;
@@ -19022,13 +19243,22 @@ startUiTranslationBuffer($appLocale);
                 nativeNavigationPending = false;
                 return;
             }
-            if (!response.ok) throw new Error('HTTP ' + response.status);
+            if (!response.ok || (action === 'start_application' && !result?.redirect)) throw new Error('HTTP ' + response.status);
+            activeStartToken = '';
             const target = new URL(redirectTarget, window.location.href);
             target.searchParams.set('_ai_done', Date.now().toString());
             if (!target.hash) target.hash = action === 'revise_application_texts_ai' ? 'application-texts' : 'application-form';
             window.location.assign(target.toString());
         } catch (error) {
             stopClock();
+            if (action === 'start_application') {
+                activeStartToken = '';
+                failedStart = true;
+                phase.textContent = statusLabels.failed || String(error?.message || error);
+                abortButton.disabled = false;
+                abortButton.textContent = statusLabels.close;
+                return;
+            }
             if (action === 'admin_ai_request' && error?.name !== 'AbortError') {
                 const output = document.querySelector('[data-admin-ai-output]');
                 const current = String(output?.dataset.raw || '');
@@ -19042,6 +19272,23 @@ startUiTranslationBuffer($appLocale);
         }
     });
     abortButton.addEventListener('click', () => {
+        if (failedStart) { failedStart = false; closeWorkDialog(); return; }
+        if (activeStartToken) {
+            const token = activeStartToken;
+            abortButton.disabled = true;
+            phase.textContent = statusLabels.cancelling;
+            const data = new FormData();
+            data.set('csrf', activeCsrf);
+            data.set('action', 'cancel_ai_work');
+            data.set('ai_work_token', token);
+            fetch('/?page=jobs', {method:'POST', body:data, credentials:'same-origin'}).then(response => {
+                if (!response.ok) throw new Error('Cancellation request failed');
+            }).catch(() => {
+                phase.textContent = statusLabels.cancelFailed;
+                abortButton.disabled = false;
+            });
+            return;
+        }
         if (nativeNavigationPending) {
             window.stop();
             nativeNavigationPending = false;

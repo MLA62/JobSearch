@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.45'=>"\$codeVersion = '2.4.45'",
+    'version 2.4.46'=>"\$codeVersion = '2.4.46'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'rejected drafts are not silently replaced'=>'Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.',
@@ -66,9 +66,9 @@ foreach (['kein lesbarer aktueller Lebenslauf vorhanden','keine Kontakte erfasst
 $startApplicationStart=strpos($source,"if (\$action === 'start_application')");
 $applicationWriteStart=strpos($source,'$db->begin_transaction();',$startApplicationStart);
 if($startApplicationStart===false || $applicationWriteStart===false) throw new RuntimeException('Application preparation block not found.');
-$analysisBlock=substr($source,$startApplicationStart,$applicationWriteStart-$startApplicationStart);
-if(str_contains($analysisBlock,'redirectAiFetch(') || str_contains($analysisBlock,'prepare_analysis_failed')) {
-    throw new RuntimeException('Advertisement analysis can still refuse an explicitly requested application.');
+$startApplicationBlock=substr($source,$startApplicationStart,strpos($source,"if (\$action === 'set_intermediary')",$startApplicationStart)-$startApplicationStart);
+if (!str_contains($startApplicationBlock,'$analysed=verifiedJobImport(') || !str_contains($startApplicationBlock,'$db->commit();') || !str_contains($startApplicationBlock,"if (\$exception instanceof AiWorkStopped) throw \$exception;")) {
+    throw new RuntimeException('Advertisement analysis or cancellation contract is missing.');
 }
-echo "PASS advertisement analysis failure continues with the requested application\n";
+echo "PASS advertisement analysis remains optional after application storage\n";
 echo "Application AI text checks passed.\n";

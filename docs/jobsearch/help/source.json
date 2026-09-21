@@ -706,7 +706,7 @@
           ],
           "tips": [
             "Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.",
-            "Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf. Eine zusätzliche Zeile nennt den gestarteten Auftrag und aktualisiert die tatsächliche Laufzeit jede Sekunde; unbekannte interne KI-Schritte werden nicht vorgetäuscht. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.",
+            "Das Fenster In Arbeit erscheint vor dem KI-Aufruf und zeigt die tatsächliche Laufzeit. Bei Bewerbung vorbereiten begrenzt der Server den Lauf auf drei Minuten und fünf KI-Aufrufe. Abbrechen fordert den serverseitigen Stopp an; das Fenster bleibt bis zur Abschlussantwort offen. Ein bereits gespeicherter Entwurf bleibt erhalten und wird mit einer klaren Meldung geöffnet.",
           "Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.",
             "Begleit-E-Mail, Motivationsschreiben, Online-Notizen und weitere Mehrzeilenfelder unterstützen sichere HTML-Formatierung über den Mini-Editor. Markiere mehrere Zeilen oder Absätze: ¶ wandelt sie in echte Absätze um; der direkt folgende ↵-Button verbindet sie mit weichen Umbrüchen wie Shift+Enter. Inline-Formatierungen bleiben erhalten. Änderungen in der HTML-Ansicht werden sichtbar in WYSIWYG übernommen und vor manuellem Speichern, Autosave oder KI-Aufruf nochmals verbindlich synchronisiert. Karten und Tabellen zeigen daraus Klartext; das Dossier zeigt die Formatierung.",
           "Vor der KI-Überarbeitung übernimmt die App die sichtbaren Editorinhalte und stoppt ausstehende automatische Speicherungen. Eine gezielte Instruktion ändert nur die genannten Texte; ohne Feldnennung werden Begleit-E-Mail und Motivationsschreiben überarbeitet. Die KI erhält den Auftrag bei jedem Versuch erneut. Ausdrückliche Längen- und Weglassvorgaben werden zusätzlich geprüft. Bei einem Fehlschlag bleibt die Instruktion im Eingabefeld erhalten; bestehende Texte werden nicht überschrieben.",
@@ -727,7 +727,7 @@
           ],
           "tips": [
             "La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.",
-            "La fenêtre Traitement en cours apparaît avant l’appel IA. Une ligne supplémentaire indique la tâche lancée et actualise la durée réelle chaque seconde, sans inventer d’étapes internes. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.",
+            "La fenêtre Traitement en cours affiche la durée réelle. Pour Préparer la candidature, le serveur limite l’opération à trois minutes et cinq appels IA. Annuler demande un arrêt côté serveur; la fenêtre reste ouverte jusqu’à la réponse finale. Un brouillon déjà enregistré reste disponible avec un message clair.",
           "Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.",
             "L’e-mail, la lettre de motivation, les notes en ligne et les autres champs multilignes prennent en charge le HTML sécurisé. Sélectionnez plusieurs lignes ou paragraphes : ¶ les convertit en paragraphes réels et le bouton ↵ juste à côté les relie par des sauts de ligne souples comme Maj+Entrée. La mise en forme en ligne est conservée. Les modifications HTML sont affichées en WYSIWYG et resynchronisées avant l’enregistrement manuel, automatique ou un appel IA. Les cartes et tableaux affichent du texte brut; le dossier affiche la mise en forme.",
           "Avant la révision par l’IA, l’application reprend le contenu visible des éditeurs et arrête les enregistrements automatiques en attente. Une instruction ciblée ne modifie que les textes nommés ; sans champ nommé, l’e-mail et la lettre sont révisés. L’instruction est transmise à chaque tentative. Les demandes explicites de longueur ou d’omission sont aussi vérifiées. En cas d’échec, l’instruction reste dans le champ et les textes existants ne sont pas écrasés.",
@@ -748,7 +748,7 @@
           ],
           "tips": [
             "Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.",
-            "The In progress window appears before the AI request. An extra line names the active task and updates the actual elapsed time every second without inventing hidden AI steps. Abort ends the browser request and leaves the current page open.",
+            "The In progress window shows actual elapsed time. For Prepare application, the server limits work to three minutes and five AI calls. Abort requests a server-side stop; the window stays open until the final response. An already saved draft remains available with a clear message.",
           "The Sent at field accepts the stored timestamp, including seconds.",
             "The accompanying email, cover letter, online notes and other multi-line fields support safe HTML formatting. Select several lines or paragraphs: ¶ converts them to real paragraphs and the adjacent ↵ button joins them with soft line breaks like Shift+Enter. Inline formatting is retained. HTML changes appear in WYSIWYG and are synchronised again before manual save, autosave or an AI action. Cards and tables show plain text; the dossier shows the formatting.",
           "Before AI revision, the app copies the visible editor contents and stops pending autosaves. A targeted instruction changes only the named texts; without a named field it revises the email and cover letter. The request is sent again on every attempt. Explicit length and omission requests are checked separately. On failure, the instruction remains in the input field and existing texts are not overwritten.",
@@ -769,7 +769,7 @@
           ],
           "tips": [
             "A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.",
-            "A janela Em andamento aparece antes da chamada de IA. Uma linha adicional mostra a tarefa iniciada e atualiza o tempo decorrido a cada segundo, sem inventar etapas internas. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.",
+            "A janela Em andamento mostra o tempo real. Em Preparar candidatura, o servidor limita a operação a três minutos e cinco chamadas de IA. Cancelar solicita a interrupção no servidor; a janela fica aberta até a resposta final. Um rascunho já salvo permanece disponível com uma mensagem clara.",
           "O campo Enviada em aceita o horário armazenado, incluindo segundos.",
             "O e-mail, a carta, as notas online e outros campos multilinhas aceitam HTML seguro. Selecione várias linhas ou parágrafos: ¶ converte em parágrafos reais e o botão ↵ ao lado une com quebras suaves como Shift+Enter. A formatação inline é preservada. As alterações HTML aparecem no WYSIWYG e são sincronizadas novamente antes do salvamento manual, automático ou de uma ação de IA. Cartões e tabelas exibem texto simples; o dossiê exibe a formatação.",
           "Antes da revisão por IA, o aplicativo copia o conteúdo visível dos editores e interrompe salvamentos automáticos pendentes. Uma instrução específica altera apenas os textos nomeados; sem indicar um campo, revisa o e-mail e a carta. A instrução é reenviada em cada tentativa. Pedidos explícitos de extensão ou omissão também são verificados. Em caso de falha, a instrução permanece no campo e os textos existentes não são sobrescritos.",
@@ -790,7 +790,7 @@
           ],
           "tips": [
             "La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.",
-            "La ventana En curso aparece antes de la llamada a la IA. Una línea adicional indica la tarea iniciada y actualiza cada segundo el tiempo transcurrido real, sin inventar pasos internos. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.",
+            "La ventana En curso muestra el tiempo real. Para Preparar solicitud, el servidor limita el trabajo a tres minutos y cinco llamadas de IA. Cancelar solicita la detención en el servidor; la ventana sigue abierta hasta la respuesta final. Un borrador ya guardado permanece disponible con un mensaje claro.",
           "El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.",
             "El correo, la carta, las notas en línea y otros campos multilínea admiten HTML seguro. Selecciona varias líneas o párrafos: ¶ los convierte en párrafos reales y el botón ↵ contiguo los une con saltos suaves como Mayús+Intro. Se conserva el formato en línea. Los cambios HTML aparecen en WYSIWYG y se sincronizan de nuevo antes del guardado manual, automático o de una acción de IA. Las tarjetas y tablas muestran texto sin formato; el expediente muestra el formato.",
           "Antes de la revisión con IA, la aplicación copia el contenido visible de los editores y detiene los guardados automáticos pendientes. Una instrucción específica modifica solo los textos nombrados; si no se nombra un campo, revisa el correo y la carta. La instrucción se reenvía en cada intento. También se comprueban las peticiones explícitas de extensión u omisión. Si falla, la instrucción permanece en el campo y no se sobrescriben los textos existentes.",
@@ -2594,6 +2594,34 @@
       "pt-BR": "A IA está preparando a vaga e a candidatura",
       "es-MX": "La IA prepara la vacante y la solicitud"
     },
+    "ai.work_cancelling": {
+      "de-CH": "Abbruch angefordert – warte auf die Bestätigung des Servers",
+      "fr-CH": "Annulation demandée – attente de la confirmation du serveur",
+      "en-GB": "Cancellation requested – waiting for server confirmation",
+      "pt-BR": "Cancelamento solicitado – aguardando confirmação do servidor",
+      "es-MX": "Cancelación solicitada – esperando confirmación del servidor"
+    },
+    "ai.work_cancel_failed": {
+      "de-CH": "Der Abbruch konnte nicht bestätigt werden. Die Anfrage kann noch laufen.",
+      "fr-CH": "L’annulation n’a pas pu être confirmée. La demande peut être encore en cours.",
+      "en-GB": "Cancellation could not be confirmed. The request may still be running.",
+      "pt-BR": "O cancelamento não pôde ser confirmado. A solicitação ainda pode estar em execução.",
+      "es-MX": "No se pudo confirmar la cancelación. La solicitud puede seguir en curso."
+    },
+    "ai.work_failed": {
+      "de-CH": "Keine Abschlussmeldung vom Server. Prüfe die Bewerbungsliste, bevor du den Auftrag erneut startest.",
+      "fr-CH": "Aucune réponse finale du serveur. Vérifiez les candidatures avant de relancer la demande.",
+      "en-GB": "No final response from the server. Check the applications before trying again.",
+      "pt-BR": "Sem resposta final do servidor. Verifique as candidaturas antes de tentar novamente.",
+      "es-MX": "No hay respuesta final del servidor. Compruebe las solicitudes antes de reintentar."
+    },
+    "ai.work_close": {
+      "de-CH": "Schliessen",
+      "fr-CH": "Fermer",
+      "en-GB": "Close",
+      "pt-BR": "Fechar",
+      "es-MX": "Cerrar"
+    },
     "ai.work_revise_texts": {
       "de-CH": "Lebensläufe und Bewerbungstexte werden mit KI verarbeitet",
       "fr-CH": "Les CV et les textes de candidature sont traités avec l’IA",
@@ -2628,6 +2656,34 @@
       "en-GB": "Abort",
       "pt-BR": "Cancelar",
       "es-MX": "Cancelar"
+    },
+    "applications.prepare_cancelled": {
+      "de-CH": "Die Vorbereitung wurde abgebrochen. Es wurde keine Bewerbung angelegt.",
+      "fr-CH": "La préparation a été annulée. Aucune candidature n’a été créée.",
+      "en-GB": "Preparation was cancelled. No application was created.",
+      "pt-BR": "A preparação foi cancelada. Nenhuma candidatura foi criada.",
+      "es-MX": "La preparación se canceló. No se creó ninguna solicitud."
+    },
+    "applications.prepare_cancelled_saved": {
+      "de-CH": "Die KI-Vorbereitung wurde abgebrochen. Der Bewerbungsentwurf bleibt gespeichert und ist geöffnet; die Texte wurden nicht als fertig gemeldet.",
+      "fr-CH": "La préparation par IA a été annulée. Le brouillon reste enregistré et ouvert ; les textes ne sont pas indiqués comme terminés.",
+      "en-GB": "AI preparation was cancelled. The application draft remains saved and open; the texts are not marked as complete.",
+      "pt-BR": "A preparação por IA foi cancelada. O rascunho permanece salvo e aberto; os textos não são marcados como concluídos.",
+      "es-MX": "La preparación con IA se canceló. El borrador permanece guardado y abierto; los textos no se marcan como terminados."
+    },
+    "applications.prepare_limit_saved": {
+      "de-CH": "Die KI-Vorbereitung wurde an der Zeit- oder Aufrufgrenze beendet. Der Bewerbungsentwurf bleibt gespeichert und ist geöffnet; unvollständige Texte können dort bearbeitet werden.",
+      "fr-CH": "La préparation par IA a atteint sa limite de temps ou d’appels. Le brouillon reste enregistré et ouvert ; les textes incomplets peuvent y être modifiés.",
+      "en-GB": "AI preparation reached its time or call limit. The application draft remains saved and open; incomplete texts can be edited there.",
+      "pt-BR": "A preparação por IA atingiu o limite de tempo ou de chamadas. O rascunho permanece salvo e aberto; textos incompletos podem ser editados.",
+      "es-MX": "La preparación con IA alcanzó el límite de tiempo o llamadas. El borrador permanece guardado y abierto; los textos incompletos se pueden editar."
+    },
+    "applications.prepare_busy": {
+      "de-CH": "Für dieses Konto läuft bereits eine Bewerbungsvorbereitung oder sie konnte nicht gestartet werden. Bitte zuerst deren Ergebnis prüfen.",
+      "fr-CH": "Une préparation est déjà en cours pour ce compte ou n’a pas pu démarrer. Vérifiez d’abord son résultat.",
+      "en-GB": "An application preparation is already running for this account or could not be started. Check its result first.",
+      "pt-BR": "Uma preparação já está em execução nesta conta ou não pôde ser iniciada. Verifique o resultado primeiro.",
+      "es-MX": "Ya hay una preparación en curso en esta cuenta o no se pudo iniciar. Compruebe primero su resultado."
     },
     "applications.prepare_storage_failed": {
       "de-CH": "Die Bewerbung konnte nicht in der Datenbank angelegt werden. Es wurden keine Bewerbungsdaten geändert. Fehlerreferenz: {reference}.",

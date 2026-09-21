@@ -42,7 +42,7 @@ if (!str_contains($ai,'applicationRecipientBlockForApplication($db,$userId,$appl
     throw new RuntimeException('Current platform recipient, CV and company data are not read for each AI run.');
 }
 foreach ([
-    "if (\$attempt===1) {",
+    "if (\$attempt===1 && aiWorkCanSpend()) {",
     'catch (Throwable $reviewException)',
     'Application AI editorial review retained',
     'Application AI recipient review retained',

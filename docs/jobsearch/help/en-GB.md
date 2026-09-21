@@ -143,7 +143,7 @@ Draft → AI-assisted texts → Ready → Sent → Interviews → Accepted or re
 
 Workflow date is the latest included workflow date, not necessarily the next appointment. Draft and Ready do not prove submission.
 
-The In progress window appears before the AI request. An extra line names the active task and updates the actual elapsed time every second without inventing hidden AI steps. Abort ends the browser request and leaves the current page open.
+The In progress window shows actual elapsed time. For Prepare application, the server limits work to three minutes and five AI calls. Abort requests a server-side stop; the window stays open until the final response. An already saved draft remains available with a clear message.
 
 The Sent at field accepts the stored timestamp, including seconds.
 

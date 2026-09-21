@@ -143,7 +143,7 @@ Entwurf → KI-gestützte Texte → Bereit → Gesendet → Bewerbungsgespräche
 
 Workflowdatum zeigt das jüngste berücksichtigte Workflow-Datum, nicht automatisch den nächsten Termin. Entwurf und Bereit haben keinen Versandnachweis.
 
-Das Fenster In Arbeit erscheint bereits vor dem KI-Aufruf. Eine zusätzliche Zeile nennt den gestarteten Auftrag und aktualisiert die tatsächliche Laufzeit jede Sekunde; unbekannte interne KI-Schritte werden nicht vorgetäuscht. Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet.
+Das Fenster In Arbeit erscheint vor dem KI-Aufruf und zeigt die tatsächliche Laufzeit. Bei Bewerbung vorbereiten begrenzt der Server den Lauf auf drei Minuten und fünf KI-Aufrufe. Abbrechen fordert den serverseitigen Stopp an; das Fenster bleibt bis zur Abschlussantwort offen. Ein bereits gespeicherter Entwurf bleibt erhalten und wird mit einer klaren Meldung geöffnet.
 
 Das Feld Gesendet am akzeptiert den gespeicherten Zeitstempel einschließlich Sekunden.
 

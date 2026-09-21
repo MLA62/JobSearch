@@ -1,6 +1,19 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.43.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.46.
+
+Release 2.4.46: «Bewerbung vorbereiten» erhält ein serverseitiges Budget
+von höchstens drei Minuten und fünf KI-API-Aufrufen. Das Budget gilt über
+Inseratprüfung, optionale Empfängerrecherche, Textentwurf und KI-Review.
+Ein Abbruch wird mit einem zufälligen, benutzergebundenen Laufschlüssel an
+den Server übermittelt und während HTTP-/KI-Abrufen geprüft. Die PHP-Sitzung
+bleibt während des Laufs für den Abbruch-Request frei; pro Benutzer läuft
+höchstens eine solche Vorbereitung gleichzeitig. Das Arbeitsfenster wartet
+nach «Abbrechen» auf die Serverantwort statt den Abbruch lediglich optisch
+zu behaupten. Eine bereits angelegte Bewerbung bleibt bei Abbruch oder
+Budgetende bearbeitbar; die Abschlussmeldung unterscheidet Erfolg, Abbruch,
+Budgetende und technischen Fehler. Der tatsächliche API-Verbrauch wird
+damit begrenzt, aber die externe Abrechnung nicht in der App gemessen.
 
 Release 2.4.43: Öffentliche Job-Room-Detailadressen `/job-search/<UUID>`
 müssen im Schnellimport als einzelne Inserate erkannt werden. Der Import

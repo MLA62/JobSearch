@@ -7,7 +7,7 @@ $config = file_get_contents($root . '/public/config.example.php');
 $help = json_decode(file_get_contents($root . '/docs/jobsearch/help/source.json'), true, 512, JSON_THROW_ON_ERROR);
 
 $checks = [
-    'version 2.4.45' => "\$codeVersion = '2.4.45'",
+    'version 2.4.46' => "\$codeVersion = '2.4.46'",
     'AI modal' => 'id="ai-work-dialog"',
     'live task label' => 'data-ai-work-phase',
     'live elapsed timer' => 'data-ai-work-elapsed',
@@ -26,7 +26,16 @@ $checks = [
     'start application destination' => "redirectAiFetch('/?page=applications&edit='",
     'native application submission' => "HTMLFormElement.prototype.submit.call(form)",
     'native action field' => "actionInput.dataset.aiNativeAction = '1'",
-    'native AI text revision' => "action === 'start_application' || action === 'revise_application_texts_ai'",
+    'native AI text revision' => "action === 'revise_application_texts_ai'",
+    'async application preparation' => "action === 'start_application' ? undefined : controller.signal",
+    'server-side cancel action' => "data.set('action', 'cancel_ai_work')",
+    'server cancellation endpoint' => "if (\$action === 'cancel_ai_work')",
+    'PHP session released during AI work' => 'session_write_close();',
+    'server deadline' => "'deadline'=>microtime(true) + 180",
+    'server AI call cap' => "'max_calls'=>5",
+    'in-flight curl cancellation' => 'CURLOPT_XFERINFOFUNCTION => static function (): int',
+    'cancelled draft retained' => "'applications.prepare_cancelled_saved'",
+    'bounded draft retained' => "'applications.prepare_limit_saved'",
     'admin AI action' => "if (\$action === 'admin_ai_request')",
     'admin AI scope' => 'persistent JeMa Jobs administrator operations agent',
     'admin AI web search' => "'tools' => [['type' => 'web_search']]",
@@ -66,7 +75,7 @@ foreach ($checks as $label => $needle) {
 }
 if (str_contains($php, 'class="admin-ai-intro"')) throw new RuntimeException('Obsolete admin AI intro is still rendered');
 
-foreach (['ai.work_title', 'ai.work_hint', 'ai.work_elapsed', 'ai.work_prepare_application', 'ai.work_revise_texts', 'ai.work_suggest_search', 'ai.work_admin_request', 'ai.work_response', 'ai.abort', 'footer.ai_notice'] as $key) {
+foreach (['ai.work_title', 'ai.work_hint', 'ai.work_elapsed', 'ai.work_prepare_application', 'ai.work_cancelling', 'ai.work_cancel_failed', 'ai.work_failed', 'ai.work_close', 'ai.work_revise_texts', 'ai.work_suggest_search', 'ai.work_admin_request', 'ai.work_response', 'ai.abort', 'applications.prepare_cancelled', 'applications.prepare_cancelled_saved', 'applications.prepare_limit_saved', 'applications.prepare_busy', 'footer.ai_notice'] as $key) {
     if (!isset($help['ui'][$key])) throw new RuntimeException('Missing UI key ' . $key);
     foreach ($help['locales'] as $locale) {
         if (trim((string)($help['ui'][$key][$locale] ?? '')) === '') throw new RuntimeException('Missing ' . $key . ' ' . $locale);

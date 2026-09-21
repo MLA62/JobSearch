@@ -143,7 +143,7 @@ Rascunho → Textos assistidos por IA → Pronta → Enviada → Entrevistas →
 
 A data do processo é a data mais recente considerada, não necessariamente o próximo compromisso. Rascunho e Pronta não comprovam envio.
 
-A janela Em andamento aparece antes da chamada de IA. Uma linha adicional mostra a tarefa iniciada e atualiza o tempo decorrido a cada segundo, sem inventar etapas internas. Cancelar interrompe a requisição do navegador e mantém a página atual aberta.
+A janela Em andamento mostra o tempo real. Em Preparar candidatura, o servidor limita a operação a três minutos e cinco chamadas de IA. Cancelar solicita a interrupção no servidor; a janela fica aberta até a resposta final. Um rascunho já salvo permanece disponível com uma mensagem clara.
 
 O campo Enviada em aceita o horário armazenado, incluindo segundos.
 

@@ -1,6 +1,15 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.43.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.46.
+
+Release 2.4.46: «Bewerbung vorbereiten» legt den Entwurf vor der optionalen
+erneuten Inseratanalyse an. Danach gelten über alle Phasen zusammen maximal
+180 Sekunden und fünf KI-Aufrufe. Das Arbeitsfenster sendet eine
+Abbruchanforderung an den Server und wartet auf dessen Abschlussantwort;
+eine abgebrochene oder begrenzte Vorbereitung öffnet den erhaltenen Entwurf
+mit einer eindeutigen Warnung. Browserverlust oder fehlende Serverantwort
+werden nicht als erfolgreicher Abbruch ausgegeben. Andere KI-Aktionen
+behalten vorerst ihren bisherigen Ablauf.
 
 Release 2.4.43: Beim Schnellimport erkennt der URL-Resolver nur öffentliche
 Job-Room-Detailpfade mit UUID. Der HTTP-Importer lädt das zugehörige
@@ -375,13 +384,13 @@ Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel
 ## KI-Arbeitsanzeige und Kennzeichnung
 
 - Manuell gestartete KI-Vorschläge und KI-Bewerbungstexte öffnen `In Arbeit` bereits vor dem Request; die Seite wechselt erst nach Abschluss. Die direkte Klickverarbeitung funktioniert auch in mobilen Browsern.
-- Abbrechen beendet die Browser-Anfrage und lässt die aktuelle Seite geöffnet. Eine auf dem Server bereits abgeschlossene Transaktion wird dadurch nicht rückgängig gemacht.
+- Bei «Bewerbung vorbereiten» fordert Abbrechen den serverseitigen Stopp an und wartet auf die Antwort. Andere KI-Aktionen beenden weiterhin nur die Browser-Anfrage. Eine bereits abgeschlossene Datenbanktransaktion wird nicht rückgängig gemacht.
 - Die Fusszeile zeigt Hersteller und Modell. Sie zeigt keine lokale Guthaben- oder Kontingentschätzung.
 
 ## Textvorbereitung mit KI
 
 - Beim Erstellen eines Bewerbungsentwurfs werden Betreff, Begleit-E-Mail und Motivationsschreiben aus Profil, aktuellem lesbarem CV, Stelle, Firma und Kontakten vorbereitet.
-- Nach dem sichtbaren Arbeitsdialog sendet der Browser `Bewerbung vorbereiten` als normale Formularnavigation. Dadurch folgt er der serverseitigen Weiterleitung direkt zum erstellten oder vorhandenen Bewerbungsdatensatz.
+- Nach dem sichtbaren Arbeitsdialog sendet der Browser `Bewerbung vorbereiten` als asynchrone Formularanfrage mit Laufschlüssel. Nach der Serverantwort öffnet er den erstellten oder vorhandenen Bewerbungsdatensatz; auch Abbruch und Budgetende führen dorthin, sofern der Entwurf schon angelegt wurde.
 - Eine gelöschte Bewerbung wird niemals reaktiviert. Sie blockiert keine neue Bewerbung für denselben Job. Parallele Klicks öffnen atomar denselben aktiven Datensatz.
 - Scheitert nur die Textvorbereitung, bleibt die Bewerbung angelegt und wird zur manuellen Bearbeitung geöffnet. Speicher- und Textfehler werden getrennt mit Fehlerreferenz gemeldet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.

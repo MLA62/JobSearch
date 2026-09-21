@@ -143,7 +143,7 @@ Brouillon → Textes assistés par IA → Prête → Envoyée → Entretiens →
 
 La date du processus est la plus récente date prise en compte, pas forcément le prochain rendez-vous. Brouillon et Prête ne prouvent pas un envoi.
 
-La fenêtre Traitement en cours apparaît avant l’appel IA. Une ligne supplémentaire indique la tâche lancée et actualise la durée réelle chaque seconde, sans inventer d’étapes internes. Annuler interrompt la requête du navigateur et laisse la page actuelle ouverte.
+La fenêtre Traitement en cours affiche la durée réelle. Pour Préparer la candidature, le serveur limite l’opération à trois minutes et cinq appels IA. Annuler demande un arrêt côté serveur; la fenêtre reste ouverte jusqu’à la réponse finale. Un brouillon déjà enregistré reste disponible avec un message clair.
 
 Le champ Envoyée le accepte l’horodatage enregistré, secondes comprises.
 

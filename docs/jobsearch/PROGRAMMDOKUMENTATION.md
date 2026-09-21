@@ -810,6 +810,22 @@ Gelöschte Bewerbungen werden nicht reaktiviert. Textinitialisierung und Datensa
 getrennte Fehlerphasen behandelt: Bei einem Textfehler bleibt die Bewerbung sichtbar und
 bearbeitbar; Meldung und Serverlog teilen eine kurze Fehlerreferenz.
 
+## Begrenzte Bewerbungsvorbereitung 2.4.46
+
+Der Browser sendet «Bewerbung vorbereiten» mit einem zufälligen 128-Bit-
+Laufschlüssel als asynchrone Formularanfrage. Die PHP-Sitzungssperre wird vor
+den langen Netzwerkaufrufen freigegeben. Ein zweiter authentifizierter und
+CSRF-geprüfter Request markiert denselben Lauf als abgebrochen; der aktive
+Worker prüft dies auch über den cURL-Fortschrittscallback. Ein benutzerbezogenes
+Dateilock verhindert parallele Vorbereitungen. Das Gesamtbudget beträgt
+180 Sekunden und fünf KI-API-Aufrufe. Die App legt den Bewerbungsentwurf vor
+der optionalen erneuten Inseratprüfung an, sodass Abbruch oder Budgetende
+keine angelegten Daten verwerfen. Das Browserfenster bleibt beim Abbruch
+bis zur bestätigenden Serverantwort offen; bei fehlender Antwort zeigt es
+ausdrücklich einen unbestätigten Ausgang. Eine echte OpenAI-Kostenmessung
+oder serverseitige Rücknahme bereits abgeschlossener Datenbanktransaktionen
+ist nicht enthalten.
+
 ## Native Bewerbungsvorbereitung 2.1.6
 
 `Bewerbung vorbereiten` wird nach zwei Renderzyklen für das sichtbare Arbeitsmodal als normale

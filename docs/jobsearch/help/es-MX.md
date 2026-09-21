@@ -143,7 +143,7 @@ Borrador → Textos asistidos por IA → Lista → Enviada → Entrevistas → A
 
 La fecha del proceso es la fecha más reciente considerada, no necesariamente la próxima cita. Borrador y Lista no prueban el envío.
 
-La ventana En curso aparece antes de la llamada a la IA. Una línea adicional indica la tarea iniciada y actualiza cada segundo el tiempo transcurrido real, sin inventar pasos internos. Cancelar interrumpe la solicitud del navegador y mantiene abierta la página actual.
+La ventana En curso muestra el tiempo real. Para Preparar solicitud, el servidor limita el trabajo a tres minutos y cinco llamadas de IA. Cancelar solicita la detención en el servidor; la ventana sigue abierta hasta la respuesta final. Un borrador ya guardado permanece disponible con un mensaje claro.
 
 El campo Enviada el acepta la marca de tiempo guardada, incluidos los segundos.
 

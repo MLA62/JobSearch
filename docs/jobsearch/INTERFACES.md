@@ -65,6 +65,7 @@ Stand: 2026-09-03. Statische Code-Inventur, kein Nachweis der Erreichbarkeit ode
 - `autosave_application`
 - `bulk_delete_companies`
 - `bulk_delete_jobs`
+- `cancel_ai_work`
 - `cancel_quick_import`
 - `commit_job_import`
 - `complete_application_action`
@@ -418,6 +419,13 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function displayDateTime(?string $value, ?array $user = null, bool $withTime = true): string`
 - `function percentageRangeLabel(mixed $min, mixed $max): string`
 - `function storageRoot(): string`
+- `function aiWorkPath(int $userId, string $token): string`
+- `function aiWorkStopReason(): string`
+- `function aiWorkCheck(): void`
+- `function aiWorkCanSpend(int $minimumSeconds = 25): bool`
+- `function aiWorkCurlOptions(int $timeoutSeconds, bool $aiRequest = false): array`
+- `function aiWorkBegin(int $userId, string $token): void`
+- `function aiWorkResumeSession(): void`
 - `function ensureDocumentStorage(int $userId): string`
 - `function uploadDocumentFile(array $file, int $userId): array`
 - `function downloadDisposition(string $filename, string $mode = 'attachment'): string`

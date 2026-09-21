@@ -32,7 +32,7 @@ if (!str_contains($source,'if the end client is not verified')) throw new Runtim
 if (!str_contains($source,'$recipientIssues=applicationRecipientPerspectiveReview(') || !str_contains($source,"'name'=>'recipient_review','strict'=>true")) {
     throw new RuntimeException('Independent simulated recipient review is not wired to the final draft.');
 }
-if (!str_contains($source,'$baseInputParts,$texts,$editTargets') || !str_contains($source,'if ($attempt===1) {')) {
+if (!str_contains($source,'$baseInputParts,$texts,$editTargets') || !str_contains($source,'if ($attempt===1 && aiWorkCanSpend()) {')) {
     throw new RuntimeException('Recipient review must use current sources and at most one targeted retry.');
 }
 echo "PASS Swiss writing guide and recipient/employer role contract\n";

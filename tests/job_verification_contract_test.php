@@ -6,9 +6,11 @@ foreach (['plainText','jobDisplayText','jobDisplayLanguage','jobMatchCriteria','
 // Run the actual import, schema construction, Responses payload and score conversion.
 // Only the external HTML and HTTP boundaries are replaced; no key or production data.
 if (extension_loaded('curl')) throw new RuntimeException('Run with php -n; cURL must be isolated.');
+function aiWorkCurlOptions(int $timeoutSeconds, bool $aiRequest = false): array { return []; }
+function aiWorkCheck(): void {}
 foreach (['CURLOPT_POST','CURLOPT_POSTFIELDS','CURLOPT_HTTPHEADER','CURLOPT_RETURNTRANSFER','CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLOPT_PROTOCOLS','CURLPROTO_HTTPS','CURLINFO_RESPONSE_CODE'] as $i=>$constant) define($constant,100+$i);
 function curl_init(string $url): object { helpAssert($url==='https://api.openai.com/v1/responses','Responses endpoint'); return new stdClass(); }
-function curl_setopt_array(object $handle,array $options): bool { $GLOBALS['wire']=$options[CURLOPT_POSTFIELDS]; $GLOBALS['payload']=json_decode($GLOBALS['wire'],true,512,JSON_THROW_ON_ERROR); return true; }
+function curl_setopt_array(object $handle,array $options): bool { if (isset($options[CURLOPT_POSTFIELDS])) { $GLOBALS['wire']=$options[CURLOPT_POSTFIELDS]; $GLOBALS['payload']=json_decode($GLOBALS['wire'],true,512,JSON_THROW_ON_ERROR); } return true; }
 function curl_getinfo(object $handle,int $option): int { return 200; }
 function curl_close(object $handle): void {}
 function curl_exec(object $handle): string {
