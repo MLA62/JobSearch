@@ -469,6 +469,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function applicationRecipientPerspectiveReview(array $config, string $apiKey, int $userId, array $sourceParts, array $texts, array $targets): array`
 - `function applicationAiTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, string $instruction, array $currentTexts): array`
 - `function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, int $applicationId): bool`
+- `function applicationMissingTextFields(array $texts): array`
+- `function applicationFillMissingTexts(array $current, array $generated): array`
 - `function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, bool $generateMissing = true): array`
 - `function matchJob(array $job): array`
 - `function repairMojibake(string $value): string`

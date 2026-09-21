@@ -1,6 +1,26 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Version 2.4.37 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+Stand: 2026-09-21. Version 2.4.38 ist lokal implementiert; Verifikation und Deployment siehe Release-Nachweis.
+
+## Textschutz beim Öffnen und bei leerer KI-Instruktion 2.4.38
+
+Die Bewerbungs-GET-Seite ruft `initializeApplicationTexts()` nicht mehr auf.
+Sie liest Betreff, Begleit-E-Mail und Motivationsschreiben ohne Datenbank-
+Schreiboperation. `initializeApplicationTexts()` prüft beim Vorbereiten
+zuerst, welche Felder leer sind; bei vollständig vorhandenen Texten kehrt
+die Funktion vor jeder Empfängerrecherche oder Bereinigung zurück. Bei
+teilweise fehlenden Texten werden ausschliesslich diese Felder aus einem
+neuen KI-Entwurf übernommen. Bestehende Felder bleiben exakt erhalten.
+
+Beim manuellen KI-Button verhindert eine leere Instruktion jede Änderung,
+wenn alle drei Textfelder gefüllt sind. Andernfalls führt derselbe Fill-only-
+Abgleich nur neue Inhalte in leere Felder ein. Der Server erhält die aktuell
+sichtbaren Editorwerte; ein nicht gespeicherter Entwurf bleibt bei einem
+wirkungslosen KI-Klick im Formular sichtbar. Eine ausdrückliche Instruktion
+nutzt weiterhin die gezielte Überarbeitung. Die früher dokumentierte
+Neuerstellung aller Texte bei leerer Instruktion und die stille Reparatur
+gespeicherter Texte beim Öffnen sind durch diesen Not-Update ersetzt.
+Keine Schemaänderung, keine automatische E-Mail.
 
 ## Anrede-Reparatur 2.4.37
 

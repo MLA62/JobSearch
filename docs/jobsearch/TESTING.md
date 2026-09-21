@@ -2,6 +2,15 @@
 
 Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Not-Update 2.4.38: `application_text_preservation_test.php` prüft,
+dass der reine Bewerbungsaufruf keinen Text initialisiert oder schreibt,
+dass ein leerer KI-Auftrag gefüllte Felder bytegenau erhält und dass die
+Initialisierung bei vollständig gefüllten Feldern vor jeder Anreicherung
+zurückkehrt. Zusätzlich sind PHP-Syntax, gesamte PHP-Suite und die beiden
+Dokumentationsgeneratoren zu prüfen. Der produktive Hash und der
+öffentliche Versionsabruf belegen das Deployment; eine authentifizierte
+Abnahme bleibt davon getrennt.
+
 Ergänzung 2.4.37: `application_letter_recipient_regression_test.php`
 reproduziert eine fehlende Anrede nach Empfängerblock und Betreff sowie
 eine vorhandene «Grüezi»-Anrede. Die Reparatur muss den Text vollständig

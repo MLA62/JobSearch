@@ -1,6 +1,17 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.35.
+Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.38.
+
+Not-Update 2.4.38: Der GET-Aufruf einer bestehenden Bewerbung liest die
+gespeicherten drei Textfelder unverändert; er startet weder Initialisierung
+noch Bereinigung oder Empfängerblock-Umschreibung. Auch der Vorbereitungsweg
+kehrt bei drei bereits gefüllten Textfeldern vor der Textanreicherung zurück.
+Sind einzelne Felder leer, erzeugt die KI neue Entwürfe, übernommen werden
+aber nur die fehlenden Felder. Nicht leere Texte behalten ihren exakten
+gespeicherten Inhalt. Derselbe Fill-only-Vertrag gilt für den manuellen
+KI-Button ohne Instruktion; bei drei gefüllten Feldern schreibt er nichts.
+Eine ausdrücklich eingegebene KI-Instruktion darf weiterhin die genannten
+Texte ändern. Manuelles Speichern bleibt eine bewusste Änderung.
 
 Ergänzung 2.4.35: `applicationWritingContext()` lädt pro KI-Aufruf die
 aktuelle Stelle, Firma und Empfängerangaben, jedoch keine alten
@@ -333,7 +344,7 @@ Das Feld «Gesendet am» übernimmt den vollständigen gespeicherten Zeitstempel
 - Scheitert nur die Textvorbereitung, bleibt die Bewerbung angelegt und wird zur manuellen Bearbeitung geöffnet. Speicher- und Textfehler werden getrennt mit Fehlerreferenz gemeldet.
 - Die Initialisierung ergänzt nur leere Felder; vorhandene Benutzertexte bleiben bestehen.
 - Die drei Felder sind normale bearbeitbare Bewerbungsdaten und unterliegen dem Autosave.
-- Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Vor dem Aufruf synchronisiert der Browser die sichtbaren Mini-Editoren und stoppt ausstehende Autosaves; die Aktion wird als normale Formularnavigation gesendet. Bleibt die Instruktion leer, erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten; bisherige Texte werden dann nicht als Vorlage übermittelt.
+- Eine zweizeilige, nicht gespeicherte KI-Instruktion überarbeitet die vorhandenen Texte gemäß Auftrag. Vor dem Aufruf synchronisiert der Browser die sichtbaren Mini-Editoren und stoppt ausstehende Autosaves; die Aktion wird als normale Formularnavigation gesendet. Bleibt die Instruktion leer, ergänzt die KI ausschliesslich fehlende Textfelder. Bereits gefüllte Felder bleiben unverändert; für ihre Überarbeitung ist eine ausdrückliche Anweisung erforderlich.
 - Die KI-Aktion selbst ändert weder Versandstatus noch Versandzeit und versendet keine Nachricht.
 - Bei einem API-Ausfall werden bearbeitbare Grundentwürfe eingesetzt; fehlende Fakten werden nicht erfunden.
 

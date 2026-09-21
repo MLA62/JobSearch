@@ -1,6 +1,18 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.35.
+Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.38.
+
+Not-Update 2.4.38: Das blosse Öffnen einer bestehenden Bewerbung ist für
+Betreff, Begleit-E-Mail und Motivationsschreiben vollständig lesend. Es darf
+keine Bereinigung und keine Korrektur des Empfängerblocks speichern. Auch die
+Initialisierung einer bereits bestehenden Bewerbung ergänzt ausschliesslich
+leere Textfelder; jedes nicht leere Feld bleibt bytegenau erhalten. Der
+KI-Button mit leerer Instruktion ergänzt ebenfalls nur leere Textfelder.
+Sind alle drei Felder gefüllt, bleibt die Datenbank unverändert und die App
+fordert eine ausdrückliche Änderungsanweisung an. Nur eine solche Anweisung
+oder manuelles Speichern darf vorhandene Texte ändern. Diese Regel ersetzt
+die ältere Neuerstellung-bei-leerer-Instruktion-Regel aus 2.1.4 und die
+automatische Reparatur gespeicherter Texte beim Öffnen aus 2.4.21.
 
 Ergänzung 2.4.35: Die Text-KI erstellt Begleit-E-Mail und Motivationsschreiben
 mit dem Nutzen für den konkreten Arbeitgeber als Hauptziel, nicht als

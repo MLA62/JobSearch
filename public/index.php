@@ -998,7 +998,13 @@ try {
             'de-CH' => 'Zum Beispiel: Kürzer und persönlicher formulieren; meine Führungserfahrung stärker hervorheben.', 'fr-CH' => 'Par exemple : Formuler de manière plus courte et personnelle ; mettre davantage en avant mon expérience de direction.', 'en-GB' => 'For example: Make it shorter and more personal; emphasise my leadership experience.', 'pt-BR' => 'Por exemplo: Deixe mais curto e pessoal; destaque mais minha experiência em liderança.', 'es-MX' => 'Por ejemplo: Hazlo más breve y personal; destaca más mi experiencia de liderazgo.',
         ],
         'applications.ai_instruction_hint' => [
-            'de-CH' => 'Die KI überarbeitet Betreff, Begleit-E-Mail und Motivationsschreiben gemeinsam. Nichts wird automatisch versendet.', 'fr-CH' => 'L’IA révise ensemble l’objet, l’e-mail d’accompagnement et la lettre de motivation. Rien n’est envoyé automatiquement.', 'en-GB' => 'AI revises the subject, accompanying email and cover letter together. Nothing is sent automatically.', 'pt-BR' => 'A IA revisa em conjunto o assunto, o e-mail de apresentação e a carta de motivação. Nada é enviado automaticamente.', 'es-MX' => 'La IA revisa conjuntamente el asunto, el correo de presentación y la carta de motivación. Nada se envía automáticamente.',
+            'de-CH' => 'Ohne Instruktion ergänzt die KI nur leere Textfelder. Für Änderungen an vorhandenen Texten gib eine ausdrückliche Anweisung ein. Nichts wird automatisch versendet.', 'fr-CH' => 'Sans instruction, l’IA complète uniquement les champs vides. Indique une instruction explicite pour modifier un texte existant. Rien n’est envoyé automatiquement.', 'en-GB' => 'Without an instruction, AI fills only empty text fields. Enter an explicit instruction to change existing text. Nothing is sent automatically.', 'pt-BR' => 'Sem instrução, a IA preenche apenas campos de texto vazios. Insira uma instrução explícita para alterar textos existentes. Nada é enviado automaticamente.', 'es-MX' => 'Sin instrucciones, la IA solo completa los campos de texto vacíos. Introduce una instrucción explícita para cambiar textos existentes. No se envía nada automáticamente.',
+        ],
+        'applications.ai_existing_unchanged' => [
+            'de-CH' => 'Alle Textfelder sind bereits ausgefüllt. Es wurde nichts geändert. Für eine Überarbeitung gib eine KI-Instruktion ein.', 'fr-CH' => 'Tous les champs de texte sont déjà remplis. Rien n’a été modifié. Saisis une instruction pour les réviser.', 'en-GB' => 'All text fields are already filled. Nothing was changed. Enter an AI instruction to revise them.', 'pt-BR' => 'Todos os campos de texto já estão preenchidos. Nada foi alterado. Insira uma instrução para revisá-los.', 'es-MX' => 'Todos los campos de texto ya están completos. No se ha cambiado nada. Introduce una instrucción para revisarlos.',
+        ],
+        'applications.ai_missing_filled' => [
+            'de-CH' => 'Nur zuvor leere Textfelder wurden mit KI ergänzt. Vorhandene Texte blieben unverändert.', 'fr-CH' => 'Seuls les champs auparavant vides ont été complétés par l’IA. Les textes existants sont restés inchangés.', 'en-GB' => 'AI filled only previously empty text fields. Existing text remained unchanged.', 'pt-BR' => 'A IA preencheu apenas os campos antes vazios. Os textos existentes permaneceram inalterados.', 'es-MX' => 'La IA solo completó los campos que estaban vacíos. Los textos existentes no cambiaron.',
         ],
         'applications.ai_apply' => [
             'de-CH' => 'Texte mit KI erstellen/anpassen', 'fr-CH' => 'Créer/adapter les textes avec l’IA', 'en-GB' => 'Create/adapt texts with AI', 'pt-BR' => 'Criar/adaptar textos com IA', 'es-MX' => 'Crear/adaptar textos con IA',
@@ -3131,11 +3137,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.steps.1' =>
   array (
-    'de-CH' => 'Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer KI-Instruktion werden die vorhandenen Texte gemäß dieser Instruktion überarbeitet; bei leerem Instruktionsfeld erstellt die KI alle drei Texte vollständig neu aus den verfügbaren Bewerbungsdaten. Die App versendet dabei nichts.',
-    'fr-CH' => 'Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : avec une instruction, les textes existants sont révisés conformément à celle-ci; si le champ est vide, l’IA recrée entièrement les trois textes à partir des données de candidature disponibles. Rien n’est envoyé à cette étape.',
-    'en-GB' => 'Edit the three texts directly or click Create/adjust texts with AI: with an instruction, the existing texts are revised according to it; if the instruction field is empty, AI recreates all three texts from scratch using the available application data. Nothing is sent at this stage.',
-    'pt-BR' => 'Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: com uma instrução, os textos existentes são revisados de acordo com ela; se o campo estiver vazio, a IA recria os três textos do zero usando os dados disponíveis da candidatura. Nada é enviado nessa etapa.',
-    'es-MX' => 'Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: con una instrucción, los textos existentes se revisan según ella; si el campo está vacío, la IA vuelve a crear los tres textos desde cero usando los datos disponibles de la solicitud. En esta etapa no se envía nada.',
+    'de-CH' => 'Passe die drei Texte direkt an oder klicke auf Texte mit KI erstellen/anpassen: Mit einer ausdrücklichen KI-Instruktion werden vorhandene Texte gezielt überarbeitet. Ohne Instruktion ergänzt die KI nur leere Felder; bereits ausgefüllte Texte bleiben unverändert. Die App versendet dabei nichts.',
+    'fr-CH' => 'Modifie directement les trois textes ou clique sur Créer/adapter les textes avec l’IA : une instruction explicite permet de réviser les textes existants. Sans instruction, l’IA complète uniquement les champs vides; les textes déjà remplis restent inchangés. Rien n’est envoyé à cette étape.',
+    'en-GB' => 'Edit the three texts directly or click Create/adjust texts with AI: an explicit instruction revises existing texts. Without an instruction, AI fills only empty fields; already filled texts remain unchanged. Nothing is sent at this stage.',
+    'pt-BR' => 'Edite os três textos diretamente ou clique em Criar/ajustar textos com IA: uma instrução explícita revisa os textos existentes. Sem instrução, a IA preenche apenas os campos vazios; os textos já preenchidos permanecem inalterados. Nada é enviado nessa etapa.',
+    'es-MX' => 'Edita directamente los tres textos o pulsa Crear/ajustar textos con IA: una instrucción explícita revisa los textos existentes. Sin instrucción, la IA solo completa los campos vacíos; los textos ya completos permanecen intactos. En esta etapa no se envía nada.',
   ),
   'help.v2.applications.steps.2' =>
   array (
@@ -3203,11 +3209,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.5' =>
   array (
-    'de-CH' => 'Für den Empfänger verwendet die App vorhandene Primär-, Bewerbungs-, Job- und Firmenkontakte in dieser Priorität. Fehlen Anschrift oder Recruiting-Kontakt, startet sie vor der Texterstellung die belegpflichtige KI-Webrecherche. Auch bereits gefüllte Schreiben werden beim Öffnen auf den vollständigen Adressblock geprüft; eckige Ergänzungsplatzhalter werden nie ausgegeben.',
-    'fr-CH' => 'Le destinataire est choisi parmi les contacts principal, de candidature, d’offre puis d’entreprise. Si l’adresse ou le contact de recrutement manque, la recherche Web IA avec preuves démarre avant la rédaction. Les lettres existantes sont aussi contrôlées lors de leur ouverture et aucun espace réservé entre crochets n’est affiché.',
-    'en-GB' => 'The recipient is resolved from primary, application-linked, job-linked and company contacts in that order. If the address or recruiting contact is missing, evidenced AI web research runs before drafting. Existing letters are checked when opened as well, and bracketed completion placeholders are never shown.',
-    'pt-BR' => 'O destinatário é resolvido entre contato principal, da candidatura, da vaga e da empresa, nessa ordem. Se faltar endereço ou contato de recrutamento, a pesquisa web por IA com evidências roda antes da redação. Cartas existentes também são verificadas ao abrir e nenhum marcador entre colchetes é exibido.',
-    'es-MX' => 'El destinatario se resuelve entre contacto principal, de la solicitud, de la vacante y de la empresa, en ese orden. Si falta la dirección o el contacto de reclutamiento, se ejecuta primero la búsqueda web por IA con pruebas. Las cartas existentes también se comprueban al abrir y nunca se muestran marcadores entre corchetes.',
+    'de-CH' => 'Für den Empfänger verwendet die App vorhandene Primär-, Bewerbungs-, Job- und Firmenkontakte in dieser Priorität. Fehlen Anschrift oder Recruiting-Kontakt, startet sie vor einer neuen Texterstellung die belegpflichtige KI-Webrecherche. Ein blosses Öffnen der Bewerbung verändert vorhandene Texte und Adressblöcke nicht; neue KI-Entwürfe enthalten keine eckigen Ergänzungsplatzhalter.',
+    'fr-CH' => 'Le destinataire est choisi parmi les contacts principal, de candidature, d’offre puis d’entreprise. Si l’adresse ou le contact de recrutement manque, la recherche Web IA avec preuves démarre avant une nouvelle rédaction. Ouvrir simplement la candidature ne modifie ni les textes ni l’adresse existants; les nouveaux brouillons IA ne comportent aucun espace réservé entre crochets.',
+    'en-GB' => 'The recipient is resolved from primary, application-linked, job-linked and company contacts in that order. If address or recruiting contact details are missing, evidenced AI web research runs before new drafting. Simply opening an application does not change existing texts or address blocks; new AI drafts contain no bracketed placeholders.',
+    'pt-BR' => 'O destinatário é resolvido entre contato principal, da candidatura, da vaga e da empresa, nessa ordem. Se faltar endereço ou contato de recrutamento, a pesquisa web por IA com evidências roda antes de uma nova redação. Apenas abrir a candidatura não altera textos ou endereços existentes; novos rascunhos não contêm marcadores entre colchetes.',
+    'es-MX' => 'El destinatario se resuelve entre contacto principal, de la solicitud, de la vacante y de la empresa, en ese orden. Si falta la dirección o el contacto de reclutamiento, se ejecuta primero la búsqueda web por IA con pruebas antes de redactar. Abrir una solicitud no modifica textos ni direcciones existentes; los nuevos borradores no incluyen marcadores entre corchetes.',
   ),
   'help.v2.applications.tips.6' =>
   array (
@@ -10574,40 +10580,40 @@ function applicationEnsureRecipientData(array $config, mysqli $db, int $userId, 
     return true;
 }
 
+function applicationMissingTextFields(array $texts): array
+{
+    $missing=[];
+    foreach (['email_subject','email_body','cover_letter_text'] as $field) {
+        $missing[$field]=trim((string)($texts[$field] ?? ''))==='';
+    }
+    return $missing;
+}
+
+function applicationFillMissingTexts(array $current, array $generated): array
+{
+    $missing=applicationMissingTextFields($current);
+    foreach ($missing as $field=>$isMissing) {
+        $current[$field]=$isMissing ? (string)($generated[$field] ?? '') : (string)$current[$field];
+    }
+    return $current;
+}
+
 function initializeApplicationTexts(array $config, mysqli $db, int $userId, int $applicationId, array $currentUser, bool $generateMissing = true): array
 {
+    $current=dbOne($db,'SELECT email_subject, SUBSTRING(email_body,1,65535) email_body, SUBSTRING(cover_letter_text,1,65535) cover_letter_text FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL','ii',[$applicationId,$userId]);
+    if (!$current) throw new RuntimeException('Bewerbung nicht gefunden.');
+    $missing=applicationMissingTextFields($current);
+    if (!in_array(true,$missing,true)) return ['texts'=>$current,'ai'=>true];
+    if (!$generateMissing) return ['texts'=>$current,'ai'=>true];
     try {
         applicationEnsureRecipientData($config,$db,$userId,$applicationId);
     } catch (Throwable $exception) {
         error_log('Application recipient enrichment continued with existing data for application '.$applicationId.': '.$exception->getMessage());
     }
-    $current=dbOne($db,'SELECT email_subject, SUBSTRING(email_body,1,65535) email_body, SUBSTRING(cover_letter_text,1,65535) cover_letter_text FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL','ii',[$applicationId,$userId]);
-    if (!$current) throw new RuntimeException('Bewerbung nicht gefunden.');
-    $qualityChanged=false;
-    foreach (['email_body','cover_letter_text'] as $field) {
-        $original=(string)($current[$field] ?? '');
-        $hadDisqualifying=applicationTextHasDisqualifyingLanguage($original);
-        $cleaned=applicationTextWithoutDisqualifyingLanguage($original);
-        $minimumWords=$field==='cover_letter_text' ? 18 : 8;
-        if ($hadDisqualifying && !applicationTextHasMinimumSubstance($cleaned,$minimumWords)) $cleaned='';
-        if ($cleaned!==$original) { $current[$field]=$cleaned; $qualityChanged=true; }
-    }
-    $missing=[]; foreach (['email_subject','email_body','cover_letter_text'] as $field) $missing[$field]=trim((string)($current[$field] ?? ''))==='';
-    $securedCover=applicationCoverLetterWithRecipientBlock((string)($current['cover_letter_text'] ?? ''),applicationRecipientBlockForApplication($db,$userId,$applicationId));
-    if (!in_array(true,$missing,true)) {
-        if ($qualityChanged || $securedCover !== (string)$current['cover_letter_text']) {
-            $current['cover_letter_text']=$securedCover;
-            $stmt=$db->prepare('UPDATE applications SET email_body=?, cover_letter_text=? WHERE id=? AND user_id=? AND deleted_at IS NULL');
-            $stmt->bind_param('ssii',$current['email_body'],$current['cover_letter_text'],$applicationId,$userId); $stmt->execute();
-        }
-        return ['texts'=>$current,'ai'=>true];
-    }
-    if (!$generateMissing) return ['texts'=>$current,'ai'=>true];
-    $drafts=[]; foreach ($missing as $field=>$isMissing) $drafts[$field]=$isMissing ? '' : trim((string)$current[$field]);
-    $generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,'',$drafts);
-    foreach ($missing as $field=>$isMissing) if ($isMissing) $drafts[$field]=$generated[$field];
-    $drafts['email_body']=sanitizeRichText((string)$drafts['email_body']);
-    $drafts['cover_letter_text']=applicationCoverLetterWithRecipientBlock((string)$drafts['cover_letter_text'],applicationRecipientBlockForApplication($db,$userId,$applicationId));
+    $generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,'',$current);
+    $drafts=applicationFillMissingTexts($current,$generated);
+    if ($missing['email_body']) $drafts['email_body']=sanitizeRichText((string)$drafts['email_body']);
+    if ($missing['cover_letter_text']) $drafts['cover_letter_text']=applicationCoverLetterWithRecipientBlock((string)$drafts['cover_letter_text'],applicationRecipientBlockForApplication($db,$userId,$applicationId));
     $stmt=$db->prepare('UPDATE applications SET email_subject=?, email_body=?, cover_letter_text=? WHERE id=? AND user_id=?');
     $stmt->bind_param('sssii',$drafts['email_subject'],$drafts['email_body'],$drafts['cover_letter_text'],$applicationId,$userId); $stmt->execute();
     return ['texts'=>$drafts,'ai'=>true];
@@ -16016,17 +16022,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $application=dbOne($db,'SELECT id FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL','ii',[$id,$uid]);
         if (!$application) { http_response_code(404); exit('Not found'); }
         $currentTexts=[
-            'email_subject'=>mb_substr(trim((string)($_POST['email_subject'] ?? '')),0,255),
-            'email_body'=>mb_substr(trim((string)($_POST['email_body'] ?? '')),0,20000),
-            'cover_letter_text'=>mb_substr(trim((string)($_POST['cover_letter_text'] ?? '')),0,40000),
+            'email_subject'=>mb_substr((string)($_POST['email_subject'] ?? ''),0,255),
+            'email_body'=>mb_substr((string)($_POST['email_body'] ?? ''),0,20000),
+            'cover_letter_text'=>mb_substr((string)($_POST['cover_letter_text'] ?? ''),0,40000),
         ];
+        $missingTexts=applicationMissingTextFields($currentTexts);
+        if ($submittedInstruction==='' && !in_array(true,$missingTexts,true)) {
+            $_SESSION['application_ai_instruction_draft']=['application_id'=>$id,'text'=>'','current_texts'=>$currentTexts,'one_time'=>true];
+            flash(tr('applications.ai_existing_unchanged'),'warning');
+            redirect('/?page=applications&edit='.$id.'#application-texts');
+        }
         try {
             $texts=applicationAiTexts($config,$db,$uid,$id,$currentUser ?? [],$submittedInstruction,$currentTexts);
+            if ($submittedInstruction==='') $texts=applicationFillMissingTexts($currentTexts,$texts);
             $stmt=$db->prepare('UPDATE applications SET email_subject=?, email_body=?, cover_letter_text=? WHERE id=? AND user_id=?');
             $stmt->bind_param('sssii',$texts['email_subject'],$texts['email_body'],$texts['cover_letter_text'],$id,$uid); $stmt->execute();
             audit($db,$uid,'update','application_ai_texts',$id,null,['fields'=>['email_subject','email_body','cover_letter_text']]);
             unset($_SESSION['application_ai_instruction_draft']);
-            flash(tr('applications.ai_updated'));
+            flash(tr($submittedInstruction==='' ? 'applications.ai_missing_filled' : 'applications.ai_updated'));
         } catch (Throwable $exception) {
             $_SESSION['application_ai_instruction_draft']=['application_id'=>$id,'text'=>$submittedInstruction,'current_texts'=>$currentTexts];
             $reference=strtoupper(substr(hash('sha256',$id.'|'.$uid.'|'.microtime(true).'|'.$exception->getMessage()),0,12));
@@ -16357,7 +16370,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.37';
+$codeVersion = '2.4.38';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18071,15 +18084,6 @@ startUiTranslationBuffer($appLocale);
         $appSql .= sfOrderSql($appSf, $appSfFields, 'title');
         $apps=dbAll($db,$appSql,$appTypes,$appVals);
         $applicationEdit = isset($_GET['edit']) ? dbOne($db, 'SELECT a.id, a.job_id, a.intermediary_company_id, a.primary_contact_id, a.status, a.job_room_result, a.job_room_interview, a.applied_at, a.channel, a.next_action, a.next_action_at, a.application_url, a.portal_account, a.reference_number, SUBSTRING(a.online_notes,1,65535) online_notes, a.email_subject, SUBSTRING(a.email_body,1,65535) email_body, SUBSTRING(a.cover_letter_text,1,65535) cover_letter_text, SUBSTRING(a.notes,1,65535) notes, j.company_id, j.title, j.source_url job_source_url, c.name company_name, i.name intermediary_company_name FROM applications a JOIN jobs j ON j.id=a.job_id JOIN companies c ON c.id=j.company_id LEFT JOIN companies i ON i.id=a.intermediary_company_id WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL', 'ii', [(int)$_GET['edit'], userId()]) : null;
-        if ($applicationEdit) {
-            try {
-                $initialized=initializeApplicationTexts($config,$db,userId(),(int)$applicationEdit['id'],$currentUser ?? [],false);
-                $applicationEdit=array_merge($applicationEdit,$initialized['texts']);
-                if (!$initialized['ai']) flash(tr('applications.ai_initial_fallback'),'warning');
-            } catch (Throwable $exception) {
-                error_log('Application text initialization failed for application '.(int)$applicationEdit['id'].': '.$exception->getMessage());
-            }
-        }
         $history = $applicationEdit ? dbAll($db, 'SELECT old_status, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [(int)$applicationEdit['id']]) : [];
         $workflowAppointments = $applicationEdit ? dbAll($db, "SELECT id, title, starts_at, ends_at, status FROM calendar_events WHERE owner_user_id=? AND application_id=? AND entry_kind IN ('appointment','action') AND (source_type IS NULL OR source_type='workflow_appointment' OR (source_type='application_next_action' AND title='follow_up') OR source_type='contact_log') AND status<>'cancelled' ORDER BY starts_at ASC, id ASC", 'ii', [userId(), (int)$applicationEdit['id']]) : [];
         $contacts = $applicationEdit ? dbAll($db, 'SELECT c.id, c.company_id, c.application_id, c.job_id, c.first_name, c.last_name, c.position, c.department, c.email, c.phone, c.mobile, c.linkedin_url, c.preferred_language, c.notes, co.name contact_company_name FROM contacts c JOIN companies co ON co.id=c.company_id WHERE c.owner_user_id=? AND (c.company_id=? OR c.company_id=? OR c.application_id=? OR c.job_id=?) AND c.deleted_at IS NULL ORDER BY co.name, c.last_name, c.first_name', 'iiiii', [userId(), (int)$applicationEdit['company_id'], (int)($applicationEdit['intermediary_company_id'] ?? 0), (int)$applicationEdit['id'], (int)$applicationEdit['job_id']]) : [];
@@ -18128,6 +18132,7 @@ startUiTranslationBuffer($appLocale);
                 <a href="/?page=applications"><?= e(tr('common.close')) ?></a>
             </div>
             <?php $aiSubmittedTexts=(($_SESSION['application_ai_instruction_draft']['application_id'] ?? 0)===(int)$applicationEdit['id']) ? (array)($_SESSION['application_ai_instruction_draft']['current_texts'] ?? []) : []; ?>
+            <?php if (($_SESSION['application_ai_instruction_draft']['one_time'] ?? false) === true) unset($_SESSION['application_ai_instruction_draft']); ?>
             <form method="post" class="stack" id="application-edit-form" data-application-autosave data-autosave-idle="<?= e(tr('applications.autosave_hint')) ?>" data-autosave-saving="<?= e(tr('applications.autosave_saving')) ?>" data-autosave-saved="<?= e(tr('applications.autosave_saved')) ?>" data-autosave-error="<?= e(tr('applications.autosave_error')) ?>">
                 <input type="hidden" name="csrf" value="<?= csrfToken() ?>">
                 <input type="hidden" name="id" value="<?= (int)$applicationEdit['id'] ?>">

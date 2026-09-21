@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 $checks=[
-    'version 2.4.37'=>"\$codeVersion = '2.4.37'",
+    'version 2.4.38'=>"\$codeVersion = '2.4.38'",
     'structured AI function'=>'function applicationAiTexts(',
     'automatic initial drafts'=>'function initializeApplicationTexts(',
     'rejected drafts are not silently replaced'=>'Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.',
@@ -32,8 +32,8 @@ $checks=[
     'effective known contact resolver'=>'function applicationRecipientForApplication(',
     'application-linked contact resolution'=>'c.application_id=?',
     'job-linked contact resolution'=>'c.job_id=?',
-    'existing complete cover is repaired'=>'$securedCover=applicationCoverLetterWithRecipientBlock(',
-    'application view always enforces recipient'=>'if ($applicationEdit) {',
+    'existing complete cover is preserved'=>'if (!in_array(true,$missing,true)) return [\'texts\'=>$current,\'ai\'=>true];',
+    'application view does not initialize texts'=>'$applicationEdit = isset($_GET[\'edit\'])',
     'AI must begin with recipient block'=>'The cover letter starts with the recipient block',
     'job advertisement analysed before preparation'=>'$analysed=verifiedJobImport(',
     'missing recipient research'=>'function applicationEnsureRecipientData(',
@@ -45,13 +45,13 @@ $checks=[
     'interview deferral is prohibited'=>'defer the substance to an interview',
     'AI quality retry'=>'Revise this rejected draft',
     'final AI output quality gate'=>'applicationTextQualityIssues($texts,$jobSource,$cvRows,$applicant,in_array(',
-    'stored legacy text quality repair'=>'$qualityChanged=false;',
-    'initial drafts are generated anew'=>"applicationAiTexts(\$config,\$db,\$userId,\$applicationId,\$currentUser,'',\$drafts)",
+    'initialization fills only missing fields'=>'$drafts=applicationFillMissingTexts($current,$generated);',
+    'initial drafts are generated anew'=>"applicationAiTexts(\$config,\$db,\$userId,\$applicationId,\$currentUser,'',\$current)",
     'narrow application context'=>'applicationWritingContext($db,$userId,$applicationId,$currentUser,$recipientBlock)',
     'no older drafts sent'=>'The current_texts in this request are the only existing draft.',
     'applicant benefit first'=>'The objective is to show the specific benefit this candidate can bring to the future employer and role',
     'Swiss best-practice guide in prompt'=>'applicationSwissWritingGuide()',
-    'failed AI leaves draft unwritten'=>'$generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,\'\',$drafts);',
+    'failed AI leaves draft unwritten'=>'$generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,\'\',$current);',
 ];
 foreach($checks as $label=>$needle){
     if(!str_contains($source,$needle)) throw new RuntimeException('Missing '.$label);
