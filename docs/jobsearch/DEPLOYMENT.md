@@ -1,10 +1,19 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-23. Release 2.4.52 ist öffentlich produktiv verifiziert;
+Stand: 2026-09-23. Release 2.4.53 ist öffentlich produktiv verifiziert;
 `index.php` und `assets/app.css` sind mit den lokal getesteten Dateien
-bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.4.52.
-Vor dem Überschreiben wurden beide 2.4.51-Dateien durch den Connector
-gesichert. Details: [Release 2.4.52](RELEASE-2.4.52.md).
+bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.4.53.
+Vor dem Überschreiben wurden beide 2.4.52-Dateien durch den Connector
+gesichert. Das Release ersetzt die Firmenpunkte durch nach Arbeitsort
+aggregierte Job-Kreisdiagramme. Details:
+[Release 2.4.53](RELEASE-2.4.53.md).
+
+Quell-Commit: `41232b1`. Produktive SHA-256-Prüfsummen: `index.php`
+`08dc7236710106f0e8215bd136a1b6364eb01aec8dce804bab6be8b64e4d908d`,
+`assets/app.css`
+`4f7466085385131655975462c3713a94fd4ea682ed9215ccc06a6e4ed66d5623`.
+Die produktiven Dateigrössen betragen 1'435'992 beziehungsweise 59'254
+Bytes. Keine Schemaänderung.
 
 Release 2.4.51 ist ebenfalls öffentlich produktiv verifiziert;
 die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.

@@ -1,11 +1,27 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-23. Version 2.4.52 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
-ausgerollt. Die Bubble-Farbe ist per PHP-Vertragstest und Chromium
-gegen das erste Farbfeld der Jobs-Legende geprüft; die produktiven
-Dateihashes entsprechen dem lokalen Release. Version 2.4.51 war zuvor
-implementiert, dokumentiert, lokal verifiziert und öffentlich
-produktiv bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+Stand: 2026-09-23. Version 2.4.53 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+ausgerollt. Jede Orts-Bubble bildet die Statusverteilung aller Jobs am
+Arbeitsort ab; Weiss kennzeichnet Jobs ohne eingereichte Bewerbung.
+Die produktiven Dateihashes entsprechen dem lokalen Release. Die
+angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+
+## Prüfstand 2.4.53
+
+- Der Nenner jedes Orts-Kreisdiagramms ist die Anzahl Jobs am
+  Arbeitsort, nicht die Zahl der Firmen oder Bewerbungen.
+- Jobs ohne eingereichte Bewerbung erscheinen weiss; beworbene Jobs
+  verwenden dieselbe zentrale Statuspalette wie das Jobs-Kuchendiagramm.
+- Arbeitsorte werden vorrangig aus dem Job ermittelt und nur bei
+  fehlender Jobangabe aus der Firma ergänzt.
+- Kartenpunkte und Ortsliste führen in die nach Arbeitsort gefilterte
+  Jobliste; Bubble-Grösse und Kartensumme beziehen sich auf Jobs.
+- Die Beispiele Büsserach, Dulliken, Farnern, Emmenbrücke und Zürich
+  sind als PHP-Vertragstests abgedeckt. Chromium-Test, vollständige
+  PHP-Suite, Hilfe- und Referenzgeneratoren waren erfolgreich.
+- Produktive Hashes von `index.php` und `assets/app.css` entsprechen
+  exakt den lokal getesteten Dateien; HTTP 200 und Version 2.4.53 sind
+  öffentlich bestätigt.
 
 ## Prüfstand 2.4.52
 
