@@ -1,7 +1,19 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-23. Version 2.4.50 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+Stand: 2026-09-23. Version 2.4.51 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
 produktiv bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+
+## Prüfstand 2.4.51
+
+- Status-, Rollen-, Karten- und Ortswerte führen als Links in die jeweils
+  passend gefilterte Liste.
+- Die Ortsliste ist vollständig und vertikal scrollbar; die frühere
+  Begrenzung auf zehn Orte und die vier redundanten Summenkarten sind
+  entfernt.
+- PHP-Vertragstest, vollständige PHP-Suite, Generatorprüfungen sowie der
+  Chromium-Test für Desktop und Mobil waren grün. Produktive Dateien
+  entsprechen bytegenau dem Commit `e50acf4`; die öffentliche Seite weist
+  Version 2.4.51 aus.
 
 ## Prüfstand 2.4.50
 

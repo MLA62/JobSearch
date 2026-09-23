@@ -1,7 +1,20 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-23. Release 2.4.50 ist öffentlich produktiv verifiziert;
+Stand: 2026-09-23. Release 2.4.51 ist öffentlich produktiv verifiziert;
 die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.
+
+Quell-Commit: `e50acf4`. Ausgerollt wurden ausschliesslich `index.php`
+und `assets/app.css`. Vor dem Überschreiben wurden die produktiven
+2.4.50-Dateien als `index.php.bak-20260923-2.4.50-pre-2.4.51` und
+`assets/app.css.bak-20260923-2.4.50-pre-2.4.51` gesichert. Die produktiven
+SHA-256-Prüfsummen stimmen mit dem lokalen Release überein: `index.php`
+`87b3b658065d931d77296f5351b27e61ae5bb3a859f3a978f28902d6c2ac79e6`,
+`assets/app.css`
+`571bfffba1dd79ad4f9950e7bc90c8716fbdd00bf4db26a0255e784c86e7bbb6`.
+Die öffentliche Seite weist Version 2.4.51 aus; das temporäre Archiv ist
+gelöscht, die Rücksicherungen bleiben bestehen. Keine Schemaänderung.
+
+## Vorheriger Produktivstand 2.4.50
 
 Quell-Commit: `97e7d66`. Produktive SHA-256-Prüfsummen: `index.php`
 `5fba8de0e094bde00ff3bf0eddb1ff6d882d58613501f8dc33f6158978121adf`,
