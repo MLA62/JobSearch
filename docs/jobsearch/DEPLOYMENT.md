@@ -1,6 +1,12 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-23. Release 2.4.51 ist öffentlich produktiv verifiziert;
+Stand: 2026-09-23. Release 2.4.52 ist öffentlich produktiv verifiziert;
+`index.php` und `assets/app.css` sind mit den lokal getesteten Dateien
+bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.4.52.
+Vor dem Überschreiben wurden beide 2.4.51-Dateien durch den Connector
+gesichert. Details: [Release 2.4.52](RELEASE-2.4.52.md).
+
+Release 2.4.51 ist ebenfalls öffentlich produktiv verifiziert;
 die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.
 
 Quell-Commit: `e50acf4`. Ausgerollt wurden ausschliesslich `index.php`

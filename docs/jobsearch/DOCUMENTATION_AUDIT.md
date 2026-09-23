@@ -1,7 +1,21 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-23. Version 2.4.51 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+Stand: 2026-09-23. Version 2.4.52 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+ausgerollt. Die Bubble-Farbe ist per PHP-Vertragstest und Chromium
+gegen das erste Farbfeld der Jobs-Legende geprüft; die produktiven
+Dateihashes entsprechen dem lokalen Release. Version 2.4.51 war zuvor
+implementiert, dokumentiert, lokal verifiziert und öffentlich
 produktiv bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+
+## Prüfstand 2.4.52
+
+- Die Heatmap-Kreisfarbe stammt aus derselben zentralen Palette wie das
+  erste Segment des Jobs-Kuchendiagramms; Kernkreise sind deckend.
+- PHP-Vertragstest, Chromium-Darstellungsprüfung, vollständige PHP-Suite,
+  Hilfe- und Referenzgeneratoren sind erfolgreich.
+- Produktive Hashes von `index.php` und `assets/app.css` entsprechen
+  exakt den lokal getesteten Release-Dateien; HTTP 200 und Version 2.4.52
+  sind öffentlich bestätigt.
 
 ## Prüfstand 2.4.51
 
