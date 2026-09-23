@@ -1,6 +1,15 @@
 # Pruefplan und Nachweise
 
-Stand: 2026-09-21. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+Stand: 2026-09-23. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
+
+Release 2.4.49: `rich_text_chronology_test.php` prüft die Umwandlung
+flacher KI-/Alttexte in echte Absätze sowie den Erhalt weicher Umbrüche
+in bestehenden Absätzen und in der Schlussformel. Der Chromium-Test
+prüft den berechneten 9-pt-Abstand (12 px) nach Absatz und H1–H3 sowie
+weiterhin abstandsfreie Listenpunkte. `table_layout_test.php` prüft, dass
+die Matchsortierung SQL-seitig `j.match_score` numerisch verwendet. Der
+PHP-Rich-Text-Test prüft zusätzlich Fett- und Listen-Markdown samt
+Entfernung der sichtbaren Steuerzeichen.
 
 Release 2.4.48: `rich_text_editor_visual_test.cjs` prüft berechnete
 8-pt-Abstände nach Absatz und H1–H3 sowie unveränderten Abstand innerhalb

@@ -1,6 +1,16 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 21.09.2026. Aktuelles Verhalten für Release 2.4.48.
+Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.49.
+
+Release 2.4.49: Absätze und Überschriften haben in Rich-Text-Feldern
+9 pt Abstand danach, sichtbar etwa als halbe normale Textzeile. Beim
+Öffnen von Begleittext und Motivationsschreiben wandelt die Anwendung
+historische flache `<br>`-Folgen in echte Absätze um. Anschrift sowie
+Grussformel und Name bleiben zusammengehörige Blöcke mit weichen
+Zeilenumbrüchen. Neue KI-Texte werden vor dem Speichern gleich behandelt.
+Die auf- und absteigende Sortierung der Jobliste nach «Match» ordnet nach
+der Prozentzahl. In importiertem Klartext werden doppelte Sternchen als
+Fettschrift und Markdown-Aufzählungszeichen als echte Liste angezeigt.
 
 Release 2.4.48: Der sichtbare Abstand nach Absätzen und Überschriften
 im Editor und in gespeicherten HTML-Ansichten wurde von 6 auf 8 pt

@@ -22,6 +22,14 @@ checkRich(str_contains($safe, 'https://example.test/a.png') && !str_contains($sa
 checkRich(str_contains(sanitizeRichText('<h1 style="color:red">Titel</h1><div onclick="bad()">Altbestand</div>'), '<h1>Titel</h1>') && str_contains(sanitizeRichText('<div>Altbestand</div>'), '<div>Altbestand</div>'), 'Heading 1 and legacy block boundaries survive sanitization without inline styles');
 checkRich(richTextPlain('<h1>Titel</h1><p>Text</p>') === "Titel\nText", 'Plain-text extraction separates a heading from the following paragraph');
 checkRich(str_contains(sanitizeRichText("Zeile 1\nZeile 2"), '<br>'), 'Legacy plain text keeps line breaks');
+$markdown = sanitizeRichText("**Dein Profil **\n* Technische Grundausbildung\n* Internationale Berufserfahrung\n\n**Was wir bieten**\nVielseitige Tätigkeit");
+checkRich(str_contains($markdown, '<p><strong>Dein Profil</strong></p>') && str_contains($markdown, '<ul><li>Technische Grundausbildung</li><li>Internationale Berufserfahrung</li></ul>'), 'Imported Markdown bold and bullets become rich text');
+checkRich(str_contains($markdown, '<p><strong>Was wir bieten</strong></p><p>Vielseitige Tätigkeit</p>') && !str_contains($markdown, '**'), 'Markdown markers are not shown literally in the editor');
+$flatLetter = '<p>yellowshark AG<br>Haris Ramic<br>Adresse 1<br>3000 Bern</p>Guten Tag Herr Ramic<br>Erster Hauptabsatz.<br>Zweiter Hauptabsatz.<br>Freundliche Grüsse<br>Markus Lauber';
+$paragraphLetter = applicationTextParagraphs($flatLetter, 'cover_letter_text');
+checkRich(str_contains($paragraphLetter, '<p>Guten Tag Herr Ramic</p><p>Erster Hauptabsatz.</p><p>Zweiter Hauptabsatz.</p>'), 'Flat AI letter lines become visible paragraphs after the recipient block');
+checkRich(str_contains($paragraphLetter, '<p>Freundliche Grüsse<br>Markus Lauber</p>'), 'Sign-off and name remain one block with a soft line break');
+checkRich(applicationTextParagraphs('<p>Zeile eins<br>Zeile zwei</p>', 'cover_letter_text') === '<p>Zeile eins<br>Zeile zwei</p>', 'Existing soft line breaks inside a paragraph remain unchanged');
 checkRich(in_array('online_notes', richTextFieldNames(), true) && in_array('cover_letter_text', richTextFieldNames(), true), 'Requested long-text fields use editor');
 checkRich(str_contains($source, "command('▦',labels.table") && str_contains($source, "command('🖼',labels.image") && str_contains($source, "sourceButton.textContent='HTML'"), 'Mini editor exposes requested tools');
 checkRich(str_contains($source, "command('•',labels.bullets") && str_contains($source, "command('1.',labels.numbers") && str_contains($source, "command('→',labels.indent") && str_contains($source, "command('←',labels.outdent") && str_contains($source, "command('Tx',labels.clear"), 'Mini editor exposes list, indent and clear-format tools');

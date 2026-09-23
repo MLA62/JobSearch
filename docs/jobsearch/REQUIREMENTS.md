@@ -1,6 +1,17 @@
 # Anforderungen
 
-Stand: 21.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.48.
+Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.49.
+
+Release 2.4.49: Der sichtbare Abstand nach einem normalen Absatz oder
+einer Überschrift H1–H3 beträgt 9 pt. Bei der normalen Schrift von 12 pt
+und Zeilenhöhe 1,5 entspricht dies ungefähr der Hälfte einer Textzeile.
+Bestehende sowie neue Begleittexte und Motivationsschreiben, die nur aus
+einer Folge von `<br>`-Zeilen bestehen, werden beim Anzeigen in echte
+Absatzblöcke überführt. Adressblock und Schlussformel behalten interne
+weiche Zeilenumbrüche ohne Zusatzabstand. Die Sortierung der Jobspalte
+«Match» verwendet den numerischen Matchwert und nicht das Änderungsdatum.
+Importierter Klartext wandelt `**Text**` in Fettschrift und aufeinander
+folgende Zeilen mit `* `, `- ` oder `+ ` in eine echte Aufzählung um.
 
 Release 2.4.48: Der Abstand nach einem normalen Absatz oder einer
 Überschrift H1–H3 beträgt 8 pt statt 6 pt (ein Drittel mehr). Die

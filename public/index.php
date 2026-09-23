@@ -1694,6 +1694,31 @@ function richTextFieldNames(): array
     ];
 }
 
+function plainMarkdownRichText(string $value): string
+{
+    $value = preg_replace('/\r\n?/u', "\n", $value) ?? $value;
+    if (preg_match('/(?:^|\n)\s*[*+-]\s+\S|\*\*\s*\S.+?\*\*/u', $value) !== 1) {
+        return nl2br(e($value), false);
+    }
+    $inline = static function (string $line): string {
+        $escaped = e($line);
+        return preg_replace_callback('/\*\*(.+?)\*\*/u', static fn(array $match): string => '<strong>' . trim($match[1]) . '</strong>', $escaped) ?? $escaped;
+    };
+    $html = '';
+    $listOpen = false;
+    foreach (explode("\n", $value) as $line) {
+        if (preg_match('/^\s*[*+-]\s+(.+)$/u', $line, $match) === 1) {
+            if (!$listOpen) { $html .= '<ul>'; $listOpen = true; }
+            $html .= '<li>' . $inline($match[1]) . '</li>';
+            continue;
+        }
+        if ($listOpen) { $html .= '</ul>'; $listOpen = false; }
+        if (trim($line) !== '') $html .= '<p>' . $inline($line) . '</p>';
+    }
+    if ($listOpen) $html .= '</ul>';
+    return $html;
+}
+
 function sanitizeRichText(?string $value): string
 {
     $value = trim(repairMojibake((string)$value));
@@ -1702,7 +1727,7 @@ function sanitizeRichText(?string $value): string
         return nl2br(e(strip_tags($value)), false);
     }
     if (!preg_match('/<(?:p|div|br|strong|b|em|i|u|ul|ol|li|blockquote|a|img|table|thead|tbody|tr|th|td|hr|h1|h2|h3)\b/i', $value)) {
-        return nl2br(e($value), false);
+        return plainMarkdownRichText($value);
     }
     $document = new DOMDocument('1.0', 'UTF-8');
     $previous = libxml_use_internal_errors(true);
@@ -1760,6 +1785,72 @@ function richTextPlain(?string $value): string
     $html = sanitizeRichText($value);
     $html = preg_replace('/<(?:br\s*\/?|\/p|\/div|\/h[1-3]|\/blockquote|\/li|\/tr|hr\s*\/?)>/i', "\n", $html) ?? $html;
     return trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+}
+
+function applicationTextParagraphs(?string $value, string $field): string
+{
+    $html = sanitizeRichText($value);
+    if ($html === '' || !in_array($field, ['email_body', 'cover_letter_text'], true) || !class_exists(DOMDocument::class)) return $html;
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $document->loadHTML('<?xml encoding="UTF-8"><body>' . $html . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    $body = $document->getElementsByTagName('body')->item(0);
+    if (!$body) return $html;
+
+    $blocks = ['p','div','h1','h2','h3','ul','ol','blockquote','table','hr'];
+    $output = '';
+    $loose = '';
+    $flushLoose = static function () use (&$loose, $field): string {
+        if (trim(strip_tags($loose)) === '' && stripos($loose, '<img') === false) { $loose = ''; return ''; }
+        $parts = preg_split('/<br\s*\/?\s*>/iu', $loose) ?: [];
+        $lines = [];
+        foreach ($parts as $part) {
+            $part = trim($part);
+            $text = trim((string)preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($part), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+            if ($text !== '' || stripos($part, '<img') !== false) $lines[] = ['html'=>$part, 'text'=>$text];
+        }
+        $loose = '';
+        if (!$lines) return '';
+
+        $greetingPattern = '/^(?:Guten Tag|Grüezi|Sehr geehrt|Liebe?r?|Dear|Hello|Bonjour|Madame|Monsieur|Ch[eè]re?|Prezados?|Prezadas?|Caro|Cara|Ol[aá]|Estimad[oa]s?|Hola|Apreciad[oa])\b/iu';
+        $subjectPattern = '/^(?:Bewerbung|Betreff\s*:|Application\s+for|Candidature|Solicitud|Candidatura)\b/iu';
+        $signoffPattern = '/^(?:Freundliche Grüsse|Freundliche Grüße|Mit freundlichen Grüssen|Mit freundlichen Grüßen|Kind regards|Best regards|Yours sincerely|Cordialement|Meilleures salutations|Com os melhores cumprimentos|Atenciosamente|Saludos cordiales|Atentamente)\b/iu';
+        $greeting = $subject = $signoff = null;
+        foreach ($lines as $index => $line) {
+            if ($greeting === null && preg_match($greetingPattern, $line['text']) === 1) $greeting = $index;
+            if ($greeting === null && preg_match($subjectPattern, $line['text']) === 1) $subject = $index;
+            if ($signoff === null && preg_match($signoffPattern, $line['text']) === 1) $signoff = $index;
+        }
+
+        $renderGroup = static fn(array $group): string => '<p>' . implode('<br>', array_column($group, 'html')) . '</p>';
+        $result = '';
+        $cursor = 0;
+        if ($field === 'cover_letter_text' && $greeting !== null && $greeting > 0) {
+            $addressEnd = $subject !== null && $subject < $greeting ? $subject : $greeting;
+            if ($addressEnd > 0) $result .= $renderGroup(array_slice($lines, 0, $addressEnd));
+            for ($index = $addressEnd; $index < $greeting; $index++) $result .= $renderGroup([$lines[$index]]);
+            $cursor = $greeting;
+        }
+        $bodyEnd = $signoff ?? count($lines);
+        for ($index = $cursor; $index < $bodyEnd; $index++) $result .= $renderGroup([$lines[$index]]);
+        if ($signoff !== null) $result .= $renderGroup(array_slice($lines, $signoff));
+        return $result;
+    };
+
+    foreach (iterator_to_array($body->childNodes) as $child) {
+        $tag = $child instanceof DOMElement ? strtolower($child->tagName) : '';
+        if ($tag !== '' && in_array($tag, $blocks, true)) {
+            $output .= $flushLoose();
+            $output .= $document->saveHTML($child);
+        } else {
+            $loose .= $document->saveHTML($child);
+        }
+    }
+    $output .= $flushLoose();
+    return sanitizeRichText($output);
 }
 
 function ensureIndex(mysqli $db, string $table, string $index, string $definition): void
@@ -3257,11 +3348,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.applications.tips.3' =>
   array (
-    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Ausschreibung und weitere Mehrzeilenfelder nutzen denselben HTML-Mini-Editor. Wähle Absatz, H1, H2 oder H3 im Formatmenü; Enter beginnt einen neuen Absatz (8 pt Abstand danach), Shift+Enter nur eine Zeile ohne zusätzlichen Abstand. Automatischer Zeilenumbruch braucht keine Taste. Listenpunkte erhalten keinen Absatzabstand. Tx entfernt die markierte Inline-Formatierung und setzt markierte Überschriften oder Listenpunkte auf Absatz zurück. Änderungen in der HTML-Ansicht werden vor Speichern, Autosave und KI-Aufruf synchronisiert. Karten und Tabellen zeigen Klartext; das Dossier zeigt die Formatierung.',
-    'fr-CH' => 'L’e-mail, la lettre, l’annonce et les autres champs multilignes utilisent le même mini-éditeur HTML. Choisissez Paragraphe, H1, H2 ou H3 dans le menu de style. Entrée crée un paragraphe avec 8 pt après; Maj+Entrée insère un saut de ligne sans espacement, et le retour automatique ne nécessite aucune touche. Les éléments de liste n’ajoutent pas d’espace. Tx supprime la mise en forme sélectionnée et ramène les titres ou éléments de liste sélectionnés au paragraphe. Les modifications HTML sont synchronisées avant l’enregistrement et les actions IA; les tableaux montrent du texte brut, le dossier conserve le formatage.',
-    'en-GB' => 'The accompanying email, cover letter, job description and other multi-line fields share the HTML mini editor. Choose Paragraph, H1, H2 or H3 from the style menu. Enter starts a paragraph with 8 pt after it; Shift+Enter inserts a line break without extra spacing, while automatic wrapping needs no key. List items have no paragraph gap. Tx clears selected inline formatting and resets selected headings or list items to paragraphs. HTML changes are synchronised before saving and AI actions. Cards and tables show plain text; the dossier retains formatting.',
-    'pt-BR' => 'O e-mail, a carta, o anúncio e outros campos multilinhas usam o mesmo minieditor HTML. Escolha Parágrafo, H1, H2 ou H3 no menu. Enter cria um parágrafo com 8 pt depois; Shift+Enter insere uma quebra de linha sem espaço extra, e a quebra automática não exige tecla. Itens de lista não têm espaço adicional. Tx remove a formatação inline selecionada e redefine títulos ou itens de lista selecionados como parágrafos. Alterações HTML são sincronizadas antes de salvar e de ações de IA. Cartões e tabelas mostram texto simples; o dossiê mantém a formatação.',
-    'es-MX' => 'El correo, la carta, el anuncio y otros campos multilínea usan el mismo minieditor HTML. Elige Párrafo, H1, H2 o H3 en el menú. Intro crea un párrafo con 8 pt después; Mayús+Intro inserta un salto sin espacio adicional y el ajuste automático no requiere tecla. Las viñetas no tienen separación extra. Tx quita el formato en línea seleccionado y devuelve los títulos o elementos de lista seleccionados a párrafos. Los cambios HTML se sincronizan antes de guardar y de las acciones de IA. Tablas y tarjetas muestran texto plano; el expediente conserva el formato.',
+    'de-CH' => 'Begleit-E-Mail, Motivationsschreiben, Ausschreibung und weitere Mehrzeilenfelder nutzen denselben HTML-Mini-Editor. Wähle Absatz, H1, H2 oder H3 im Formatmenü; Enter beginnt einen neuen Absatz (9 pt Abstand danach, ungefähr eine halbe Textzeile), Shift+Enter nur eine Zeile ohne zusätzlichen Abstand. Automatischer Zeilenumbruch braucht keine Taste. Ältere oder KI-generierte Begleittexte und Motivationsschreiben mit blossen Zeilenumbrüchen werden beim Öffnen in sichtbare Absätze gegliedert. Importierter Klartext wandelt **Text** in Fettschrift und Zeilen mit * , - oder + in Aufzählungen um. Listenpunkte erhalten keinen Absatzabstand. Tx entfernt die markierte Inline-Formatierung und setzt markierte Überschriften oder Listenpunkte auf Absatz zurück. Änderungen in der HTML-Ansicht werden vor Speichern, Autosave und KI-Aufruf synchronisiert. Karten und Tabellen zeigen Klartext; das Dossier zeigt die Formatierung.',
+    'fr-CH' => 'L’e-mail, la lettre, l’annonce et les autres champs multilignes utilisent le même mini-éditeur HTML. Choisissez Paragraphe, H1, H2 ou H3 dans le menu de style. Entrée crée un paragraphe avec 9 pt après, soit environ une demi-ligne; Maj+Entrée insère un saut de ligne sans espacement, et le retour automatique ne nécessite aucune touche. Les anciens e-mails et lettres ou ceux générés par l’IA avec de simples sauts de ligne sont structurés en paragraphes visibles à l’ouverture. Dans un texte brut importé, **texte** devient gras et les lignes commençant par * , - ou + deviennent une liste. Les éléments de liste n’ajoutent pas d’espace. Tx supprime la mise en forme sélectionnée et ramène les titres ou éléments de liste sélectionnés au paragraphe. Les modifications HTML sont synchronisées avant l’enregistrement et les actions IA; les tableaux montrent du texte brut, le dossier conserve le formatage.',
+    'en-GB' => 'The accompanying email, cover letter, job description and other multi-line fields share the HTML mini editor. Choose Paragraph, H1, H2 or H3 from the style menu. Enter starts a paragraph with 9 pt after it, about half a normal text line; Shift+Enter inserts a line break without extra spacing, while automatic wrapping needs no key. Older or AI-generated emails and letters containing only line breaks are structured as visible paragraphs when opened. In imported plain text, **text** becomes bold and lines starting with * , - or + become a list. List items have no paragraph gap. Tx clears selected inline formatting and resets selected headings or list items to paragraphs. HTML changes are synchronised before saving and AI actions. Cards and tables show plain text; the dossier retains formatting.',
+    'pt-BR' => 'O e-mail, a carta, o anúncio e outros campos multilinhas usam o mesmo minieditor HTML. Escolha Parágrafo, H1, H2 ou H3 no menu. Enter cria um parágrafo com 9 pt depois, cerca de meia linha normal; Shift+Enter insere uma quebra de linha sem espaço extra, e a quebra automática não exige tecla. E-mails e cartas antigos ou gerados por IA apenas com quebras de linha são estruturados em parágrafos visíveis ao abrir. Em texto simples importado, **texto** vira negrito e linhas iniciadas por * , - ou + viram uma lista. Itens de lista não têm espaço adicional. Tx remove a formatação inline selecionada e redefine títulos ou itens de lista selecionados como parágrafos. Alterações HTML são sincronizadas antes de salvar e de ações de IA. Cartões e tabelas mostram texto simples; o dossiê mantém a formatação.',
+    'es-MX' => 'El correo, la carta, el anuncio y otros campos multilínea usan el mismo minieditor HTML. Elige Párrafo, H1, H2 o H3 en el menú. Intro crea un párrafo con 9 pt después, aproximadamente media línea normal; Mayús+Intro inserta un salto sin espacio adicional y el ajuste automático no requiere tecla. Los correos y cartas antiguos o generados por IA que solo contienen saltos se estructuran como párrafos visibles al abrirse. En texto plano importado, **texto** pasa a negrita y las líneas que empiezan por * , - o + pasan a una lista. Las viñetas no tienen separación extra. Tx quita el formato en línea seleccionado y devuelve los títulos o elementos de lista seleccionados a párrafos. Los cambios HTML se sincronizan antes de guardar y de las acciones de IA. Tablas y tarjetas muestran texto plano; el expediente conserva el formato.',
   ),
   'help.v2.applications.tips.4' =>
   array (
@@ -10795,10 +10886,10 @@ function applicationAiTexts(array $config, mysqli $db, int $userId, int $applica
             throw new RuntimeException('Ein KI-Text ist zu kurz oder inhaltsleer; es wurde kein generischer Ersatz gespeichert.');
         }
     }
-    $texts['email_body']=sanitizeRichText(mb_substr(trim($texts['email_body']),0,20000));
+    $texts['email_body']=applicationTextParagraphs(mb_substr(trim($texts['email_body']),0,20000),'email_body');
     $texts['cover_letter_text']=in_array('cover_letter_text',$editTargets,true)
-        ? applicationCoverLetterWithRecipientBlock(mb_substr(trim($texts['cover_letter_text']),0,40000), $recipientBlock)
-        : sanitizeRichText(mb_substr(trim($texts['cover_letter_text']),0,40000));
+        ? applicationTextParagraphs(applicationCoverLetterWithRecipientBlock(mb_substr(trim($texts['cover_letter_text']),0,40000), $recipientBlock),'cover_letter_text')
+        : applicationTextParagraphs(mb_substr(trim($texts['cover_letter_text']),0,40000),'cover_letter_text');
     $finalIssues=in_array('cover_letter_text',$editTargets,true) ? applicationLetterStructureIssues($texts['cover_letter_text'],$locale,$applicant,$recipientBlock) : [];
     if ($finalIssues) throw new RuntimeException('Das fertige Motivationsschreiben erfüllt die Briefprüfung nicht: '.implode(' ',$finalIssues));
     if (!$regenerate) {
@@ -10869,8 +10960,8 @@ function initializeApplicationTexts(array $config, mysqli $db, int $userId, int 
     }
     $generated=applicationAiTexts($config,$db,$userId,$applicationId,$currentUser,'',$current);
     $drafts=applicationFillMissingTexts($current,$generated);
-    if ($missing['email_body']) $drafts['email_body']=sanitizeRichText((string)$drafts['email_body']);
-    if ($missing['cover_letter_text']) $drafts['cover_letter_text']=applicationCoverLetterWithRecipientBlock((string)$drafts['cover_letter_text'],applicationRecipientBlockForApplication($db,$userId,$applicationId));
+    if ($missing['email_body']) $drafts['email_body']=applicationTextParagraphs((string)$drafts['email_body'],'email_body');
+    if ($missing['cover_letter_text']) $drafts['cover_letter_text']=applicationTextParagraphs(applicationCoverLetterWithRecipientBlock((string)$drafts['cover_letter_text'],applicationRecipientBlockForApplication($db,$userId,$applicationId)),'cover_letter_text');
     $stmt=$db->prepare('UPDATE applications SET email_subject=?, email_body=?, cover_letter_text=? WHERE id=? AND user_id=?');
     $stmt->bind_param('sssii',$drafts['email_subject'],$drafts['email_body'],$drafts['cover_letter_text'],$applicationId,$userId); $stmt->execute();
     return ['texts'=>$drafts,'ai'=>true];
@@ -16871,7 +16962,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.48';
+$codeVersion = '2.4.49';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18518,7 +18609,7 @@ startUiTranslationBuffer($appLocale);
     <?php elseif ($page === 'jobs'): ?>
         <?php
         $companyFilter = (int)($_GET['company_id'] ?? 0); $jobView = ($_GET['view'] ?? 'cards') === 'table' ? 'table' : 'cards';
-        $jobSfFields = ['created_at'=>['label'=>tr('jobs.recorded_at'),'expr'=>'j.created_at','filter_expr'=>"CONCAT(DATE_FORMAT(j.created_at, '%d.%m.%Y'), ' ', DATE(j.created_at))"], 'title'=>['label'=>tr('common.title'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'location'=>['label'=>tr('jobs.location'),'expr'=>'j.location_text'], 'status'=>['label'=>tr('common.status'),'expr'=>'j.status', 'choices'=>jobStatusOptions()], 'match'=>['label'=>tr('jobs.match'),'expr'=>'j.updated_at']];
+        $jobSfFields = ['created_at'=>['label'=>tr('jobs.recorded_at'),'expr'=>'j.created_at','filter_expr'=>"CONCAT(DATE_FORMAT(j.created_at, '%d.%m.%Y'), ' ', DATE(j.created_at))"], 'title'=>['label'=>tr('common.title'),'expr'=>'j.title'], 'company'=>['label'=>tr('companies.company'),'expr'=>'c.name'], 'location'=>['label'=>tr('jobs.location'),'expr'=>'j.location_text'], 'status'=>['label'=>tr('common.status'),'expr'=>'j.status', 'choices'=>jobStatusOptions()], 'match'=>['label'=>tr('jobs.match'),'expr'=>'j.match_score']];
         $jobSf = sfState('jobs', $jobSfFields, ['sort'=>'title','dir'=>'asc']);
         $jobPreserve = ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: '', 'edit'=>$_GET['edit'] ?? ''];
         $sql = 'SELECT j.id, j.match_score, j.raw_import_data, j.company_id, j.title, j.location_text, j.workload_min, j.workload_max, j.status, j.workplace_type, j.engagement_type, j.contract_term, j.fixed_term_start, j.fixed_term_end, j.source_url, j.salary_min, j.salary_max, j.salary_currency, j.salary_period, SUBSTRING(j.description,1,65535) description, SUBSTRING(j.notes,1,65535) notes, j.created_at, j.updated_at, c.name company_name, (SELECT d.id FROM user_documents d WHERE d.user_id=j.owner_user_id AND d.job_id=j.id AND d.title="Originale Stellenausschreibung" AND d.deleted_at IS NULL ORDER BY d.created_at DESC LIMIT 1) original_document_id FROM jobs j JOIN companies c ON c.id=j.company_id WHERE j.owner_user_id=? AND j.deleted_at IS NULL'; $types='i'; $vals=[userId()];
@@ -18676,8 +18767,8 @@ startUiTranslationBuffer($appLocale);
                 <label><?= e(tr('applications.email_recipient')) ?><input type="email" name="recipient_email" value="<?= e($primaryContact['email'] ?? ($contactEdit['email'] ?? '')) ?>" placeholder="<?= e(tr('applications.email_recipient_placeholder')) ?>" <?= (int)($applicationEdit['primary_contact_id'] ?? 0) > 0 ? 'readonly' : '' ?>></label>
                 <div class="history" id="application-texts"><h3><?= e(tr('job_search.ai_assist')) ?></h3><p class="meta-line"><?= e(tr('applications.ai_instruction_hint')) ?></p></div>
                 <label><?= e(tr('applications.email_subject')) ?><input id="email-subject" name="email_subject" value="<?= e($aiSubmittedTexts['email_subject'] ?? $applicationEdit['email_subject'] ?? '') ?>"></label>
-                <label><?= e(tr('applications.email_body')) ?><textarea id="email-body" name="email_body" rows="7"><?= e($aiSubmittedTexts['email_body'] ?? $applicationEdit['email_body'] ?? '') ?></textarea></label>
-                <label><?= e(tr('applications.cover_letter')) ?><textarea id="cover-letter-text" name="cover_letter_text" rows="14"><?= e($aiSubmittedTexts['cover_letter_text'] ?? $applicationEdit['cover_letter_text'] ?? '') ?></textarea></label>
+                <label><?= e(tr('applications.email_body')) ?><textarea id="email-body" name="email_body" rows="7"><?= e(applicationTextParagraphs((string)($aiSubmittedTexts['email_body'] ?? $applicationEdit['email_body'] ?? ''),'email_body')) ?></textarea></label>
+                <label><?= e(tr('applications.cover_letter')) ?><textarea id="cover-letter-text" name="cover_letter_text" rows="14"><?= e(applicationTextParagraphs((string)($aiSubmittedTexts['cover_letter_text'] ?? $applicationEdit['cover_letter_text'] ?? ''),'cover_letter_text')) ?></textarea></label>
                 <label><?= e(tr('applications.ai_instruction')) ?><textarea name="ai_text_instruction" rows="2" maxlength="2000" placeholder="<?= e(tr('applications.ai_instruction_placeholder')) ?>"><?= e((($_SESSION['application_ai_instruction_draft']['application_id'] ?? 0)===(int)$applicationEdit['id']) ? (string)($_SESSION['application_ai_instruction_draft']['text'] ?? '') : '') ?></textarea><small><?= e(tr('applications.ai_instruction_hint')) ?></small></label>
                 <div class="actions"><button class="primary" name="action" value="revise_application_texts_ai"><?= e(tr('applications.ai_apply')) ?></button></div>
                 <div class="actions copy-actions"><button type="button" data-copy-target="email-subject"><?= e(tr('applications.copy_subject')) ?></button><button type="button" data-copy-target="email-body"><?= e(tr('applications.copy_body')) ?></button><button type="button" data-copy-target="cover-letter-text"><?= e(tr('applications.copy_cover')) ?></button></div>

@@ -25,6 +25,11 @@ check(!str_contains($source, '(j2.company_id=c.id OR a.intermediary_company_id=c
 check(str_contains($source, "'jobs_with'=>tr('sf.with_entries'") && str_contains($source, "'applications_without'=>tr('sf.without_entries'") && str_contains($source, "'contacts_with'=>tr('sf.with_entries'"), 'Links filter offers presence and absence criteria for all three relations');
 check(preg_match('/function sfApplySql\(.*?^\}/ms', $source, $sfApplySqlMatch) === 1, 'SQL field filtering is isolated for regression testing');
 eval($sfApplySqlMatch[0]);
+check(preg_match('/function sfOrderSql\(.*?^\}/ms', $source, $sfOrderSqlMatch) === 1, 'SQL field sorting is isolated for regression testing');
+eval($sfOrderSqlMatch[0]);
+$matchSortFields = ['match'=>['expr'=>'j.match_score']];
+check(sfOrderSql(['sort'=>['field'=>'match','dir'=>'desc']], $matchSortFields, 'match') === ' ORDER BY j.match_score DESC', 'Job match sorting uses the numeric score, not the update timestamp');
+check(str_contains($source, "'match'=>['label'=>tr('jobs.match'),'expr'=>'j.match_score']"), 'Jobs table wires Match to the numeric database column');
 $filterTypes = '';
 $filterValues = [];
 $filterSql = sfApplySql(

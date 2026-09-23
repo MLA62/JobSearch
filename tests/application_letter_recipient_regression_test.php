@@ -10,7 +10,7 @@ function normalizeLocale(string $value): string { return $value; }
 
 $source=file_get_contents(__DIR__.'/../public/index.php');
 foreach ([
-    ['function sanitizeRichText(', 'function richTextHtml('],
+    ['function plainMarkdownRichText(', 'function richTextHtml('],
     ['function richTextPlain(', 'function ensureIndex('],
     ['function applicationCoverLetterWithRecipientBlock(', 'function applicationEndClientOfficialContext('],
     ['function applicationEditRecipientBlock(', 'function applicationEditLetterContent('],

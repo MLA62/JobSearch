@@ -156,9 +156,11 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function ensureSoftDeleteUniqueIndex(mysqli $db, string $table, string $index, array $columns): void`
 - `function e(?string $value): string`
 - `function richTextFieldNames(): array`
+- `function plainMarkdownRichText(string $value): string`
 - `function sanitizeRichText(?string $value): string`
 - `function richTextHtml(?string $value): string`
 - `function richTextPlain(?string $value): string`
+- `function applicationTextParagraphs(?string $value, string $field): string`
 - `function ensureIndex(mysqli $db, string $table, string $index, string $definition): void`
 - `function filePickerHtml(string $name, bool $required = true, string $accept = ''): string`
 - `function cascadeExec(mysqli $db, string $sql, string $types = '', array $values = []): void`

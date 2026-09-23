@@ -1,6 +1,25 @@
 # Programmdokumentation
 
-Stand: 2026-09-21. Aktueller Code 2.4.48; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-23. Aktueller Code 2.4.49; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Sichtbare Absätze in Bewerbungstexten 2.4.49
+
+Die gemeinsame Rich-Text-Typografie verwendet bei 12 pt Grundschrift und
+Zeilenhöhe 1,5 einen unteren Absatzrand von 9 pt. Das entspricht der
+Hälfte der normalen Zeilenbox. `applicationTextParagraphs()` normalisiert
+Begleittext und Motivationsschreiben feldbezogen: bereits vorhandene
+Blockelemente bleiben unverändert, lose Inhalte werden an `<br>` getrennt
+und als `<p>` ausgegeben. Anschriften vor Betreff/Anrede und die
+Schlussformel mit nachfolgenden Namenszeilen bleiben je ein Block mit
+internen `<br>`. Die Normalisierung erfolgt für die Editoranzeige sowie
+für neu erzeugte KI-Texte; es gibt keine pauschale Datenbankmigration.
+Die Joblisten-Konfiguration bindet die sichtbare Spalte `match` nun an
+`j.match_score`; zuvor war sie irrtümlich mit `j.updated_at` verbunden.
+`plainMarkdownRichText()` erkennt bei ansonsten tagfreiem Eingabetext
+doppelte Sternchen und zusammenhängende Markdown-Aufzählungszeilen. Es
+maskiert zuerst alle Nutzdaten und erzeugt ausschliesslich feste
+`p`-, `strong`-, `ul`- und `li`-Elemente. Bereits gespeichertes HTML wird
+weiterhin nur durch die bestehende Positivliste bereinigt.
 
 ## Absatzabstand 2.4.48
 
