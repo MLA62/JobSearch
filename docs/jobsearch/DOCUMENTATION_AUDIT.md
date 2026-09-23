@@ -1,7 +1,25 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-15. Version 2.4.24 ist implementiert, dokumentiert, lokal verifiziert und produktiv
-bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+Stand: 2026-09-23. Version 2.4.50 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+produktiv bereitgestellt. Die angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+
+## Prüfstand 2.4.50
+
+- Drei Kuchendiagramme zeigen Jobstatus, Direktfirmen/Vermittler und
+  Bewerbungsstatus; die Schweiz-Heatmap aggregiert Firmen nach Ort.
+- Die Kartenbasis und PLZ-/Ortsmittelpunkte sind lokal gebündelte,
+  dokumentierte Ableitungen amtlicher swisstopo-Daten.
+- Bewerbungsstatusänderungen ab «Gesendet» führen den zugehörigen
+  Jobstatus über eine einzige mandantengetrennte Synchronisation nach.
+- 58 ausführbare PHP-Vertragstests, der neue responsive Chromium-Test,
+  PHP-Syntax, beide Dokumentationsgeneratoren und `git diff --check`
+  sind erfolgreich.
+- Quell-Commit `97e7d66` ist auf GitHub publiziert. Alle fünf produktiven
+  Release-Dateien sind bytegleich; die öffentliche Seite liefert HTTP
+  200, Version 2.4.50 und die erwarteten Sicherheitsheader.
+- Keine Schemaänderung. Die neuen Übersetzungen werden über den
+  bestehenden Hilfeseed aktualisiert. Die Browser-Sitzung war abgemeldet;
+  die angemeldete Sichtprüfung bleibt deshalb separat offen.
 
 ## Prüfstand 2.4.24
 

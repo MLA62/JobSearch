@@ -1,6 +1,23 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-15. Release 2.4.24 ist produktiv verifiziert.
+Stand: 2026-09-23. Release 2.4.50 ist öffentlich produktiv verifiziert;
+die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.
+
+Quell-Commit: `97e7d66`. Produktive SHA-256-Prüfsummen: `index.php`
+`5fba8de0e094bde00ff3bf0eddb1ff6d882d58613501f8dc33f6158978121adf`,
+`assets/app.css`
+`b5357bc9b3e1ea418423d4b3ef66dfb82676f1249fb40f3ae26d9edbcbbed8dc`,
+PLZ-Daten `95b25b2c89a9021752bbf58951634e3b6cf31adc6831ea20aa94e2f584aeaf6b`
+und Kartenpfad `d0848fcfee0d3f1873839bffd4a414103c27c3d36d59efff67416a9169e2504c`.
+Die Vorgängerdateien 2.4.49 wurden unmittelbar vor der Extraktion als
+`index.php.bak-20260923-2.4.49-pre-2.4.50` und
+`assets/app.css.bak-20260923-2.4.49-pre-2.4.50` gesichert. Die öffentliche
+Seite liefert HTTP 200, Version 2.4.50 und alle erwarteten
+Sicherheitsheader. Es gab keine Schemaänderung; der bestehende Hilfeseed
+aktualisiert die neuen Dashboard-Übersetzungen. Einzelheiten:
+[RELEASE-2.4.50.md](RELEASE-2.4.50.md).
+
+## Vorheriges produktives Release 2.4.24
 
 Quell-Commit: `44d8dfee0ef3535434804052faac5b6c61980f19`.
 Produktiver `index.php`-SHA-256 (2.4.24): `027423c2e8939de7c1483de448aac3827b32700e396fc8f22136fdabfe5b41d5`, 1'315'024 Bytes, Modus 0644.

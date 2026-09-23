@@ -45,5 +45,29 @@ zugeordneten Stelle, sofern der Zielstatus abweicht.
 
 ## Deploymentnachweis
 
-Wird nach der produktiven Ausführung mit Commit, Freigabe, Dateihashes
-und Live-Abnahme ergänzt.
+- Quell-Commit: `97e7d66`
+- Ziel: `public_html/jobs.jema.business`
+- Einmalige Benutzerfreigabe: `3e4d3c6e56cb1ceaa17620f53995c5f7`;
+  die dadurch eröffnete Freigabestunde deckte die einzelnen, jeweils
+  protokollierten Sicherungs-, Upload-, Extraktions- und Aufräumaktionen.
+- Vorab-Sicherungen:
+  `index.php.bak-20260923-2.4.49-pre-2.4.50` und
+  `assets/app.css.bak-20260923-2.4.49-pre-2.4.50`
+- Produktive SHA-256-Prüfsummen, bytegleich zum Commit:
+  - `index.php`: `5fba8de0e094bde00ff3bf0eddb1ff6d882d58613501f8dc33f6158978121adf`
+  - `assets/app.css`: `b5357bc9b3e1ea418423d4b3ef66dfb82676f1249fb40f3ae26d9edbcbbed8dc`
+  - `assets/data/swiss-postal-centroids.json`: `95b25b2c89a9021752bbf58951634e3b6cf31adc6831ea20aa94e2f584aeaf6b`
+  - `assets/data/switzerland-outline.path`: `d0848fcfee0d3f1873839bffd4a414103c27c3d36d59efff67416a9169e2504c`
+  - `assets/data/README.md`: `404f66d9b7168731147bb0ae99bde8d4d9b514944129d18de80928941ad116bc`
+- Die öffentliche Seite liefert HTTP 200, Version 2.4.50 und die
+  Sicherheitsheader HSTS, CSP, `nosniff`, `DENY` und `no-referrer`.
+- Die Browser-Sitzung war bei der Abschlussprüfung abgemeldet. Die
+  angemeldete Sichtprüfung der Diagramme und Karte bleibt daher getrennt
+  offen; der neue Chromium-Test hat beide Ansichten lokal bestanden.
+
+Der erste kombinierte Connector-Aufruf konnte den lokalen Windows-Pfad
+nicht auf dem Connector-Host auflösen und änderte keine Produktionsdatei.
+Das identische Archiv wurde danach innerhalb derselben Freigabestunde als
+Inhalt hochgeladen, aus dem Remote-Archiv extrahiert und bytegenau geprüft.
+Das temporäre Remote-Archiv wurde anschliessend gelöscht; die beiden
+Vorab-Sicherungen bleiben erhalten.
