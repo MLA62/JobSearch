@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 21.09.2026. Version 2.4.45 erkennt auch Job-Room-Favoritenlinks mit Inserat-ID und speichert die kanonische Einzelanzeige. Version 2.4.44 fordert die Job-Room-Detail-API als JSON an. Details: [Abbruchkriterien-Audit](docs/jobsearch/AI_ABORT_GATE_AUDIT.md) und [Schweizer Best-Practice-Leitfaden](docs/jobsearch/SWISS_APPLICATION_WRITING_GUIDE.md).
-Release-Dokumentation: [Release 2.4.45](docs/jobsearch/RELEASE-2.4.45.md), [Release 2.4.44](docs/jobsearch/RELEASE-2.4.44.md), [Release 2.4.43](docs/jobsearch/RELEASE-2.4.43.md).
+Stand: 23.09.2026. Version 2.4.50 ergänzt die Startseite um Statusdiagramme und eine Schweizer Firmen-Heatmap. Änderungen am Bewerbungsstatus führen den Status der zugehörigen Stelle zentral nach.
+Release-Dokumentation: [Release 2.4.50](docs/jobsearch/RELEASE-2.4.50.md), [Release 2.4.49](docs/jobsearch/RELEASE-2.4.49.md), [Release 2.4.48](docs/jobsearch/RELEASE-2.4.48.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

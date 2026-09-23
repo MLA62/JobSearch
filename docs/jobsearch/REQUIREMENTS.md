@@ -1,6 +1,18 @@
 # Anforderungen
 
-Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.49.
+Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.50.
+
+Release 2.4.50: Die Seite «Guten Tag» zeigt je ein Kuchendiagramm für
+Jobstatus, Firmenart (Direkt/Vermittler) und Bewerbungsstatus. Darunter
+stellt eine Schweiz-Karte die Konzentration aktiver eigener Firmen nach
+Ort dar. Gespeicherte Koordinaten haben Vorrang; sonst wird der Ort aus
+der mitgelieferten amtlichen PLZ-Ortsdatei lokalisiert. Ausländische und
+nicht lokalisierbare Einträge werden nicht auf der Karte geraten.
+Ändert sich der Status einer Bewerbung ab «Gesendet», wird der Status
+der eindeutig zugehörigen Stelle zentral nachgeführt: Gesendet/Bestätigt
+→ Beworben, Gespräch/Assessment → Interview, Angebot/Zusage → Angebot,
+Absage → Abgelehnt und Rückzug/Abgeschlossen → Abgeschlossen. Entwurf
+und Bereit verändern den Jobstatus nicht.
 
 Release 2.4.49: Der sichtbare Abstand nach einem normalen Absatz oder
 einer Überschrift H1–H3 beträgt 9 pt. Bei der normalen Schrift von 12 pt

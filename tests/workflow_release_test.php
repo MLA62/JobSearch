@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $source = file_get_contents($argv[1] ?? __DIR__ . '/../public/index.php');
-foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarCandidateIds','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
+foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarCandidateIds','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','jobStatusForApplicationStatus','syncJobStatusFromApplication','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
     if (!preg_match('/^function ' . $name . '\\(.*?(?=^function |\\z)/ms', $source, $match)) { throw new RuntimeException('Missing ' . $name); }
     eval(trim($match[0]));
 }
@@ -50,7 +50,7 @@ check(count($recovery)===5 && count(array_unique($recovery))===5, 'Deleted remot
 check(applicationDefaultNextAction('sent')===null && applicationDefaultNextAction('ready')===null, 'No invented next action');
 if (extension_loaded('mysqli')) { throw new RuntimeException('Run with php -n'); }
 class mysqli {}
-$application = ['id'=>1,'user_id'=>1,'primary_contact_id'=>null,'status'=>'sent','next_action'=>null,'next_action_at'=>null,
+$application = ['id'=>1,'user_id'=>1,'job_id'=>7,'primary_contact_id'=>null,'status'=>'sent','next_action'=>null,'next_action_at'=>null,
     'applied_at'=>'2026-09-03 09:16:00','created_at'=>'2026-09-01 09:00:00','updated_at'=>'2026-09-03 15:00:00'];
 $history = [['id'=>21,'new_status'=>'sent','comment'=>'','changed_at'=>'2026-09-03 15:00:00']];
 $events=[]; $writes=[]; $currentAction=null;
@@ -60,6 +60,7 @@ function cascadeExec($db,string $sql,string $types,array $values): void { global
 function upsertWorkflowCalendarEvent(...$args): void { global $events; $events[]=$args; }
 $db=new mysqli(); syncApplicationWorkflow($db,1,1);
 check(count($events)===1 && $events[0][10]===$application['applied_at'], 'Late entry does not change submission time');
+check((bool)array_filter($writes,fn($w)=>str_contains($w[0],'UPDATE jobs SET status=') && $w[1][0]==='applied' && $w[1][1]===7),'Application status updates the related job status centrally');
 $events=[]; $history=[]; syncApplicationWorkflow($db,1,1);
 check(count($events)===1 && $events[0][7]==='application_submission','Submission without history still visible');
 $events=[]; $application['applied_at']=null; $application['status']='interview'; syncApplicationWorkflow($db,1,1);

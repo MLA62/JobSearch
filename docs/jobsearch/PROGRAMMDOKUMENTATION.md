@@ -1,6 +1,26 @@
 # Programmdokumentation
 
-Stand: 2026-09-23. Aktueller Code 2.4.49; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-23. Aktueller Code 2.4.50; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Dashboard und Statuskonsistenz 2.4.50
+
+Das Dashboard aggregiert Jobs und Bewerbungen per Status sowie Firmen
+nach `is_intermediary`. `dashboardChartSegments()` erzeugt aus den
+Gruppen farbige Segmente; `dashboardPieGradient()` rendert sie ohne
+JavaScript-Bibliothek als CSS-Kuchendiagramm. Die Heatmap verwendet
+vorhandene WGS84-Koordinaten oder den lokal gebündelten, amtlichen
+PLZ-/Ortsmittelpunkt von swisstopo. `dashboardSwissMapPosition()`
+projiziert WGS84 näherungsweise in das Schweizer LV95-Koordinatensystem
+und danach in die feste SVG-Ansicht. Punkte werden pro Ort aggregiert.
+Der vereinfachte Landesumriss stammt ebenfalls aus swisstopo-Daten.
+
+`jobStatusForApplicationStatus()` definiert die einzige Abbildung vom
+Bewerbungs- zum Jobstatus. `syncJobStatusFromApplication()` prüft
+Mandant, aktive Bewerbung und aktive Stelle und schreibt nur bei einer
+tatsächlichen Abweichung. `syncApplicationWorkflow()` ruft diese
+Synchronisation bei jedem fachlichen Statuswechsel auf. Die eindeutige
+aktive Bewerbung je Benutzer und Stelle verhindert konkurrierende
+Statusquellen.
 
 ## Sichtbare Absätze in Bewerbungstexten 2.4.49
 

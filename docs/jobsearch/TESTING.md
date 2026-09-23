@@ -2,6 +2,14 @@
 
 Stand: 2026-09-23. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.50: `dashboard_visualizations_test.php` prüft Kategorien,
+Prozentsegmente, Statusabbildung, amtliche Kartendaten, Ortsaggregation,
+SVG-Projektion, Dashboardverträge und die einzige zentrale
+Jobstatus-Schreibstelle. `dashboard_visualizations_visual_test.cjs`
+prüft in Chromium die drei Kuchendiagramme, Kartenumriss, responsives
+Raster und Überlauf. Zusätzlich bleiben vollständige PHP-Suite,
+Syntaxprüfung und beide Dokumentationsgeneratoren verpflichtend.
+
 Release 2.4.49: `rich_text_chronology_test.php` prüft die Umwandlung
 flacher KI-/Alttexte in echte Absätze sowie den Erhalt weicher Umbrüche
 in bestehenden Absätzen und in der Schlussformel. Der Chromium-Test

@@ -1,6 +1,15 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.49.
+Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.50.
+
+Release 2.4.50: Jede fachliche Statusänderung einer aktiven Bewerbung
+läuft über `syncApplicationWorkflow()`. Diese Routine aktualisiert neben
+Verlauf, Kalender und Folgeaktionen auch den Status der zugehörigen
+Stelle. Direkte Statusschreibpfade aus Formular-, Online-, Kalender-,
+Mail- und Admin-KI-Aktionen wurden durch die zentrale Synchronisation
+ersetzt beziehungsweise daran angeschlossen. Entwurf und Bereit lassen
+einen bestehenden Jobstatus unverändert. Die Startseite visualisiert
+die aktuellen Verteilungen und Firmenorte ohne externe Laufzeitanfrage.
 
 Release 2.4.49: Absätze und Überschriften haben in Rich-Text-Feldern
 9 pt Abstand danach, sichtbar etwa als halbe normale Textzeile. Beim

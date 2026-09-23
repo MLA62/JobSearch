@@ -561,6 +561,110 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
 .stat-link article { height: 100%; transition: transform .15s ease, border-color .15s ease; }
 .stat-link:hover article { transform: translateY(-2px); border-color: var(--accent); }
 
+.dashboard-charts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0 0 20px;
+}
+.dashboard-chart-card { min-width: 0; }
+.dashboard-chart-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+.dashboard-chart-head h2 { margin: 0; }
+.dashboard-chart-head h2 a { color: inherit; }
+.dashboard-chart-head p { margin: 5px 0 0; color: var(--muted); }
+.dashboard-chart-head > strong {
+    color: var(--accent-strong);
+    font-size: 1.55rem;
+    line-height: 1;
+}
+.dashboard-chart-body {
+    display: grid;
+    grid-template-columns: minmax(112px, 158px) minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+}
+.dashboard-pie {
+    width: min(158px, 100%);
+    aspect-ratio: 1;
+    justify-self: center;
+    border-radius: 50%;
+    background: var(--dashboard-pie, #d7dee8);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--line), 0 9px 24px rgba(15, 23, 42, .12);
+}
+.dashboard-chart-legend {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.dashboard-chart-legend li {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: .86rem;
+}
+.dashboard-chart-legend li > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-chart-legend strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dashboard-chart-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--segment-color);
+}
+.dashboard-heatmap { margin-bottom: 20px; }
+.dashboard-heatmap-body {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(180px, 1fr);
+    align-items: center;
+    gap: 24px;
+}
+.dashboard-swiss-map {
+    display: block;
+    width: 100%;
+    max-height: 470px;
+    overflow: visible;
+}
+.dashboard-swiss-outline {
+    fill: #e9eef4;
+    stroke: #64748b;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+}
+.dashboard-heat-halo,
+.dashboard-heat-point { fill: var(--accent); }
+.dashboard-heat-point {
+    stroke: #fff;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+.dashboard-heat-list {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.dashboard-heat-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.dashboard-heat-list strong { color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.dashboard-map-meta { margin: 14px 0 0; color: var(--muted); font-size: .82rem; }
+
 label {
     display: grid;
     gap: 7px;
@@ -1719,6 +1823,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .support-context { order: 2; flex: 1; max-width: none; }
     .topbar-actions { order: 2; margin-left: 0; }
     .menu-button { display: block; }
+    .dashboard-charts { grid-template-columns: 1fr; }
+    .dashboard-chart-body { grid-template-columns: minmax(130px, 190px) minmax(0, 1fr); }
 }
 
 @media (max-width: 800px) {
@@ -1731,6 +1837,8 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .calendar-toolbar { align-items: stretch; }
     .calendar-toolbar .actions { width: 100%; flex-wrap: wrap; }
     .calendar-toolbar select { width: 100%; }
+    .dashboard-heatmap-body { grid-template-columns: 1fr; }
+    .dashboard-heat-list { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -1853,4 +1961,7 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .autosave-toolbar { top: 128px; flex-wrap: wrap; }
     .autosave-toolbar strong { flex-basis: calc(100% - 28px); }
     .autosave-toolbar button { width: 100%; }
+    .dashboard-chart-body { grid-template-columns: 1fr; }
+    .dashboard-pie { width: min(180px, 72vw); }
+    .dashboard-heat-list { grid-template-columns: 1fr; }
 }

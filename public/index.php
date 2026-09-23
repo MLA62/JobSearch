@@ -2690,6 +2690,94 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Importante',
     'es-MX' => 'Importante',
   ),
+  'dashboard.chart.applications_hint' =>
+  array (
+    'de-CH' => 'Anteile nach Bewerbungsstatus',
+    'fr-CH' => 'Répartition par statut de candidature',
+    'en-GB' => 'Shares by application status',
+    'pt-BR' => 'Proporção por status da candidatura',
+    'es-MX' => 'Proporción por estado de la solicitud',
+  ),
+  'dashboard.chart.companies_hint' =>
+  array (
+    'de-CH' => 'Vermittler und direkte Firmen',
+    'fr-CH' => 'Intermédiaires et entreprises directes',
+    'en-GB' => 'Intermediaries and direct companies',
+    'pt-BR' => 'Intermediários e empresas diretas',
+    'es-MX' => 'Intermediarios y empresas directas',
+  ),
+  'dashboard.chart.empty' =>
+  array (
+    'de-CH' => 'Noch keine Daten für dieses Diagramm.',
+    'fr-CH' => 'Pas encore de données pour ce graphique.',
+    'en-GB' => 'No data for this chart yet.',
+    'pt-BR' => 'Ainda não há dados para este gráfico.',
+    'es-MX' => 'Todavía no hay datos para este gráfico.',
+  ),
+  'dashboard.chart.jobs_hint' =>
+  array (
+    'de-CH' => 'Anteile nach Stellenstatus',
+    'fr-CH' => 'Répartition par statut du poste',
+    'en-GB' => 'Shares by job status',
+    'pt-BR' => 'Proporção por status da vaga',
+    'es-MX' => 'Proporción por estado de la vacante',
+  ),
+  'dashboard.chart.section' =>
+  array (
+    'de-CH' => 'Verteilungen auf der Startseite',
+    'fr-CH' => 'Répartitions sur l’accueil',
+    'en-GB' => 'Home page distributions',
+    'pt-BR' => 'Distribuições da página inicial',
+    'es-MX' => 'Distribuciones de la página inicial',
+  ),
+  'dashboard.heatmap.aria' =>
+  array (
+    'de-CH' => 'Schweiz-Karte mit {count} örtlich zugeordneten Firmen',
+    'fr-CH' => 'Carte de Suisse avec {count} entreprises localisées',
+    'en-GB' => 'Map of Switzerland with {count} located companies',
+    'pt-BR' => 'Mapa da Suíça com {count} empresas localizadas',
+    'es-MX' => 'Mapa de Suiza con {count} empresas localizadas',
+  ),
+  'dashboard.heatmap.coverage' =>
+  array (
+    'de-CH' => '{mapped} von {total} Firmen konnten über Koordinaten oder Schweizer PLZ verortet werden',
+    'fr-CH' => '{mapped} entreprises sur {total} ont pu être localisées par coordonnées ou code postal suisse',
+    'en-GB' => '{mapped} of {total} companies could be located by coordinates or Swiss postcode',
+    'pt-BR' => '{mapped} de {total} empresas puderam ser localizadas por coordenadas ou código postal suíço',
+    'es-MX' => 'Se pudieron localizar {mapped} de {total} empresas mediante coordenadas o código postal suizo',
+  ),
+  'dashboard.heatmap.empty' =>
+  array (
+    'de-CH' => 'Noch keine Schweizer Firmen mit verwertbarer Orts- oder Koordinatenangabe.',
+    'fr-CH' => 'Aucune entreprise suisse ne possède encore une localité ou des coordonnées exploitables.',
+    'en-GB' => 'No Swiss company has a usable place or coordinate yet.',
+    'pt-BR' => 'Nenhuma empresa suíça tem ainda local ou coordenadas utilizáveis.',
+    'es-MX' => 'Todavía no hay empresas suizas con localidad o coordenadas utilizables.',
+  ),
+  'dashboard.heatmap.hint' =>
+  array (
+    'de-CH' => 'Grössere und kräftigere Kreise zeigen mehr Firmen am selben Ort.',
+    'fr-CH' => 'Des cercles plus grands et plus intenses indiquent davantage d’entreprises au même endroit.',
+    'en-GB' => 'Larger, stronger circles show more companies in the same place.',
+    'pt-BR' => 'Círculos maiores e mais intensos mostram mais empresas no mesmo local.',
+    'es-MX' => 'Los círculos más grandes e intensos muestran más empresas en el mismo lugar.',
+  ),
+  'dashboard.heatmap.source' =>
+  array (
+    'de-CH' => 'Kartengrundlage: swisstopo',
+    'fr-CH' => 'Fond cartographique : swisstopo',
+    'en-GB' => 'Map data: swisstopo',
+    'pt-BR' => 'Dados cartográficos: swisstopo',
+    'es-MX' => 'Datos cartográficos: swisstopo',
+  ),
+  'dashboard.heatmap.title' =>
+  array (
+    'de-CH' => 'Firmenkonzentration Schweiz',
+    'fr-CH' => 'Concentration des entreprises en Suisse',
+    'en-GB' => 'Company concentration in Switzerland',
+    'pt-BR' => 'Concentração de empresas na Suíça',
+    'es-MX' => 'Concentración de empresas en Suiza',
+  ),
   'footer.ai_notice' =>
   array (
     'de-CH' => 'Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}).',
@@ -4114,6 +4202,14 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Acompanhe a candidatura e seus compromissos nas respectivas áreas.',
     'es-MX' => 'Gestiona la solicitud y sus citas en las secciones correspondientes.',
   ),
+  'help.v2.overview.steps.3' =>
+  array (
+    'de-CH' => 'Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte, um Verteilungen und örtliche Firmenschwerpunkte zu erkennen.',
+    'fr-CH' => 'Utilise les graphiques de statut et la carte de Suisse de l’accueil pour voir les répartitions et les concentrations géographiques des entreprises.',
+    'en-GB' => 'Use the status charts and Switzerland map on the home page to see distributions and geographic company concentrations.',
+    'pt-BR' => 'Use os gráficos de status e o mapa da Suíça na página inicial para ver distribuições e concentrações geográficas de empresas.',
+    'es-MX' => 'Usa los gráficos de estado y el mapa de Suiza de la página inicial para ver distribuciones y concentraciones geográficas de empresas.',
+  ),
   'help.v2.overview.summary' =>
   array (
     'de-CH' => 'Profil, Stellen, Bewerbungen und Termine bilden deinen Arbeitsablauf.',
@@ -4124,11 +4220,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.overview.tips.0' =>
   array (
-    'de-CH' => 'Der Stellenstatus ist nicht der Bewerbungsstatus. Ein gespeicherter Entwurf ist noch nicht versendet.',
-    'fr-CH' => 'Le statut du poste diffère du statut de candidature. Enregistrer un brouillon ne l’envoie pas.',
-    'en-GB' => 'A job status is separate from an application status. Saving a draft does not send it.',
-    'pt-BR' => 'O status da vaga é diferente do status da candidatura. Salvar um rascunho não o envia.',
-    'es-MX' => 'El estado de la vacante es distinto del estado de la solicitud. Guardar un borrador no lo envía.',
+    'de-CH' => 'Der Stellenstatus ist nicht der Bewerbungsstatus. Bei einem operativen Bewerbungsstatus ab Gesendet führt die App den passenden Stellenstatus automatisch nach.',
+    'fr-CH' => 'Le statut du poste diffère du statut de candidature. Dès l’envoi, l’application met automatiquement à jour le statut correspondant du poste.',
+    'en-GB' => 'A job status is separate from an application status. From Sent onwards, the app automatically updates the corresponding job status.',
+    'pt-BR' => 'O status da vaga é diferente do status da candidatura. A partir de Enviada, o app atualiza automaticamente o status correspondente da vaga.',
+    'es-MX' => 'El estado de la vacante es distinto del estado de la solicitud. Desde Enviada, la app actualiza automáticamente el estado correspondiente de la vacante.',
   ),
   'help.v2.overview.title' =>
   array (
@@ -4815,7 +4911,7 @@ function helpTopicDefinitions(): array
       1 => 'applications',
       2 => 'calendar',
     ),
-    'step_count' => 3,
+    'step_count' => 4,
     'tip_count' => 1,
   ),
   1 =>
@@ -6227,6 +6323,11 @@ function adminAiApplyOperations(mysqli $db, int $uid, array $operations, array $
             if (!$companyId && $companyName!=='') { $company=dbOne($db,'SELECT id FROM companies WHERE owner_user_id=? AND deleted_at IS NULL AND name=? LIMIT 1','is',[$uid,$companyName]); $companyId=(int)($company['id'] ?? 0); }
             if ($companyId<1) throw new RuntimeException('Kontakt kann keiner vorhandenen oder recherchierten Firma zugeordnet werden: '.$companyName);
             $result=adminAiUpsertContact($db,$uid,$companyId,$operation,$globalSources); $results[]=['type'=>'contact','name'=>$result['name'],'id'=>$result['id'],'created'=>$result['created'],'updated'=>$result['updated'],'unmapped_fields'=>array_values((array)($operation['_unmapped_fields'] ?? [])),'preserved_unmapped'=>!empty($operation['_preserved_unmapped'])]; $result['created']?$created++:$updated++;
+        }
+        foreach ($results as $result) {
+            if (($result['type'] ?? '') === 'applications' && (int)($result['id'] ?? 0) > 0) {
+                syncJobStatusFromApplication($db, $uid, (int)$result['id']);
+            }
         }
         $db->commit();
     } catch (Throwable $error) { $db->rollback(); throw $error; }
@@ -8114,6 +8215,146 @@ function applicationStatusOptions(bool $includeLegacy = true): array
         }
     }
     return $options;
+}
+
+function jobStatusForApplicationStatus(string $status): ?string
+{
+    return [
+        'sent'=>'applied', 'confirmed'=>'applied',
+        'interview'=>'interview', 'assessment'=>'interview',
+        'offer'=>'offer', 'accepted'=>'offer',
+        'rejected'=>'rejected', 'withdrawn'=>'closed', 'closed'=>'closed',
+    ][$status] ?? null;
+}
+
+function syncJobStatusFromApplication(mysqli $db, int $userId, int $applicationId): void
+{
+    $application = dbOne(
+        $db,
+        'SELECT a.status, a.job_id FROM applications a JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.user_id AND j.deleted_at IS NULL WHERE a.id=? AND a.user_id=? AND a.deleted_at IS NULL LIMIT 1',
+        'ii',
+        [$applicationId, $userId]
+    );
+    if (!$application) { return; }
+    $jobStatus = jobStatusForApplicationStatus((string)$application['status']);
+    if ($jobStatus === null) { return; }
+    cascadeExec($db, 'UPDATE jobs SET status=? WHERE id=? AND owner_user_id=? AND status<>?', 'siis', [$jobStatus, (int)$application['job_id'], $userId, $jobStatus]);
+}
+
+function dashboardChartPalette(): array
+{
+    return ['#c2410c','#1d4ed8','#047857','#7c3aed','#be123c','#0f766e','#a16207','#475569','#0369a1','#9333ea'];
+}
+
+function dashboardChartSegments(array $rows, array $labels): array
+{
+    $segments = [];
+    $palette = dashboardChartPalette();
+    foreach ($rows as $row) {
+        $key = trim((string)($row['segment_key'] ?? ''));
+        $count = max(0, (int)($row['segment_count'] ?? 0));
+        if ($key === '' || $count === 0) { continue; }
+        $segments[] = [
+            'key'=>$key,
+            'label'=>(string)($labels[$key] ?? ucfirst(str_replace('_', ' ', $key))),
+            'count'=>$count,
+            'color'=>$palette[count($segments) % count($palette)],
+        ];
+    }
+    return $segments;
+}
+
+function dashboardPieGradient(array $segments): string
+{
+    $total = array_sum(array_column($segments, 'count'));
+    if ($total < 1) { return 'conic-gradient(#d7dee8 0 100%)'; }
+    $cursor = 0.0;
+    $stops = [];
+    foreach ($segments as $segment) {
+        $start = $cursor;
+        $cursor += ((int)$segment['count'] / $total) * 100;
+        $stops[] = sprintf('%s %.4f%% %.4f%%', (string)$segment['color'], $start, $cursor);
+    }
+    return 'conic-gradient(' . implode(', ', $stops) . ')';
+}
+
+function dashboardSwissPostalCentroids(): array
+{
+    static $catalog = null;
+    if ($catalog !== null) { return $catalog; }
+    $path = __DIR__ . '/assets/data/swiss-postal-centroids.json';
+    if (!is_file($path)) { return $catalog = ['places'=>[], 'postcodes'=>[]]; }
+    try {
+        $decoded = json_decode((string)file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        return $catalog = is_array($decoded) ? $decoded : ['places'=>[], 'postcodes'=>[]];
+    } catch (Throwable $exception) {
+        error_log('Swiss postal centroid data unavailable: ' . $exception->getMessage());
+        return $catalog = ['places'=>[], 'postcodes'=>[]];
+    }
+}
+
+function dashboardSwissMapPosition(float $longitude, float $latitude): ?array
+{
+    if ($longitude < 5.8 || $longitude > 10.7 || $latitude < 45.7 || $latitude > 47.9) { return null; }
+    $lat = ($latitude * 3600 - 169028.66) / 10000;
+    $lon = ($longitude * 3600 - 26782.5) / 10000;
+    $east = 2600072.37 + 211455.93*$lon - 10938.51*$lon*$lat - 0.36*$lon*$lat*$lat - 44.54*$lon*$lon*$lon;
+    $north = 1200147.07 + 308807.95*$lat + 3745.25*$lon*$lon + 76.63*$lat*$lat - 194.56*$lon*$lon*$lat + 119.79*$lat*$lat*$lat;
+    $x = ($east - 2480000) / 360000 * 1000;
+    $y = (1300000 - $north) / 230000 * 640;
+    return ($x < 0 || $x > 1000 || $y < 0 || $y > 640) ? null : [$x, $y];
+}
+
+function dashboardCompanyHeatPoints(array $companies): array
+{
+    $catalog = dashboardSwissPostalCentroids();
+    $groups = [];
+    foreach ($companies as $company) {
+        $country = strtoupper(trim((string)($company['country_code'] ?? '')));
+        if ($country !== '' && $country !== 'CH') { continue; }
+        $city = trim((string)($company['city'] ?? ''));
+        $postal = preg_replace('/\D+/', '', (string)($company['postal_code'] ?? ''));
+        $longitude = is_numeric($company['longitude'] ?? null) ? (float)$company['longitude'] : null;
+        $latitude = is_numeric($company['latitude'] ?? null) ? (float)$company['latitude'] : null;
+        if ($longitude === null || $latitude === null) {
+            $cityKey = mb_strtolower(preg_replace('/\s+/u', ' ', $city));
+            $coords = $catalog['places'][$postal . '|' . $cityKey] ?? $catalog['postcodes'][$postal] ?? null;
+            if (!is_array($coords) || count($coords) < 2) { continue; }
+            [$longitude, $latitude] = [(float)$coords[0], (float)$coords[1]];
+        }
+        $position = dashboardSwissMapPosition($longitude, $latitude);
+        if ($position === null) { continue; }
+        $label = $city !== '' ? $city : ($postal !== '' ? $postal : tr('common.unknown'));
+        $key = mb_strtolower($label);
+        if (!isset($groups[$key])) { $groups[$key] = ['label'=>$label,'count'=>0,'x_sum'=>0.0,'y_sum'=>0.0]; }
+        $groups[$key]['count']++;
+        $groups[$key]['x_sum'] += $position[0];
+        $groups[$key]['y_sum'] += $position[1];
+    }
+    $counts = array_values(array_map(static fn(array $group): int => (int)$group['count'], $groups));
+    $max = $counts === [] ? 1 : max($counts);
+    $points = [];
+    foreach ($groups as $group) {
+        $count = (int)$group['count'];
+        $ratio = $count / $max;
+        $points[] = [
+            'label'=>$group['label'], 'count'=>$count,
+            'x'=>$group['x_sum']/$count, 'y'=>$group['y_sum']/$count,
+            'radius'=>10 + sqrt($ratio)*34,
+            'opacity'=>0.30 + $ratio*0.60,
+        ];
+    }
+    usort($points, static fn(array $left, array $right): int => $right['count'] <=> $left['count'] ?: strnatcasecmp($left['label'], $right['label']));
+    return $points;
+}
+
+function dashboardSwissOutlinePath(): string
+{
+    static $outline = null;
+    if ($outline !== null) { return $outline; }
+    $path = __DIR__ . '/assets/data/switzerland-outline.path';
+    $candidate = is_file($path) ? trim((string)file_get_contents($path)) : '';
+    return $outline = preg_match('/^[MLZ0-9.\s-]+$/', $candidate) ? $candidate : '';
 }
 
 function applicationWorkflowDateSql(string $alias = 'a'): string
@@ -13707,6 +13948,7 @@ function syncApplicationWorkflow(mysqli $db, int $userId, int $applicationId): v
 {
     $application = dbOne($db, 'SELECT id, user_id, primary_contact_id, status, applied_at, created_at FROM applications WHERE id=? AND user_id=? AND deleted_at IS NULL LIMIT 1', 'ii', [$applicationId, $userId]);
     if (!$application) { return; }
+    syncJobStatusFromApplication($db, $userId, $applicationId);
     $history = dbAll($db, 'SELECT id, new_status, comment, changed_at FROM application_status_history WHERE application_id=? ORDER BY changed_at ASC, id ASC', 'i', [$applicationId]);
     // One submission and one event per recorded outcome; preparation stays solely in history.
     $seen = [];
@@ -14798,7 +15040,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($locked && in_array($locked['status'],['sent','confirmed'],true)) {
                     cascadeExec($db,"UPDATE applications SET status='interview', job_room_interview=1 WHERE id=? AND user_id=?",'ii',[$applicationId,$uid]);
                     cascadeExec($db,"INSERT INTO application_status_history (application_id,changed_by,old_status,new_status) VALUES (?,?,?,'interview')",'iis',[$applicationId,$uid,$locked['status']]);
-                    cascadeExec($db,"UPDATE jobs SET status='interview' WHERE id=? AND owner_user_id=?",'ii',[(int)$application['job_id'],$uid]);
+                    syncApplicationWorkflow($db, $uid, (int)$applicationId);
                 }
             }
             audit($db,$uid,$action==='save_calendar_event'?'create':'update','calendar_event',$eventId,null,['title'=>$title,'starts_at'=>$startsAt,'application_id'=>$applicationId]);
@@ -16749,13 +16991,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $history = $db->prepare('INSERT INTO application_status_history (application_id, changed_by, old_status, new_status, comment) VALUES (?, ?, ?, ?, ?)');
             $history->bind_param('iisss', $id, $uid, $old['status'], $status, $comment);
             $history->execute();
-            $jobStatus = ['sent'=>'applied','confirmed'=>'applied','interview'=>'interview','assessment'=>'interview','offer'=>'offer','accepted'=>'offer','rejected'=>'rejected','withdrawn'=>'closed','closed'=>'closed'][$status] ?? null;
-            if ($jobStatus) {
-                $jobStmt = $db->prepare('UPDATE jobs SET status=? WHERE id=? AND owner_user_id=?');
-                $jobId = (int) $old['job_id'];
-                $jobStmt->bind_param('sii', $jobStatus, $jobId, $uid);
-                $jobStmt->execute();
-            }
         }
         audit($db, $uid, 'update', 'application', $id, ['status' => $old['status']], ['status' => $status, 'channel' => $channel, 'application_url' => $applicationUrl, 'reference_number' => $referenceNumber, 'next_action' => $nextAction, 'next_action_at' => $nextActionAt]);
         if ($status === 'sent' && $primaryContactId > 0) {
@@ -16823,11 +17058,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $history->bind_param('iisss', $id, $uid, $oldStatus, $status, $comment);
             $history->execute();
         }
-        $jobStatus = 'applied';
-        $jobId = (int) $old['job_id'];
-        $jobStmt = $db->prepare('UPDATE jobs SET status=? WHERE id=? AND owner_user_id=?');
-        $jobStmt->bind_param('sii', $jobStatus, $jobId, $uid);
-        $jobStmt->execute();
         if ($primaryContactId > 0) {
             ensureSubmittedApplicationContactLog($db, $uid, $id);
         }
@@ -16962,7 +17192,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.49';
+$codeVersion = '2.4.50';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17611,14 +17841,65 @@ startUiTranslationBuffer($appLocale);
         <form method="post" class="actions"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="preview_hash" value="<?= e(workflowMigrationHash($migrationPlan)) ?>"><button class="primary" name="action" value="apply_workflow_migration"><?= e(tr('workflow.apply')) ?></button></form>
         <?php endif; ?>
     <?php elseif ($page === 'dashboard'):
+        $dashboardUserId = userId();
+        $jobSegments = dashboardChartSegments(
+            dbAll($db, 'SELECT status segment_key, COUNT(*) segment_count FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL GROUP BY status ORDER BY status', 'i', [$dashboardUserId]),
+            jobStatusOptions()
+        );
+        $companySegments = dashboardChartSegments(
+            dbAll($db, "SELECT CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END segment_key, COUNT(*) segment_count FROM companies WHERE owner_user_id=? AND deleted_at IS NULL GROUP BY CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END ORDER BY segment_key", 'i', [$dashboardUserId]),
+            ['direct'=>tr('companies.direct_none'), 'intermediary'=>tr('companies.intermediary')]
+        );
+        $applicationSegments = dashboardChartSegments(
+            dbAll($db, 'SELECT status segment_key, COUNT(*) segment_count FROM applications WHERE user_id=? AND deleted_at IS NULL GROUP BY status ORDER BY status', 'i', [$dashboardUserId]),
+            applicationStatusOptions()
+        );
+        $dashboardCharts = [
+            ['title'=>tr('dashboard.stats.jobs'),'description'=>tr('dashboard.chart.jobs_hint'),'href'=>'/?page=jobs','segments'=>$jobSegments],
+            ['title'=>tr('dashboard.stats.companies'),'description'=>tr('dashboard.chart.companies_hint'),'href'=>'/?page=companies','segments'=>$companySegments],
+            ['title'=>tr('dashboard.stats.applications'),'description'=>tr('dashboard.chart.applications_hint'),'href'=>'/?page=applications','segments'=>$applicationSegments],
+        ];
+        $heatCompanies = dbAll($db, 'SELECT city, postal_code, country_code, latitude, longitude FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$dashboardUserId]);
+        $companyHeatPoints = dashboardCompanyHeatPoints($heatCompanies);
+        $mappedCompanies = array_sum(array_column($companyHeatPoints, 'count'));
         $stats = [
-            ['label' => tr('dashboard.stats.jobs'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM jobs WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=jobs'],
+            ['label' => tr('dashboard.stats.jobs'), 'value' => array_sum(array_column($jobSegments, 'count')), 'href' => '/?page=jobs'],
             ['label' => tr('dashboard.stats.companies'), 'value' => count($companies), 'href' => '/?page=companies'],
-            ['label' => tr('dashboard.stats.applications'), 'value' => dbOne($db, 'SELECT COUNT(*) c FROM applications WHERE user_id=? AND deleted_at IS NULL', 'i', [userId()])['c'], 'href' => '/?page=applications'],
-            ['label' => tr('nav.calendar'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM calendar_events WHERE owner_user_id=? AND entry_kind IN ('action','appointment') AND status='planned' AND (source_type IS NULL OR source_type IN ('workflow_appointment','contact_log') OR (source_type='application_next_action' AND title='follow_up'))", 'i', [userId()])['c'], 'href' => '/?page=calendar&view=agenda'],
+            ['label' => tr('dashboard.stats.applications'), 'value' => array_sum(array_column($applicationSegments, 'count')), 'href' => '/?page=applications'],
+            ['label' => tr('nav.calendar'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM calendar_events WHERE owner_user_id=? AND entry_kind IN ('action','appointment') AND status='planned' AND (source_type IS NULL OR source_type IN ('workflow_appointment','contact_log') OR (source_type='application_next_action' AND title='follow_up'))", 'i', [$dashboardUserId])['c'], 'href' => '/?page=calendar&view=agenda'],
         ]; ?>
         <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
         <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
+        <section class="dashboard-charts" aria-label="<?= e(tr('dashboard.chart.section')) ?>">
+            <?php foreach($dashboardCharts as $chart): $chartTotal=array_sum(array_column($chart['segments'],'count')); $chartAria=$chart['title'].': '.implode(', ',array_map(static fn(array $segment):string=>$segment['label'].' '.$segment['count'],$chart['segments'])); ?>
+            <article class="panel dashboard-chart-card">
+                <header class="dashboard-chart-head"><div><h2><a href="<?= e($chart['href']) ?>"><?= e($chart['title']) ?></a></h2><p><?= e($chart['description']) ?></p></div><strong><?= (int)$chartTotal ?></strong></header>
+                <?php if($chartTotal > 0): ?>
+                <div class="dashboard-chart-body">
+                    <div class="dashboard-pie" role="img" aria-label="<?= e($chartAria) ?>" style="--dashboard-pie:<?= e(dashboardPieGradient($chart['segments'])) ?>"></div>
+                    <ul class="dashboard-chart-legend">
+                        <?php foreach($chart['segments'] as $segment): ?><li><span class="dashboard-chart-swatch" style="--segment-color:<?= e($segment['color']) ?>"></span><span><?= e($segment['label']) ?></span><strong><?= (int)$segment['count'] ?> · <?= (int)round(((int)$segment['count']/$chartTotal)*100) ?>%</strong></li><?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php else: ?><p class="empty"><?= e(tr('dashboard.chart.empty')) ?></p><?php endif; ?>
+            </article>
+            <?php endforeach; ?>
+        </section>
+        <section class="panel dashboard-heatmap" aria-labelledby="dashboard-heatmap-title">
+            <header class="dashboard-chart-head"><div><h2 id="dashboard-heatmap-title"><?= e(tr('dashboard.heatmap.title')) ?></h2><p><?= e(tr('dashboard.heatmap.hint')) ?></p></div><strong><?= (int)$mappedCompanies ?></strong></header>
+            <?php if($companyHeatPoints): ?>
+            <div class="dashboard-heatmap-body">
+                <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedCompanies])) ?>">
+                    <defs><filter id="dashboard-heat-blur"><feGaussianBlur stdDeviation="11"/></filter></defs>
+                    <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
+                    <?php foreach($companyHeatPoints as $point): ?><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"><title><?= e($point['label'].' · '.$point['count']) ?></title></circle><?php endforeach; ?>
+                    <?php foreach($companyHeatPoints as $point): ?><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" opacity="<?= e(number_format($point['opacity'],2,'.','')) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title></circle><?php endforeach; ?>
+                </svg>
+                <ol class="dashboard-heat-list"><?php foreach(array_slice($companyHeatPoints,0,10) as $point): ?><li><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></li><?php endforeach; ?></ol>
+            </div>
+            <p class="dashboard-map-meta"><?= e(tr('dashboard.heatmap.coverage',null,['mapped'=>(string)$mappedCompanies,'total'=>(string)count($companies)])) ?> · <a href="https://www.swisstopo.admin.ch/de/amtliches-ortschaftenverzeichnis" target="_blank" rel="noopener"><?= e(tr('dashboard.heatmap.source')) ?></a></p>
+            <?php else: ?><p class="empty"><?= e(tr('dashboard.heatmap.empty')) ?></p><?php endif; ?>
+        </section>
         <section class="panel"><h2><?= e(tr('dashboard.next_title')) ?></h2><p><?= e(tr('dashboard.next_body')) ?></p></section>
 
     <?php elseif ($page === 'sharing'): ?>

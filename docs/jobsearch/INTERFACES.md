@@ -348,6 +348,15 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function salaryPeriodOptions(): array`
 - `function optionLabel(array $options, mixed $value): string`
 - `function applicationStatusOptions(bool $includeLegacy = true): array`
+- `function jobStatusForApplicationStatus(string $status): ?string`
+- `function syncJobStatusFromApplication(mysqli $db, int $userId, int $applicationId): void`
+- `function dashboardChartPalette(): array`
+- `function dashboardChartSegments(array $rows, array $labels): array`
+- `function dashboardPieGradient(array $segments): string`
+- `function dashboardSwissPostalCentroids(): array`
+- `function dashboardSwissMapPosition(float $longitude, float $latitude): ?array`
+- `function dashboardCompanyHeatPoints(array $companies): array`
+- `function dashboardSwissOutlinePath(): string`
 - `function applicationWorkflowDateSql(string $alias = 'a'): string`
 - `function applicationWorkflowView(array $application): array`
 - `function workflowDateTime(string $value): string`

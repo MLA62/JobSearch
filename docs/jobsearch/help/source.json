@@ -1,6 +1,6 @@
 {
-  "version": "2.4.47",
-  "reviewed": "2026-09-21",
+  "version": "2.4.50",
+  "reviewed": "2026-09-23",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -27,10 +27,11 @@
           "steps": [
             "Pflege zuerst dein Profil und die benötigten Dokumente.",
             "Erfasse eine Stelle und bereite daraus eine Bewerbung vor.",
-            "Führe Bewerbung und Termine im jeweiligen Bereich weiter."
+            "Führe Bewerbung und Termine im jeweiligen Bereich weiter.",
+            "Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte, um Verteilungen und örtliche Firmenschwerpunkte zu erkennen."
           ],
           "tips": [
-            "Der Stellenstatus ist nicht der Bewerbungsstatus. Ein gespeicherter Entwurf ist noch nicht versendet."
+            "Der Stellenstatus ist nicht der Bewerbungsstatus. Bei einem operativen Bewerbungsstatus ab Gesendet führt die App den passenden Stellenstatus automatisch nach."
           ]
         },
         "fr-CH": {
@@ -39,10 +40,11 @@
           "steps": [
             "Complète d’abord ton profil et les documents nécessaires.",
             "Enregistre une offre et prépare une candidature.",
-            "Suis la candidature et ses rendez-vous dans les rubriques correspondantes."
+            "Suis la candidature et ses rendez-vous dans les rubriques correspondantes.",
+            "Utilise les graphiques de statut et la carte de Suisse de l’accueil pour voir les répartitions et les concentrations géographiques des entreprises."
           ],
           "tips": [
-            "Le statut du poste diffère du statut de candidature. Enregistrer un brouillon ne l’envoie pas."
+            "Le statut du poste diffère du statut de candidature. Dès l’envoi, l’application met automatiquement à jour le statut correspondant du poste."
           ]
         },
         "en-GB": {
@@ -51,10 +53,11 @@
           "steps": [
             "Complete your profile and required documents first.",
             "Save a job and prepare an application from it.",
-            "Manage the application and its appointments in their respective sections."
+            "Manage the application and its appointments in their respective sections.",
+            "Use the status charts and Switzerland map on the home page to see distributions and geographic company concentrations."
           ],
           "tips": [
-            "A job status is separate from an application status. Saving a draft does not send it."
+            "A job status is separate from an application status. From Sent onwards, the app automatically updates the corresponding job status."
           ]
         },
         "pt-BR": {
@@ -63,10 +66,11 @@
           "steps": [
             "Preencha primeiro o perfil e os documentos necessários.",
             "Cadastre uma vaga e prepare uma candidatura.",
-            "Acompanhe a candidatura e seus compromissos nas respectivas áreas."
+            "Acompanhe a candidatura e seus compromissos nas respectivas áreas.",
+            "Use os gráficos de status e o mapa da Suíça na página inicial para ver distribuições e concentrações geográficas de empresas."
           ],
           "tips": [
-            "O status da vaga é diferente do status da candidatura. Salvar um rascunho não o envia."
+            "O status da vaga é diferente do status da candidatura. A partir de Enviada, o app atualiza automaticamente o status correspondente da vaga."
           ]
         },
         "es-MX": {
@@ -75,10 +79,11 @@
           "steps": [
             "Completa primero tu perfil y los documentos necesarios.",
             "Guarda una vacante y prepara una solicitud.",
-            "Gestiona la solicitud y sus citas en las secciones correspondientes."
+            "Gestiona la solicitud y sus citas en las secciones correspondientes.",
+            "Usa los gráficos de estado y el mapa de Suiza de la página inicial para ver distribuciones y concentraciones geográficas de empresas."
           ],
           "tips": [
-            "El estado de la vacante es distinto del estado de la solicitud. Guardar un borrador no lo envía."
+            "El estado de la vacante es distinto del estado de la solicitud. Desde Enviada, la app actualiza automáticamente el estado correspondiente de la vacante."
           ]
         }
       }
@@ -2048,6 +2053,83 @@
     }
   ],
   "ui": {
+    "dashboard.chart.section": {
+      "de-CH": "Verteilungen auf der Startseite",
+      "fr-CH": "Répartitions sur l’accueil",
+      "en-GB": "Home page distributions",
+      "pt-BR": "Distribuições da página inicial",
+      "es-MX": "Distribuciones de la página inicial"
+    },
+    "dashboard.chart.jobs_hint": {
+      "de-CH": "Anteile nach Stellenstatus",
+      "fr-CH": "Répartition par statut du poste",
+      "en-GB": "Shares by job status",
+      "pt-BR": "Proporção por status da vaga",
+      "es-MX": "Proporción por estado de la vacante"
+    },
+    "dashboard.chart.companies_hint": {
+      "de-CH": "Vermittler und direkte Firmen",
+      "fr-CH": "Intermédiaires et entreprises directes",
+      "en-GB": "Intermediaries and direct companies",
+      "pt-BR": "Intermediários e empresas diretas",
+      "es-MX": "Intermediarios y empresas directas"
+    },
+    "dashboard.chart.applications_hint": {
+      "de-CH": "Anteile nach Bewerbungsstatus",
+      "fr-CH": "Répartition par statut de candidature",
+      "en-GB": "Shares by application status",
+      "pt-BR": "Proporção por status da candidatura",
+      "es-MX": "Proporción por estado de la solicitud"
+    },
+    "dashboard.chart.empty": {
+      "de-CH": "Noch keine Daten für dieses Diagramm.",
+      "fr-CH": "Pas encore de données pour ce graphique.",
+      "en-GB": "No data for this chart yet.",
+      "pt-BR": "Ainda não há dados para este gráfico.",
+      "es-MX": "Todavía no hay datos para este gráfico."
+    },
+    "dashboard.heatmap.title": {
+      "de-CH": "Firmenkonzentration Schweiz",
+      "fr-CH": "Concentration des entreprises en Suisse",
+      "en-GB": "Company concentration in Switzerland",
+      "pt-BR": "Concentração de empresas na Suíça",
+      "es-MX": "Concentración de empresas en Suiza"
+    },
+    "dashboard.heatmap.hint": {
+      "de-CH": "Grössere und kräftigere Kreise zeigen mehr Firmen am selben Ort.",
+      "fr-CH": "Des cercles plus grands et plus intenses indiquent davantage d’entreprises au même endroit.",
+      "en-GB": "Larger, stronger circles show more companies in the same place.",
+      "pt-BR": "Círculos maiores e mais intensos mostram mais empresas no mesmo local.",
+      "es-MX": "Los círculos más grandes e intensos muestran más empresas en el mismo lugar."
+    },
+    "dashboard.heatmap.aria": {
+      "de-CH": "Schweiz-Karte mit {count} örtlich zugeordneten Firmen",
+      "fr-CH": "Carte de Suisse avec {count} entreprises localisées",
+      "en-GB": "Map of Switzerland with {count} located companies",
+      "pt-BR": "Mapa da Suíça com {count} empresas localizadas",
+      "es-MX": "Mapa de Suiza con {count} empresas localizadas"
+    },
+    "dashboard.heatmap.coverage": {
+      "de-CH": "{mapped} von {total} Firmen konnten über Koordinaten oder Schweizer PLZ verortet werden",
+      "fr-CH": "{mapped} entreprises sur {total} ont pu être localisées par coordonnées ou code postal suisse",
+      "en-GB": "{mapped} of {total} companies could be located by coordinates or Swiss postcode",
+      "pt-BR": "{mapped} de {total} empresas puderam ser localizadas por coordenadas ou código postal suíço",
+      "es-MX": "Se pudieron localizar {mapped} de {total} empresas mediante coordenadas o código postal suizo"
+    },
+    "dashboard.heatmap.source": {
+      "de-CH": "Kartengrundlage: swisstopo",
+      "fr-CH": "Fond cartographique : swisstopo",
+      "en-GB": "Map data: swisstopo",
+      "pt-BR": "Dados cartográficos: swisstopo",
+      "es-MX": "Datos cartográficos: swisstopo"
+    },
+    "dashboard.heatmap.empty": {
+      "de-CH": "Noch keine Schweizer Firmen mit verwertbarer Orts- oder Koordinatenangabe.",
+      "fr-CH": "Aucune entreprise suisse ne possède encore une localité ou des coordonnées exploitables.",
+      "en-GB": "No Swiss company has a usable place or coordinate yet.",
+      "pt-BR": "Nenhuma empresa suíça tem ainda local ou coordenadas utilizáveis.",
+      "es-MX": "Todavía no hay empresas suizas con localidad o coordenadas utilizables."
+    },
     "reports.filter_any_of": {
       "de-CH": "Mehrere Werte wählen (ODER); keine Auswahl = alle",
       "fr-CH": "Plusieurs valeurs (OU); aucune sélection = toutes",
