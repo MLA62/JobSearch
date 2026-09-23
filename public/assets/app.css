@@ -651,7 +651,7 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
     vector-effect: non-scaling-stroke;
 }
 .dashboard-heat-halo,
-.dashboard-heat-point { fill: var(--accent); }
+.dashboard-heat-point { fill: var(--dashboard-jobs-color, #c2410c); }
 .dashboard-heat-point {
     stroke: #fff;
     stroke-width: 2;

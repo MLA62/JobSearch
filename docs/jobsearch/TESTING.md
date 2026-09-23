@@ -2,6 +2,11 @@
 
 Stand: 2026-09-23. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.52: Der PHP-Vertragstest prüft die gemeinsame Farbquelle und
+verbietet Transparenz auf den Kernkreisen. Der Chromium-Test vergleicht
+die berechnete Farbe eines Heatmap-Kreises mit dem ersten Farbfeld der
+Jobs-Legende und erwartet Deckkraft 1.
+
 Release 2.4.51: `dashboard_visualizations_test.php` prüft kodierte
 Status-/Ortslinks, das Zurücksetzen alter Sitzungsfilter, den exakten
 Stadtvergleich, Links in Legende und Karte, die vollständige Ortsliste

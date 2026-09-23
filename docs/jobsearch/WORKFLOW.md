@@ -1,6 +1,10 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.51.
+Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.52.
+
+Release 2.4.52: Das Rendern der Firmen-Heatmap übernimmt die erste
+Jobs-Diagrammfarbe aus derselben Palette. Kernkreise werden deckend,
+Halos weiterhin abgestuft transparent ausgegeben.
 
 Release 2.4.51: Ein Dashboard-Drilldown ersetzt beim Öffnen einer
 Zielliste bestehende Sortier-/Filterzustände durch genau den angeklickten

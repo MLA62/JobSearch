@@ -17205,7 +17205,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.51';
+$codeVersion = '2.4.52';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17900,14 +17900,14 @@ startUiTranslationBuffer($appLocale);
             </article>
             <?php endforeach; ?>
         </section>
-        <section class="panel dashboard-heatmap" aria-labelledby="dashboard-heatmap-title">
+        <section class="panel dashboard-heatmap" aria-labelledby="dashboard-heatmap-title" style="--dashboard-jobs-color:<?= e(dashboardChartPalette()[0]) ?>">
             <header class="dashboard-chart-head"><div><h2 id="dashboard-heatmap-title"><?= e(tr('dashboard.heatmap.title')) ?></h2><p><?= e(tr('dashboard.heatmap.hint')) ?></p></div><strong><?= (int)$mappedCompanies ?></strong></header>
             <?php if($companyHeatPoints): ?>
             <div class="dashboard-heatmap-body">
                 <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedCompanies])) ?>">
                     <defs><filter id="dashboard-heat-blur"><feGaussianBlur stdDeviation="11"/></filter></defs>
                     <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
-                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count']) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"/><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" opacity="<?= e(number_format($point['opacity'],2,'.','')) ?>"/></a><?php endforeach; ?>
+                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count']) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"/><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
                 </svg>
                 <ol class="dashboard-heat-list"><?php foreach($companyHeatPoints as $point): ?><li><a href="<?= e($point['href']) ?>"><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></a></li><?php endforeach; ?></ol>
             </div>

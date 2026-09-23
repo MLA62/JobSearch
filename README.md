@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 23.09.2026. Version 2.4.51 verlinkt Dashboard-Status, Firmenarten, Kartenpunkte und sämtliche Orte direkt mit den gefilterten Listen und entfernt die redundanten Summenkarten.
-Release-Dokumentation: [Release 2.4.51](docs/jobsearch/RELEASE-2.4.51.md), [Release 2.4.50](docs/jobsearch/RELEASE-2.4.50.md), [Release 2.4.49](docs/jobsearch/RELEASE-2.4.49.md).
+Stand: 23.09.2026. Version 2.4.52 verwendet für die Heatmap-Kreise exakt dieselbe Farbe wie das erste Segment des Jobs-Kuchendiagramms.
+Release-Dokumentation: [Release 2.4.52](docs/jobsearch/RELEASE-2.4.52.md), [Release 2.4.51](docs/jobsearch/RELEASE-2.4.51.md), [Release 2.4.50](docs/jobsearch/RELEASE-2.4.50.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

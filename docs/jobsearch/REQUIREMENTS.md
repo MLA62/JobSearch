@@ -1,6 +1,11 @@
 # Anforderungen
 
-Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.51.
+Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.52.
+
+Release 2.4.52: Die sichtbaren Kernkreise der Firmen-Heatmap verwenden
+exakt dieselbe Farbe wie das erste Segment des Jobs-Kuchendiagramms.
+Unterschiedliche Konzentrationen werden über die Kreisgrösse und den
+transparenten Halo dargestellt, nicht über eine aufgehellte Kernfarbe.
 
 Release 2.4.51: Jede Statuszeile der drei Dashboard-Diagramme öffnet
 die Job-, Firmen- oder Bewerbungsliste mit genau diesem Filter. Direkt

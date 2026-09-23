@@ -1,6 +1,13 @@
 # Programmdokumentation
 
-Stand: 2026-09-23. Aktueller Code 2.4.51; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-23. Aktueller Code 2.4.52; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Einheitliche Dashboard-Farbe 2.4.52
+
+Die Heatmap übernimmt ihre Kreisfarbe unmittelbar aus dem ersten Eintrag
+von `dashboardChartPalette()`, der auch das erste Segment des
+Jobs-Kuchendiagramms färbt. Die Kernkreise sind vollständig deckend;
+nur der unscharfe Halo bleibt zur Konzentrationsdarstellung transparent.
 
 ## Dashboard-Drilldowns 2.4.51
 

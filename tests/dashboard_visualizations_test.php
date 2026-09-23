@@ -70,6 +70,8 @@ foreach (['dashboard-charts','dashboard-pie','dashboard-heatmap','dashboard-swis
 }
 dashboardCheck(str_contains($source, 'GROUP BY status ORDER BY status') && str_contains($source, "CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END"), 'Dashboard queries aggregate job, application and company categories');
 dashboardCheck(str_contains($source, 'class="dashboard-chart-link"') && str_contains($source, 'class="dashboard-heat-link"'), 'Every legend value and map bubble is linked');
+dashboardCheck(str_contains($source, 'style="--dashboard-jobs-color:<?= e(dashboardChartPalette()[0]) ?>"'), 'Heat-map bubbles use the first Jobs chart palette colour');
+dashboardCheck(!preg_match('/class="dashboard-heat-point"[^>]*opacity=/', $source), 'Heat-map bubble cores keep the exact chart colour without transparency');
 dashboardCheck(str_contains($source, 'foreach($companyHeatPoints as $point)') && !str_contains($source, 'array_slice($companyHeatPoints,0,10)'), 'The scrollable place list includes every mapped place');
 dashboardCheck(!str_contains($source, '<div class="stats">'), 'Redundant dashboard summary cards are removed');
 dashboardCheck(substr_count($source, 'UPDATE jobs SET status=') === 1, 'All automatic job-status writes use the central synchronizer');
