@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.50.
+Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.51.
+
+Release 2.4.51: Ein Dashboard-Drilldown ersetzt beim Öffnen einer
+Zielliste bestehende Sortier-/Filterzustände durch genau den angeklickten
+Status, die Firmenart oder den Ort. Die normalen Listenfilter bleiben
+unverändert nutzbar. Ortslinks verwenden einen exakten Stadtfilter.
+Karte und vollständige, scrollbar dargestellte Ortsliste führen zum
+gleichen Filterergebnis. Die separaten Summenkarten werden nicht mehr
+gerendert und die zugehörige Kalenderzählung entfällt.
 
 Release 2.4.50: Jede fachliche Statusänderung einer aktiven Bewerbung
 läuft über `syncApplicationWorkflow()`. Diese Routine aktualisiert neben

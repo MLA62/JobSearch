@@ -1,6 +1,14 @@
 # Anforderungen
 
-Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.50.
+Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.51.
+
+Release 2.4.51: Jede Statuszeile der drei Dashboard-Diagramme öffnet
+die Job-, Firmen- oder Bewerbungsliste mit genau diesem Filter. Direkt
+und Vermittler sind ebenfalls einzeln verlinkt. Jeder Kreis der
+Schweiz-Karte und jeder Ortsname öffnet die Firmenliste mit exaktem
+Ortsfilter. Rechts werden alle lokalisierten Orte in einer vertikal
+scrollbaren Liste gezeigt. Die vier redundanten Summenkarten für Jobs,
+Firmen, Bewerbungen und Kalender entfallen.
 
 Release 2.4.50: Die Seite «Guten Tag» zeigt je ein Kuchendiagramm für
 Jobstatus, Firmenart (Direkt/Vermittler) und Bewerbungsstatus. Darunter

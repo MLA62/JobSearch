@@ -353,6 +353,7 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function dashboardChartPalette(): array`
 - `function dashboardChartSegments(array $rows, array $labels): array`
 - `function dashboardPieGradient(array $segments): string`
+- `function dashboardFilterUrl(string $page, string $context, string $field, string $value, bool $multiple = false): string`
 - `function dashboardSwissPostalCentroids(): array`
 - `function dashboardSwissMapPosition(float $longitude, float $latitude): ?array`
 - `function dashboardCompanyHeatPoints(array $companies): array`

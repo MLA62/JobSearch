@@ -2,6 +2,13 @@
 
 Stand: 2026-09-23. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.51: `dashboard_visualizations_test.php` prüft kodierte
+Status-/Ortslinks, das Zurücksetzen alter Sitzungsfilter, den exakten
+Stadtvergleich, Links in Legende und Karte, die vollständige Ortsliste
+und den Wegfall der Summenkarten. Der Chromium-Test prüft Links,
+vollständige Ortsanzahl, vertikalen Überlauf mit Scrollleiste und das
+responsive Raster.
+
 Release 2.4.50: `dashboard_visualizations_test.php` prüft Kategorien,
 Prozentsegmente, Statusabbildung, amtliche Kartendaten, Ortsaggregation,
 SVG-Projektion, Dashboardverträge und die einzige zentrale

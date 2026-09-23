@@ -1,5 +1,5 @@
 {
-  "version": "2.4.50",
+  "version": "2.4.51",
   "reviewed": "2026-09-23",
   "locales": [
     "de-CH",
@@ -28,7 +28,7 @@
             "Pflege zuerst dein Profil und die benötigten Dokumente.",
             "Erfasse eine Stelle und bereite daraus eine Bewerbung vor.",
             "Führe Bewerbung und Termine im jeweiligen Bereich weiter.",
-            "Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte, um Verteilungen und örtliche Firmenschwerpunkte zu erkennen."
+            "Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte. Jeder Status, jede Firmenart und jeder Kartenort öffnet die passend gefilterte Liste; rechts sind alle Orte scrollbar verfügbar."
           ],
           "tips": [
             "Der Stellenstatus ist nicht der Bewerbungsstatus. Bei einem operativen Bewerbungsstatus ab Gesendet führt die App den passenden Stellenstatus automatisch nach."
@@ -41,7 +41,7 @@
             "Complète d’abord ton profil et les documents nécessaires.",
             "Enregistre une offre et prépare une candidature.",
             "Suis la candidature et ses rendez-vous dans les rubriques correspondantes.",
-            "Utilise les graphiques de statut et la carte de Suisse de l’accueil pour voir les répartitions et les concentrations géographiques des entreprises."
+            "Utilise les graphiques de statut et la carte de Suisse de l’accueil. Chaque statut, type d’entreprise et lieu de la carte ouvre la liste filtrée correspondante; tous les lieux restent accessibles dans la liste déroulante à droite."
           ],
           "tips": [
             "Le statut du poste diffère du statut de candidature. Dès l’envoi, l’application met automatiquement à jour le statut correspondant du poste."
@@ -54,7 +54,7 @@
             "Complete your profile and required documents first.",
             "Save a job and prepare an application from it.",
             "Manage the application and its appointments in their respective sections.",
-            "Use the status charts and Switzerland map on the home page to see distributions and geographic company concentrations."
+            "Use the status charts and Switzerland map on the home page. Each status, company type and map place opens the matching filtered list; every place remains available in the scrollable list on the right."
           ],
           "tips": [
             "A job status is separate from an application status. From Sent onwards, the app automatically updates the corresponding job status."
@@ -67,7 +67,7 @@
             "Preencha primeiro o perfil e os documentos necessários.",
             "Cadastre uma vaga e prepare uma candidatura.",
             "Acompanhe a candidatura e seus compromissos nas respectivas áreas.",
-            "Use os gráficos de status e o mapa da Suíça na página inicial para ver distribuições e concentrações geográficas de empresas."
+            "Use os gráficos de status e o mapa da Suíça na página inicial. Cada status, tipo de empresa e local no mapa abre a lista filtrada correspondente; todos os locais permanecem disponíveis na lista rolável à direita."
           ],
           "tips": [
             "O status da vaga é diferente do status da candidatura. A partir de Enviada, o app atualiza automaticamente o status correspondente da vaga."
@@ -80,7 +80,7 @@
             "Completa primero tu perfil y los documentos necesarios.",
             "Guarda una vacante y prepara una solicitud.",
             "Gestiona la solicitud y sus citas en las secciones correspondientes.",
-            "Usa los gráficos de estado y el mapa de Suiza de la página inicial para ver distribuciones y concentraciones geográficas de empresas."
+            "Usa los gráficos de estado y el mapa de Suiza de la página inicial. Cada estado, tipo de empresa y lugar del mapa abre la lista filtrada correspondiente; todos los lugares quedan disponibles en la lista desplazable de la derecha."
           ],
           "tips": [
             "El estado de la vacante es distinto del estado de la solicitud. Desde Enviada, la app actualiza automáticamente el estado correspondiente de la vacante."

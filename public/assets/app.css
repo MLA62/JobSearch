@@ -607,14 +607,23 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
     list-style: none;
 }
 .dashboard-chart-legend li {
+    min-width: 0;
+}
+.dashboard-chart-link {
     display: grid;
     grid-template-columns: 12px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
     min-width: 0;
+    padding: 3px 5px;
+    border-radius: 5px;
+    color: inherit;
+    text-decoration: none;
     font-size: .86rem;
 }
-.dashboard-chart-legend li > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-chart-link:hover,
+.dashboard-chart-link:focus-visible { background: var(--accent-soft); color: var(--accent-strong); }
+.dashboard-chart-link > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
 .dashboard-chart-legend strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dashboard-chart-swatch {
     width: 12px;
@@ -648,20 +657,34 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
     stroke-width: 2;
     vector-effect: non-scaling-stroke;
 }
+.dashboard-heat-link { cursor: pointer; }
+.dashboard-heat-link:hover .dashboard-heat-point,
+.dashboard-heat-link:focus .dashboard-heat-point { stroke: var(--text); stroke-width: 3; }
 .dashboard-heat-list {
     display: grid;
+    align-content: start;
     gap: 7px;
     margin: 0;
-    padding: 0;
+    padding: 0 8px 0 0;
     list-style: none;
+    max-height: min(470px, 65vh);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 .dashboard-heat-list li {
+    min-width: 0;
+}
+.dashboard-heat-list a {
     display: flex;
     justify-content: space-between;
     gap: 14px;
     padding-bottom: 7px;
     border-bottom: 1px solid var(--line-soft);
+    color: inherit;
+    text-decoration: none;
 }
+.dashboard-heat-list a:hover,
+.dashboard-heat-list a:focus-visible { color: var(--accent-strong); }
 .dashboard-heat-list strong { color: var(--accent-strong); font-variant-numeric: tabular-nums; }
 .dashboard-map-meta { margin: 14px 0 0; color: var(--muted); font-size: .82rem; }
 
@@ -1838,7 +1861,7 @@ summary { cursor: pointer; font-weight: 800; color: var(--accent); }
     .calendar-toolbar .actions { width: 100%; flex-wrap: wrap; }
     .calendar-toolbar select { width: 100%; }
     .dashboard-heatmap-body { grid-template-columns: 1fr; }
-    .dashboard-heat-list { grid-template-columns: 1fr 1fr; }
+    .dashboard-heat-list { grid-template-columns: 1fr 1fr; max-height: 320px; }
 }
 
 @media (max-width: 640px) {

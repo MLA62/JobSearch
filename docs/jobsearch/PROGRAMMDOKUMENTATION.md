@@ -1,6 +1,19 @@
 # Programmdokumentation
 
-Stand: 2026-09-23. Aktueller Code 2.4.50; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-23. Aktueller Code 2.4.51; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Dashboard-Drilldowns 2.4.51
+
+`dashboardFilterUrl()` erzeugt interne Links auf den bestehenden
+Sortier-/Filtervertrag. Der Marker `sf_dashboard=1` setzt vor dem
+Anwenden genau dieses Drilldowns veraltete Sitzungsfilter zurück. Status
+und Firmenart verwenden die vorhandenen Mehrfachauswahlfelder mit einem
+Wert; `companies.city` ist ein nicht zusätzlich dargestelltes, exakt
+vergleichendes Filterfeld. SVG-Punkte enthalten zugängliche Links.
+Dieselbe Zieladresse wird in der vollständigen Ortsliste verwendet. Die
+Liste begrenzt nur ihre sichtbare Höhe und scrollt vertikal; sie schneidet
+keine Orte aus. Die frühere Statistikzeile und ihre zusätzliche
+Kalenderzählabfrage wurden entfernt.
 
 ## Dashboard und Statuskonsistenz 2.4.50
 

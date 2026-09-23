@@ -13,6 +13,10 @@ if ($start === false || $end === false) { throw new RuntimeException('Dashboard 
 $helpers = substr($source, $start, $end - $start);
 $helpers = str_replace("__DIR__ . '/assets/data/", "dirname(__DIR__) . '/public/assets/data/", $helpers);
 eval($helpers);
+foreach (['sfSessionKey','sfState','sfApplySql'] as $name) {
+    if (!preg_match('/^function ' . $name . '\\(.*?(?=^function |\\z)/ms', $source, $match)) { throw new RuntimeException('Missing ' . $name); }
+    eval(trim($match[0]));
+}
 
 function dashboardCheck(bool $condition, string $message): void
 {
@@ -29,6 +33,16 @@ dashboardCheck(count($segments) === 2 && $segments[0]['label'] === 'Offen' && $s
 $gradient = dashboardPieGradient($segments);
 dashboardCheck(str_starts_with($gradient, 'conic-gradient(') && str_contains($gradient, '66.6667%') && str_contains($gradient, '100.0000%'), 'Pie gradient reflects the category shares');
 dashboardCheck(dashboardPieGradient([]) === 'conic-gradient(#d7dee8 0 100%)', 'Empty pie has a deterministic neutral fill');
+dashboardCheck(dashboardFilterUrl('jobs','jobs','status','open',true) === '/?page=jobs&sf_context=jobs&sf_dashboard=1&sf_field=status&sf_filter_multi%5B0%5D=open', 'Chart status link targets one list filter');
+dashboardCheck(str_contains(dashboardFilterUrl('companies','companies','city','Zürich'), 'sf_filter=Z%C3%BCrich'), 'Heat-map place link safely encodes the exact city');
+
+$_SESSION = ['sf_jobs'=>['filters'=>['title'=>'alt'],'sort'=>['field'=>'title','dir'=>'desc']]];
+$_GET = ['sf_context'=>'jobs','sf_dashboard'=>'1','sf_field'=>'status','sf_filter_multi'=>['open']];
+$dashboardState = sfState('jobs', ['title'=>['expr'=>'j.title'],'status'=>['expr'=>'j.status','choices'=>['open'=>'Offen']]], ['sort'=>'title','dir'=>'asc']);
+dashboardCheck($dashboardState['filters'] === ['status'=>['open']] && $dashboardState['sort']['dir'] === 'asc', 'Dashboard link replaces stale list filters with its selected value');
+$types = 'i'; $values = [1];
+$citySql = sfApplySql(['filters'=>['city'=>'Bern']], ['city'=>['expr'=>'c.city','filter_mode'=>'exact']], $types, $values);
+dashboardCheck(str_contains($citySql, 'c.city = ?') && $values === [1,'Bern'], 'Place link uses an exact city filter');
 
 $expectedJobStatuses = [
     'sent'=>'applied','confirmed'=>'applied','interview'=>'interview','assessment'=>'interview',
@@ -55,6 +69,9 @@ foreach (['dashboard-charts','dashboard-pie','dashboard-heatmap','dashboard-swis
     dashboardCheck(str_contains($source, $contract), "Dashboard markup includes {$contract}");
 }
 dashboardCheck(str_contains($source, 'GROUP BY status ORDER BY status') && str_contains($source, "CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END"), 'Dashboard queries aggregate job, application and company categories');
+dashboardCheck(str_contains($source, 'class="dashboard-chart-link"') && str_contains($source, 'class="dashboard-heat-link"'), 'Every legend value and map bubble is linked');
+dashboardCheck(str_contains($source, 'foreach($companyHeatPoints as $point)') && !str_contains($source, 'array_slice($companyHeatPoints,0,10)'), 'The scrollable place list includes every mapped place');
+dashboardCheck(!str_contains($source, '<div class="stats">'), 'Redundant dashboard summary cards are removed');
 dashboardCheck(substr_count($source, 'UPDATE jobs SET status=') === 1, 'All automatic job-status writes use the central synchronizer');
 dashboardCheck(str_contains($source, 'syncJobStatusFromApplication($db, $userId, $applicationId);'), 'Workflow synchronization checks the related job status');
 

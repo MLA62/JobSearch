@@ -4204,11 +4204,11 @@ function helpTranslationSeeds(): array
   ),
   'help.v2.overview.steps.3' =>
   array (
-    'de-CH' => 'Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte, um Verteilungen und örtliche Firmenschwerpunkte zu erkennen.',
-    'fr-CH' => 'Utilise les graphiques de statut et la carte de Suisse de l’accueil pour voir les répartitions et les concentrations géographiques des entreprises.',
-    'en-GB' => 'Use the status charts and Switzerland map on the home page to see distributions and geographic company concentrations.',
-    'pt-BR' => 'Use os gráficos de status e o mapa da Suíça na página inicial para ver distribuições e concentrações geográficas de empresas.',
-    'es-MX' => 'Usa los gráficos de estado y el mapa de Suiza de la página inicial para ver distribuciones y concentraciones geográficas de empresas.',
+    'de-CH' => 'Nutze auf der Startseite die Statusdiagramme und die Schweiz-Karte. Jeder Status, jede Firmenart und jeder Kartenort öffnet die passend gefilterte Liste; rechts sind alle Orte scrollbar verfügbar.',
+    'fr-CH' => 'Utilise les graphiques de statut et la carte de Suisse de l’accueil. Chaque statut, type d’entreprise et lieu de la carte ouvre la liste filtrée correspondante; tous les lieux restent accessibles dans la liste déroulante à droite.',
+    'en-GB' => 'Use the status charts and Switzerland map on the home page. Each status, company type and map place opens the matching filtered list; every place remains available in the scrollable list on the right.',
+    'pt-BR' => 'Use os gráficos de status e o mapa da Suíça na página inicial. Cada status, tipo de empresa e local no mapa abre a lista filtrada correspondente; todos os locais permanecem disponíveis na lista rolável à direita.',
+    'es-MX' => 'Usa los gráficos de estado y el mapa de Suiza de la página inicial. Cada estado, tipo de empresa y lugar del mapa abre la lista filtrada correspondiente; todos los lugares quedan disponibles en la lista desplazable de la derecha.',
   ),
   'help.v2.overview.summary' =>
   array (
@@ -7462,6 +7462,9 @@ function sfState(string $context, array $fields, array $defaults = []): array
     $state['sort'] = is_array($state['sort'] ?? null) ? $state['sort'] : [];
 
     if ((string) ($_GET['sf_context'] ?? '') === $context) {
+        if (!empty($_GET['sf_dashboard'])) {
+            $state = ['filters' => [], 'sort' => ['field' => (string) ($defaults['sort'] ?? array_key_first($fields)), 'dir' => strtolower((string) ($defaults['dir'] ?? 'asc')) === 'desc' ? 'desc' : 'asc']];
+        }
         if (!empty($_GET['sf_reset'])) {
             $state = ['filters' => [], 'sort' => ['field' => (string) ($defaults['sort'] ?? array_key_first($fields)), 'dir' => strtolower((string) ($defaults['dir'] ?? 'asc')) === 'desc' ? 'desc' : 'asc']];
         } else {
@@ -7549,9 +7552,9 @@ function sfApplySql(array $state, array $fields, string &$types, array &$values)
             if ($filter === '') {
                 continue;
             }
-            $clauses[] = $expr . ' LIKE ?';
+            $clauses[] = $expr . (($fields[$field]['filter_mode'] ?? '') === 'exact' ? ' = ?' : ' LIKE ?');
             $types .= 's';
-            $values[] = '%' . $filter . '%';
+            $values[] = (($fields[$field]['filter_mode'] ?? '') === 'exact' ? $filter : '%' . $filter . '%');
         }
     }
     return $clauses ? ' AND ' . implode(' AND ', $clauses) : '';
@@ -7591,7 +7594,9 @@ function sfApplyRows(array $rows, array $state, array $fields): array
                     continue;
                 }
                 $filter = mb_strtolower(trim((string) $filter));
-                if ($filter !== '' && !str_contains(mb_strtolower((string) ($row[$field] ?? '')), $filter)) {
+                $candidate = mb_strtolower((string) ($row[$field] ?? ''));
+                $matches = ($fields[$field]['filter_mode'] ?? '') === 'exact' ? $candidate === $filter : str_contains($candidate, $filter);
+                if ($filter !== '' && !$matches) {
                     return false;
                 }
             }
@@ -8276,6 +8281,14 @@ function dashboardPieGradient(array $segments): string
         $stops[] = sprintf('%s %.4f%% %.4f%%', (string)$segment['color'], $start, $cursor);
     }
     return 'conic-gradient(' . implode(', ', $stops) . ')';
+}
+
+function dashboardFilterUrl(string $page, string $context, string $field, string $value, bool $multiple = false): string
+{
+    $parameters = ['page'=>$page, 'sf_context'=>$context, 'sf_dashboard'=>'1', 'sf_field'=>$field];
+    if ($multiple) { $parameters['sf_filter_multi'] = [$value]; }
+    else { $parameters['sf_filter'] = $value; }
+    return '/?' . http_build_query($parameters, '', '&', PHP_QUERY_RFC3986);
 }
 
 function dashboardSwissPostalCentroids(): array
@@ -17192,7 +17205,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.50';
+$codeVersion = '2.4.51';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17854,6 +17867,12 @@ startUiTranslationBuffer($appLocale);
             dbAll($db, 'SELECT status segment_key, COUNT(*) segment_count FROM applications WHERE user_id=? AND deleted_at IS NULL GROUP BY status ORDER BY status', 'i', [$dashboardUserId]),
             applicationStatusOptions()
         );
+        foreach($jobSegments as &$segment) { $segment['href']=dashboardFilterUrl('jobs','jobs','status',(string)$segment['key'],true); }
+        unset($segment);
+        foreach($companySegments as &$segment) { $segment['href']=dashboardFilterUrl('companies','companies','role',$segment['key']==='intermediary'?'Vermittler':'Direkt',true); }
+        unset($segment);
+        foreach($applicationSegments as &$segment) { $segment['href']=dashboardFilterUrl('applications','applications','status',(string)$segment['key'],true); }
+        unset($segment);
         $dashboardCharts = [
             ['title'=>tr('dashboard.stats.jobs'),'description'=>tr('dashboard.chart.jobs_hint'),'href'=>'/?page=jobs','segments'=>$jobSegments],
             ['title'=>tr('dashboard.stats.companies'),'description'=>tr('dashboard.chart.companies_hint'),'href'=>'/?page=companies','segments'=>$companySegments],
@@ -17861,15 +17880,11 @@ startUiTranslationBuffer($appLocale);
         ];
         $heatCompanies = dbAll($db, 'SELECT city, postal_code, country_code, latitude, longitude FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$dashboardUserId]);
         $companyHeatPoints = dashboardCompanyHeatPoints($heatCompanies);
+        foreach($companyHeatPoints as &$point) { $point['href']=dashboardFilterUrl('companies','companies','city',(string)$point['label']); }
+        unset($point);
         $mappedCompanies = array_sum(array_column($companyHeatPoints, 'count'));
-        $stats = [
-            ['label' => tr('dashboard.stats.jobs'), 'value' => array_sum(array_column($jobSegments, 'count')), 'href' => '/?page=jobs'],
-            ['label' => tr('dashboard.stats.companies'), 'value' => count($companies), 'href' => '/?page=companies'],
-            ['label' => tr('dashboard.stats.applications'), 'value' => array_sum(array_column($applicationSegments, 'count')), 'href' => '/?page=applications'],
-            ['label' => tr('nav.calendar'), 'value' => dbOne($db, "SELECT COUNT(*) c FROM calendar_events WHERE owner_user_id=? AND entry_kind IN ('action','appointment') AND status='planned' AND (source_type IS NULL OR source_type IN ('workflow_appointment','contact_log') OR (source_type='application_next_action' AND title='follow_up'))", 'i', [$dashboardUserId])['c'], 'href' => '/?page=calendar&view=agenda'],
-        ]; ?>
+        ?>
         <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
-        <div class="stats"><?php foreach ($stats as $stat): ?><a class="stat-link" href="<?= e($stat['href']) ?>"><article><strong><?= e((string) $stat['value']) ?></strong><span><?= e($stat['label']) ?></span></article></a><?php endforeach; ?></div>
         <section class="dashboard-charts" aria-label="<?= e(tr('dashboard.chart.section')) ?>">
             <?php foreach($dashboardCharts as $chart): $chartTotal=array_sum(array_column($chart['segments'],'count')); $chartAria=$chart['title'].': '.implode(', ',array_map(static fn(array $segment):string=>$segment['label'].' '.$segment['count'],$chart['segments'])); ?>
             <article class="panel dashboard-chart-card">
@@ -17878,7 +17893,7 @@ startUiTranslationBuffer($appLocale);
                 <div class="dashboard-chart-body">
                     <div class="dashboard-pie" role="img" aria-label="<?= e($chartAria) ?>" style="--dashboard-pie:<?= e(dashboardPieGradient($chart['segments'])) ?>"></div>
                     <ul class="dashboard-chart-legend">
-                        <?php foreach($chart['segments'] as $segment): ?><li><span class="dashboard-chart-swatch" style="--segment-color:<?= e($segment['color']) ?>"></span><span><?= e($segment['label']) ?></span><strong><?= (int)$segment['count'] ?> · <?= (int)round(((int)$segment['count']/$chartTotal)*100) ?>%</strong></li><?php endforeach; ?>
+                        <?php foreach($chart['segments'] as $segment): ?><li><a class="dashboard-chart-link" href="<?= e($segment['href']) ?>"><span class="dashboard-chart-swatch" style="--segment-color:<?= e($segment['color']) ?>"></span><span><?= e($segment['label']) ?></span><strong><?= (int)$segment['count'] ?> · <?= (int)round(((int)$segment['count']/$chartTotal)*100) ?>%</strong></a></li><?php endforeach; ?>
                     </ul>
                 </div>
                 <?php else: ?><p class="empty"><?= e(tr('dashboard.chart.empty')) ?></p><?php endif; ?>
@@ -17892,10 +17907,9 @@ startUiTranslationBuffer($appLocale);
                 <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedCompanies])) ?>">
                     <defs><filter id="dashboard-heat-blur"><feGaussianBlur stdDeviation="11"/></filter></defs>
                     <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
-                    <?php foreach($companyHeatPoints as $point): ?><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"><title><?= e($point['label'].' · '.$point['count']) ?></title></circle><?php endforeach; ?>
-                    <?php foreach($companyHeatPoints as $point): ?><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" opacity="<?= e(number_format($point['opacity'],2,'.','')) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title></circle><?php endforeach; ?>
+                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count']) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"/><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" opacity="<?= e(number_format($point['opacity'],2,'.','')) ?>"/></a><?php endforeach; ?>
                 </svg>
-                <ol class="dashboard-heat-list"><?php foreach(array_slice($companyHeatPoints,0,10) as $point): ?><li><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></li><?php endforeach; ?></ol>
+                <ol class="dashboard-heat-list"><?php foreach($companyHeatPoints as $point): ?><li><a href="<?= e($point['href']) ?>"><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></a></li><?php endforeach; ?></ol>
             </div>
             <p class="dashboard-map-meta"><?= e(tr('dashboard.heatmap.coverage',null,['mapped'=>(string)$mappedCompanies,'total'=>(string)count($companies)])) ?> · <a href="https://www.swisstopo.admin.ch/de/amtliches-ortschaftenverzeichnis" target="_blank" rel="noopener"><?= e(tr('dashboard.heatmap.source')) ?></a></p>
             <?php else: ?><p class="empty"><?= e(tr('dashboard.heatmap.empty')) ?></p><?php endif; ?>
@@ -18683,6 +18697,7 @@ startUiTranslationBuffer($appLocale);
         ];
         $companySfFields = [
             'name'=>['label'=>tr('companies.company'),'expr'=>'c.name'],
+            'city'=>['label'=>tr('companies.city'),'expr'=>'c.city','filter_mode'=>'exact'],
             'address'=>['label'=>tr('companies.address_phone'),'expr'=>'CONCAT_WS(" ", c.address_line1, c.address_line2, c.postal_code, c.city, c.phone)'],
             'role'=>['label'=>tr('companies.role_intermediary'),'expr'=>'IF(c.is_intermediary=1, "Vermittler", "Direkt")', 'choices'=>['Direkt'=>tr('companies.direct_company'),'Vermittler'=>tr('companies.intermediary')]],
             'links'=>[
