@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 23.09.2026. Version 2.4.52 verwendet für die Heatmap-Kreise exakt dieselbe Farbe wie das erste Segment des Jobs-Kuchendiagramms.
-Release-Dokumentation: [Release 2.4.52](docs/jobsearch/RELEASE-2.4.52.md), [Release 2.4.51](docs/jobsearch/RELEASE-2.4.51.md), [Release 2.4.50](docs/jobsearch/RELEASE-2.4.50.md).
+Stand: 23.09.2026. Version 2.4.53 zeigt jede Orts-Bubble als Kreisdiagramm der dortigen Jobstatus; Jobs ohne Bewerbung sind weiss.
+Release-Dokumentation: [Release 2.4.53](docs/jobsearch/RELEASE-2.4.53.md), [Release 2.4.52](docs/jobsearch/RELEASE-2.4.52.md), [Release 2.4.51](docs/jobsearch/RELEASE-2.4.51.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

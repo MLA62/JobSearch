@@ -1,6 +1,14 @@
 # Bewerbungsworkflow und Kalender
 
-Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.52.
+Stand: 23.09.2026. Aktuelles Verhalten für Release 2.4.53.
+
+Release 2.4.53: Die Dashboard-Karte lädt aktive Jobs samt Arbeitsort und
+zugehöriger aktiver Bewerbung, verortet sie lokal und gruppiert sie nach
+Ort. Fehlt eine eingereichte Bewerbung, wird der Job als «Ohne
+Bewerbung» weiss dargestellt. Eingereichte Bewerbungsstatus werden mit
+`jobStatusForApplicationStatus()` in zur Jobs-Legende farbgleiche
+Sektoren übersetzt. Der Ortslink setzt den bestehenden Joblistenfilter
+auf den Arbeitsort.
 
 Release 2.4.52: Das Rendern der Firmen-Heatmap übernimmt die erste
 Jobs-Diagrammfarbe aus derselben Palette. Kernkreise werden deckend,

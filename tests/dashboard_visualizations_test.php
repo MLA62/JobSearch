@@ -55,14 +55,35 @@ dashboardCheck(jobStatusForApplicationStatus('draft') === null && jobStatusForAp
 
 $catalog = dashboardSwissPostalCentroids();
 dashboardCheck(count((array)($catalog['places'] ?? [])) > 4000 && count((array)($catalog['postcodes'] ?? [])) > 3000, 'Official Swiss postcode centroids are bundled');
-$heat = dashboardCompanyHeatPoints([
-    ['city'=>'Bern','postal_code'=>'3005','country_code'=>'CH','latitude'=>null,'longitude'=>null],
-    ['city'=>'Bern','postal_code'=>'3006','country_code'=>'CH','latitude'=>null,'longitude'=>null],
-    ['city'=>'Zürich','postal_code'=>'8004','country_code'=>'CH','latitude'=>null,'longitude'=>null],
-    ['city'=>'Paris','postal_code'=>'75001','country_code'=>'FR','latitude'=>48.86,'longitude'=>2.35],
-]);
-dashboardCheck(count($heat) === 2 && $heat[0]['label'] === 'Bern' && $heat[0]['count'] === 2, 'Heat map aggregates companies by place and excludes foreign records');
+$heatStyles = [
+    'unapplied'=>['label'=>'Ohne Bewerbung','color'=>'#ffffff'],
+    'applied'=>['label'=>'Beworben','color'=>'#1d4ed8'],
+    'rejected'=>['label'=>'Absage','color'=>'#7c3aed'],
+];
+$heat = dashboardJobHeatPoints([
+    ['company_id'=>1,'location_text'=>'6020 Emmenbrücke','application_status'=>'sent','job_country_code'=>'CH'],
+    ['company_id'=>2,'location_text'=>'Emmenbrücke','application_status'=>'rejected','job_country_code'=>'CH'],
+    ['company_id'=>3,'location_text'=>'Büsserach','application_status'=>null,'job_country_code'=>'CH'],
+    ['company_id'=>4,'location_text'=>'Dulliken','application_status'=>'sent','job_country_code'=>'CH'],
+    ['company_id'=>4,'location_text'=>'Dulliken','application_status'=>null,'job_country_code'=>'CH'],
+    ['company_id'=>5,'location_text'=>'Farnern','application_status'=>'sent','job_country_code'=>'CH'],
+    ['company_id'=>7,'location_text'=>'Zürich','application_status'=>null,'job_country_code'=>'CH'],
+    ['company_id'=>7,'location_text'=>'Zürich','application_status'=>'sent','job_country_code'=>'CH'],
+    ['company_id'=>8,'location_text'=>'Zürich','application_status'=>'sent','job_country_code'=>'CH'],
+    ['company_id'=>8,'location_text'=>'Zürich','application_status'=>'rejected','job_country_code'=>'CH'],
+    ['company_id'=>9,'location_text'=>'Zürich','application_status'=>'rejected','job_country_code'=>'CH'],
+    ['company_id'=>9,'location_text'=>'Zürich','application_status'=>'rejected','job_country_code'=>'CH'],
+    ['company_id'=>6,'location_text'=>'Paris','application_status'=>null,'job_country_code'=>'FR'],
+], $heatStyles);
+dashboardCheck(count($heat) === 5 && $heat[0]['label'] === 'Zürich' && $heat[0]['count'] === 6, 'Heat map aggregates jobs by workplace and excludes foreign records');
 dashboardCheck($heat[0]['x'] >= 0 && $heat[0]['x'] <= 1000 && $heat[0]['y'] >= 0 && $heat[0]['y'] <= 640, 'Heat map projects Swiss coordinates into the SVG');
+$byPlace = array_column($heat, null, 'label');
+dashboardCheck(count($byPlace['Emmenbrücke']['slices']) === 2 && $byPlace['Emmenbrücke']['slices'][0]['count'] === 1 && $byPlace['Emmenbrücke']['slices'][1]['count'] === 1, 'Two application outcomes become two equal bubble slices');
+dashboardCheck($byPlace['Büsserach']['slices'][0]['color'] === '#ffffff' && $byPlace['Büsserach']['slices'][0]['full'] === true, 'A job without application is a white full bubble');
+dashboardCheck(count($byPlace['Dulliken']['slices']) === 2 && $byPlace['Dulliken']['slices'][0]['count'] === 1 && $byPlace['Dulliken']['slices'][1]['count'] === 1, 'One applied and one unapplied job split a bubble in half');
+dashboardCheck($byPlace['Farnern']['slices'][0]['color'] === '#1d4ed8' && $byPlace['Farnern']['slices'][0]['full'] === true, 'One applied job uses the matching Jobs chart colour');
+dashboardCheck($byPlace['Zürich']['company_count'] === 3 && array_column($byPlace['Zürich']['slices'],'count') === [1,2,3], 'Six Zürich jobs form one white, two applied and three rejected shares');
+dashboardCheck(str_starts_with(dashboardSvgPieSlicePath(100,100,20,0,.5), 'M 100.00 100.00 L 100.00 80.00 A 20.00 20.00'), 'SVG slice path starts at twelve o’clock');
 dashboardCheck(strlen(dashboardSwissOutlinePath()) > 3000, 'Official Switzerland outline is bundled');
 
 foreach (['dashboard-charts','dashboard-pie','dashboard-heatmap','dashboard-swiss-map','dashboard-heat-list'] as $contract) {
@@ -70,8 +91,9 @@ foreach (['dashboard-charts','dashboard-pie','dashboard-heatmap','dashboard-swis
 }
 dashboardCheck(str_contains($source, 'GROUP BY status ORDER BY status') && str_contains($source, "CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END"), 'Dashboard queries aggregate job, application and company categories');
 dashboardCheck(str_contains($source, 'class="dashboard-chart-link"') && str_contains($source, 'class="dashboard-heat-link"'), 'Every legend value and map bubble is linked');
-dashboardCheck(str_contains($source, 'style="--dashboard-jobs-color:<?= e(dashboardChartPalette()[0]) ?>"'), 'Heat-map bubbles use the first Jobs chart palette colour');
-dashboardCheck(!preg_match('/class="dashboard-heat-point"[^>]*opacity=/', $source), 'Heat-map bubble cores keep the exact chart colour without transparency');
+dashboardCheck(str_contains($source, 'class="dashboard-heat-slice"') && str_contains($source, 'class="dashboard-heat-outline"'), 'Heat-map bubbles render status slices and a visible outline');
+dashboardCheck(str_contains($source, "dashboardFilterUrl('jobs','jobs','location'"), 'Every map bubble links to the jobs at that workplace');
+dashboardCheck(str_contains($source, 'LEFT JOIN applications a ON a.job_id=j.id') && str_contains($source, "jobStatusForApplicationStatus(\$applicationStatus) ?? 'unapplied'"), 'Bubble shares derive from the active application of each job; missing or unsubmitted applications stay white');
 dashboardCheck(str_contains($source, 'foreach($companyHeatPoints as $point)') && !str_contains($source, 'array_slice($companyHeatPoints,0,10)'), 'The scrollable place list includes every mapped place');
 dashboardCheck(!str_contains($source, '<div class="stats">'), 'Redundant dashboard summary cards are removed');
 dashboardCheck(substr_count($source, 'UPDATE jobs SET status=') === 1, 'All automatic job-status writes use the central synchronizer');

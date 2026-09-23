@@ -1,6 +1,14 @@
 # Anforderungen
 
-Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.52.
+Stand: 23.09.2026. Zielbeschreibung mit Ergänzungen bis 2.4.53.
+
+Release 2.4.53: Jede Orts-Bubble bildet alle Jobs dieses Arbeitsorts als
+Kreisdiagramm ab. Jeder Job zählt gleich viel. Jobs ohne Bewerbung sind
+weiss; beworbene, im Gespräch befindliche, abgelehnte und weitere Jobs
+verwenden dieselben Statusfarben wie das Jobs-Kuchendiagramm. Ein
+vollständig weisser Kreis bedeutet ausschliesslich unbeworbene Jobs.
+Kreisgrösse und Ortszählung richten sich nach der Jobanzahl. Ein Klick
+öffnet die nach Arbeitsort gefilterte Jobliste.
 
 Release 2.4.52: Die sichtbaren Kernkreise der Firmen-Heatmap verwenden
 exakt dieselbe Farbe wie das erste Segment des Jobs-Kuchendiagramms.

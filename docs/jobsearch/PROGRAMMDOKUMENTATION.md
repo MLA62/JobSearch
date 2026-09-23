@@ -1,6 +1,20 @@
 # Programmdokumentation
 
-Stand: 2026-09-23. Aktueller Code 2.4.52; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+Stand: 2026-09-23. Aktueller Code 2.4.53; Verifikation und Deployment siehe jeweiligen Release-Nachweis.
+
+## Ortsbezogene Jobstatus-Bubbles 2.4.53
+
+Die Schweiz-Karte aggregiert aktive Jobs nach Arbeitsort. Der
+Arbeitsort aus `jobs.location_text` wird über den lokalen
+swisstopo-Ortskatalog verortet; nur wenn dies nicht möglich ist, dient
+der Firmenort als Rückfall. Kreisgrösse und Ortszahl beziehen sich auf
+Jobs, nicht Firmen. Jeder Kreis besteht aus SVG-Sektoren: Fehlt eine
+eingereichte Bewerbung oder ist sie erst Entwurf/Bereit, erscheint der
+Anteil als «Ohne Bewerbung» weiss. Eingereichte Bewerbungsstatus werden
+über die zentrale Statusabbildung in den passenden Jobstatus übersetzt
+und übernehmen exakt dessen Farbe aus dem Jobs-Diagramm.
+Karten- und Ortslinks öffnen die Jobliste mit dem jeweiligen Ort als
+Filter.
 
 ## Einheitliche Dashboard-Farbe 2.4.52
 

@@ -356,7 +356,8 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function dashboardFilterUrl(string $page, string $context, string $field, string $value, bool $multiple = false): string`
 - `function dashboardSwissPostalCentroids(): array`
 - `function dashboardSwissMapPosition(float $longitude, float $latitude): ?array`
-- `function dashboardCompanyHeatPoints(array $companies): array`
+- `function dashboardSvgPieSlicePath(float $x, float $y, float $radius, float $start, float $end): string`
+- `function dashboardJobHeatPoints(array $jobs, array $statusStyles): array`
 - `function dashboardSwissOutlinePath(): string`
 - `function applicationWorkflowDateSql(string $alias = 'a'): string`
 - `function applicationWorkflowView(array $application): array`

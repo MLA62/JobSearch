@@ -2,6 +2,13 @@
 
 Stand: 2026-09-23. Aktuelle Ergebnisse: [DOCUMENTATION_AUDIT.md](DOCUMENTATION_AUDIT.md).
 
+Release 2.4.53: Der PHP-Vertragstest bildet die Beispiele Emmenbrücke,
+Büsserach, Dulliken und Farnern nach und prüft Halbkreise, vollständig
+weisse Kreise, vollständig beworbene Kreise, Auslandsfilterung sowie
+SVG-Sektorpfade. Der Chromium-Test prüft geteilte und einfarbige
+Bubbles, weisse Unbeworben-Sektoren, farbliche Übereinstimmung mit der
+Jobs-Legende, Links, Ortsliste und Responsivität.
+
 Release 2.4.52: Der PHP-Vertragstest prüft die gemeinsame Farbquelle und
 verbietet Transparenz auf den Kernkreisen. Der Chromium-Test vergleicht
 die berechnete Farbe eines Heatmap-Kreises mit dem ersten Farbfeld der

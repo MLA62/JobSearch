@@ -650,16 +650,16 @@ tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
     stroke-width: 3;
     vector-effect: non-scaling-stroke;
 }
-.dashboard-heat-halo,
-.dashboard-heat-point { fill: var(--dashboard-jobs-color, #c2410c); }
-.dashboard-heat-point {
-    stroke: #fff;
+.dashboard-heat-slice { vector-effect: non-scaling-stroke; }
+.dashboard-heat-outline {
+    fill: none;
+    stroke: #64748b;
     stroke-width: 2;
     vector-effect: non-scaling-stroke;
 }
 .dashboard-heat-link { cursor: pointer; }
-.dashboard-heat-link:hover .dashboard-heat-point,
-.dashboard-heat-link:focus .dashboard-heat-point { stroke: var(--text); stroke-width: 3; }
+.dashboard-heat-link:hover .dashboard-heat-outline,
+.dashboard-heat-link:focus .dashboard-heat-outline { stroke: var(--text); stroke-width: 3; }
 .dashboard-heat-list {
     display: grid;
     align-content: start;

@@ -2732,35 +2732,43 @@ function helpTranslationSeeds(): array
   ),
   'dashboard.heatmap.aria' =>
   array (
-    'de-CH' => 'Schweiz-Karte mit {count} örtlich zugeordneten Firmen',
-    'fr-CH' => 'Carte de Suisse avec {count} entreprises localisées',
-    'en-GB' => 'Map of Switzerland with {count} located companies',
-    'pt-BR' => 'Mapa da Suíça com {count} empresas localizadas',
-    'es-MX' => 'Mapa de Suiza con {count} empresas localizadas',
+    'de-CH' => 'Schweiz-Karte mit {count} örtlich zugeordneten Jobs und ihren Statusanteilen',
+    'fr-CH' => 'Carte de Suisse avec {count} emplois localisés et leurs parts de statut',
+    'en-GB' => 'Map of Switzerland with {count} located jobs and their status shares',
+    'pt-BR' => 'Mapa da Suíça com {count} vagas localizadas e suas proporções de status',
+    'es-MX' => 'Mapa de Suiza con {count} empleos localizados y sus proporciones de estado',
   ),
   'dashboard.heatmap.coverage' =>
   array (
-    'de-CH' => '{mapped} von {total} Firmen konnten über Koordinaten oder Schweizer PLZ verortet werden',
-    'fr-CH' => '{mapped} entreprises sur {total} ont pu être localisées par coordonnées ou code postal suisse',
-    'en-GB' => '{mapped} of {total} companies could be located by coordinates or Swiss postcode',
-    'pt-BR' => '{mapped} de {total} empresas puderam ser localizadas por coordenadas ou código postal suíço',
-    'es-MX' => 'Se pudieron localizar {mapped} de {total} empresas mediante coordenadas o código postal suizo',
+    'de-CH' => '{mapped} von {total} Jobs konnten über Arbeitsort, Koordinaten oder Schweizer PLZ verortet werden',
+    'fr-CH' => '{mapped} emplois sur {total} ont pu être localisés par lieu de travail, coordonnées ou code postal suisse',
+    'en-GB' => '{mapped} of {total} jobs could be located by workplace, coordinates or Swiss postcode',
+    'pt-BR' => '{mapped} de {total} vagas puderam ser localizadas pelo local de trabalho, coordenadas ou código postal suíço',
+    'es-MX' => 'Se pudieron localizar {mapped} de {total} empleos por lugar de trabajo, coordenadas o código postal suizo',
   ),
   'dashboard.heatmap.empty' =>
   array (
-    'de-CH' => 'Noch keine Schweizer Firmen mit verwertbarer Orts- oder Koordinatenangabe.',
-    'fr-CH' => 'Aucune entreprise suisse ne possède encore une localité ou des coordonnées exploitables.',
-    'en-GB' => 'No Swiss company has a usable place or coordinate yet.',
-    'pt-BR' => 'Nenhuma empresa suíça tem ainda local ou coordenadas utilizáveis.',
-    'es-MX' => 'Todavía no hay empresas suizas con localidad o coordenadas utilizables.',
+    'de-CH' => 'Noch keine Schweizer Jobs mit verwertbarer Arbeitsort- oder Koordinatenangabe.',
+    'fr-CH' => 'Aucun emploi suisse ne possède encore de lieu de travail ou de coordonnées exploitables.',
+    'en-GB' => 'No Swiss job has a usable workplace or coordinate yet.',
+    'pt-BR' => 'Nenhuma vaga suíça tem ainda local de trabalho ou coordenadas utilizáveis.',
+    'es-MX' => 'Todavía no hay empleos suizos con lugar de trabajo o coordenadas utilizables.',
   ),
   'dashboard.heatmap.hint' =>
   array (
-    'de-CH' => 'Grössere und kräftigere Kreise zeigen mehr Firmen am selben Ort.',
-    'fr-CH' => 'Des cercles plus grands et plus intenses indiquent davantage d’entreprises au même endroit.',
-    'en-GB' => 'Larger, stronger circles show more companies in the same place.',
-    'pt-BR' => 'Círculos maiores e mais intensos mostram mais empresas no mesmo local.',
-    'es-MX' => 'Los círculos más grandes e intensos muestran más empresas en el mismo lugar.',
+    'de-CH' => 'Jeder Kreis zeigt die Anteile der Jobstatus am Ort; weiss bedeutet ohne Bewerbung.',
+    'fr-CH' => 'Chaque cercle montre la part des statuts d’emploi du lieu ; le blanc signifie sans candidature.',
+    'en-GB' => 'Each circle shows the local job-status shares; white means no application.',
+    'pt-BR' => 'Cada círculo mostra as proporções dos status das vagas no local; branco significa sem candidatura.',
+    'es-MX' => 'Cada círculo muestra las proporciones de estados de los empleos del lugar; blanco significa sin candidatura.',
+  ),
+  'dashboard.heatmap.no_application' =>
+  array (
+    'de-CH' => 'Ohne Bewerbung',
+    'fr-CH' => 'Sans candidature',
+    'en-GB' => 'No application',
+    'pt-BR' => 'Sem candidatura',
+    'es-MX' => 'Sin candidatura',
   ),
   'dashboard.heatmap.source' =>
   array (
@@ -2772,11 +2780,11 @@ function helpTranslationSeeds(): array
   ),
   'dashboard.heatmap.title' =>
   array (
-    'de-CH' => 'Firmenkonzentration Schweiz',
-    'fr-CH' => 'Concentration des entreprises en Suisse',
-    'en-GB' => 'Company concentration in Switzerland',
-    'pt-BR' => 'Concentração de empresas na Suíça',
-    'es-MX' => 'Concentración de empresas en Suiza',
+    'de-CH' => 'Jobverteilung Schweiz',
+    'fr-CH' => 'Répartition des emplois en Suisse',
+    'en-GB' => 'Job distribution in Switzerland',
+    'pt-BR' => 'Distribuição de empregos na Suíça',
+    'es-MX' => 'Distribución de empleos en Suiza',
   ),
   'footer.ai_notice' =>
   array (
@@ -8318,29 +8326,66 @@ function dashboardSwissMapPosition(float $longitude, float $latitude): ?array
     return ($x < 0 || $x > 1000 || $y < 0 || $y > 640) ? null : [$x, $y];
 }
 
-function dashboardCompanyHeatPoints(array $companies): array
+function dashboardSvgPieSlicePath(float $x, float $y, float $radius, float $start, float $end): string
+{
+    $startAngle = -M_PI_2 + $start * 2 * M_PI;
+    $endAngle = -M_PI_2 + $end * 2 * M_PI;
+    $x1 = $x + cos($startAngle) * $radius;
+    $y1 = $y + sin($startAngle) * $radius;
+    $x2 = $x + cos($endAngle) * $radius;
+    $y2 = $y + sin($endAngle) * $radius;
+    $largeArc = ($end - $start) > 0.5 ? 1 : 0;
+    return sprintf('M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f Z', $x, $y, $x1, $y1, $radius, $radius, $largeArc, $x2, $y2);
+}
+
+function dashboardJobHeatPoints(array $jobs, array $statusStyles): array
 {
     $catalog = dashboardSwissPostalCentroids();
+    $placeIndex = [];
+    foreach ((array)($catalog['places'] ?? []) as $placeKey=>$coords) {
+        $separator = strpos((string)$placeKey, '|');
+        if ($separator === false || !is_array($coords) || count($coords) < 2) { continue; }
+        $name = substr((string)$placeKey, $separator + 1);
+        if (!isset($placeIndex[$name])) { $placeIndex[$name] = $coords; }
+    }
     $groups = [];
-    foreach ($companies as $company) {
-        $country = strtoupper(trim((string)($company['country_code'] ?? '')));
+    foreach ($jobs as $job) {
+        $country = strtoupper(trim((string)($job['job_country_code'] ?? $job['country_code'] ?? '')));
+        if ($country === '') { $country = strtoupper(trim((string)($job['company_country_code'] ?? ''))); }
         if ($country !== '' && $country !== 'CH') { continue; }
-        $city = trim((string)($company['city'] ?? ''));
-        $postal = preg_replace('/\D+/', '', (string)($company['postal_code'] ?? ''));
-        $longitude = is_numeric($company['longitude'] ?? null) ? (float)$company['longitude'] : null;
-        $latitude = is_numeric($company['latitude'] ?? null) ? (float)$company['latitude'] : null;
+
+        $location = trim((string)($job['location_text'] ?? ''));
+        $postal = preg_match('/\b([1-9]\d{3})\b/u', $location, $postalMatch) ? $postalMatch[1] : '';
+        $city = trim((string)preg_replace(['/\b[1-9]\d{3}\b/u', '/\s*\([A-Z]{2}\)\s*$/u'], ['', ''], $location), " \t\n\r\0\x0B,");
+        $cityKey = mb_strtolower((string)preg_replace('/\s+/u', ' ', $city));
+        $coords = null;
+        if ($postal !== '' && $cityKey !== '') { $coords = $catalog['places'][$postal . '|' . $cityKey] ?? null; }
+        if (!is_array($coords) && $cityKey !== '') { $coords = $placeIndex[$cityKey] ?? null; }
+        if (!is_array($coords) && $postal !== '') { $coords = $catalog['postcodes'][$postal] ?? null; }
+        $longitude = is_array($coords) && count($coords) >= 2 ? (float)$coords[0] : null;
+        $latitude = is_array($coords) && count($coords) >= 2 ? (float)$coords[1] : null;
         if ($longitude === null || $latitude === null) {
-            $cityKey = mb_strtolower(preg_replace('/\s+/u', ' ', $city));
-            $coords = $catalog['places'][$postal . '|' . $cityKey] ?? $catalog['postcodes'][$postal] ?? null;
-            if (!is_array($coords) || count($coords) < 2) { continue; }
-            [$longitude, $latitude] = [(float)$coords[0], (float)$coords[1]];
+            $companyCity = trim((string)($job['company_city'] ?? ''));
+            $companyPostal = preg_replace('/\D+/', '', (string)($job['company_postal_code'] ?? ''));
+            $companyCityKey = mb_strtolower((string)preg_replace('/\s+/u', ' ', $companyCity));
+            $coords = $catalog['places'][$companyPostal . '|' . $companyCityKey] ?? $catalog['postcodes'][$companyPostal] ?? null;
+            $longitude = is_numeric($job['company_longitude'] ?? null) ? (float)$job['company_longitude'] : (is_array($coords) ? (float)$coords[0] : null);
+            $latitude = is_numeric($job['company_latitude'] ?? null) ? (float)$job['company_latitude'] : (is_array($coords) ? (float)$coords[1] : null);
+            $city = $companyCity;
+            $postal = $companyPostal;
         }
+        if ($longitude === null || $latitude === null) { continue; }
         $position = dashboardSwissMapPosition($longitude, $latitude);
         if ($position === null) { continue; }
         $label = $city !== '' ? $city : ($postal !== '' ? $postal : tr('common.unknown'));
         $key = mb_strtolower($label);
-        if (!isset($groups[$key])) { $groups[$key] = ['label'=>$label,'count'=>0,'x_sum'=>0.0,'y_sum'=>0.0]; }
+        if (!isset($groups[$key])) { $groups[$key] = ['label'=>$label,'count'=>0,'companies'=>[],'status_counts'=>[],'x_sum'=>0.0,'y_sum'=>0.0]; }
         $groups[$key]['count']++;
+        $companyId = (int)($job['company_id'] ?? 0);
+        if ($companyId > 0) { $groups[$key]['companies'][$companyId] = true; }
+        $applicationStatus = trim((string)($job['application_status'] ?? ''));
+        $heatStatus = jobStatusForApplicationStatus($applicationStatus) ?? 'unapplied';
+        $groups[$key]['status_counts'][$heatStatus] = (int)($groups[$key]['status_counts'][$heatStatus] ?? 0) + 1;
         $groups[$key]['x_sum'] += $position[0];
         $groups[$key]['y_sum'] += $position[1];
     }
@@ -8350,11 +8395,32 @@ function dashboardCompanyHeatPoints(array $companies): array
     foreach ($groups as $group) {
         $count = (int)$group['count'];
         $ratio = $count / $max;
+        $slices = [];
+        $cursor = 0.0;
+        foreach ($statusStyles as $status=>$style) {
+            $sliceCount = (int)($group['status_counts'][$status] ?? 0);
+            if ($sliceCount < 1) { continue; }
+            $start = $cursor;
+            $cursor += $sliceCount / $count;
+            $slices[] = ['key'=>$status, 'label'=>(string)$style['label'], 'color'=>(string)$style['color'], 'count'=>$sliceCount, 'start'=>$start, 'end'=>$cursor];
+        }
+        foreach ($group['status_counts'] as $status=>$sliceCount) {
+            if (isset($statusStyles[$status]) || $sliceCount < 1) { continue; }
+            $start = $cursor;
+            $cursor += $sliceCount / $count;
+            $slices[] = ['key'=>$status, 'label'=>ucfirst(str_replace('_',' ',(string)$status)), 'color'=>'#94a3b8', 'count'=>$sliceCount, 'start'=>$start, 'end'=>$cursor];
+        }
+        $radius = 10 + sqrt($ratio)*34;
+        foreach ($slices as &$slice) {
+            $slice['full'] = count($slices) === 1;
+            $slice['path'] = $slice['full'] ? '' : dashboardSvgPieSlicePath($group['x_sum']/$count, $group['y_sum']/$count, $radius, (float)$slice['start'], (float)$slice['end']);
+        }
+        unset($slice);
         $points[] = [
             'label'=>$group['label'], 'count'=>$count,
+            'company_count'=>count($group['companies']), 'slices'=>$slices,
             'x'=>$group['x_sum']/$count, 'y'=>$group['y_sum']/$count,
-            'radius'=>10 + sqrt($ratio)*34,
-            'opacity'=>0.30 + $ratio*0.60,
+            'radius'=>$radius,
         ];
     }
     usort($points, static fn(array $left, array $right): int => $right['count'] <=> $left['count'] ?: strnatcasecmp($left['label'], $right['label']));
@@ -17205,7 +17271,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.52';
+$codeVersion = '2.4.53';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -17878,11 +17944,19 @@ startUiTranslationBuffer($appLocale);
             ['title'=>tr('dashboard.stats.companies'),'description'=>tr('dashboard.chart.companies_hint'),'href'=>'/?page=companies','segments'=>$companySegments],
             ['title'=>tr('dashboard.stats.applications'),'description'=>tr('dashboard.chart.applications_hint'),'href'=>'/?page=applications','segments'=>$applicationSegments],
         ];
-        $heatCompanies = dbAll($db, 'SELECT city, postal_code, country_code, latitude, longitude FROM companies WHERE owner_user_id=? AND deleted_at IS NULL', 'i', [$dashboardUserId]);
-        $companyHeatPoints = dashboardCompanyHeatPoints($heatCompanies);
-        foreach($companyHeatPoints as &$point) { $point['href']=dashboardFilterUrl('companies','companies','city',(string)$point['label']); }
+        $jobHeatStyles = ['unapplied'=>['label'=>tr('dashboard.heatmap.no_application'), 'color'=>'#ffffff']];
+        foreach($jobSegments as $segment) {
+            if (in_array((string)$segment['key'], ['open','interesting'], true)) { continue; }
+            $jobHeatStyles[(string)$segment['key']] = ['label'=>(string)$segment['label'], 'color'=>(string)$segment['color']];
+        }
+        $heatJobs = dbAll($db, 'SELECT j.id, j.company_id, j.location_text, j.country_code job_country_code, a.status application_status, c.city company_city, c.postal_code company_postal_code, c.country_code company_country_code, c.latitude company_latitude, c.longitude company_longitude FROM jobs j JOIN companies c ON c.id=j.company_id AND c.owner_user_id=j.owner_user_id AND c.deleted_at IS NULL LEFT JOIN applications a ON a.job_id=j.id AND a.user_id=j.owner_user_id AND a.deleted_at IS NULL WHERE j.owner_user_id=? AND j.deleted_at IS NULL', 'i', [$dashboardUserId]);
+        $companyHeatPoints = dashboardJobHeatPoints($heatJobs, $jobHeatStyles);
+        foreach($companyHeatPoints as &$point) {
+            $point['href']=dashboardFilterUrl('jobs','jobs','location',(string)$point['label']);
+            $point['summary']=implode(', ',array_map(static fn(array $slice):string=>$slice['label'].' '.$slice['count'],$point['slices']));
+        }
         unset($point);
-        $mappedCompanies = array_sum(array_column($companyHeatPoints, 'count'));
+        $mappedJobs = array_sum(array_column($companyHeatPoints, 'count'));
         ?>
         <div class="hero"><div><p class="eyebrow"><?= e(tr('dashboard.greeting', null, ['name' => (string)$currentUser['first_name']])) ?></p><h1><?= e(tr('dashboard.title')) ?></h1><p><?= e(tr('dashboard.subtitle')) ?></p></div><a class="button primary" href="/?page=jobs#new"><?= e(tr('dashboard.create_job')) ?></a></div>
         <section class="dashboard-charts" aria-label="<?= e(tr('dashboard.chart.section')) ?>">
@@ -17900,18 +17974,17 @@ startUiTranslationBuffer($appLocale);
             </article>
             <?php endforeach; ?>
         </section>
-        <section class="panel dashboard-heatmap" aria-labelledby="dashboard-heatmap-title" style="--dashboard-jobs-color:<?= e(dashboardChartPalette()[0]) ?>">
-            <header class="dashboard-chart-head"><div><h2 id="dashboard-heatmap-title"><?= e(tr('dashboard.heatmap.title')) ?></h2><p><?= e(tr('dashboard.heatmap.hint')) ?></p></div><strong><?= (int)$mappedCompanies ?></strong></header>
+        <section class="panel dashboard-heatmap" aria-labelledby="dashboard-heatmap-title">
+            <header class="dashboard-chart-head"><div><h2 id="dashboard-heatmap-title"><?= e(tr('dashboard.heatmap.title')) ?></h2><p><?= e(tr('dashboard.heatmap.hint')) ?></p></div><strong><?= (int)$mappedJobs ?></strong></header>
             <?php if($companyHeatPoints): ?>
             <div class="dashboard-heatmap-body">
-                <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedCompanies])) ?>">
-                    <defs><filter id="dashboard-heat-blur"><feGaussianBlur stdDeviation="11"/></filter></defs>
+                <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedJobs])) ?>">
                     <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
-                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count']) ?>"><title><?= e($point['label'].' · '.$point['count']) ?></title><circle class="dashboard-heat-halo" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius']*1.45,1,'.','')) ?>" opacity="<?= e(number_format($point['opacity']*.55,2,'.','')) ?>" filter="url(#dashboard-heat-blur)"/><circle class="dashboard-heat-point" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
+                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?>"><title><?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?></title><?php foreach($point['slices'] as $slice): ?><?php if($slice['full']): ?><circle class="dashboard-heat-slice" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" fill="<?= e($slice['color']) ?>"/><?php else: ?><path class="dashboard-heat-slice" d="<?= e($slice['path']) ?>" fill="<?= e($slice['color']) ?>"/><?php endif; ?><?php endforeach; ?><circle class="dashboard-heat-outline" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
                 </svg>
                 <ol class="dashboard-heat-list"><?php foreach($companyHeatPoints as $point): ?><li><a href="<?= e($point['href']) ?>"><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></a></li><?php endforeach; ?></ol>
             </div>
-            <p class="dashboard-map-meta"><?= e(tr('dashboard.heatmap.coverage',null,['mapped'=>(string)$mappedCompanies,'total'=>(string)count($companies)])) ?> · <a href="https://www.swisstopo.admin.ch/de/amtliches-ortschaftenverzeichnis" target="_blank" rel="noopener"><?= e(tr('dashboard.heatmap.source')) ?></a></p>
+            <p class="dashboard-map-meta"><?= e(tr('dashboard.heatmap.coverage',null,['mapped'=>(string)$mappedJobs,'total'=>(string)array_sum(array_column($jobSegments,'count'))])) ?> · <a href="https://www.swisstopo.admin.ch/de/amtliches-ortschaftenverzeichnis" target="_blank" rel="noopener"><?= e(tr('dashboard.heatmap.source')) ?></a></p>
             <?php else: ?><p class="empty"><?= e(tr('dashboard.heatmap.empty')) ?></p><?php endif; ?>
         </section>
         <section class="panel"><h2><?= e(tr('dashboard.next_title')) ?></h2><p><?= e(tr('dashboard.next_body')) ?></p></section>
