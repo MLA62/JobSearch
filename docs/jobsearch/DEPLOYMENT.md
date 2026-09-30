@@ -1,12 +1,24 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-23. Release 2.4.53 ist öffentlich produktiv verifiziert;
-`index.php` und `assets/app.css` sind mit den lokal getesteten Dateien
-bytegleich. Die öffentliche Seite liefert HTTP 200 und Version 2.4.53.
-Vor dem Überschreiben wurden beide 2.4.52-Dateien durch den Connector
-gesichert. Das Release ersetzt die Firmenpunkte durch nach Arbeitsort
-aggregierte Job-Kreisdiagramme. Details:
-[Release 2.4.53](RELEASE-2.4.53.md).
+Stand: 2026-09-30. Release 2.4.54 ist öffentlich produktiv verifiziert;
+`index.php` ist mit der lokal getesteten Datei bytegleich. Die
+öffentliche Seite liefert HTTP 200 und Version 2.4.54. Vor dem
+Überschreiben wurde die produktive 2.4.53-Datei durch den Connector
+gesichert. Das Release macht den Bewerbungsstatus ab `Gesendet` zur
+verbindlichen Quelle für den Jobstatus und korrigiert bestehende
+Abweichungen transaktional. Details:
+[Release 2.4.54](RELEASE-2.4.54.md).
+
+Quell-Commit: `5124ca037e57fa349ef4cf85c2ec118b0d6fa52d`.
+Produktive SHA-256-Prüfsumme von `index.php`:
+`3ed3884af5f8010883470250fdf1a1b8ba486d33a96f56bf2bcad0b89613b35c`
+bei 1'439'221 Bytes. Keine Schemaänderung.
+
+## Vorheriger Produktivstand 2.4.53
+
+Release 2.4.53 war öffentlich produktiv verifiziert; `index.php` und
+`assets/app.css` waren mit den lokal getesteten Dateien bytegleich.
+Details: [Release 2.4.53](RELEASE-2.4.53.md).
 
 Quell-Commit: `41232b1`. Produktive SHA-256-Prüfsummen: `index.php`
 `08dc7236710106f0e8215bd136a1b6364eb01aec8dce804bab6be8b64e4d908d`,

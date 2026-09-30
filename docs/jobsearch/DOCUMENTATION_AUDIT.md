@@ -1,10 +1,23 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-23. Version 2.4.53 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
-ausgerollt. Jede Orts-Bubble bildet die Statusverteilung aller Jobs am
-Arbeitsort ab; Weiss kennzeichnet Jobs ohne eingereichte Bewerbung.
-Die produktiven Dateihashes entsprechen dem lokalen Release. Die
-angemeldete fachliche Abnahme bleibt sitzungsabhängig.
+Stand: 2026-09-30. Version 2.4.54 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+ausgerollt. Der Bewerbungsstatus ist ab `Gesendet` verbindlich für den
+zugehörigen Jobstatus. Vorhandene Abweichungen werden einmalig gesichert
+und korrigiert. Der produktive Dateihash entspricht dem lokalen Release.
+
+## Prüfstand 2.4.54
+
+- Bewerbungsänderungen synchronisieren weiterhin den Jobstatus.
+- Manuelles Speichern eines Jobs und Jobänderungen durch die Admin-KI
+  wenden danach den Status der aktiven Bewerbung erneut an.
+- Eine einmalige, gesperrte und transaktionale Konsistenzprüfung sichert
+  jeden alten Jobstatus in `workflow_data_backups` und korrigiert die
+  Abweichung.
+- Alle 58 PHP-Testdateien, PHP-Syntax, Hilfeprüfung,
+  Referenzgenerator und `git diff --check` sind erfolgreich.
+- Produktive und lokale `index.php` sind bytegleich; HTTP 200 und
+  Version 2.4.54 sind bestätigt. Das Fehlerprotokoll blieb nach dem
+  ersten produktiven Aufruf unverändert.
 
 ## Prüfstand 2.4.53
 
