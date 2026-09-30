@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $source = file_get_contents($argv[1] ?? __DIR__ . '/../public/index.php');
-foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarCandidateIds','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','jobStatusForApplicationStatus','syncJobStatusFromApplication','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
+foreach (['calendarExportRows','calendarRemoteTimes','googleCalendarEventPayload','googleCalendarOwnsEvent','googleCalendarStableId','googleCalendarCandidateIds','googleCalendarSyncHash','googleCalendarLinkIsCurrent','applicationDefaultNextAction','applicationStatusIsTerminal','applicationNextActionEventType','jobStatusForApplicationStatus','setJobStatusFromApplication','syncJobStatusFromApplication','syncJobStatusFromJob','syncApplicationWorkflow','workflowDateTime','applicationSentAt'] as $name) {
     if (!preg_match('/^function ' . $name . '\\(.*?(?=^function |\\z)/ms', $source, $match)) { throw new RuntimeException('Missing ' . $name); }
     eval(trim($match[0]));
 }
@@ -61,6 +61,9 @@ function upsertWorkflowCalendarEvent(...$args): void { global $events; $events[]
 $db=new mysqli(); syncApplicationWorkflow($db,1,1);
 check(count($events)===1 && $events[0][10]===$application['applied_at'], 'Late entry does not change submission time');
 check((bool)array_filter($writes,fn($w)=>str_contains($w[0],'UPDATE jobs SET status=') && $w[1][0]==='applied' && $w[1][1]===7),'Application status updates the related job status centrally');
+$writes=[];
+check(syncJobStatusFromJob($db,1,7)==='applied','A job edit resolves its status from the active application');
+check((bool)array_filter($writes,fn($w)=>str_contains($w[0],'UPDATE jobs SET status=') && $w[1][0]==='applied' && $w[1][1]===7),'A job cannot overwrite the application-derived status');
 $events=[]; $history=[]; syncApplicationWorkflow($db,1,1);
 check(count($events)===1 && $events[0][7]==='application_submission','Submission without history still visible');
 $events=[]; $application['applied_at']=null; $application['status']='interview'; syncApplicationWorkflow($db,1,1);
@@ -71,6 +74,8 @@ syncApplicationWorkflow($db,1,1);
 check($events===[],'Legacy task fields never recreate an appointment');
 check(!array_filter($writes,fn($w)=>str_contains($w[0],"status='completed'")),'Replacing a step does not falsely complete it');
 check(str_contains($source,'workflow_calendar_v5') && str_contains($source,'INSERT IGNORE INTO workflow_data_backups'),'Migration and backup present');
+check(str_contains($source,"job_status_sync_2_4_54") && str_contains($source,'reconcileJobStatusesFromApplications($db);'),'Existing job/application discrepancies are reconciled once');
+check(str_contains($source,'$status = syncJobStatusFromJob($db, $uid, $id) ?? $status;'),'Manual job saves reapply the application-derived status');
 check(str_contains($source,"sfHeader('applications','latest_workflow_at'"),'Workflow date has its own filter');
 check(str_contains($source,'data-job-room-recorded') && str_contains($source,"this.checked?'recorded':'not_recorded'"),'Job-Room registration explicitly editable');
 $normalize = static fn(?string $input, ?string $previous): ?string => applicationSentAt(['applied_at'=>$previous], 'sent', $input);

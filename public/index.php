@@ -6335,6 +6335,8 @@ function adminAiApplyOperations(mysqli $db, int $uid, array $operations, array $
         foreach ($results as $result) {
             if (($result['type'] ?? '') === 'applications' && (int)($result['id'] ?? 0) > 0) {
                 syncJobStatusFromApplication($db, $uid, (int)$result['id']);
+            } elseif (($result['type'] ?? '') === 'jobs' && (int)($result['id'] ?? 0) > 0) {
+                syncJobStatusFromJob($db, $uid, (int)$result['id']);
             }
         }
         $db->commit();
@@ -8240,6 +8242,14 @@ function jobStatusForApplicationStatus(string $status): ?string
     ][$status] ?? null;
 }
 
+function setJobStatusFromApplication(mysqli $db, int $userId, int $jobId, string $applicationStatus): ?string
+{
+    $jobStatus = jobStatusForApplicationStatus($applicationStatus);
+    if ($jobStatus === null) { return null; }
+    cascadeExec($db, 'UPDATE jobs SET status=? WHERE id=? AND owner_user_id=? AND status<>?', 'siis', [$jobStatus, $jobId, $userId, $jobStatus]);
+    return $jobStatus;
+}
+
 function syncJobStatusFromApplication(mysqli $db, int $userId, int $applicationId): void
 {
     $application = dbOne(
@@ -8249,9 +8259,52 @@ function syncJobStatusFromApplication(mysqli $db, int $userId, int $applicationI
         [$applicationId, $userId]
     );
     if (!$application) { return; }
-    $jobStatus = jobStatusForApplicationStatus((string)$application['status']);
-    if ($jobStatus === null) { return; }
-    cascadeExec($db, 'UPDATE jobs SET status=? WHERE id=? AND owner_user_id=? AND status<>?', 'siis', [$jobStatus, (int)$application['job_id'], $userId, $jobStatus]);
+    setJobStatusFromApplication($db, $userId, (int)$application['job_id'], (string)$application['status']);
+}
+
+function syncJobStatusFromJob(mysqli $db, int $userId, int $jobId): ?string
+{
+    $application = dbOne(
+        $db,
+        'SELECT a.status FROM applications a JOIN jobs j ON j.id=a.job_id AND j.owner_user_id=a.user_id AND j.deleted_at IS NULL WHERE a.job_id=? AND a.user_id=? AND a.deleted_at IS NULL LIMIT 1',
+        'ii',
+        [$jobId, $userId]
+    );
+    if (!$application) { return null; }
+    return setJobStatusFromApplication($db, $userId, $jobId, (string)$application['status']);
+}
+
+function reconcileJobStatusesFromApplications(mysqli $db): int
+{
+    $migrationKey = 'job_status_sync_2_4_54';
+    if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$migrationKey])) { return 0; }
+    if ((int)(dbOne($db, "SELECT GET_LOCK('jema-job-status-sync', 5) acquired")['acquired'] ?? 0) !== 1) {
+        throw new RuntimeException('Job status synchronization lock unavailable.');
+    }
+    try {
+        $db->begin_transaction();
+        try {
+            if (dbOne($db, 'SELECT migration_key FROM app_migrations WHERE migration_key=?', 's', [$migrationKey])) { $db->commit(); return 0; }
+            $corrected = 0;
+            $rows = dbAll($db, 'SELECT j.id job_id, j.owner_user_id, j.status job_status, a.status application_status FROM jobs j JOIN applications a ON a.job_id=j.id AND a.user_id=j.owner_user_id AND a.deleted_at IS NULL WHERE j.deleted_at IS NULL ORDER BY j.id FOR UPDATE');
+            foreach ($rows as $row) {
+                $expected = jobStatusForApplicationStatus((string)$row['application_status']);
+                if ($expected === null || hash_equals($expected, (string)$row['job_status'])) { continue; }
+                $payload = json_encode(['status'=>(string)$row['job_status']], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                cascadeExec($db, 'INSERT IGNORE INTO workflow_data_backups (migration_key, entity_type, entity_id, owner_user_id, payload) VALUES (?, ?, ?, ?, ?)', 'ssiis', [$migrationKey, 'jobs', (int)$row['job_id'], (int)$row['owner_user_id'], $payload]);
+                setJobStatusFromApplication($db, (int)$row['owner_user_id'], (int)$row['job_id'], (string)$row['application_status']);
+                $corrected++;
+            }
+            cascadeExec($db, 'INSERT INTO app_migrations (migration_key) VALUES (?)', 's', [$migrationKey]);
+            $db->commit();
+            return $corrected;
+        } catch (Throwable $exception) {
+            $db->rollback();
+            throw $exception;
+        }
+    } finally {
+        dbOne($db, "SELECT RELEASE_LOCK('jema-job-status-sync') released");
+    }
 }
 
 function dashboardChartPalette(): array
@@ -14270,6 +14323,11 @@ try {
 } catch (Throwable $error) {
     error_log('Runtime maintenance failed: ' . $error->getMessage());
 }
+try {
+    reconcileJobStatusesFromApplications($db);
+} catch (Throwable $error) {
+    error_log('Job status reconciliation failed: ' . $error->getMessage());
+}
 $page = (string) ($_GET['page'] ?? (userId() ? 'dashboard' : 'login'));
 if ($page === 'pendents') { redirect('/?page=calendar&view=agenda'); }
 $action = (string) ($_POST['action'] ?? '');
@@ -16372,6 +16430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uid = userId();
             $stmt->bind_param('issssssssssddsssiiii', $companyId, $title, $location, $description, $jobNotes, $status, $workplace, $engagementType, $contractTerm, $fixedTermStart, $fixedTermEnd, $salaryMin, $salaryMax, $salaryCurrency, $salaryPeriod, $sourceUrl, $workloadMin, $workloadMax, $id, $uid);
             $stmt->execute();
+            $status = syncJobStatusFromJob($db, $uid, $id) ?? $status;
             audit($db, userId(), 'update', 'job', $id, $old, ['title' => $title, 'status' => $status, 'salary_min' => $salaryMin, 'salary_max' => $salaryMax, 'notes' => $jobNotes]);
         } else {
             $stmt = $db->prepare('INSERT INTO jobs (owner_user_id, company_id, title, location_text, description, notes, status, workplace_type, engagement_type, contract_term, fixed_term_start, fixed_term_end, salary_min, salary_max, salary_currency, salary_period, source_url, workload_min, workload_max) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
@@ -17271,7 +17330,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.53';
+$codeVersion = '2.4.54';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();

@@ -349,7 +349,10 @@ Statische name-Attribute; dynamische Felder muessen am jeweiligen Formular ergae
 - `function optionLabel(array $options, mixed $value): string`
 - `function applicationStatusOptions(bool $includeLegacy = true): array`
 - `function jobStatusForApplicationStatus(string $status): ?string`
+- `function setJobStatusFromApplication(mysqli $db, int $userId, int $jobId, string $applicationStatus): ?string`
 - `function syncJobStatusFromApplication(mysqli $db, int $userId, int $applicationId): void`
+- `function syncJobStatusFromJob(mysqli $db, int $userId, int $jobId): ?string`
+- `function reconcileJobStatusesFromApplications(mysqli $db): int`
 - `function dashboardChartPalette(): array`
 - `function dashboardChartSegments(array $rows, array $labels): array`
 - `function dashboardPieGradient(array $segments): string`
