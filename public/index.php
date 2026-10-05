@@ -536,6 +536,18 @@ try {
         'bulk.select_all' => [
             'de-CH' => 'Alle auswählen', 'fr-CH' => 'Tout sélectionner', 'en-GB' => 'Select all', 'pt-BR' => 'Selecionar tudo', 'es-MX' => 'Seleccionar todo',
         ],
+        'bulk.select_record' => [
+            'de-CH' => 'Auswählen', 'fr-CH' => 'Sélectionner', 'en-GB' => 'Select', 'pt-BR' => 'Selecionar', 'es-MX' => 'Seleccionar',
+        ],
+        'bulk.deselect_record' => [
+            'de-CH' => 'Abwählen', 'fr-CH' => 'Désélectionner', 'en-GB' => 'Deselect', 'pt-BR' => 'Desmarcar', 'es-MX' => 'Deseleccionar',
+        ],
+        'bulk.selected_count' => [
+            'de-CH' => '{count} ausgewählt', 'fr-CH' => '{count} sélectionné(s)', 'en-GB' => '{count} selected', 'pt-BR' => '{count} selecionado(s)', 'es-MX' => '{count} seleccionado(s)',
+        ],
+        'bulk.clear_selection' => [
+            'de-CH' => 'Auswahl aufheben', 'fr-CH' => 'Effacer la sélection', 'en-GB' => 'Clear selection', 'pt-BR' => 'Limpar seleção', 'es-MX' => 'Limpiar selección',
+        ],
         'bulk.delete_selected' => [
             'de-CH' => 'Auswahl löschen', 'fr-CH' => 'Supprimer la sélection', 'en-GB' => 'Delete selection', 'pt-BR' => 'Excluir seleção', 'es-MX' => 'Eliminar selección',
         ],
@@ -17362,7 +17374,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.57';
+$codeVersion = '2.4.58';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -19189,6 +19201,7 @@ startUiTranslationBuffer($appLocale);
         <div class="page-head"><div><p class="eyebrow"><?= e(tr('jobs.section')) ?></p><h1><?= e(tr('nav.jobs')) ?></h1></div><span><?= e(tr('jobs.results_count', null, ['count' => (string) count($jobs)])) ?></span></div>
         <div data-bulk-action="bulk_delete_jobs" data-bulk-id-name="job_ids[]" data-bulk-company-id="<?= $companyFilter ?>">
         <div class="actions export-actions"><?= sfToolbar('jobs', $jobSf, ['page'=>'jobs', 'view'=>$jobView, 'company_id'=>$companyFilter ?: ''], $jobSfFields) ?><a class="button" href="/?page=jobs&view=cards<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.cards')) ?></a><a class="button" href="/?page=jobs&view=table<?= $companyFilter ? '&company_id=' . (int)$companyFilter : '' ?>"><?= e(tr('common.table')) ?></a><a class="button" href="/?page=export_pdf&type=jobs">PDF</a></div>
+        <div class="bulk-actions" data-bulk-toolbar hidden><strong data-bulk-count><?= e(tr('bulk.selected_count', null, ['count'=>'0'])) ?></strong><button type="button" data-bulk-clear><?= e(tr('bulk.clear_selection')) ?></button><form method="post" data-bulk-form onsubmit="return confirm('<?= e(tr('bulk.delete_confirm')) ?>')"><input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="action" value="bulk_delete_jobs"><input type="hidden" name="company_id" value="<?= $companyFilter ?>"><span data-bulk-inputs></span><button class="primary" type="submit"><?= e(tr('bulk.delete_selected')) ?></button></form></div>
         <div class="split"><section class="panel" id="new"><h2><?= e($edit ? tr('jobs.edit') : ($draft ? tr('jobs.check_import') : tr('jobs.create'))) ?></h2><form method="post" enctype="multipart/form-data" class="stack job-editor-form">
             <input type="hidden" name="csrf" value="<?= csrfToken() ?>"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
             <label><?= e(tr('companies.company')) ?><select name="company_id"><option value="0"><?= e(tr('jobs.new_company_from_import')) ?></option><?php foreach($companies as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($form['company_id']??$matchedCompanyId)===(int)$c['id']?'selected':'' ?>><?= e($c['name']) ?></option><?php endforeach; ?></select></label>
@@ -19766,6 +19779,63 @@ startUiTranslationBuffer($appLocale);
 <style>#ai-work-dialog::backdrop{background:rgba(15,23,42,.76)}</style>
 <script src="/assets/qrcode.min.js" defer></script>
 <script src="/assets/totp-qr.js" defer></script>
+<script>
+(() => {
+    const root = document.querySelector('[data-bulk-action="bulk_delete_jobs"]');
+    if (!root) return;
+    const toolbar = root.querySelector('[data-bulk-toolbar]');
+    const countLabel = toolbar?.querySelector('[data-bulk-count]');
+    const inputHost = toolbar?.querySelector('[data-bulk-inputs]');
+    const clearButton = toolbar?.querySelector('[data-bulk-clear]');
+    const form = toolbar?.querySelector('[data-bulk-form]');
+    if (!toolbar || !countLabel || !inputHost || !clearButton || !form) return;
+    const labels = <?= json_encode([
+        'select'=>tr('bulk.select_record'),
+        'deselect'=>tr('bulk.deselect_record'),
+        'count'=>tr('bulk.selected_count', null, ['count'=>'{count}']),
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const selected = new Set();
+    const items = [];
+    root.querySelectorAll('button[name="action"][value="delete_job"]').forEach((deleteButton) => {
+        const deleteForm = deleteButton.form;
+        const id = deleteForm?.querySelector('input[name="id"]')?.value || '';
+        const item = deleteButton.closest('tr, .job-card');
+        const actions = deleteButton.closest('.actions');
+        if (!id || !item || !actions) return;
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'bulk-select-button';
+        toggle.dataset.bulkToggle = id;
+        toggle.setAttribute('aria-pressed', 'false');
+        toggle.textContent = labels.select;
+        actions.insertBefore(toggle, deleteForm);
+        items.push({id, item, toggle});
+        toggle.addEventListener('click', () => {
+            if (selected.has(id)) selected.delete(id); else selected.add(id);
+            render();
+        });
+    });
+    const render = () => {
+        items.forEach(({id, item, toggle}) => {
+            const active = selected.has(id);
+            item.classList.toggle('is-bulk-selected', active);
+            toggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+            toggle.textContent = active ? labels.deselect : labels.select;
+        });
+        toolbar.hidden = selected.size === 0;
+        countLabel.textContent = labels.count.replace('{count}', String(selected.size));
+        inputHost.replaceChildren(...Array.from(selected, id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'job_ids[]';
+            input.value = id;
+            return input;
+        }));
+    };
+    clearButton.addEventListener('click', () => { selected.clear(); render(); });
+    form.addEventListener('submit', event => { if (selected.size === 0) event.preventDefault(); });
+})();
+</script>
 <script>
 (() => {
     const dialog = document.getElementById('ai-work-dialog');

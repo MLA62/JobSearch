@@ -288,6 +288,21 @@ footer { text-align: center; color: var(--muted); padding: 24px; }
 
 tbody tr.is-bulk-selected > td { background: var(--accent-soft); }
 
+.bulk-select-button[aria-pressed="true"] {
+    color: #fff;
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.job-card.is-bulk-selected {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+    background: var(--accent-soft);
+}
+
+.bulk-actions [data-bulk-count] { margin-right: auto; }
+.bulk-actions form { display: contents; }
+
 .auth-card { width: min(520px, 100%); margin: 7vh auto; }
 .locale-picker {
     display: flex;
