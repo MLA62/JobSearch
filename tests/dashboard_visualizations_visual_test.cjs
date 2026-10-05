@@ -4,10 +4,14 @@ const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 
 const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'app.css'), 'utf8');
+const php = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.php'), 'utf8');
+const zoomScriptMatch = php.match(/<script>\(\(\)=>\{\s*const root=document\.querySelector\('\[data-dashboard-map\]'\);[\s\S]*?\}\)\(\);<\/script>/);
+assert.ok(zoomScriptMatch, 'production map zoom script is available');
+const zoomScript = zoomScriptMatch[0].replace(/^<script>|<\/script>$/g, '');
 const outline = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'data', 'switzerland-outline.path'), 'utf8').trim();
 const chart = (title, gradient) => `<article class="panel dashboard-chart-card"><header class="dashboard-chart-head"><div><h2>${title}</h2><p>Anteile nach Status</p></div><strong>12</strong></header><div class="dashboard-chart-body"><div class="dashboard-pie" style="--dashboard-pie:${gradient}"></div><ul class="dashboard-chart-legend"><li><a class="dashboard-chart-link" href="/?page=jobs&sf_filter=open"><span class="dashboard-chart-swatch" style="--segment-color:#c2410c"></span><span>Offen</span><strong>8 · 67%</strong></a></li><li><a class="dashboard-chart-link" href="/?page=jobs&sf_filter=interview"><span class="dashboard-chart-swatch" style="--segment-color:#1d4ed8"></span><span>Gespräch</span><strong>4 · 33%</strong></a></li></ul></div></article>`;
 const places = Array.from({ length: 24 }, (_, index) => `<li><a href="/?page=companies&sf_filter=Ort${index + 1}"><span>Ort ${index + 1}</span><strong>${24 - index}</strong></a></li>`).join('');
-const html = `<main class="container"><section class="dashboard-charts">${chart('Jobs','conic-gradient(#c2410c 0 67%,#1d4ed8 67% 100%)')}${chart('Firmen','conic-gradient(#047857 0 50%,#7c3aed 50% 100%)')}${chart('Bewerbungen','conic-gradient(#be123c 0 25%,#0f766e 25% 100%)')}</section><section class="panel dashboard-heatmap"><header class="dashboard-chart-head"><div><h2>Jobverteilung Schweiz</h2><p>Jeder Kreis zeigt die Jobstatus am Ort.</p></div><strong>12</strong></header><div class="dashboard-heatmap-body"><svg class="dashboard-swiss-map" viewBox="0 0 1000 640"><path class="dashboard-swiss-outline" d="${outline}"/><a class="dashboard-heat-link" href="/?page=jobs&sf_filter=Dulliken"><path class="dashboard-heat-slice" d="M 340 280 L 340 246 A 34 34 0 0 1 340 314 Z" fill="#ffffff"/><path class="dashboard-heat-slice" d="M 340 280 L 340 314 A 34 34 0 0 1 340 246 Z" fill="#1d4ed8"/><circle class="dashboard-heat-outline" cx="340" cy="280" r="34"/></a><a class="dashboard-heat-link" href="/?page=jobs&sf_filter=Zürich"><circle class="dashboard-heat-slice" cx="590" cy="120" r="20" fill="#7c3aed"/><circle class="dashboard-heat-outline" cx="590" cy="120" r="20"/></a></svg><ol class="dashboard-heat-list">${places}</ol></div></section></main>`;
+const html = `<main class="container"><section class="dashboard-charts">${chart('Jobs','conic-gradient(#c2410c 0 67%,#1d4ed8 67% 100%)')}${chart('Firmen','conic-gradient(#047857 0 50%,#7c3aed 50% 100%)')}${chart('Bewerbungen','conic-gradient(#be123c 0 25%,#0f766e 25% 100%)')}</section><section class="panel dashboard-heatmap"><header class="dashboard-chart-head"><div><h2>Jobverteilung Schweiz</h2><p>Jeder Kreis zeigt die Jobstatus am Ort.</p></div><strong>12</strong></header><div class="dashboard-heatmap-body"><div class="dashboard-map-shell" data-dashboard-map><div class="dashboard-map-controls" role="group" aria-label="Karten-Zoom"><button type="button" data-map-zoom-in aria-label="Karte vergrössern">+</button><button type="button" data-map-zoom-out aria-label="Karte verkleinern" disabled>−</button><button type="button" class="dashboard-map-reset" data-map-zoom-reset aria-label="Kartenausschnitt zurücksetzen">100 %</button></div><svg class="dashboard-swiss-map" viewBox="0 0 1000 640" tabindex="0" data-map-svg><g data-map-viewport><path class="dashboard-swiss-outline" d="${outline}"/><a class="dashboard-heat-link" href="/?page=jobs&sf_filter=Dulliken"><path class="dashboard-heat-slice" d="M 340 280 L 340 246 A 34 34 0 0 1 340 314 Z" fill="#ffffff"/><path class="dashboard-heat-slice" d="M 340 280 L 340 314 A 34 34 0 0 1 340 246 Z" fill="#1d4ed8"/><circle class="dashboard-heat-outline" cx="340" cy="280" r="34"/></a><a class="dashboard-heat-link" href="/?page=jobs&sf_filter=Zürich"><circle class="dashboard-heat-slice" cx="590" cy="120" r="20" fill="#7c3aed"/><circle class="dashboard-heat-outline" cx="590" cy="120" r="20"/></a></g></svg><output class="dashboard-map-zoom-status" data-map-zoom-status>100 %</output></div><ol class="dashboard-heat-list">${places}</ol></div></section></main>`;
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -18,6 +22,7 @@ const html = `<main class="container"><section class="dashboard-charts">${chart(
       page.on('pageerror', error => errors.push(error.message));
       await page.setContent(html);
       await page.addStyleTag({ content: css });
+      await page.addScriptTag({ content: zoomScript });
       const columns = (await page.locator('.dashboard-charts').evaluate(node => getComputedStyle(node).gridTemplateColumns)).split(' ').length;
       assert.equal(columns, viewport.columns, `chart grid uses ${viewport.columns} column(s) at ${viewport.width}px`);
       assert.match(await page.locator('.dashboard-pie').first().evaluate(node => getComputedStyle(node).backgroundImage), /conic-gradient/);
@@ -26,6 +31,15 @@ const html = `<main class="container"><section class="dashboard-charts">${chart(
       assert.equal(await page.locator('.dashboard-chart-link').count(), 6);
       assert.equal(await page.locator('.dashboard-swiss-outline').count(), 1);
       assert.equal(await page.locator('.dashboard-heat-link').count(), 2);
+      assert.equal(await page.locator('.dashboard-map-controls button').count(), 3);
+      assert.equal(await page.locator('[data-map-viewport]').count(), 1);
+      assert.equal(await page.locator('.dashboard-map-zoom-status').textContent(), '100 %');
+      await page.locator('[data-map-zoom-in]').click();
+      assert.match(await page.locator('[data-map-viewport]').getAttribute('transform'), /^matrix\(1\.35 /, 'plus control increases the map scale');
+      assert.equal(await page.locator('.dashboard-map-zoom-status').textContent(), '135 %');
+      assert.equal(await page.locator('[data-map-zoom-out]').isEnabled(), true);
+      await page.locator('[data-map-zoom-reset]').click();
+      assert.equal(await page.locator('[data-map-viewport]').getAttribute('transform'), 'matrix(1 0 0 1 0 0)', 'reset restores the complete Switzerland view');
       assert.equal(await page.locator('.dashboard-heat-slice').count(), 3);
       assert.equal(await page.locator('.dashboard-heat-link').first().locator('.dashboard-heat-slice').count(), 2, 'mixed workplace renders one slice per local job status');
       const appliedColour = await page.locator('.dashboard-chart-swatch').nth(1).evaluate(node => getComputedStyle(node).backgroundColor);

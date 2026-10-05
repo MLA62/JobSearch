@@ -2786,6 +2786,38 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Distribuição de empregos na Suíça',
     'es-MX' => 'Distribución de empleos en Suiza',
   ),
+  'dashboard.heatmap.zoom_controls' =>
+  array (
+    'de-CH' => 'Karten-Zoom',
+    'fr-CH' => 'Zoom de la carte',
+    'en-GB' => 'Map zoom',
+    'pt-BR' => 'Zoom do mapa',
+    'es-MX' => 'Zoom del mapa',
+  ),
+  'dashboard.heatmap.zoom_in' =>
+  array (
+    'de-CH' => 'Karte vergrössern',
+    'fr-CH' => 'Agrandir la carte',
+    'en-GB' => 'Zoom in on map',
+    'pt-BR' => 'Ampliar o mapa',
+    'es-MX' => 'Ampliar el mapa',
+  ),
+  'dashboard.heatmap.zoom_out' =>
+  array (
+    'de-CH' => 'Karte verkleinern',
+    'fr-CH' => 'Réduire la carte',
+    'en-GB' => 'Zoom out on map',
+    'pt-BR' => 'Reduzir o mapa',
+    'es-MX' => 'Reducir el mapa',
+  ),
+  'dashboard.heatmap.zoom_reset' =>
+  array (
+    'de-CH' => 'Kartenausschnitt zurücksetzen',
+    'fr-CH' => 'Réinitialiser la vue de la carte',
+    'en-GB' => 'Reset map view',
+    'pt-BR' => 'Redefinir a visualização do mapa',
+    'es-MX' => 'Restablecer la vista del mapa',
+  ),
   'footer.ai_notice' =>
   array (
     'de-CH' => 'Wesentliche Teile der App arbeiten mit Unterstützung künstlicher Intelligenz ({manufacturer}, {model}).',
@@ -17330,7 +17362,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.54';
+$codeVersion = '2.4.55';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18037,15 +18069,95 @@ startUiTranslationBuffer($appLocale);
             <header class="dashboard-chart-head"><div><h2 id="dashboard-heatmap-title"><?= e(tr('dashboard.heatmap.title')) ?></h2><p><?= e(tr('dashboard.heatmap.hint')) ?></p></div><strong><?= (int)$mappedJobs ?></strong></header>
             <?php if($companyHeatPoints): ?>
             <div class="dashboard-heatmap-body">
-                <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedJobs])) ?>">
-                    <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
-                    <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?>"><title><?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?></title><?php foreach($point['slices'] as $slice): ?><?php if($slice['full']): ?><circle class="dashboard-heat-slice" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" fill="<?= e($slice['color']) ?>"/><?php else: ?><path class="dashboard-heat-slice" d="<?= e($slice['path']) ?>" fill="<?= e($slice['color']) ?>"/><?php endif; ?><?php endforeach; ?><circle class="dashboard-heat-outline" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
-                </svg>
+                <div class="dashboard-map-shell" data-dashboard-map>
+                    <div class="dashboard-map-controls" role="group" aria-label="<?= e(tr('dashboard.heatmap.zoom_controls')) ?>">
+                        <button type="button" data-map-zoom-in aria-label="<?= e(tr('dashboard.heatmap.zoom_in')) ?>" title="<?= e(tr('dashboard.heatmap.zoom_in')) ?>">+</button>
+                        <button type="button" data-map-zoom-out aria-label="<?= e(tr('dashboard.heatmap.zoom_out')) ?>" title="<?= e(tr('dashboard.heatmap.zoom_out')) ?>">−</button>
+                        <button type="button" class="dashboard-map-reset" data-map-zoom-reset aria-label="<?= e(tr('dashboard.heatmap.zoom_reset')) ?>" title="<?= e(tr('dashboard.heatmap.zoom_reset')) ?>">100 %</button>
+                    </div>
+                    <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" tabindex="0" data-map-svg aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedJobs])) ?>">
+                        <g data-map-viewport>
+                            <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
+                            <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?>"><title><?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?></title><?php foreach($point['slices'] as $slice): ?><?php if($slice['full']): ?><circle class="dashboard-heat-slice" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" fill="<?= e($slice['color']) ?>"/><?php else: ?><path class="dashboard-heat-slice" d="<?= e($slice['path']) ?>" fill="<?= e($slice['color']) ?>"/><?php endif; ?><?php endforeach; ?><circle class="dashboard-heat-outline" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
+                        </g>
+                    </svg>
+                    <output class="dashboard-map-zoom-status" data-map-zoom-status aria-live="polite">100 %</output>
+                </div>
                 <ol class="dashboard-heat-list"><?php foreach($companyHeatPoints as $point): ?><li><a href="<?= e($point['href']) ?>"><span><?= e($point['label']) ?></span><strong><?= (int)$point['count'] ?></strong></a></li><?php endforeach; ?></ol>
             </div>
             <p class="dashboard-map-meta"><?= e(tr('dashboard.heatmap.coverage',null,['mapped'=>(string)$mappedJobs,'total'=>(string)array_sum(array_column($jobSegments,'count'))])) ?> · <a href="https://www.swisstopo.admin.ch/de/amtliches-ortschaftenverzeichnis" target="_blank" rel="noopener"><?= e(tr('dashboard.heatmap.source')) ?></a></p>
             <?php else: ?><p class="empty"><?= e(tr('dashboard.heatmap.empty')) ?></p><?php endif; ?>
         </section>
+        <script>(()=>{
+            const root=document.querySelector('[data-dashboard-map]');
+            if(!root)return;
+            const svg=root.querySelector('[data-map-svg]');
+            const viewport=root.querySelector('[data-map-viewport]');
+            const status=root.querySelector('[data-map-zoom-status]');
+            const width=1000,height=640,minScale=1,maxScale=4,step=1.35;
+            let scale=1,translateX=0,translateY=0,drag=null,suppressClick=false;
+            const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+            const point=(clientX,clientY)=>{const rect=svg.getBoundingClientRect();return{x:(clientX-rect.left)*width/rect.width,y:(clientY-rect.top)*height/rect.height};};
+            const apply=()=>{
+                translateX=clamp(translateX,width*(1-scale),0);
+                translateY=clamp(translateY,height*(1-scale),0);
+                viewport.setAttribute('transform',`matrix(${scale} 0 0 ${scale} ${translateX} ${translateY})`);
+                svg.classList.toggle('is-zoomed',scale>minScale);
+                status.value=status.textContent=`${Math.round(scale*100)} %`;
+                root.querySelector('[data-map-zoom-out]').disabled=scale<=minScale;
+                root.querySelector('[data-map-zoom-in]').disabled=scale>=maxScale;
+            };
+            const zoomAt=(nextScale,origin={x:width/2,y:height/2})=>{
+                nextScale=clamp(nextScale,minScale,maxScale);
+                const ratio=nextScale/scale;
+                translateX=origin.x-(origin.x-translateX)*ratio;
+                translateY=origin.y-(origin.y-translateY)*ratio;
+                scale=nextScale;
+                apply();
+            };
+            root.querySelector('[data-map-zoom-in]').addEventListener('click',()=>zoomAt(scale*step));
+            root.querySelector('[data-map-zoom-out]').addEventListener('click',()=>zoomAt(scale/step));
+            root.querySelector('[data-map-zoom-reset]').addEventListener('click',()=>{scale=1;translateX=translateY=0;apply();});
+            svg.addEventListener('wheel',event=>{event.preventDefault();zoomAt(scale*(event.deltaY<0?step:1/step),point(event.clientX,event.clientY));},{passive:false});
+            svg.addEventListener('pointerdown',event=>{
+                if(scale<=1||event.button!==0)return;
+                const start=point(event.clientX,event.clientY);
+                drag={pointerId:event.pointerId,x:start.x,y:start.y,moved:false};
+                svg.setPointerCapture(event.pointerId);
+                svg.classList.add('is-dragging');
+            });
+            svg.addEventListener('pointermove',event=>{
+                if(!drag||drag.pointerId!==event.pointerId)return;
+                const current=point(event.clientX,event.clientY);
+                const dx=current.x-drag.x,dy=current.y-drag.y;
+                if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;
+                translateX+=dx;translateY+=dy;drag.x=current.x;drag.y=current.y;apply();
+            });
+            const stopDrag=event=>{
+                if(!drag||drag.pointerId!==event.pointerId)return;
+                suppressClick=drag.moved;
+                drag=null;svg.classList.remove('is-dragging');
+                if(svg.hasPointerCapture(event.pointerId))svg.releasePointerCapture(event.pointerId);
+                setTimeout(()=>{suppressClick=false;},0);
+            };
+            svg.addEventListener('pointerup',stopDrag);
+            svg.addEventListener('pointercancel',stopDrag);
+            root.addEventListener('click',event=>{if(suppressClick){event.preventDefault();event.stopPropagation();}},true);
+            svg.addEventListener('keydown',event=>{
+                if(event.key==='+'||event.key==='='){event.preventDefault();zoomAt(scale*step);}
+                else if(event.key==='-'){event.preventDefault();zoomAt(scale/step);}
+                else if(event.key==='0'||event.key==='Escape'){event.preventDefault();scale=1;translateX=translateY=0;apply();}
+                else if(scale>1&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){
+                    event.preventDefault();const distance=35;
+                    if(event.key==='ArrowLeft')translateX+=distance;
+                    if(event.key==='ArrowRight')translateX-=distance;
+                    if(event.key==='ArrowUp')translateY+=distance;
+                    if(event.key==='ArrowDown')translateY-=distance;
+                    apply();
+                }
+            });
+            apply();
+        })();</script>
         <section class="panel"><h2><?= e(tr('dashboard.next_title')) ?></h2><p><?= e(tr('dashboard.next_body')) ?></p></section>
 
     <?php elseif ($page === 'sharing'): ?>

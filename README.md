@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 30.09.2026. Version 2.4.54 macht den Bewerbungsstatus ab «Gesendet» zur verbindlichen Quelle für den zugehörigen Jobstatus und korrigiert vorhandene Abweichungen gesichert.
-Release-Dokumentation: [Release 2.4.54](docs/jobsearch/RELEASE-2.4.54.md), [Release 2.4.53](docs/jobsearch/RELEASE-2.4.53.md), [Release 2.4.52](docs/jobsearch/RELEASE-2.4.52.md).
+Stand: 05.10.2026. Version 2.4.55 ergänzt die Schweizer Jobkarte um begrenzten Zoom, Verschieben und eine jederzeit erreichbare Rücksetzung.
+Release-Dokumentation: [Release 2.4.55](docs/jobsearch/RELEASE-2.4.55.md), [Release 2.4.54](docs/jobsearch/RELEASE-2.4.54.md), [Release 2.4.53](docs/jobsearch/RELEASE-2.4.53.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

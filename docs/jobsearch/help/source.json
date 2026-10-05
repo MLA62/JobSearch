@@ -2137,6 +2137,34 @@
       "pt-BR": "Sem candidatura",
       "es-MX": "Sin candidatura"
     },
+    "dashboard.heatmap.zoom_controls": {
+      "de-CH": "Karten-Zoom",
+      "fr-CH": "Zoom de la carte",
+      "en-GB": "Map zoom",
+      "pt-BR": "Zoom do mapa",
+      "es-MX": "Zoom del mapa"
+    },
+    "dashboard.heatmap.zoom_in": {
+      "de-CH": "Karte vergrössern",
+      "fr-CH": "Agrandir la carte",
+      "en-GB": "Zoom in on map",
+      "pt-BR": "Ampliar o mapa",
+      "es-MX": "Ampliar el mapa"
+    },
+    "dashboard.heatmap.zoom_out": {
+      "de-CH": "Karte verkleinern",
+      "fr-CH": "Réduire la carte",
+      "en-GB": "Zoom out on map",
+      "pt-BR": "Reduzir o mapa",
+      "es-MX": "Reducir el mapa"
+    },
+    "dashboard.heatmap.zoom_reset": {
+      "de-CH": "Kartenausschnitt zurücksetzen",
+      "fr-CH": "Réinitialiser la vue de la carte",
+      "en-GB": "Reset map view",
+      "pt-BR": "Redefinir a visualização do mapa",
+      "es-MX": "Restablecer la vista del mapa"
+    },
     "reports.filter_any_of": {
       "de-CH": "Mehrere Werte wählen (ODER); keine Auswahl = alle",
       "fr-CH": "Plusieurs valeurs (OU); aucune sélection = toutes",

@@ -89,6 +89,10 @@ dashboardCheck(strlen(dashboardSwissOutlinePath()) > 3000, 'Official Switzerland
 foreach (['dashboard-charts','dashboard-pie','dashboard-heatmap','dashboard-swiss-map','dashboard-heat-list'] as $contract) {
     dashboardCheck(str_contains($source, $contract), "Dashboard markup includes {$contract}");
 }
+dashboardCheck(str_contains($source, 'data-dashboard-map') && str_contains($source, 'data-map-viewport'), 'Heat map exposes one transformable zoom viewport');
+dashboardCheck(str_contains($source, 'data-map-zoom-in') && str_contains($source, 'data-map-zoom-out') && str_contains($source, 'data-map-zoom-reset'), 'Heat map offers zoom in, zoom out and reset controls');
+dashboardCheck(str_contains($source, "svg.addEventListener('wheel'") && str_contains($source, "svg.addEventListener('pointermove'") && str_contains($source, "svg.addEventListener('keydown'"), 'Heat map supports wheel zoom, pointer panning and keyboard control');
+dashboardCheck(str_contains($source, 'minScale=1,maxScale=4') && str_contains($source, 'width*(1-scale)'), 'Heat map zoom and panning stay within deterministic bounds');
 dashboardCheck(str_contains($source, 'GROUP BY status ORDER BY status') && str_contains($source, "CASE WHEN is_intermediary=1 THEN 'intermediary' ELSE 'direct' END"), 'Dashboard queries aggregate job, application and company categories');
 dashboardCheck(str_contains($source, 'class="dashboard-chart-link"') && str_contains($source, 'class="dashboard-heat-link"'), 'Every legend value and map bubble is linked');
 dashboardCheck(str_contains($source, 'class="dashboard-heat-slice"') && str_contains($source, 'class="dashboard-heat-outline"'), 'Heat-map bubbles render status slices and a visible outline');
