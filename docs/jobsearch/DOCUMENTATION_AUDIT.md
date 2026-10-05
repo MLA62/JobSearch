@@ -1,11 +1,27 @@
 # Dokumentationsaudit
 
-Stand: 2026-10-05. Version 2.4.55 ist implementiert, dokumentiert, lokal
+Stand: 2026-10-05. Version 2.4.56 ist implementiert, dokumentiert, lokal
+verifiziert und öffentlich ausgerollt. Der produktive Hash entspricht der
+lokal geprüften Datei; die öffentliche Seite weist Version 2.4.56 aus.
+
+## Prüfstand 2.4.56
+
+- Ortspositionen folgen Zoom und Verschiebung der Karte.
+- Die Kreise erhalten den exakten inversen Zoomfaktor und behalten deshalb
+  ihren sichtbaren Durchmesser sowie ihre Grössenrelationen.
+- Farbsegmente, Umrandungen, Tooltips und individuelle Ortslinks bleiben
+  unverändert erhalten.
+- Der produktive Chromium-Test bestätigt den Gegenfaktor bei Desktop- und
+  Mobilbreite; alle 58 PHP-Testdateien und Generatorprüfungen sind grün.
+- Produktive und lokale `index.php` sind bytegleich; Version 2.4.56 ist
+  öffentlich bestätigt.
+
+## Prüfstand 2.4.55
+
+Version 2.4.55 ist implementiert, dokumentiert, lokal
 verifiziert und öffentlich ausgerollt. Die produktiven Hashes entsprechen
 den lokal geprüften Dateien; die öffentliche Seite weist Version 2.4.55 aus.
 Die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.
-
-## Prüfstand 2.4.55
 
 - Karten-Zoom von 100 bis 400 Prozent mit Plus, Minus und Rücksetzung.
 - Mausrad-/Touchpad-Zoom am Zeiger sowie begrenztes Verschieben mit

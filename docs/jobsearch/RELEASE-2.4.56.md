@@ -26,3 +26,12 @@ grosse Teile der Karte oder benachbarte Orte überdecken.
   Mobilbreite aus und bestätigt den Gegenfaktor nach dem Vergrössern.
 - Der vollständige PHP-Testbestand sowie Dokumentations- und
   Generatorprüfungen werden vor der Auslieferung wiederholt.
+
+## Auslieferung
+
+Produktiv ausgerollt am 05.10.2026 aus Commit `60c5a60` mit Approval-ID
+`332ed5a023d6fb92e1e650b325e076dc`. Der Connector sicherte die ersetzte
+Datei. Die produktive SHA-256-Prüfsumme von `index.php` entspricht lokal
+exakt:
+`1fa6fadd07214733fb843fd2041fdddfd6e92bcefdead4dfb6503df7c1b1cef7`.
+Die öffentliche Seite bestätigt Version 2.4.56.
