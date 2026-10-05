@@ -1,10 +1,26 @@
 # Dokumentationsaudit
 
-Stand: 2026-10-05. Version 2.4.56 ist implementiert, dokumentiert, lokal
-verifiziert und öffentlich ausgerollt. Der produktive Hash entspricht der
-lokal geprüften Datei; die öffentliche Seite weist Version 2.4.56 aus.
+Stand: 2026-10-05. Version 2.4.57 ist implementiert, dokumentiert, lokal und
+angemeldet produktiv verifiziert. Der produktive Hash entspricht der lokal
+geprüften Datei; die öffentliche Seite weist Version 2.4.57 aus.
+
+## Prüfstand 2.4.57
+
+- Der produktive Fehler wurde nach dem Zoom mit einem Ortskreis reproduziert.
+- Die Zeigerübernahme beginnt erst nach sechs Bildpunkten tatsächlicher
+  Bewegung; ein kurzer Klick bleibt beim Link.
+- Draggen unterdrückt Navigation, ein kurzer Klick öffnet den Ortsfilter.
+- Chromium prüft beide Fälle. Alle 58 PHP-Testdateien sowie Hilfe- und
+  Referenzgenerator sind erfolgreich.
+- Angemeldet führt der Kreisklick nach dem Zoom produktiv in die gefilterte
+  Jobansicht; dort wird ein Job-Kärtchen angezeigt.
+- Produktive und lokale `index.php` sind bytegleich.
 
 ## Prüfstand 2.4.56
+
+Version 2.4.56 ist implementiert, dokumentiert, lokal
+verifiziert und öffentlich ausgerollt. Der produktive Hash entspricht der
+lokal geprüften Datei; die öffentliche Seite weist Version 2.4.56 aus.
 
 - Ortspositionen folgen Zoom und Verschiebung der Karte.
 - Die Kreise erhalten den exakten inversen Zoomfaktor und behalten deshalb

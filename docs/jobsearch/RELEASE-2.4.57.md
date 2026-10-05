@@ -26,3 +26,14 @@ verschoben wurde.
   Bubble-Klick den erwarteten Link.
 - Der Vertragstest sichert Schwellwert, verzögerte Zeigerübernahme und
   ausschliessliche Klickunterdrückung bei einer echten Drag-Geste.
+
+## Auslieferung
+
+Produktiv ausgerollt am 05.10.2026 aus Commit `0789b10` mit Approval-ID
+`4ffaa6da71e9a111bef8f1f8aee0a7c8`. Der Connector sicherte die ersetzte
+Datei. Die produktive SHA-256-Prüfsumme von `index.php` entspricht lokal
+exakt:
+`236b32019609301c946e4ac14f99b7865472c54b31276854fb5d625a79467c95`.
+Die öffentliche Seite bestätigt Version 2.4.57. Angemeldet führt der
+Kreisklick nach dem Zoom in die Ortsfilterung und zeigt dort ein
+Job-Kärtchen.

@@ -1,6 +1,22 @@
 # Deployment und Betrieb
 
-Stand: 2026-10-05. Release 2.4.56 ist öffentlich produktiv verifiziert;
+Stand: 2026-10-05. Release 2.4.57 ist öffentlich und angemeldet produktiv
+verifiziert. `index.php` ist mit der lokal getesteten Datei bytegleich. Die
+öffentliche Seite liefert Version 2.4.57. Nach dem Zoom führt ein kurzer
+Kreisklick wieder in die Ortsfilterung und zeigt dort ein Job-Kärtchen.
+Ausgerollt wurde ausschliesslich der Front Controller; der Connector sicherte
+die vorherige Datei. Keine Schema- oder Datenänderung. Details:
+[Release 2.4.57](RELEASE-2.4.57.md).
+
+Quell-Commit: `0789b10`. Approval-ID:
+`4ffaa6da71e9a111bef8f1f8aee0a7c8`. Produktive SHA-256-Prüfsumme von
+`index.php`:
+`236b32019609301c946e4ac14f99b7865472c54b31276854fb5d625a79467c95`
+bei 1'446'507 Bytes.
+
+## Vorheriger Produktivstand 2.4.56
+
+Release 2.4.56 ist öffentlich produktiv verifiziert;
 `index.php` ist mit der lokal getesteten Datei bytegleich. Die öffentliche
 Seite liefert Version 2.4.56. Ausgerollt wurde ausschliesslich der
 Front Controller; der Connector sicherte die vorherige Datei. Keine Schema-
