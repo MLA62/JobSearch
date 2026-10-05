@@ -15,6 +15,8 @@ lokal geprüften Datei; die öffentliche Seite weist Version 2.4.56 aus.
   Mobilbreite; alle 58 PHP-Testdateien und Generatorprüfungen sind grün.
 - Produktive und lokale `index.php` sind bytegleich; Version 2.4.56 ist
   öffentlich bestätigt.
+- Die angemeldete Startseite bestätigt produktiv Zoom von 100 auf 135
+  Prozent und die Rücksetzung auf exakt 100 Prozent.
 
 ## Prüfstand 2.4.55
 

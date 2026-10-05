@@ -4,7 +4,9 @@ Stand: 2026-10-05. Release 2.4.56 ist öffentlich produktiv verifiziert;
 `index.php` ist mit der lokal getesteten Datei bytegleich. Die öffentliche
 Seite liefert Version 2.4.56. Ausgerollt wurde ausschliesslich der
 Front Controller; der Connector sicherte die vorherige Datei. Keine Schema-
-oder Datenänderung. Details: [Release 2.4.56](RELEASE-2.4.56.md).
+oder Datenänderung. Angemeldet wurden 100 auf 135 Prozent sowie die
+Rücksetzung auf exakt 100 Prozent produktiv geprüft. Details:
+[Release 2.4.56](RELEASE-2.4.56.md).
 
 Quell-Commit: `60c5a60`. Approval-ID:
 `332ed5a023d6fb92e1e650b325e076dc`. Produktive SHA-256-Prüfsumme von

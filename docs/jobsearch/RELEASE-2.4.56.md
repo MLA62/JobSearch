@@ -34,4 +34,6 @@ Produktiv ausgerollt am 05.10.2026 aus Commit `60c5a60` mit Approval-ID
 Datei. Die produktive SHA-256-Prüfsumme von `index.php` entspricht lokal
 exakt:
 `1fa6fadd07214733fb843fd2041fdddfd6e92bcefdead4dfb6503df7c1b1cef7`.
-Die öffentliche Seite bestätigt Version 2.4.56.
+Die öffentliche Seite bestätigt Version 2.4.56. Auf der angemeldeten
+Startseite wurden der Zoom von 100 auf 135 Prozent und die Rücksetzung auf
+exakt 100 Prozent produktiv geprüft.
