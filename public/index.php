@@ -17362,7 +17362,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.55';
+$codeVersion = '2.4.56';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18078,7 +18078,7 @@ startUiTranslationBuffer($appLocale);
                     <svg class="dashboard-swiss-map" viewBox="0 0 1000 640" role="img" tabindex="0" data-map-svg aria-label="<?= e(tr('dashboard.heatmap.aria',null,['count'=>(string)$mappedJobs])) ?>">
                         <g data-map-viewport>
                             <path class="dashboard-swiss-outline" fill-rule="evenodd" d="<?= e(dashboardSwissOutlinePath()) ?>"/>
-                            <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?>"><title><?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?></title><?php foreach($point['slices'] as $slice): ?><?php if($slice['full']): ?><circle class="dashboard-heat-slice" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" fill="<?= e($slice['color']) ?>"/><?php else: ?><path class="dashboard-heat-slice" d="<?= e($slice['path']) ?>" fill="<?= e($slice['color']) ?>"/><?php endif; ?><?php endforeach; ?><circle class="dashboard-heat-outline" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
+                            <?php foreach($companyHeatPoints as $point): ?><a class="dashboard-heat-link" data-map-marker data-map-x="<?= e(number_format($point['x'],1,'.','')) ?>" data-map-y="<?= e(number_format($point['y'],1,'.','')) ?>" href="<?= e($point['href']) ?>" aria-label="<?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?>"><title><?= e($point['label'].' · '.$point['count'].' · '.$point['summary']) ?></title><?php foreach($point['slices'] as $slice): ?><?php if($slice['full']): ?><circle class="dashboard-heat-slice" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>" fill="<?= e($slice['color']) ?>"/><?php else: ?><path class="dashboard-heat-slice" d="<?= e($slice['path']) ?>" fill="<?= e($slice['color']) ?>"/><?php endif; ?><?php endforeach; ?><circle class="dashboard-heat-outline" cx="<?= e(number_format($point['x'],1,'.','')) ?>" cy="<?= e(number_format($point['y'],1,'.','')) ?>" r="<?= e(number_format($point['radius'],1,'.','')) ?>"/></a><?php endforeach; ?>
                         </g>
                     </svg>
                     <output class="dashboard-map-zoom-status" data-map-zoom-status aria-live="polite">100 %</output>
@@ -18093,6 +18093,7 @@ startUiTranslationBuffer($appLocale);
             if(!root)return;
             const svg=root.querySelector('[data-map-svg]');
             const viewport=root.querySelector('[data-map-viewport]');
+            const markers=Array.from(root.querySelectorAll('[data-map-marker]'));
             const status=root.querySelector('[data-map-zoom-status]');
             const width=1000,height=640,minScale=1,maxScale=4,step=1.35;
             let scale=1,translateX=0,translateY=0,drag=null,suppressClick=false;
@@ -18102,6 +18103,11 @@ startUiTranslationBuffer($appLocale);
                 translateX=clamp(translateX,width*(1-scale),0);
                 translateY=clamp(translateY,height*(1-scale),0);
                 viewport.setAttribute('transform',`matrix(${scale} 0 0 ${scale} ${translateX} ${translateY})`);
+                const markerScale=1/scale;
+                markers.forEach(marker=>{
+                    const x=Number(marker.dataset.mapX),y=Number(marker.dataset.mapY);
+                    marker.setAttribute('transform',`translate(${x} ${y}) scale(${markerScale}) translate(${-x} ${-y})`);
+                });
                 svg.classList.toggle('is-zoomed',scale>minScale);
                 status.value=status.textContent=`${Math.round(scale*100)} %`;
                 root.querySelector('[data-map-zoom-out]').disabled=scale<=minScale;
