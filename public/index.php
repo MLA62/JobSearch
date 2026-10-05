@@ -17362,7 +17362,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.56';
+$codeVersion = '2.4.57';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
@@ -18128,20 +18128,23 @@ startUiTranslationBuffer($appLocale);
             svg.addEventListener('pointerdown',event=>{
                 if(scale<=1||event.button!==0)return;
                 const start=point(event.clientX,event.clientY);
-                drag={pointerId:event.pointerId,x:start.x,y:start.y,moved:false};
-                svg.setPointerCapture(event.pointerId);
-                svg.classList.add('is-dragging');
+                drag={pointerId:event.pointerId,x:start.x,y:start.y,startClientX:event.clientX,startClientY:event.clientY,active:false};
             });
             svg.addEventListener('pointermove',event=>{
                 if(!drag||drag.pointerId!==event.pointerId)return;
+                if(!drag.active){
+                    if(Math.hypot(event.clientX-drag.startClientX,event.clientY-drag.startClientY)<6)return;
+                    drag.active=true;
+                    svg.setPointerCapture(event.pointerId);
+                    svg.classList.add('is-dragging');
+                }
                 const current=point(event.clientX,event.clientY);
                 const dx=current.x-drag.x,dy=current.y-drag.y;
-                if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;
                 translateX+=dx;translateY+=dy;drag.x=current.x;drag.y=current.y;apply();
             });
             const stopDrag=event=>{
                 if(!drag||drag.pointerId!==event.pointerId)return;
-                suppressClick=drag.moved;
+                suppressClick=drag.active;
                 drag=null;svg.classList.remove('is-dragging');
                 if(svg.hasPointerCapture(event.pointerId))svg.releasePointerCapture(event.pointerId);
                 setTimeout(()=>{suppressClick=false;},0);

@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 05.10.2026. Version 2.4.56 hält die Ortskreise beim Kartenzoom proportional lesbar, während ihre Positionen dem vergrösserten Kartenausschnitt folgen.
-Release-Dokumentation: [Release 2.4.56](docs/jobsearch/RELEASE-2.4.56.md), [Release 2.4.55](docs/jobsearch/RELEASE-2.4.55.md), [Release 2.4.54](docs/jobsearch/RELEASE-2.4.54.md).
+Stand: 05.10.2026. Version 2.4.57 trennt nach dem Kartenzoom einen kurzen Ortsklick zuverlässig von einer Verschiebegeste, sodass die gefilterte Jobansicht wieder öffnet.
+Release-Dokumentation: [Release 2.4.57](docs/jobsearch/RELEASE-2.4.57.md), [Release 2.4.56](docs/jobsearch/RELEASE-2.4.56.md), [Release 2.4.55](docs/jobsearch/RELEASE-2.4.55.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.
