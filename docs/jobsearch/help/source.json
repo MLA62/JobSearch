@@ -1,6 +1,6 @@
 {
-  "version": "2.4.53",
-  "reviewed": "2026-09-23",
+  "version": "2.4.59",
+  "reviewed": "2026-10-05",
   "locales": [
     "de-CH",
     "fr-CH",
@@ -2773,6 +2773,48 @@
       "en-GB": "Abort",
       "pt-BR": "Cancelar",
       "es-MX": "Cancelar"
+    },
+    "bulk.select_record": {
+      "de-CH": "Auswählen",
+      "fr-CH": "Sélectionner",
+      "en-GB": "Select",
+      "pt-BR": "Selecionar",
+      "es-MX": "Seleccionar"
+    },
+    "bulk.deselect_record": {
+      "de-CH": "Abwählen",
+      "fr-CH": "Désélectionner",
+      "en-GB": "Deselect",
+      "pt-BR": "Desmarcar",
+      "es-MX": "Deseleccionar"
+    },
+    "bulk.selected_count": {
+      "de-CH": "{count} ausgewählt",
+      "fr-CH": "{count} sélectionné(s)",
+      "en-GB": "{count} selected",
+      "pt-BR": "{count} selecionado(s)",
+      "es-MX": "{count} seleccionado(s)"
+    },
+    "bulk.clear_selection": {
+      "de-CH": "Auswahl aufheben",
+      "fr-CH": "Effacer la sélection",
+      "en-GB": "Clear selection",
+      "pt-BR": "Limpar seleção",
+      "es-MX": "Limpiar selección"
+    },
+    "bulk.delete_selected": {
+      "de-CH": "Auswahl löschen",
+      "fr-CH": "Supprimer la sélection",
+      "en-GB": "Delete selection",
+      "pt-BR": "Excluir seleção",
+      "es-MX": "Eliminar selección"
+    },
+    "bulk.delete_confirm": {
+      "de-CH": "Ausgewählte Datensätze löschen?",
+      "fr-CH": "Supprimer les enregistrements sélectionnés ?",
+      "en-GB": "Delete the selected records?",
+      "pt-BR": "Excluir os registros selecionados?",
+      "es-MX": "¿Eliminar los registros seleccionados?"
     },
     "applications.prepare_cancelled": {
       "de-CH": "Die Vorbereitung wurde abgebrochen. Es wurde keine Bewerbung angelegt.",

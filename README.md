@@ -1,7 +1,7 @@
 # JeMa Jobs
 
-Stand: 05.10.2026. Version 2.4.58 ergänzt in den Job-Aktionen eine reloadfreie Mehrfachauswahl und löscht die markierten Jobs erst mit einer gemeinsamen, bestätigten Aktion.
-Release-Dokumentation: [Release 2.4.58](docs/jobsearch/RELEASE-2.4.58.md), [Release 2.4.57](docs/jobsearch/RELEASE-2.4.57.md), [Release 2.4.56](docs/jobsearch/RELEASE-2.4.56.md).
+Stand: 05.10.2026. Version 2.4.59 ergänzt in den Job-Aktionen eine reloadfreie Mehrfachauswahl, lokalisiert sämtliche Auswahlaktionen und löscht markierte Jobs erst mit einer gemeinsamen, bestätigten Aktion.
+Release-Dokumentation: [Release 2.4.59](docs/jobsearch/RELEASE-2.4.59.md), [Release 2.4.58](docs/jobsearch/RELEASE-2.4.58.md), [Release 2.4.57](docs/jobsearch/RELEASE-2.4.57.md).
 
 Privates, mandantengetrenntes Bewerbungs-CRM fuer https://jobs.jema.business.
 Der Ablauf lautet **Entwurf -> Bereit -> Gesendet -> Bewerbungsgespraeche -> Zusage oder Absage**.

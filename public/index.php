@@ -2662,6 +2662,54 @@ function helpTranslationSeeds(): array
     'pt-BR' => 'Ir para vagas',
     'es-MX' => 'Ir a vacantes',
   ),
+  'bulk.clear_selection' =>
+  array (
+    'de-CH' => 'Auswahl aufheben',
+    'fr-CH' => 'Effacer la sélection',
+    'en-GB' => 'Clear selection',
+    'pt-BR' => 'Limpar seleção',
+    'es-MX' => 'Limpiar selección',
+  ),
+  'bulk.delete_confirm' =>
+  array (
+    'de-CH' => 'Ausgewählte Datensätze löschen?',
+    'fr-CH' => 'Supprimer les enregistrements sélectionnés ?',
+    'en-GB' => 'Delete the selected records?',
+    'pt-BR' => 'Excluir os registros selecionados?',
+    'es-MX' => '¿Eliminar los registros seleccionados?',
+  ),
+  'bulk.delete_selected' =>
+  array (
+    'de-CH' => 'Auswahl löschen',
+    'fr-CH' => 'Supprimer la sélection',
+    'en-GB' => 'Delete selection',
+    'pt-BR' => 'Excluir seleção',
+    'es-MX' => 'Eliminar selección',
+  ),
+  'bulk.deselect_record' =>
+  array (
+    'de-CH' => 'Abwählen',
+    'fr-CH' => 'Désélectionner',
+    'en-GB' => 'Deselect',
+    'pt-BR' => 'Desmarcar',
+    'es-MX' => 'Deseleccionar',
+  ),
+  'bulk.select_record' =>
+  array (
+    'de-CH' => 'Auswählen',
+    'fr-CH' => 'Sélectionner',
+    'en-GB' => 'Select',
+    'pt-BR' => 'Selecionar',
+    'es-MX' => 'Seleccionar',
+  ),
+  'bulk.selected_count' =>
+  array (
+    'de-CH' => '{count} ausgewählt',
+    'fr-CH' => '{count} sélectionné(s)',
+    'en-GB' => '{count} selected',
+    'pt-BR' => '{count} selecionado(s)',
+    'es-MX' => '{count} seleccionado(s)',
+  ),
   'context.all_topics' =>
   array (
     'de-CH' => 'Alle Hilfethemen',
@@ -17374,7 +17422,7 @@ $appLocale = currentLocale($currentUser ?: null);
 if (!pageSupportsMultilingualUi($page)) {
     $appLocale = 'de-CH';
 }
-$codeVersion = '2.4.58';
+$codeVersion = '2.4.59';
 $configuredVersion = (string) ($config['app_version'] ?? '');
 $appVersion = version_compare($configuredVersion, $codeVersion, '>=') ? $configuredVersion : $codeVersion;
 seedDbUiTextCatalog();
