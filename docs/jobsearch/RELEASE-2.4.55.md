@@ -36,6 +36,12 @@ mit den gefilterten Joblisten zu verlieren.
 
 ## Auslieferung
 
-Die produktive Auslieferung erfolgt gemäss dem dokumentierten cPanel-Prozess
-mit externer Einmalfreigabe, Sicherung, Hashvergleich und anschliessender
-öffentlicher sowie angemeldeter Prüfung.
+Produktiv ausgerollt am 05.10.2026 aus Commit `4fa02f6` mit Approval-ID
+`4d0db24eac2a2cfb0c043cb32611d4be`. Der Connector sicherte beide
+überschriebenen Dateien. Die produktiven SHA-256-Prüfsummen entsprechen
+lokal exakt: `index.php`
+`4a7322090d364ac5b7ca1221b9906c1a30bb230a1efe44b1da811eb9a65a7cd5`
+und `assets/app.css`
+`55b00543cb8ff1fcefc35f2a48917cf160643d432e30b6b2a340beb2fd7deb80`.
+Die öffentliche Seite bestätigt Version 2.4.55; eine angemeldete
+Sichtprüfung bleibt mangels angemeldeter Browser-Sitzung separat offen.

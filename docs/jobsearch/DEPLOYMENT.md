@@ -1,6 +1,25 @@
 # Deployment und Betrieb
 
-Stand: 2026-09-30. Release 2.4.54 ist öffentlich produktiv verifiziert;
+Stand: 2026-10-05. Release 2.4.55 ist öffentlich produktiv verifiziert;
+`index.php` und `assets/app.css` sind mit den lokal getesteten Dateien
+bytegleich. Die öffentliche Seite liefert Version 2.4.55. Ausgerollt
+wurden ausschliesslich diese zwei Dateien; der Connector legte vor dem
+Überschreiben Sicherungen an. Keine Schema- oder Datenänderung. Die
+angemeldete Sichtprüfung der Kartenbedienung bleibt mangels angemeldeter
+Browser-Sitzung separat offen. Details:
+[Release 2.4.55](RELEASE-2.4.55.md).
+
+Quell-Commit: `4fa02f6`. Approval-ID:
+`4d0db24eac2a2cfb0c043cb32611d4be`. Produktive SHA-256-Prüfsummen:
+`index.php`
+`4a7322090d364ac5b7ca1221b9906c1a30bb230a1efe44b1da811eb9a65a7cd5`
+bei 1'445'778 Bytes und `assets/app.css`
+`55b00543cb8ff1fcefc35f2a48917cf160643d432e30b6b2a340beb2fd7deb80`
+bei 60'598 Bytes.
+
+## Vorheriger Produktivstand 2.4.54
+
+Release 2.4.54 ist öffentlich produktiv verifiziert;
 `index.php` ist mit der lokal getesteten Datei bytegleich. Die
 öffentliche Seite liefert HTTP 200 und Version 2.4.54. Vor dem
 Überschreiben wurde die produktive 2.4.53-Datei durch den Connector

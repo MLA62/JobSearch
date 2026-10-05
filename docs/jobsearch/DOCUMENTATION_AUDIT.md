@@ -1,11 +1,29 @@
 # Dokumentationsaudit
 
-Stand: 2026-09-30. Version 2.4.54 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
+Stand: 2026-10-05. Version 2.4.55 ist implementiert, dokumentiert, lokal
+verifiziert und öffentlich ausgerollt. Die produktiven Hashes entsprechen
+den lokal geprüften Dateien; die öffentliche Seite weist Version 2.4.55 aus.
+Die angemeldete Sichtprüfung bleibt sitzungsabhängig offen.
+
+## Prüfstand 2.4.55
+
+- Karten-Zoom von 100 bis 400 Prozent mit Plus, Minus und Rücksetzung.
+- Mausrad-/Touchpad-Zoom am Zeiger sowie begrenztes Verschieben mit
+  Zeigegerät oder Pfeiltasten.
+- Bubble-Links bleiben anklickbar; eine Verschiebegeste öffnet keinen Link.
+- Chromium bestätigt bei Desktop- und Mobilbreite Zoom, exakte Rücksetzung,
+  responsive Darstellung und fehlenden horizontalen Seitenüberlauf.
+- Alle 58 PHP-Testdateien, PHP-Syntax, Hilfeprüfung,
+  Referenzgenerator und `git diff --check` sind erfolgreich.
+- Produktive `index.php` und `assets/app.css` sind bytegleich mit dem
+  lokalen Release; Version 2.4.55 ist öffentlich bestätigt.
+
+## Prüfstand 2.4.54
+
+Version 2.4.54 ist implementiert, dokumentiert, lokal verifiziert und öffentlich
 ausgerollt. Der Bewerbungsstatus ist ab `Gesendet` verbindlich für den
 zugehörigen Jobstatus. Vorhandene Abweichungen werden einmalig gesichert
 und korrigiert. Der produktive Dateihash entspricht dem lokalen Release.
-
-## Prüfstand 2.4.54
 
 - Bewerbungsänderungen synchronisieren weiterhin den Jobstatus.
 - Manuelles Speichern eines Jobs und Jobänderungen durch die Admin-KI
